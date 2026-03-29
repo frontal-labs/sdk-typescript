@@ -1,0 +1,24 @@
+{
+	"name": "@frontal/graph-examples",
+	"version": "0.0.0",
+	"description": "Examples for Frontal Graph SDK",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"basic-crud": "bun run basic-crud.ts",
+		"graph-traversal": "bun run graph-traversal.ts",
+		"semantic-search": "bun run semantic-search.ts",
+		"time-travel": "bun run time-travel-and-history.ts",
+		"batch-operations": "bun run batch-operations.ts",
+		"advanced-querying": "bun run advanced-querying.ts",
+		"all": "bun run basic-crud.ts && bun run graph-traversal.ts && bun run semantic-search.ts && bun run time-travel-and-history.ts && bun run batch-operations.ts && bun run advanced-querying.ts"
+	},
+	"dependencies": {
+		"@frontal/core": "workspace:*",
+		"@frontal/graph": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.8",
+		"@types/node": "^25.2.1"
+	}
+}

@@ -1,0 +1,87 @@
+{
+	"name": "@frontal/blob",
+	"version": "0.0.0",
+	"description": "Blob storage client for the Frontal Core.",
+	"keywords": [
+		"javascript",
+		"typescript",
+		"storage",
+		"cloud",
+		"storage-as-a-service",
+		"s3",
+		"blob",
+		"bucket",
+		"object",
+		"file",
+		"folder",
+		"directory",
+		"path",
+		"url",
+		"uri",
+		"frontal",
+		"frontal-labs",
+		"frontal-cloud"
+	],
+	"homepage": "https://github.com/frontal-cloud/sdk-ts/tree/master/packages/blob",
+	"bugs": "https://github.com/frontal-cloud/sdk-ts/issues",
+	"license": "MIT",
+	"author": "Frontal Labs",
+	"files": [
+		"dist",
+		"src"
+	],
+	"main": "dist/index.cjs",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.cts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.mts",
+				"default": "./dist/index.mjs"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		},
+		"./dist/*": "./dist/*",
+		"./package.json": "./package.json"
+	},
+	"sideEffects": false,
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/frontal-cloud/sdk-ts.git",
+		"directory": "packages/blob"
+	},
+	"scripts": {
+		"build": "tsup",
+		"build:watch": "tsup --watch",
+		"type-check": "tsc --noEmit",
+		"test": "bun test",
+		"lint": "biome lint src/ tests/",
+		"clean": "rm -rf dist",
+		"docs": "typedoc --entryPoints src/index.ts --out docs/v2 --entryPoints src/packages/* --excludePrivate --excludeProtected",
+		"docs:json": "typedoc --json docs/v2/spec.json --entryPoints src/index.ts --entryPoints src/packages/* --excludePrivate --excludeExternals --excludeProtected"
+	},
+	"jsdelivr": "dist/umd/frontal-cloud.js",
+	"unpkg": "dist/umd/frontal-cloud.js",
+	"publishConfig": {
+		"access": "public"
+	},
+	"engines": {
+		"bun": ">=1.3.8",
+		"node": ">=18.0.0"
+	},
+	"dependencies": {
+		"@frontal/core": "workspace:*",
+		"@t3-oss/env-core": "^0.13.10",
+		"tslib": "^2.8.1",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@frontal/testing": "workspace:*",
+		"@types/bun": "^1.3.8",
+		"@types/node": "^25.2.1",
+		"tsup": "^8.5.1"
+	}
+}

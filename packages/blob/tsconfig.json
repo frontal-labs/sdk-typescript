@@ -1,0 +1,25 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules/**/*.ts"],
+	"compilerOptions": {
+		"composite": true,
+		"declaration": true,
+		"declarationMap": true,
+		"module": "ESNext",
+		"outDir": "dist/main",
+		"rootDir": "src",
+		"sourceMap": true,
+		"target": "ES6",
+		"strict": true,
+		"esModuleInterop": true,
+		"moduleResolution": "bundler",
+		"lib": ["ES2022", "dom"],
+		"forceConsistentCasingInFileNames": true,
+		"stripInternal": true,
+		"allowSyntheticDefaultImports": true,
+		"noImplicitOverride": false,
+		"isolatedModules": false
+	},
+	"references": []
+}

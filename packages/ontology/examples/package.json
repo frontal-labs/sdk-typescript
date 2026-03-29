@@ -1,0 +1,26 @@
+{
+	"name": "@frontal/ontology-examples",
+	"version": "0.0.0",
+	"description": "Examples and demonstrations for the Frontal Models SDK",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"basic-crud": "bun run basic-crud.ts",
+		"migrations": "bun run migrations.ts",
+		"rules-mixins": "bun run rules-mixins.ts",
+		"ai-generation": "bun run ai-generation.ts",
+		"complete-workflows": "bun run complete-workflows.ts",
+		"all": "bun run basic-crud.ts && bun run migrations.ts && bun run rules-mixins.ts && bun run ai-generation.ts && bun run complete-workflows.ts"
+	},
+	"dependencies": {
+		"@frontal/ontology": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.8",
+		"@types/node": "^25.2.1"
+	},
+	"engines": {
+		"bun": ">=1.3.8",
+		"node": ">=18.0.0"
+	}
+}
