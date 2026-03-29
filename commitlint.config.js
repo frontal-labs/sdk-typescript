@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	extends: ["@commitlint/config-conventional"],
 
 	rules: {
@@ -110,13 +110,13 @@ module.exports = {
 			scope: {
 				description: "What is the scope of this change",
 				enum: {
-					ai: { description: "Anything @frontal-cloud/ai specific" },
-					compute: { description: "Anything @frontal-cloud/compute specific" },
+					ai: { description: "Anything @frontal/ai specific" },
+					compute: { description: "Anything @frontal/compute specific" },
 					functions: {
-						description: "Anything @frontal-cloud/functions specific",
+						description: "Anything @frontal/functions specific",
 					},
-					storage: { description: "Anything @frontal-cloud/storage specific" },
-					flags: { description: "Anything @frontal-cloud/flags specific" },
+					storage: { description: "Anything @frontal/storage specific" },
+					flags: { description: "Anything @frontal/flags specific" },
 					repo: { description: "Repository-level changes" },
 					deps: { description: "Dependencies" },
 					ci: { description: "Changes to CI" },

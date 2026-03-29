@@ -1,9 +1,9 @@
 /**
- * Release configuration for Frontal Cloud SDK
+ * Release configuration for Frontal SDK
  * This config works with changesets for automated releases
  */
 
-module.exports = {
+export default {
   // Branch configuration
   branches: [
     {
@@ -30,19 +30,19 @@ module.exports = {
   plugins: [
     // Analyze commits for conventional commits
     '@semantic-release/commit-analyzer',
-    
+
     // Generate release notes from commits
     '@semantic-release/release-notes-generator',
-    
+
     // Update changelog files
     [
       '@semantic-release/changelog',
       {
         changelogFile: 'CHANGELOG.md',
-        changelogTitle: '# Frontal Cloud SDK Changelog',
+        changelogTitle: '# Frontal SDK Changelog',
       },
     ],
-    
+
     // Update package.json versions
     [
       '@semantic-release/npm',
@@ -52,7 +52,7 @@ module.exports = {
         tarballDir: 'dist',
       },
     ],
-    
+
     // Create GitHub release
     [
       '@semantic-release/github',
@@ -66,7 +66,7 @@ module.exports = {
         addReleases: 'bottom',
       },
     ],
-    
+
     // Git operations (commit, tag, push)
     [
       '@semantic-release/git',
@@ -92,7 +92,7 @@ module.exports = {
     writerOpts: {
       transform: (commit, context) => {
         const issues = [];
-        
+
         commit.notes.forEach(note => {
           note.title = `BREAKING CHANGES`;
         });
@@ -129,7 +129,7 @@ module.exports = {
           let url = context.repository
             ? `${context.host}/${context.owner}/${context.repository}`
             : context.repoUrl;
-          
+
           if (url) {
             url = `${url}/issues/`;
             // Issue URLs.
@@ -138,7 +138,7 @@ module.exports = {
               return `[#${issue}](${url}${issue})`;
             });
           }
-          
+
           if (context.host) {
             // User URLs.
             commit.subject = commit.subject.replace(/@([a-zA-Z0-9_-]+)/g, `[@$1](${context.host}/$1)`);
