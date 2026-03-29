@@ -35,7 +35,7 @@ jobs:
               STATUS_PREFIX="succeeded";
               ;;
             failure)
-              STATUS_ICON="❌";
+              STATUS_ICON="[ERROR]";
               STATUS_PREFIX="failed";
               ;;
             *)

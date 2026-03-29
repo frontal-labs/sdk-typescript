@@ -1,6 +1,6 @@
 # Root Tests
 
-This directory contains global tests for the Frontal Cloud SDK monorepo.
+This directory contains global tests for the Frontal SDK monorepo.
 
 ## Test Structure
 

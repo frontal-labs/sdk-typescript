@@ -3,38 +3,50 @@
 	"compileOnSave": false,
 	"files": [],
 	"references": [
+    {
+			"path": "./packages/core"
+		},
 		{
 			"path": "./packages/ai"
 		},
 		{
-			"path": "./packages/storage"
+			"path": "./packages/blob"
 		},
 		{
 			"path": "./packages/functions"
 		},
 		{
-			"path": "./packages/compute"
+			"path": "./packages/agents"
 		},
 		{
-			"path": "./packages/logging"
+			"path": "./packages/graph"
 		},
 		{
-			"path": "./packages/notifications"
+			"path": "./packages/ontology"
 		},
 		{
-			"path": "./packages/flags"
+			"path": "./packages/pipelines"
+		},
+		{
+			"path": "./packages/workflows"
+		},
+		{
+			"path": "./packages/testing"
 		}
 	],
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"@frontal-cloud/ai": ["packages/ai/src"],
-			"@frontal-cloud/compute": ["packages/compute/src"],
-			"@frontal-cloud/flags": ["packages/flags/src"],
-			"@frontal-cloud/functions": ["packages/functions/src"],
-			"@frontal-cloud/logging": ["packages/logging/src"],
-			"@frontal-cloud/notifications": ["packages/notifications/src"],
-			"@frontal-cloud/storage": ["packages/storage/src"]
+      "@frontal/core": ["./packages/core/src"],
+			"@frontal/ai": ["./packages/ai/src"],
+			"@frontal/functions": ["./packages/functions/src"],
+			"@frontal/blob": ["./packages/blob/src"],
+			"@frontal/agents": ["./packages/agents/src"],
+			"@frontal/graph": ["./packages/graph/src"],
+			"@frontal/ontology": ["./packages/ontology/src"],
+			"@frontal/pipelines": ["./packages/pipelines/src"],
+			"@frontal/workflows": ["./packages/workflows/src"],
+      "@frontal/testing": ["./packages/testing/src"]
 		}
 	}
 }

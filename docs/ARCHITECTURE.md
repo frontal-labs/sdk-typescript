@@ -4,26 +4,57 @@ This SDK is designed as a modular monorepo, allowing for clear separation of con
 
 ## Core Components
 
-### 1. AI (`@frontal-cloud/ai`)
+### 1. AI (`@frontal/ai`)
+
 Handles interactions with AI models, including inference, prompt management, and streaming responses.
 
-### 2. Compute (`@frontal-cloud/compute`)
-Provides an abstraction layer for distributed compute tasks, allowing runners to execute code in various environments.
+### 2. Agents (`@frontal/agents`)
 
-### 3. Functions (`@frontal-cloud/functions`)
+AI agent integrations and workflows with support for LangChain, LangGraph, and Vercel AI SDK.
+
+### 3. Core (`@frontal/core`)
+
+Core HTTP client and utilities that provide the foundation for all other packages.
+
+### 4. Functions (`@frontal/functions`)
+
 A serverless functions orchestration layer, enabling developers to deploy and trigger functions easily.
 
-### 4. Flags (`@frontal-cloud/flags`)
+### 5. Flags (`@frontal/flags`)
+
 Feature flags and configuration, enabling runtime toggles and gradual rollouts.
 
-### 5. Logging (`@frontal-cloud/logging`)
+### 6. Graph (`@frontal/graph`)
+
+Graph database operations, entity CRUD, traversal, time travel, and semantic search capabilities.
+
+### 7. Logging (`@frontal/logging`)
+
 Structured logging utilities for application and request-level logs.
 
-### 6. Notifications (`@frontal-cloud/notifications`)
+### 8. Models (`@frontal/ontology`)
+
+Model deployment and management for machine learning models.
+
+### 9. Notifications (`@frontal/notifications`)
+
 Notification delivery (email, push, etc.) and management.
 
-### 7. Storage (`@frontal-cloud/storage`)
+### 10. Pipelines (`@frontal/pipelines`)
+
+Data pipeline orchestration for complex data processing workflows.
+
+### 11. Storage (`@frontal/blob`)
+
 An interface for interacting with various storage providers (S3, local, etc.) in a unified way.
+
+### 12. Testing (`@frontal/testing`)
+
+Shared testing utilities and helpers used across all packages.
+
+### 13. Workflows (`@frontal/workflows`)
+
+Workflow automation and management for complex business processes.
 
 ## Build System
 

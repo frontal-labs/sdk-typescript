@@ -13,10 +13,16 @@ This repository is a monorepo containing various packages designed to simplify t
 
 | Package | Description |
 | :--- | :--- |
-| `@frontal-cloud/ai` | AI integration and utilities. |
-| `@frontal-cloud/compute` | Distributed compute capabilities. |
-| `@frontal-cloud/functions` | Serverless functions orchestration. |
-| `@frontal-cloud/flags` | Feature flags and configuration. |
-| `@frontal-cloud/logging` | Structured logging utilities. |
-| `@frontal-cloud/notifications` | Notifications delivery and management. |
-| `@frontal-cloud/storage` | Scalable storage interactions. |
+| `@frontal/ai` | AI integration and utilities. |
+| `@frontal/agents` | AI agent integrations and workflows with LangChain, LangGraph, and Vercel AI SDK. |
+| `@frontal/core` | Core HTTP client and utilities. |
+| `@frontal/functions` | Serverless functions orchestration. |
+| `@frontal/flags` | Feature flags and configuration. |
+| `@frontal/graph` | Graph database operations and semantic search. |
+| `@frontal/logging` | Structured logging utilities. |
+| `@frontal/ontology` | Model deployment and management. |
+| `@frontal/notifications` | Notifications delivery and management. |
+| `@frontal/pipelines` | Data pipeline orchestration. |
+| `@frontal/blob` | Scalable storage interactions. |
+| `@frontal/testing` | Shared testing utilities. |
+| `@frontal/workflows` | Workflow automation and management. |

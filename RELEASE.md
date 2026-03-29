@@ -6,7 +6,7 @@ This release includes the following changes across our packages.
 
 - [General change or improvement]
 
-## `@frontal-cloud/ai`
+## `@frontal/ai`
 
 ### ✨ New Features
 -
@@ -17,7 +17,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-cloud/compute`
+## `@frontal/core`
 
 ### ✨ New Features
 -
@@ -28,7 +28,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-cloud/functions`
+## `@frontal/functions`
 
 ### ✨ New Features
 -
@@ -39,7 +39,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-cloud/flags`
+## `@frontal/graph`
 
 ### ✨ New Features
 -
@@ -50,7 +50,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-cloud/logging`
+## `@frontal/logging`
 
 ### ✨ New Features
 -
@@ -61,7 +61,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-cloud/notifications`
+## `@frontal/ontology`
 
 ### ✨ New Features
 -
@@ -72,7 +72,51 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-cloud/storage`
+## `@frontal/notifications`
+
+### ✨ New Features
+-
+
+### 🐛 Bug Fixes
+-
+
+### 💥 Breaking Changes
+-
+
+## `@frontal/pipelines`
+
+### ✨ New Features
+-
+
+### 🐛 Bug Fixes
+-
+
+### 💥 Breaking Changes
+-
+
+## `@frontal/blob`
+
+### ✨ New Features
+-
+
+### 🐛 Bug Fixes
+-
+
+### 💥 Breaking Changes
+-
+
+## `@frontal/testing`
+
+### ✨ New Features
+-
+
+### 🐛 Bug Fixes
+-
+
+### 💥 Breaking Changes
+-
+
+## `@frontal/workflows`
 
 ### ✨ New Features
 -

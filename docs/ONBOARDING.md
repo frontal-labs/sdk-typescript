@@ -50,12 +50,21 @@ Make sure that all tests pass after your changes.
 bun run test
 ```
 
-### 2.4. Lint and Format
+### 2.4. Type Check
+
+Run TypeScript type checking to ensure type safety:
+
+```bash
+bun run type-check
+```
+
+### 2.5. Lint and Format
 
 Ensure your code adheres to our style guidelines by running the linter and formatter.
 
 ```bash
 bun run lint:ts
+bun run lint:fix
 bun run format
 ```
 
@@ -75,7 +84,7 @@ Commit your changes with a descriptive message that follows our [Conventional Co
 
 ```bash
 git add .
-git commit -m "feat(compute): implement new execution method"
+git commit -m "feat(ai): implement new execution method"
 ```
 
 ### 3.3. Push to Your Fork

@@ -10,7 +10,7 @@ export default defineConfig({
     // Global test configuration
     globals: true,
     environment: 'node',
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['./packages/testing/src/setup.ts'],
 
     // Test file patterns
     include: [
@@ -80,13 +80,17 @@ export default defineConfig({
   resolve: {
     alias: {
       // Package aliases for easier imports
-      '@frontal-cloud/ai': resolve(__dirname, 'packages/ai/src'),
-      '@frontal-cloud/compute': resolve(__dirname, 'packages/compute/src'),
-      '@frontal-cloud/flags': resolve(__dirname, 'packages/flags/src'),
-      '@frontal-cloud/functions': resolve(__dirname, 'packages/functions/src'),
-      '@frontal-cloud/logging': resolve(__dirname, 'packages/logging/src'),
-      '@frontal-cloud/notifications': resolve(__dirname, 'packages/notifications/src'),
-      '@frontal-cloud/storage': resolve(__dirname, 'packages/storage/src'),
+      '@frontal/ai': resolve(__dirname, 'packages/ai/src'),
+      '@frontal/functions': resolve(__dirname, 'packages/functions/src'),
+      '@frontal/blob': resolve(__dirname, 'packages/blob/src'),
+      '@frontal/agents': resolve(__dirname, 'packages/agents/src'),
+      '@frontal/core': resolve(__dirname, 'packages/core/src'),
+      '@frontal/graph': resolve(__dirname, 'packages/graph/src'),
+      '@frontal/ontology': resolve(__dirname, 'packages/ontology/src'),
+      '@frontal/pipelines': resolve(__dirname, 'packages/pipelines/src'),
+      '@frontal/workflows': resolve(__dirname, 'packages/workflows/src'),
+      '@frontal/testing': resolve(__dirname, 'packages/testing/src'),
+      '@frontal/types': resolve(__dirname, 'types'),
     },
   },
 

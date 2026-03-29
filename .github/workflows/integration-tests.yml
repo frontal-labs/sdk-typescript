@@ -107,7 +107,7 @@ jobs:
           done
 
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "❌ Edge functions not responding after $MAX_ATTEMPTS attempts (final status: $HTTP_CODE)"
+            echo "[ERROR] Edge functions not responding after $MAX_ATTEMPTS attempts (final status: $HTTP_CODE)"
             echo "--- Edge functions log ---"
             cat /tmp/supabase-functions.log 2>/dev/null || echo "(no log available)"
             echo "--- End of log ---"
@@ -116,7 +116,7 @@ jobs:
 
       - name: Prepare platform test dependencies
         run: |
-          echo "📦 Installing dependencies for platform tests..."
+          echo "[INFO] Installing dependencies for platform tests..."
           echo "   Using --legacy-peer-deps because preview packages have version 0.0.0-automated"
           echo "   which doesn't satisfy peer dependency requirements like ^2.76.1"
           echo ""
