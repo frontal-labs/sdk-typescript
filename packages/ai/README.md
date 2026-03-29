@@ -1,6 +1,6 @@
-# @frontal-cloud/ai
+# @frontal/ai
 
-A powerful, type-safe AI SDK for Frontal Cloud. Interacts seamlessly with the Frontal AI Gateway to provide access to LLMs, embeddings, and multimodal capabilities.
+A powerful, type-safe AI SDK for Frontal. Interacts seamlessly with the Frontal AI Gateway to provide access to LLMs, embeddings, and multimodal capabilities.
 
 ## Features
 
@@ -9,12 +9,12 @@ A powerful, type-safe AI SDK for Frontal Cloud. Interacts seamlessly with the Fr
 - **Multimodal**: Support for Text, Image, Audio (Speech & Transcription), and Video.
 - **Structured Output**: reliable valid JSON generation using `generateObject`.
 - **Tools & Prompts**: Built-in systems for managing prompts and tools.
-- **Gateway Integrated**: Pre-configured for `ai.frontal.cloud` (Helicone).
+- **Gateway Integrated**: Pre-configured for `ai.frontal.dev` (Helicone).
 
 ## Installation
 
 ```bash
-bun add @frontal-cloud/ai
+bun add @frontal/ai
 ```
 
 ## Documentation
@@ -24,11 +24,12 @@ bun add @frontal-cloud/ai
 - [API Reference](docs/API-REFERENCE.md)
 - [Architecture](docs/ARCHITECTURE.md)
 
-## Usage Examples
+## Usage
 
 ### Text Generation
+
 ```typescript
-import { AI } from '@frontal-cloud/ai';
+import { AI } from '@frontal/ai';
 const ai = new AI();
 
 const result = await ai.generateText({

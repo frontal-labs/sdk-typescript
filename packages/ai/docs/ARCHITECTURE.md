@@ -1,13 +1,13 @@
 # AI SDK Architecture
 
-The `@frontal-cloud/ai` SDK is designed as a modular, type-safe client that interacts with the Frontal AI Gateway (powered by Helicone). It abstracts the complexities of different AI models and providers behind a unified, OpenAI-compatible interface.
+The `@frontal/ai` SDK is designed as a modular, type-safe client that interacts with the Frontal AI Gateway (powered by Helicone). It abstracts the complexities of different AI models and providers behind a unified, OpenAI-compatible interface.
 
 ## Core Components
 
 ### 1. `AI` Client
 The central entry point for the SDK. It handles:
 - **Authentication**: Managing API keys and headers.
-- **Request Dispatch**: sending requests to `https://ai.frontal.cloud/v1`.
+- **Request Dispatch**: sending requests to `https://ai.frontal.dev/v1`.
 - **Error Handling**: Standardizing errors into `APIResponse<T>` format.
 - **State Management**: Managing local prompt and tool registries.
 

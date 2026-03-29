@@ -1,11 +1,11 @@
-# @frontal-cloud/functions
+# @frontal/functions
 
 Deploy and manage high-performance serverless functions at the edge. Frontal Functions are designed for event-driven logic, microservices, and rapid API development.
 
 ## Installation
 
 ```bash
-bun add @frontal-cloud/functions
+bun add @frontal/functions
 ```
 
 ## Features
@@ -21,9 +21,11 @@ bun add @frontal-cloud/functions
 ### Deploying a Function
 
 ```typescript
-import { deployFunction } from '@frontal-cloud/functions';
+import { Functions } from '@frontal/functions';
 
-const fn = await deployFunction({
+const fn = new Functions();
+
+const result = await fn.deploy({
   name: 'process-image',
   runtime: 'nodejs20',
   handler: 'index.handler',
@@ -34,13 +36,13 @@ const fn = await deployFunction({
   },
 });
 
-console.log(`Function deployed at: ${fn.url}`);
+console.log(`Function deployed at: ${result.url}`);
 ```
 
 ### Synchronous Invocation
 
 ```typescript
-import { invoke } from '@frontal-cloud/functions';
+import { invoke } from '@frontal/functions';
 
 const response = await invoke('process-image', {
   payload: { imageId: '123' },
@@ -50,10 +52,10 @@ const response = await invoke('process-image', {
 ### Monitoring Stats
 
 ```typescript
-import { Functions } from '@frontal-cloud/functions';
+import { Functions } from '@frontal/functions';
 
 const client = new Functions();
-const stats = await client.getInvocationStats('process-image');
+const stats = await client.stats('process-image');
 
 console.log(`Total Invocations: ${stats.totalInvocations}`);
 console.log(`Average Duration: ${stats.averageDuration}ms`);

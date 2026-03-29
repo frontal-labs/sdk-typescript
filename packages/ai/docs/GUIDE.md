@@ -1,6 +1,6 @@
 # AI Integration Guide
 
-This guide provides in-depth information on using the `@frontal-cloud/ai` package to build intelligent applications.
+This guide provides in-depth information on using the `@frontal/ai` package to build intelligent applications.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This guide provides in-depth information on using the `@frontal-cloud/ai` packag
 The AI client requires a Frontal API Key.
 
 ```typescript
-import { AI } from '@frontal-cloud/ai';
+import { AI } from '@frontal/ai';
 
 const ai = new AI({ apiKey: process.env.FRONTAL_API_KEY });
 ```

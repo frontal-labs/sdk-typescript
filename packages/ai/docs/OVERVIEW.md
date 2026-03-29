@@ -1,6 +1,6 @@
-# @frontal-cloud/ai
+# @frontal/ai
 
-The **Frontal AI SDK** is the definitive toolkit for building intelligent applications on the Frontal Cloud platform. It provides a unified, type-safe interface to state-of-the-art AI models for text, image, audio, and video.
+The **Frontal AI SDK** is the definitive toolkit for building intelligent applications on the Frontal platform. It provides a unified, type-safe interface to state-of-the-art AI models for text, image, audio, and video.
 
 ## Key Features
 
@@ -17,13 +17,13 @@ The **Frontal AI SDK** is the definitive toolkit for building intelligent applic
 ## Installation
 
 ```bash
-bun add @frontal-cloud/ai
+bun add @frontal/ai
 ```
 
 ## Quick Start
 
 ```typescript
-import { AI } from "@frontal-cloud/ai";
+import { AI } from "@frontal/ai";
 
 const ai = new AI();
 

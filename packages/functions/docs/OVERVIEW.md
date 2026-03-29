@@ -1,72 +1,155 @@
-# @frontal-cloud/functions
+# @frontal/functions
 
-The Functions package provides a client for deploying and invoking serverless functions at the edge. It enables you to run code closer to your users for lower latency and improved performance.
+The **Frontal Functions SDK** provides a powerful and scalable way to deploy and manage serverless functions at the edge. It offers a simple, type-safe interface for deploying, invoking, and monitoring functions with support for multiple runtimes and trigger types.
+
+## Key Features
+
+- **Multi-Runtime Support**: Deploy functions using Node.js, Python, and Go runtimes
+- **Flexible Triggers**: HTTP endpoints, cron schedules, and queue-based triggers
+- **Type-Safe Configuration**: Built with TypeScript and Zod for robust validation
+- **Edge Deployment**: Functions automatically deploy to edge locations for low latency
+- **Monitoring & Analytics**: Built-in invocation statistics and performance metrics
+- **Environment Variables**: Secure environment variable management for each function
 
 ## Installation
 
 ```bash
-bun add @frontal-cloud/functions
+bun add @frontal/functions
 ```
 
-## Usage
+## Quick Start
 
-### Deploying a Function
+### Deploy a Simple HTTP Function
 
 ```typescript
-import { deployFunction } from "@frontal-cloud/functions";
+import { deploy } from "@frontal/functions";
 
-const deployment = await deployFunction({
-  name: "my-edge-function",
-  entrypoint: "./src/index.ts",
-  runtime: "nodejs-18",
-  env: {
-    API_KEY: "secret",
+const functionConfig = {
+  name: "hello-world",
+  runtime: "nodejs20" as const,
+  handler: "handler",
+  memory: 256,
+  timeout: 30,
+  trigger: {
+    type: "http" as const,
   },
-});
+};
 
-console.log(`Function deployed at: ${deployment.url}`);
+const result = await deploy(functionConfig);
+console.log(`Function deployed: ${result.data?.url}`);
 ```
 
-### Invoking a Function
+### Invoke a Function
 
 ```typescript
-import { invoke } from "@frontal-cloud/functions";
+import { invoke } from "@frontal/functions";
 
-const response = await invoke("my-edge-function", {
-  payload: { name: "World" },
+const response = await invoke("hello-world", {
+  payload: { name: "Alice" },
+  headers: { "x-custom-header": "value" },
 });
 
-console.log(response); // "Hello, World!"
+console.log(response);
 ```
 
-### Listing Functions
+### List All Functions
 
 ```typescript
-import { listFunctions } from "@frontal-cloud/functions";
+import { list } from "@frontal/functions";
 
-const functions = await listFunctions();
-console.log(functions);
+const functions = await list();
+console.log("Deployed functions:", functions.data);
 ```
 
-## API Reference
+## Supported Runtimes
 
-### `deployFunction(config)`
+- **Node.js**: `nodejs18`, `nodejs20`
+- **Python**: `python3.9`
+- **Go**: `go1.x`
 
-Deploys a new version of a serverless function.
+## Trigger Types
 
-- `config`: Object containing function name, entrypoint, runtime, etc.
+### HTTP Triggers
+Functions can be invoked via HTTP requests:
 
-### `invoke(name, options)`
+```typescript
+{
+  type: "http",
+  // Optional: Custom domain configuration
+}
+```
 
-Invokes a deployed function.
+### Cron Triggers
+Schedule functions to run at specific intervals:
 
-- `name`: The name of the function to invoke.
-- `options`: Object containing payload and other invocation parameters.
+```typescript
+{
+  type: "cron",
+  schedule: "0 */6 * * *", // Every 6 hours
+}
+```
 
-### `listFunctions()`
+### Queue Triggers
+Trigger functions in response to queue messages:
 
-Retrieves a list of all deployed functions.
+```typescript
+{
+  type: "queue",
+  queueName: "my-queue",
+}
+```
 
-### `configure(config)`
+## Configuration
 
-Sets the global configuration for the functions client.
+The Functions SDK automatically reads configuration from environment variables:
+
+```bash
+FRONTAL_API_KEY=your_api_key
+FRONTAL_BASE_URL=https://api.frontal.dev
+```
+
+Or configure programmatically:
+
+```typescript
+import { configure } from "@frontal/functions";
+
+configure({
+  apiKey: "your_api_key",
+  baseUrl: "https://api.frontal.dev",
+});
+```
+
+## Error Handling
+
+All API responses follow a consistent structure:
+
+```typescript
+interface APIResponse<T> {
+  data: T | null;
+  error: {
+    message: string;
+    statusCode: number;
+    name: string;
+  } | null;
+  headers: Record<string, string> | null;
+}
+```
+
+Example error handling:
+
+```typescript
+const result = await deploy(config);
+
+if (result.error) {
+  console.error(`Deployment failed: ${result.error.message}`);
+  return;
+}
+
+console.log(`Success: ${result.data?.id}`);
+```
+
+## Next Steps
+
+- Read the [Architecture Guide](./ARCHITECTURE.md) to understand the system design
+- Check the [API Reference](./API-REFERENCE.md) for detailed method documentation
+- Follow the [Developer Guide](./GUIDE.md) for advanced usage patterns

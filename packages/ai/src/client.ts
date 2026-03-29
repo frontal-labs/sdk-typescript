@@ -1,15 +1,12 @@
-import { DEFAULT_AI_BASE_URL } from "./constants";
-import { FrontalError } from "./error";
-import { env } from "./keys";
+import type { HttpClient } from "@frontal/core";
+import { FrontalError } from "@frontal/core";
 import {
-	type APIResponse,
 	type EmbedOptions,
 	embedOptionsSchema,
 	type EmbeddingsResponse,
 	type EmbedResult,
 	type GenerateTextOptions,
 	type GenerateTextResult,
-	type IAIClient,
 	type StreamTextOptions,
 	type StreamTextResult,
 	type GenerateObjectOptions,
@@ -39,201 +36,75 @@ import {
 import { z } from "zod";
 
 /**
- * Client for interacting with Frontal AI services.
- * Implements IAIClient interface.
+ * Service for interacting with Frontal AI.
+ * Takes an HttpClient and returns data directly, throwing typed errors.
+ *
+ * @example
+ * ```typescript
+ * import { createAIClient } from '@frontal/ai'
+ * import { FrontalClient } from '@frontal/core'
+ *
+ * const client = new FrontalClient({ apiKey: 'frt_...' })
+ * const ai = createAIClient(client)
+ * const result = await ai.generateText({ model: 'gpt-4o-mini', prompt: 'Hello' })
+ * ```
  */
-export class AI implements IAIClient {
-	private readonly headers: Headers;
-	private readonly baseUrl: string;
+export class AIService {
+	constructor(private readonly http: HttpClient) {}
 
-	/**
-	 * Initializes a new instance of the AI client.
-	 * @param config - Configuration options for the client.
-	 */
-	constructor(config: { apiKey?: string; baseUrl?: string } = {}) {
-		const apiKey = config.apiKey || env.FRONTAL_API_KEY;
-		this.baseUrl = config.baseUrl || env.FRONTAL_API_URL || DEFAULT_AI_BASE_URL;
-
-		if (!apiKey && env.NODE_ENV !== "test") {
-			throw new FrontalError(
-				"Frontal API Key not found. Please set FRONTAL_API_KEY environment variable or pass it to the constructor.",
-			);
-		}
-
-		this.headers = new Headers({
-			Authorization: `Bearer ${apiKey}`,
-			"Content-Type": "application/json",
-		});
-	}
-
-	/**
-	 * Internal helper to make authenticated requests to the AI Gateway.
-	 */
-	async fetchRequest<T>(
-		path: string,
-		options: RequestInit = {},
-	): Promise<APIResponse<T>> {
-		try {
-			const response = await fetch(`${this.baseUrl}${path}`, options);
-
-			if (!response.ok) {
-				try {
-					const rawError = await response.text();
-					let errorData:
-						| { message?: string; statusCode?: number; name?: string }
-						| undefined;
-					try {
-						errorData = JSON.parse(rawError);
-					} catch {
-						errorData = {
-							message: rawError || response.statusText,
-							statusCode: response.status,
-							name: "UnknownError",
-						};
-					}
-
-					return {
-						data: null,
-						error: {
-							message: errorData?.message ?? "Unknown error",
-							statusCode: response.status,
-							name: errorData?.name ?? "application_error",
-						},
-						headers: Object.fromEntries(response.headers.entries()),
-					};
-				} catch {
-					return {
-						data: null,
-						error: {
-							message: response.statusText,
-							statusCode: response.status,
-							name: "application_error",
-						},
-						headers: Object.fromEntries(response.headers.entries()),
-					};
-				}
-			}
-
-			const data = await response.json();
-			return {
-				data: data as T,
-				error: null,
-				headers: Object.fromEntries(response.headers.entries()),
-			};
-		} catch (error) {
-			return {
-				data: null,
-				error: {
-					message:
-						error instanceof Error ? error.message : "Unable to fetch data",
-					statusCode: 0,
-					name: "application_error",
-				},
-				headers: null,
-			};
-		}
-	}
-
-	async post<T>(path: string, entity?: unknown, options: RequestInit = {}) {
-		const headers = new Headers(this.headers);
-		if (options.headers) {
-			for (const [key, value] of new Headers(options.headers).entries()) {
-				headers.set(key, value);
-			}
-		}
-
-		const requestOptions = {
-			method: "POST",
-			body: JSON.stringify(entity),
-			...options,
-			headers,
-		};
-
-		return this.fetchRequest<T>(path, requestOptions);
-	}
+	// ── Text Generation ─────────────────────────────────────────────────
 
 	/**
 	 * Generates text using a large language model.
 	 * @param options - Text generation options.
-	 * @returns A promise that resolves to the generation result.
+	 * @returns The generation result.
+	 * @throws FrontalError on API errors, ZodError on validation errors.
 	 */
 	async generateText(
 		options: GenerateTextOptions,
-	): Promise<APIResponse<GenerateTextResult>> {
-		try {
-			// Handle prompt vs messages
-			let messages: ChatMessage[] = [];
-			if (typeof options.prompt === "string") {
-				messages = [{ role: "user", content: options.prompt }];
-			} else if (Array.isArray(options.prompt)) {
-				messages = options.prompt;
-			}
-			if (options.messages) {
-				messages = options.messages;
-			}
+	): Promise<GenerateTextResult> {
+		const messages = this.buildMessages(options);
 
-			const requestBody: ChatCompletionRequest = {
-				model: options.model,
-				messages,
-				temperature: options.temperature,
-				top_p: options.topP,
-				frequency_penalty: options.frequencyPenalty,
-				presence_penalty: options.presencePenalty,
-				stop: options.stopSequences,
-				max_tokens: options.maxTokens,
-			};
+		const requestBody: ChatCompletionRequest = {
+			model: options.model,
+			messages,
+			temperature: options.temperature,
+			top_p: options.topP,
+			frequency_penalty: options.frequencyPenalty,
+			presence_penalty: options.presencePenalty,
+			stop: options.stopSequences,
+			max_tokens: options.maxTokens,
+		};
 
-			const response = await this.post<ChatCompletionResponse>(
-				"/chat/completions",
-				requestBody,
-			);
+		const response = await this.http.post<ChatCompletionResponse>(
+			"/ai/chat/completions",
+			requestBody,
+		);
 
-			if (response.error || !response.data) {
-				return {
-					data: null,
-					error: response.error,
-					headers: response.headers,
-				};
-			}
+		const choice = response.choices[0];
 
-			const choice = response.data.choices[0];
-
-			return {
-				data: {
-					text: choice.message.content || "",
-					finishReason:
-						(choice.finish_reason as GenerateTextResult["finishReason"]) ||
-						"unknown",
-					usage: {
-						promptTokens: response.data.usage?.prompt_tokens || 0,
-						completionTokens: response.data.usage?.completion_tokens || 0,
-						totalTokens: response.data.usage?.total_tokens || 0,
-					},
-				},
-				error: null,
-				headers: response.headers,
-			};
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
+		return {
+			text: choice.message.content || "",
+			finishReason:
+				(choice.finish_reason as GenerateTextResult["finishReason"]) || "other",
+			usage: {
+				promptTokens: response.usage?.prompt_tokens || 0,
+				completionTokens: response.usage?.completion_tokens || 0,
+				totalTokens: response.usage?.total_tokens || 0,
+			},
+		};
 	}
+
+	// ── Streaming ────────────────────────────────────────────────────────
 
 	/**
 	 * Streams text generation chunks.
-	 * @param options - Text generation options.
-	 * @returns A result object containing the text stream.
+	 * @param options - Text generation options with optional onChunk callback.
+	 * @returns A result object containing the text stream and a usage promise.
 	 */
 	streamText(options: StreamTextOptions): StreamTextResult {
-		// Handle prompt vs messages
-		let messages: ChatMessage[] = [];
-		if (typeof options.prompt === "string") {
-			messages = [{ role: "user", content: options.prompt }];
-		} else if (Array.isArray(options.prompt)) {
-			messages = options.prompt;
-		}
-		if (options.messages) {
-			messages = options.messages;
-		}
+		const messages = this.buildMessages(options);
+		const { onChunk } = options;
 
 		const requestBody: ChatCompletionRequest = {
 			model: options.model,
@@ -247,59 +118,60 @@ export class AI implements IAIClient {
 			stream: true,
 		};
 
-		const { onChunk } = options;
+		let usageResolve!: (value: {
+			promptTokens: number;
+			completionTokens: number;
+			totalTokens: number;
+		}) => void;
+		const usagePromise = new Promise<{
+			promptTokens: number;
+			completionTokens: number;
+			totalTokens: number;
+		}>((resolve) => {
+			usageResolve = resolve;
+		});
+
+		const http = this.http;
 
 		const textStream = new ReadableStream<string>({
-			start: async (controller) => {
+			async start(controller) {
 				try {
-					const response = await fetch(`${this.baseUrl}/chat/completions`, {
-						method: "POST",
-						headers: this.headers,
-						body: JSON.stringify(requestBody),
-					});
+					for await (const event of http.postStream(
+						"/ai/chat/completions",
+						requestBody,
+					)) {
+						if (event.data === "[DONE]") {
+							break;
+						}
+						const data = event.data as Record<string, unknown> | null;
+						if (!data) continue;
 
-					if (!response.ok) {
-						controller.error(
-							new FrontalError(
-								`Frontal AI Streaming error: ${response.status}`,
-							),
-						);
-						return;
-					}
+						const choices = data.choices as
+							| Array<{
+									delta: { content?: string | null };
+									finish_reason?: string | null;
+							  }>
+							| undefined;
+						const content = choices?.[0]?.delta?.content;
+						if (content) {
+							if (onChunk) onChunk(content);
+							controller.enqueue(content);
+						}
 
-					const reader = response.body?.getReader();
-					if (!reader) {
-						controller.error(new Error("Response body is null"));
-						return;
-					}
-
-					const decoder = new TextDecoder();
-					let buffer = "";
-
-					while (true) {
-						const { done, value } = await reader.read();
-						if (done) break;
-
-						buffer += decoder.decode(value, { stream: true });
-						const lines = buffer.split("\n");
-						buffer = lines.pop() || "";
-
-						for (const line of lines) {
-							const trimmed = line.trim();
-							if (trimmed === "" || trimmed === "data: [DONE]") continue;
-							if (trimmed.startsWith("data: ")) {
-								try {
-									const data = JSON.parse(trimmed.slice(6));
-									// OpenAI chunk format
-									const content = data.choices?.[0]?.delta?.content;
-									if (content) {
-										if (onChunk) onChunk(content);
-										controller.enqueue(content);
-									}
-								} catch (e) {
-									console.warn("Error parsing stream chunk", e);
-								}
-							}
+						// Check for usage in the final chunk (some providers include it)
+						const usage = data.usage as
+							| {
+									prompt_tokens?: number;
+									completion_tokens?: number;
+									total_tokens?: number;
+							  }
+							| undefined;
+						if (usage) {
+							usageResolve({
+								promptTokens: usage.prompt_tokens || 0,
+								completionTokens: usage.completion_tokens || 0,
+								totalTokens: usage.total_tokens || 0,
+							});
 						}
 					}
 				} catch (error) {
@@ -307,411 +179,290 @@ export class AI implements IAIClient {
 						error instanceof Error ? error : new Error(String(error)),
 					);
 				} finally {
+					// Resolve usage with zeros if it was never set by the stream
+					usageResolve({
+						promptTokens: 0,
+						completionTokens: 0,
+						totalTokens: 0,
+					});
 					controller.close();
 				}
 			},
 		});
 
-		return {
-			textStream,
-			usage: Promise.resolve({
-				promptTokens: 0,
-				completionTokens: 0,
-				totalTokens: 0,
-			}),
-		};
+		return { textStream, usage: usagePromise };
 	}
+
+	// ── Embeddings ────────────────────────────────────────────────────────
 
 	/**
 	 * Generates embeddings for text.
 	 * @param options - Embedding options.
-	 * @returns A promise that resolves to the embedding result.
+	 * @returns The embedding result.
+	 * @throws FrontalError on API errors.
 	 */
-	async embed(options: EmbedOptions): Promise<APIResponse<EmbedResult>> {
-		try {
-			const validated = embedOptionsSchema.parse(options);
+	async embed(options: EmbedOptions): Promise<EmbedResult> {
+		const validated = embedOptionsSchema.parse(options);
 
-			// Map to OpenAI format
-			const requestBody = {
-				model: validated.model,
-				input: validated.input,
-			};
+		const requestBody = {
+			model: validated.model,
+			input: validated.input,
+		};
 
-			const response = await this.post<EmbeddingsResponse>(
-				"/embeddings",
-				requestBody,
-			);
-
-			if (response.error || !response.data) {
-				return {
-					data: null,
-					error: response.error,
-					headers: response.headers,
-				};
-			}
-
-			// Map back to EmbedResult
-			return {
-				data: {
-					embeddings: response.data.data.map((d) => d.embedding),
-					usage: {
-						totalTokens: response.data.usage.total_tokens,
-					},
-				},
-				error: null,
-				headers: response.headers,
-			};
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
-	}
-
-	/**
-	 * Generates a structured object based on the provided schema.
-	 */
-	async generateObject<T>(
-		options: GenerateObjectOptions<T>,
-	): Promise<APIResponse<GenerateObjectResult<T>>> {
-		try {
-			const { schema, prompt, model, temperature, maxRetries } = options;
-
-			const attempts = (maxRetries ?? 0) + 1;
-			let lastError: APIResponse<GenerateObjectResult<T>>["error"] = null;
-			let lastHeaders: APIResponse<GenerateObjectResult<T>>["headers"] = null;
-
-			const systemInstruction = `You are a helpful assistant designed to output JSON. The JSON must strictly follow this schema description: ${JSON.stringify(schema)}`;
-			const messages: ChatMessage[] = [
-				{ role: "system", content: systemInstruction },
-				{ role: "user", content: prompt },
-			];
-
-			const requestBody: ChatCompletionRequest = {
-				model,
-				messages,
-				temperature,
-				response_format: { type: "json_object" },
-			};
-
-			for (let attempt = 0; attempt < attempts; attempt++) {
-				if (attempt > 0) {
-					await new Promise((r) => setTimeout(r, 500));
-				}
-
-				try {
-					const response = await this.post<ChatCompletionResponse>(
-						"/chat/completions",
-						requestBody,
-					);
-
-					if (response.error || !response.data) {
-						const status = response.error?.statusCode ?? 0;
-						const retryable = status >= 500 || status === 429;
-						if (!retryable) {
-							return {
-								data: null,
-								error: response.error,
-								headers: response.headers,
-							};
-						}
-						lastError = response.error;
-						lastHeaders = response.headers;
-						continue;
-					}
-
-					const content = response.data.choices[0].message.content;
-					if (!content) {
-						lastError = {
-							message: "No content generated",
-							statusCode: 500,
-							name: "generation_error",
-						};
-						lastHeaders = response.headers;
-						continue;
-					}
-
-					let object: T;
-					try {
-						object = JSON.parse(content);
-						if (schema instanceof z.ZodType) {
-							object = schema.parse(object);
-						}
-					} catch {
-						lastError = {
-							message: "Failed to parse or validate JSON",
-							statusCode: 500,
-							name: "parse_error",
-						};
-						lastHeaders = response.headers;
-						continue;
-					}
-
-					return {
-						data: {
-							object,
-							usage: {
-								promptTokens: response.data.usage?.prompt_tokens || 0,
-								completionTokens: response.data.usage?.completion_tokens || 0,
-								totalTokens: response.data.usage?.total_tokens || 0,
-							},
-						},
-						error: null,
-						headers: response.headers,
-					};
-				} catch (err) {
-					lastError = {
-						message: err instanceof Error ? err.message : "Request failed",
-						statusCode: 0,
-						name: "network_error",
-					};
-					lastHeaders = null;
-				}
-			}
-
-			return {
-				data: null,
-				error: lastError,
-				headers: lastHeaders,
-			};
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
-	}
-
-	/**
-	 * Generates speech from text.
-	 */
-	async generateSpeech(
-		options: GenerateSpeechOptions,
-	): Promise<APIResponse<ArrayBuffer>> {
-		try {
-			const validated = generateSpeechOptionsSchema.parse(options);
-			// Fetch blob/buffer
-			try {
-				const response = await fetch(`${this.baseUrl}/audio/speech`, {
-					method: "POST",
-					headers: this.headers,
-					body: JSON.stringify({
-						model: validated.model || "tts-1",
-						input: validated.text,
-						voice: validated.voice,
-						speed: validated.speed,
-						response_format: validated.format,
-					}),
-				});
-
-				if (!response.ok) {
-					return {
-						data: null,
-						error: {
-							message: response.statusText,
-							statusCode: response.status,
-							name: "api_error",
-						},
-						headers: Object.fromEntries(response.headers.entries()),
-					};
-				}
-
-				const arrayBuffer = await response.arrayBuffer();
-				return {
-					data: arrayBuffer,
-					error: null,
-					headers: Object.fromEntries(response.headers.entries()),
-				};
-			} catch (err) {
-				return {
-					data: null,
-					error: {
-						message: err instanceof Error ? err.message : "Details unknown",
-						statusCode: 0,
-						name: "network_error",
-					},
-					headers: null,
-				};
-			}
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
-	}
-
-	/**
-	 * Generates an image.
-	 */
-	async generateImage(
-		options: GenerateImageOptions,
-	): Promise<APIResponse<GenerateImageResult>> {
-		try {
-			const validated = generateImageOptionsSchema.parse(options);
-
-			// Map to OpenAI options
-			const requestBody = {
-				prompt: validated.prompt,
-				model: validated.model || "dall-e-3",
-				n: validated.n || 1,
-				size: validated.size || "1024x1024",
-				quality: validated.quality,
-				style: validated.style,
-				response_format: "url", // default
-			};
-
-			const response = await this.post<{
-				data: Array<{ url?: string; b64_json?: string }>;
-			}>("/images/generations", requestBody);
-
-			if (response.error || !response.data) {
-				return {
-					data: null,
-					error: response.error,
-					headers: response.headers,
-				};
-			}
-
-			return {
-				data: {
-					images: response.data.data.map((img) => ({
-						url: img.url,
-						b64_json: img.b64_json,
-					})),
-				},
-				error: null,
-				headers: response.headers,
-			};
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
-	}
-
-	/**
-	 * Generates a video.
-	 */
-	async generateVideo(
-		options: GenerateVideoOptions,
-	): Promise<APIResponse<GenerateVideoResult>> {
-		try {
-			const validated = generateVideoOptionsSchema.parse(options);
-			return this.post<GenerateVideoResult>("/videos/generate", validated);
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
-	}
-
-	/**
-	 * Transcribes audio.
-	 */
-	async transcribe(
-		options: TranscriptionOptions,
-	): Promise<APIResponse<TranscriptionResult>> {
-		try {
-			const validated = transcriptionOptionsSchema.parse(options);
-
-			// FormData for file upload
-			const formData = new FormData();
-			formData.append("file", validated.file);
-			formData.append("model", validated.model);
-			if (validated.language) formData.append("language", validated.language);
-			if (validated.prompt) formData.append("prompt", validated.prompt);
-			if (validated.response_format)
-				formData.append("response_format", validated.response_format);
-			if (validated.temperature)
-				formData.append("temperature", String(validated.temperature));
-
-			// fetchRequest doesn't support FormData body easily with current strictly typed wrapper if it forces JSON?
-			// this.post uses JSON.stringify.
-			// So we use fetchRequest directly but we need to override headers (Content-Type: multipart/form-data usually handled by fetch automatically if body is FormData, so we must UNSET Content-Type)
-
-			const headers = new Headers(this.headers);
-			headers.delete("Content-Type"); // Let browser/runtime set it with boundary
-
-			const response = await fetch(`${this.baseUrl}/audio/transcriptions`, {
-				method: "POST",
-				headers,
-				body: formData,
-			});
-
-			if (!response.ok) {
-				// Handle error similar to fetchRequest
-				const errorData = (await response.json().catch(() => ({}))) as {
-					message?: string;
-					error?: { type?: string };
-				};
-				return {
-					data: null,
-					error: {
-						message: errorData?.message ?? response.statusText,
-						statusCode: response.status,
-						name: errorData?.error?.type ?? "api_error",
-					},
-					headers: Object.fromEntries(response.headers.entries()),
-				};
-			}
-
-			const data = await response.json();
-			return {
-				data: data as TranscriptionResult,
-				error: null,
-				headers: Object.fromEntries(response.headers.entries()),
-			};
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
-	}
-
-	/**
-	 * Moderates content.
-	 */
-	async moderate(
-		options: ModerationOptions,
-	): Promise<APIResponse<ModerationResult>> {
-		try {
-			const validated = moderationOptionsSchema.parse(options);
-			// map input to OpenAI format
-			const requestBody = {
-				input: validated.input,
-				model: validated.model || "text-moderation-latest",
-			};
-
-			return this.post<ModerationResult>("/moderations", requestBody);
-		} catch (error) {
-			return this.handleValidationErrors(error);
-		}
-	}
-
-	/**
-	 * Lists available models in the Frontal AI Gateway.
-	 */
-	async listModels(): Promise<APIResponse<string[]>> {
-		const headers = new Headers(this.headers);
-		const response = await this.fetchRequest<
-			{ data: Array<{ id: string }> } | { data: string[] }
-		>("/models", {
-			method: "GET",
-			headers,
-		});
-
-		if (response.error || !response.data) {
-			return {
-				data: null,
-				error: response.error,
-				headers: response.headers,
-			};
-		}
-
-		// Handle OpenAI format { object: "list", data: [{ id: "..." }] }
-		let models: string[] = [];
-		if (response.data.data && Array.isArray(response.data.data)) {
-			models = (response.data.data as Array<{ id: string }>).map((m) => m.id);
-		} else if (Array.isArray(response.data)) {
-			// Fallback for simple arrays
-			models = response.data;
-		}
+		const response = await this.http.post<EmbeddingsResponse>(
+			"/ai/embeddings",
+			requestBody,
+		);
 
 		return {
-			data: models,
-			error: null,
-			headers: response.headers,
+			embeddings: response.data.map((d) => d.embedding),
+			usage: {
+				totalTokens: response.usage.total_tokens,
+			},
 		};
 	}
 
-	// Utility Methods
+	// ── Structured Object ─────────────────────────────────────────────────
+
+	/**
+	 * Generates a structured object based on the provided schema.
+	 * Retries on transient errors and JSON parse failures up to maxRetries.
+	 * @param options - Object generation options including schema.
+	 * @returns The parsed and validated object with usage stats.
+	 * @throws FrontalError on non-retryable API errors, Error on exhausted retries.
+	 */
+	async generateObject<T>(
+		options: GenerateObjectOptions<T>,
+	): Promise<GenerateObjectResult<T>> {
+		const { schema, prompt, model, temperature, maxRetries } = options;
+
+		const attempts = (maxRetries ?? 0) + 1;
+		let lastError: Error | null = null;
+
+		const systemInstruction = `You are a helpful assistant designed to output JSON. The JSON must strictly follow this schema description: ${JSON.stringify(schema)}`;
+		const messages: ChatMessage[] = [
+			{ role: "system", content: systemInstruction },
+			{ role: "user", content: prompt },
+		];
+
+		const requestBody: ChatCompletionRequest = {
+			model,
+			messages,
+			temperature,
+			response_format: { type: "json_object" },
+		};
+
+		for (let attempt = 0; attempt < attempts; attempt++) {
+			if (attempt > 0) {
+				await new Promise((r) => setTimeout(r, 500));
+			}
+
+			try {
+				const response = await this.http.post<ChatCompletionResponse>(
+					"/ai/chat/completions",
+					requestBody,
+				);
+
+				const content = response.choices[0].message.content;
+				if (!content) {
+					lastError = new Error("No content generated");
+					continue;
+				}
+
+				let object: T;
+				try {
+					object = JSON.parse(content);
+					if (schema instanceof z.ZodType) {
+						object = schema.parse(object);
+					}
+				} catch {
+					lastError = new Error("Failed to parse or validate JSON");
+					continue;
+				}
+
+				return {
+					object,
+					usage: {
+						promptTokens: response.usage?.prompt_tokens || 0,
+						completionTokens: response.usage?.completion_tokens || 0,
+						totalTokens: response.usage?.total_tokens || 0,
+					},
+				};
+			} catch (err) {
+				// On FrontalError, only retry if transient (5xx or 429)
+				if (err instanceof FrontalError) {
+					const retryable = err.statusCode >= 500 || err.statusCode === 429;
+					if (!retryable) {
+						throw err;
+					}
+					lastError = err;
+					continue;
+				}
+				lastError = err instanceof Error ? err : new Error(String(err));
+			}
+		}
+
+		// Retries exhausted — throw the last error
+		throw lastError ?? new Error("generateObject failed after retries");
+	}
+
+	// ── Speech ────────────────────────────────────────────────────────────
+
+	/**
+	 * Generates speech from text.
+	 * @param options - Speech generation options.
+	 * @returns The audio data as an ArrayBuffer.
+	 * @throws FrontalError on API errors.
+	 */
+	async generateSpeech(options: GenerateSpeechOptions): Promise<ArrayBuffer> {
+		const validated = generateSpeechOptionsSchema.parse(options);
+
+		const body = {
+			model: validated.model || "tts-1",
+			input: validated.text,
+			voice: validated.voice,
+			speed: validated.speed,
+			response_format: validated.format,
+		};
+
+		const response = await this.http.postRaw("/ai/audio/speech", body);
+		return response.arrayBuffer();
+	}
+
+	// ── Image ─────────────────────────────────────────────────────────────
+
+	/**
+	 * Generates an image from a prompt.
+	 * @param options - Image generation options.
+	 * @returns The generated image result.
+	 * @throws FrontalError on API errors.
+	 */
+	async generateImage(
+		options: GenerateImageOptions,
+	): Promise<GenerateImageResult> {
+		const validated = generateImageOptionsSchema.parse(options);
+
+		const requestBody = {
+			prompt: validated.prompt,
+			model: validated.model || "dall-e-3",
+			n: validated.n || 1,
+			size: validated.size || "1024x1024",
+			quality: validated.quality,
+			style: validated.style,
+			response_format: "url",
+		};
+
+		const response = await this.http.post<{
+			data: Array<{ url?: string; b64_json?: string }>;
+		}>("/ai/images/generations", requestBody);
+
+		return {
+			images: response.data.map((img) => ({
+				url: img.url,
+				b64_json: img.b64_json,
+			})),
+		};
+	}
+
+	// ── Video ─────────────────────────────────────────────────────────────
+
+	/**
+	 * Generates a video from a prompt.
+	 * @param options - Video generation options.
+	 * @returns The generated video result.
+	 * @throws FrontalError on API errors.
+	 */
+	async generateVideo(
+		options: GenerateVideoOptions,
+	): Promise<GenerateVideoResult> {
+		const validated = generateVideoOptionsSchema.parse(options);
+		return this.http.post<GenerateVideoResult>(
+			"/ai/videos/generate",
+			validated,
+		);
+	}
+
+	// ── Transcription ─────────────────────────────────────────────────────
+
+	/**
+	 * Transcribes audio to text.
+	 * @param options - Transcription options including the audio file.
+	 * @returns The transcription result.
+	 * @throws FrontalError on API errors.
+	 */
+	async transcribe(
+		options: TranscriptionOptions,
+	): Promise<TranscriptionResult> {
+		const validated = transcriptionOptionsSchema.parse(options);
+
+		const formData = new FormData();
+		formData.append("file", validated.file);
+		formData.append("model", validated.model);
+		if (validated.language) formData.append("language", validated.language);
+		if (validated.prompt) formData.append("prompt", validated.prompt);
+		if (validated.response_format)
+			formData.append("response_format", validated.response_format);
+		if (validated.temperature)
+			formData.append("temperature", String(validated.temperature));
+
+		return this.http.postFormData<TranscriptionResult>(
+			"/audio/transcriptions",
+			formData,
+		);
+	}
+
+	// ── Moderation ────────────────────────────────────────────────────────
+
+	/**
+	 * Moderates content for policy violations.
+	 * @param options - Moderation options.
+	 * @returns The moderation result.
+	 * @throws FrontalError on API errors.
+	 */
+	async moderate(options: ModerationOptions): Promise<ModerationResult> {
+		const validated = moderationOptionsSchema.parse(options);
+		const requestBody = {
+			input: validated.input,
+			model: validated.model || "text-moderation-latest",
+		};
+		return this.http.post<ModerationResult>("/ai/moderations", requestBody);
+	}
+
+	// ── Models ────────────────────────────────────────────────────────────
+
+	/**
+	 * Lists available models in the Frontal AI Gateway.
+	 * @returns Array of model ID strings.
+	 * @throws FrontalError on API errors.
+	 */
+	async listModels(): Promise<string[]> {
+		const response = await this.http.get<unknown>("/ai/models");
+
+		// Handle OpenAI format { object: "list", data: [{ id: "..." }] }
+		if (
+			response &&
+			typeof response === "object" &&
+			"data" in response &&
+			Array.isArray((response as Record<string, unknown>).data)
+		) {
+			const data = (response as Record<string, unknown>).data as Array<
+				Record<string, unknown>
+			>;
+			// Check if items have an id field (OpenAI format)
+			if (data.length > 0 && typeof data[0].id === "string") {
+				return data.map((m) => m.id as string);
+			}
+		}
+
+		// Fallback for simple arrays
+		if (Array.isArray(response)) {
+			return response as string[];
+		}
+
+		return [];
+	}
+
+	// ── Utility Methods ──────────────────────────────────────────────────
 
 	/**
 	 * Roughly estimates the number of tokens in a text string.
@@ -722,7 +473,7 @@ export class AI implements IAIClient {
 	}
 
 	/**
-	 * Estimates the cost implementation.
+	 * Estimates the cost of a generation.
 	 * This is a placeholder as cost depends on model-specific pricing.
 	 */
 	estimateCost(options: {
@@ -730,9 +481,8 @@ export class AI implements IAIClient {
 		inputTokens: number;
 		outputTokens: number;
 	}): number {
-		// Placeholder rates
 		const rates: Record<string, { input: number; output: number }> = {
-			"frontal-ai-fast": { input: 0.000001, output: 0.000002 }, // per token
+			"frontal-ai-fast": { input: 0.000001, output: 0.000002 },
 			default: { input: 0.00001, output: 0.00003 },
 		};
 		const rate = rates[options.model] || rates.default;
@@ -741,7 +491,8 @@ export class AI implements IAIClient {
 		);
 	}
 
-	// Step Tracking
+	// ── Step Tracking ────────────────────────────────────────────────────
+
 	private currentStep = 0;
 
 	stepCountIs(count: number): void {
@@ -756,9 +507,15 @@ export class AI implements IAIClient {
 		this.currentStep = 0;
 	}
 
-	// Prompt Management using local registry for this instance
+	// ── Prompt Management ────────────────────────────────────────────────
+
 	private prompts: Map<string, Prompt> = new Map();
 
+	/**
+	 * Creates and registers a prompt template.
+	 * @param options - Prompt definition.
+	 * @returns The created prompt.
+	 */
 	createPrompt(options: {
 		name: string;
 		template: string;
@@ -767,51 +524,62 @@ export class AI implements IAIClient {
 	}): Prompt {
 		const prompt: Prompt = {
 			...options,
-			version: "1.0.0", // Default version
+			version: "1.0.0",
 		};
 		this.prompts.set(options.name, prompt);
 		return prompt;
 	}
 
-	getPrompt(name: string, version?: string): APIResponse<Prompt> {
+	/**
+	 * Retrieves a prompt by name.
+	 * @param name - The prompt name.
+	 * @param version - Optional version filter.
+	 * @returns The prompt.
+	 * @throws Error if the prompt is not found.
+	 */
+	getPrompt(name: string, version?: string): Prompt {
 		const prompt = this.prompts.get(name);
 		if (!prompt) {
-			return {
-				data: null,
-				error: {
-					message: `Prompt not found: ${name}`,
-					statusCode: 404,
-					name: "not_found",
-				},
-				headers: null,
-			};
+			throw new Error(`Prompt not found: ${name}`);
 		}
-		// Versioning logic is simplified here (only tracking one version in map for now)
 		if (version && prompt.version !== version) {
-			// In a real system, we might fetch from backend or history
 			console.warn(`Requested version ${version} but found ${prompt.version}`);
 		}
-		return { data: prompt, error: null, headers: null };
+		return prompt;
 	}
 
-	updatePrompt(name: string, updates: Partial<Prompt>): APIResponse<Prompt> {
-		const response = this.getPrompt(name);
-		if (response.error || !response.data) {
-			return response;
-		}
-		const prompt = response.data;
+	/**
+	 * Updates an existing prompt.
+	 * @param name - The prompt name.
+	 * @param updates - Partial prompt fields to update.
+	 * @returns The updated prompt.
+	 * @throws Error if the prompt is not found.
+	 */
+	updatePrompt(name: string, updates: Partial<Prompt>): Prompt {
+		const prompt = this.getPrompt(name);
 		const updatedPrompt = { ...prompt, ...updates };
 		this.prompts.set(name, updatedPrompt);
-		return { data: updatedPrompt, error: null, headers: null };
+		return updatedPrompt;
 	}
 
+	/**
+	 * Chains multiple prompts together.
+	 * @param prompts - The prompts to chain.
+	 * @returns A PromptChain.
+	 */
 	chainPrompts(...prompts: Prompt[]): PromptChain {
 		return { prompts };
 	}
 
-	// Tool System
+	// ── Tool System ──────────────────────────────────────────────────────
+
 	private tools: Map<string, Tool> = new Map();
 
+	/**
+	 * Defines a tool (does not register it).
+	 * @param options - Tool definition.
+	 * @returns The tool definition.
+	 */
 	defineTool<TParams, TResult>(options: {
 		name: string;
 		description: string;
@@ -821,6 +589,10 @@ export class AI implements IAIClient {
 		return options;
 	}
 
+	/**
+	 * Registers a tool for later execution.
+	 * @param tool - The tool to register.
+	 */
 	registerTool(tool: Tool): void {
 		if (this.tools.has(tool.name)) {
 			console.warn(`Overwriting existing tool: ${tool.name}`);
@@ -828,61 +600,50 @@ export class AI implements IAIClient {
 		this.tools.set(tool.name, tool);
 	}
 
+	/**
+	 * Returns all registered tools.
+	 */
 	getTools(): Tool[] {
 		return Array.from(this.tools.values());
 	}
 
-	async executeTool(
-		name: string,
-		params: unknown,
-	): Promise<APIResponse<unknown>> {
+	/**
+	 * Executes a registered tool by name.
+	 * @param name - The tool name.
+	 * @param params - Parameters to pass to the tool.
+	 * @returns The tool execution result.
+	 * @throws Error if the tool is not found or execution fails.
+	 */
+	async executeTool(name: string, params: unknown): Promise<unknown> {
 		const tool = this.tools.get(name);
 		if (!tool) {
-			return {
-				data: null,
-				error: {
-					message: `Tool not found: ${name}`,
-					statusCode: 404,
-					name: "not_found",
-				},
-				headers: null,
-			};
+			throw new Error(`Tool not found: ${name}`);
 		}
-		try {
-			let result: unknown;
-			if (tool.parameters instanceof z.ZodType) {
-				const validatedParams = tool.parameters.parse(params);
-				result = await tool.execute(validatedParams);
-			} else {
-				result = await tool.execute(params);
-			}
-			return { data: result, error: null, headers: null };
-		} catch (error) {
-			return {
-				data: null,
-				error: {
-					message:
-						error instanceof Error ? error.message : "Tool execution failed",
-					statusCode: 500,
-					name: "execution_error",
-				},
-				headers: null,
-			};
+
+		let result: unknown;
+		if (tool.parameters instanceof z.ZodType) {
+			const validatedParams = tool.parameters.parse(params);
+			result = await tool.execute(validatedParams);
+		} else {
+			result = await tool.execute(params);
 		}
+		return result;
 	}
 
-	private handleValidationErrors(error: unknown): APIResponse<never> {
-		if (error instanceof z.ZodError) {
-			return {
-				data: null,
-				error: {
-					message: error.message,
-					statusCode: 400,
-					name: "validation_error",
-				},
-				headers: null,
-			};
+	// ── Private Helpers ──────────────────────────────────────────────────
+
+	private buildMessages(
+		options: GenerateTextOptions | StreamTextOptions,
+	): ChatMessage[] {
+		let messages: ChatMessage[] = [];
+		if (typeof options.prompt === "string") {
+			messages = [{ role: "user", content: options.prompt }];
+		} else if (Array.isArray(options.prompt)) {
+			messages = options.prompt;
 		}
-		throw error;
+		if (options.messages) {
+			messages = options.messages;
+		}
+		return messages;
 	}
 }

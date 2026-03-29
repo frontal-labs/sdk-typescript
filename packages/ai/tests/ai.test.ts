@@ -1,278 +1,472 @@
-import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
-import { AI } from "../src/client";
-import { z } from "zod";
+import { describe, it, expect, vi } from "vitest";
+import { AIService } from "../src/client";
+import { AI } from "../src/compat";
+import { createTestHttpClient, type MockRoute } from "@frontal/testing";
 
-describe("AI Client", () => {
-	const ai = new AI({ apiKey: "test-key" });
+function createService(routes: MockRoute[] = []) {
+	const { http, mock } = createTestHttpClient(routes);
+	return { service: new AIService(http), mock };
+}
 
-	// Mock global fetch
-	const originalFetch = global.fetch;
-	beforeAll(() => {
-		global.fetch = mock(
-			async (url: string | URL | Request, init?: RequestInit) => {
-				const urlStr = url.toString();
+const chatResponse = (content: string, finishReason = "stop") => ({
+	choices: [{ message: { content }, finish_reason: finishReason }],
+	usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+});
 
-				if (urlStr.includes("/chat/completions")) {
-					// Parse body to check for json_object
-					const body = init?.body ? JSON.parse(init.body as string) : {};
+describe("AIService", () => {
+	describe("generateText()", () => {
+		it("sends chat completion request and returns text", async () => {
+			const { service, mock } = createService([
+				{
+					method: "POST",
+					path: "/ai/chat/completions",
+					body: chatResponse("Hello world"),
+				},
+			]);
 
-					if (body.response_format?.type === "json_object") {
-						return new Response(
-							JSON.stringify({
-								id: "chatcmpl-obj",
-								object: "chat.completion",
-								created: 1234567890,
-								model: "gpt-4-turbo",
-								choices: [
-									{
-										index: 0,
-										message: {
-											role: "assistant",
-											content: JSON.stringify({ name: "Test User", age: 30 }),
-										},
-										finish_reason: "stop",
-									},
-								],
-								usage: {
-									prompt_tokens: 10,
-									completion_tokens: 20,
-									total_tokens: 30,
-								},
-							}),
-						);
-					}
-
-					return new Response(
-						JSON.stringify({
-							id: "chatcmpl-txt",
-							object: "chat.completion",
-							created: 1234567890,
-							model: "gpt-4-turbo",
-							choices: [
-								{
-									index: 0,
-									message: {
-										role: "assistant",
-										content: "Mock response",
-									},
-									finish_reason: "stop",
-								},
-							],
-							usage: {
-								prompt_tokens: 10,
-								completion_tokens: 10,
-								total_tokens: 20,
-							},
-						}),
-					);
-				}
-
-				if (urlStr.includes("/images/generations")) {
-					return new Response(
-						JSON.stringify({
-							created: 1234567890,
-							data: [{ url: "https://example.com/image.png", b64_json: null }],
-						}),
-					);
-				}
-
-				if (urlStr.includes("/audio/transcriptions")) {
-					return new Response(JSON.stringify({ text: "Hello world" }));
-				}
-
-				if (urlStr.includes("/moderations")) {
-					return new Response(
-						JSON.stringify({
-							id: "mod-123",
-							model: "text-moderation-007",
-							results: [
-								{
-									flagged: false,
-									categories: { hate: false },
-									category_scores: { hate: 0.1 },
-								},
-							],
-						}),
-					);
-				}
-
-				// Keep video custom if sticking to custom endpoint, or map to generations if changed.
-				// Client uses /videos/generate (custom). Test uses /videos/generate.
-				if (urlStr.includes("/videos/generate")) {
-					return new Response(
-						JSON.stringify({
-							videoUrl: "https://example.com/video.mp4",
-						}),
-					);
-				}
-
-				if (urlStr.includes("/audio/speech")) {
-					return new Response(new ArrayBuffer(100));
-				}
-
-				if (urlStr.includes("/embeddings")) {
-					return new Response(
-						JSON.stringify({
-							object: "list",
-							data: [
-								{ object: "embedding", embedding: [0.1, 0.2, 0.3], index: 0 },
-							],
-							model: "text-embedding-3-small",
-							usage: { prompt_tokens: 5, total_tokens: 5 },
-						}),
-					);
-				}
-
-				if (urlStr.includes("/models")) {
-					return new Response(JSON.stringify(["model-a", "model-b"]));
-					// Note: listModels in client expects string[]. But OpenAI returns object: list.
-					// I should verify listModels implementation.
-					// Client: this.fetchRequest<string[]>("/models", ...).
-					// If strictly OpenAI, it should return { object: "list", data: [...] }.
-					// But let's fix the main failures first.
-				}
-			},
-		);
-	});
-
-	afterAll(() => {
-		global.fetch = originalFetch;
-	});
-
-	describe("Core MM Generation", () => {
-		it("should generate text with string prompt", async () => {
-			const result = await ai.generateText({
-				model: "test-model",
-				prompt: "Hello",
+			const result = await service.generateText({
+				model: "gpt-4",
+				prompt: "Say hello",
 			});
-			expect(result.data?.text).toBe("Mock response");
-			expect(result.error).toBeNull();
+
+			expect(result.text).toBe("Hello world");
+			expect(result.finishReason).toBe("stop");
+			expect(result.usage.totalTokens).toBe(15);
 		});
 
-		it("should generate structured object", async () => {
-			const schema = z.object({
-				name: z.string(),
-				age: z.number(),
-			});
+		it("handles string prompt by converting to messages", async () => {
+			const { service, mock } = createService([
+				{
+					method: "POST",
+					path: "/ai/chat/completions",
+					body: chatResponse("response"),
+				},
+			]);
 
-			const result = await ai.generateObject({
-				model: "test-model",
-				prompt: "Generate user",
-				schema: schema,
-			});
+			await service.generateText({ model: "gpt-4", prompt: "test" });
 
-			expect(result.data?.object).toEqual({ name: "Test User", age: 30 });
+			mock.expectCalledWith("POST", "/ai/chat/completions", {
+				messages: [{ role: "user", content: "test" }],
+			});
 		});
 
-		it("should generate speech", async () => {
-			const result = await ai.generateSpeech({
+		it("handles messages array", async () => {
+			const { service, mock } = createService([
+				{
+					method: "POST",
+					path: "/ai/chat/completions",
+					body: chatResponse("response"),
+				},
+			]);
+
+			await service.generateText({
+				model: "gpt-4",
+				messages: [
+					{ role: "system", content: "You are helpful" },
+					{ role: "user", content: "Hello" },
+				],
+			});
+
+			const req = mock.requests[0];
+			expect((req.body as any).messages[0].role).toBe("system");
+		});
+
+		it("passes temperature and other options", async () => {
+			const { service, mock } = createService([
+				{
+					method: "POST",
+					path: "/ai/chat/completions",
+					body: chatResponse("ok"),
+				},
+			]);
+
+			await service.generateText({
+				model: "gpt-4",
+				prompt: "test",
+				temperature: 0.5,
+				maxTokens: 100,
+				topP: 0.9,
+			});
+
+			mock.expectCalledWith("POST", "/ai/chat/completions", {
+				temperature: 0.5,
+				max_tokens: 100,
+				top_p: 0.9,
+			});
+		});
+
+		it("throws on API failure", async () => {
+			const { service } = createService([
+				{
+					method: "POST",
+					path: "/ai/chat/completions",
+					status: 429,
+					body: {
+						code: "RATE_LIMITED",
+						message: "Too many requests",
+						requestId: "req_1",
+					},
+				},
+			]);
+
+			await expect(
+				service.generateText({ model: "gpt-4", prompt: "test" }),
+			).rejects.toThrow();
+		});
+	});
+
+	describe("embed()", () => {
+		it("generates embeddings", async () => {
+			const embedResponse = {
+				data: [{ embedding: [0.1, 0.2, 0.3] }],
+				usage: { total_tokens: 5 },
+			};
+			const { service } = createService([
+				{ method: "POST", path: "/ai/embeddings", body: embedResponse },
+			]);
+
+			const result = await service.embed({
+				model: "text-embedding-ada-002",
+				input: "Hello world",
+			});
+
+			expect(result.embeddings).toHaveLength(1);
+			expect(result.embeddings[0]).toEqual([0.1, 0.2, 0.3]);
+			expect(result.usage.totalTokens).toBe(5);
+		});
+
+		it("handles multiple inputs", async () => {
+			const embedResponse = {
+				data: [{ embedding: [0.1, 0.2] }, { embedding: [0.3, 0.4] }],
+				usage: { total_tokens: 10 },
+			};
+			const { service } = createService([
+				{ method: "POST", path: "/ai/embeddings", body: embedResponse },
+			]);
+
+			const result = await service.embed({
+				model: "text-embedding-ada-002",
+				input: ["Hello", "World"],
+			});
+
+			expect(result.embeddings).toHaveLength(2);
+		});
+	});
+
+	describe("generateObject()", () => {
+		it("generates a structured JSON object", async () => {
+			const { service } = createService([
+				{
+					method: "POST",
+					path: "/ai/chat/completions",
+					body: chatResponse('{"name":"Alice","age":30}'),
+				},
+			]);
+
+			const result = await service.generateObject({
+				model: "gpt-4",
+				prompt: "Generate a person object",
+				schema: {
+					type: "object",
+					properties: { name: { type: "string" }, age: { type: "number" } },
+				},
+			});
+
+			expect(result.object).toEqual({ name: "Alice", age: 30 });
+			expect(result.usage.totalTokens).toBe(15);
+		});
+
+		it("throws on invalid JSON response after retries exhausted", async () => {
+			const { service } = createService([
+				{
+					method: "POST",
+					path: "/ai/chat/completions",
+					body: chatResponse("not valid json"),
+				},
+			]);
+
+			await expect(
+				service.generateObject({
+					model: "gpt-4",
+					prompt: "Generate something",
+					schema: {},
+				}),
+			).rejects.toThrow();
+		});
+	});
+
+	describe("generateImage()", () => {
+		it("generates an image", async () => {
+			const imageResponse = {
+				data: [{ url: "https://images.example.com/generated.png" }],
+			};
+			const { service } = createService([
+				{ method: "POST", path: "/ai/images/generations", body: imageResponse },
+			]);
+
+			const result = await service.generateImage({
+				prompt: "A sunset over mountains",
+			});
+
+			expect(result.images).toHaveLength(1);
+			expect(result.images[0].url).toBe(
+				"https://images.example.com/generated.png",
+			);
+		});
+	});
+
+	describe("generateVideo()", () => {
+		it("generates a video", async () => {
+			const videoResponse = { id: "vid_1", status: "processing", url: null };
+			const { service } = createService([
+				{ method: "POST", path: "/ai/videos/generate", body: videoResponse },
+			]);
+
+			const result = await service.generateVideo({
+				prompt: "A cat walking",
+				model: "video-gen-1",
+			});
+
+			expect(result).toBeDefined();
+			expect((result as any).id).toBe("vid_1");
+		});
+	});
+
+	describe("generateSpeech()", () => {
+		it("generates speech and returns ArrayBuffer", async () => {
+			const { http } = createTestHttpClient([]);
+			const mockArrayBuffer = new ArrayBuffer(8);
+			vi.spyOn(http, "postRaw" as any).mockResolvedValue({
+				arrayBuffer: async () => mockArrayBuffer,
+			});
+
+			const service = new AIService(http);
+			const result = await service.generateSpeech({
 				text: "Hello world",
 				voice: "alloy",
 			});
-			expect(result.data).toBeInstanceOf(ArrayBuffer);
-		});
 
-		it("should generate image", async () => {
-			const result = await ai.generateImage({
-				prompt: "A cute cat",
-				size: "1024x1024",
+			expect(result).toBe(mockArrayBuffer);
+		});
+	});
+
+	describe("transcribe()", () => {
+		it("transcribes audio", async () => {
+			const { http } = createTestHttpClient([]);
+			vi.spyOn(http, "postFormData" as any).mockResolvedValue({
+				text: "Hello world",
 			});
-			expect(result.data?.images[0].url).toBe("https://example.com/image.png");
-		});
 
-		it("should generate video", async () => {
-			const result = await ai.generateVideo({
-				prompt: "A cat jumping",
-				duration: 5,
-			});
-			expect(result.data?.videoUrl).toBe("https://example.com/video.mp4");
-		});
-
-		it("should transcribe audio", async () => {
-			// Mock File object if environment supports or pass basic object if z.any() allows
-			const blob = new Blob(["audio data"], { type: "audio/mp3" });
-			const result = await ai.transcribe({
-				file: blob,
+			const service = new AIService(http);
+			const result = await service.transcribe({
+				file: new Blob(["audio data"]),
 				model: "whisper-1",
 			});
-			expect(result.data?.text).toBe("Hello world");
+
+			expect(result.text).toBe("Hello world");
+		});
+	});
+
+	describe("moderate()", () => {
+		it("moderates content", async () => {
+			const moderationResponse = {
+				id: "mod_1",
+				results: [{ flagged: false, categories: {} }],
+			};
+			const { service } = createService([
+				{ method: "POST", path: "/ai/moderations", body: moderationResponse },
+			]);
+
+			const result = await service.moderate({ input: "Hello, how are you?" });
+
+			expect(result).toBeDefined();
+		});
+	});
+
+	describe("listModels()", () => {
+		it("lists models in OpenAI format", async () => {
+			const modelsResponse = {
+				object: "list",
+				data: [{ id: "gpt-4" }, { id: "gpt-3.5-turbo" }],
+			};
+			const { service } = createService([
+				{ method: "GET", path: "/ai/models", body: modelsResponse },
+			]);
+
+			const result = await service.listModels();
+
+			expect(result).toEqual(["gpt-4", "gpt-3.5-turbo"]);
 		});
 
-		it("should moderate content", async () => {
-			const result = await ai.moderate({
-				input: "some text",
+		it("handles simple array format", async () => {
+			const { service } = createService([
+				{ method: "GET", path: "/ai/models", body: ["gpt-4", "gpt-3.5-turbo"] },
+			]);
+
+			const result = await service.listModels();
+
+			expect(result).toEqual(["gpt-4", "gpt-3.5-turbo"]);
+		});
+	});
+
+	describe("countTokens()", () => {
+		it("estimates token count", () => {
+			const { service } = createService([]);
+
+			expect(service.countTokens("Hello world")).toBe(3);
+			expect(service.countTokens("")).toBe(0);
+			expect(service.countTokens("a".repeat(100))).toBe(25);
+		});
+	});
+
+	describe("estimateCost()", () => {
+		it("estimates cost for known model", () => {
+			const { service } = createService([]);
+
+			const cost = service.estimateCost({
+				model: "frontal-ai-fast",
+				inputTokens: 1000,
+				outputTokens: 500,
 			});
-			expect(result.data?.results[0].flagged).toBe(false);
-		});
-	});
-
-	describe("Utility Methods", () => {
-		it("should count tokens roughly", () => {
-			const count = ai.countTokens("Hello world");
-			// 11 chars / 4 = 2.75 -> 3
-			expect(count).toBe(3);
+			expect(cost).toBeGreaterThan(0);
 		});
 
-		it("should track steps", () => {
-			ai.resetSteps();
-			expect(ai.getCurrentStep()).toBe(0);
-			ai.stepCountIs(5);
-			expect(ai.getCurrentStep()).toBe(5);
-			ai.resetSteps();
-			expect(ai.getCurrentStep()).toBe(0);
-		});
-	});
+		it("uses default rates for unknown model", () => {
+			const { service } = createService([]);
 
-	describe("Prompt Management", () => {
-		it("should create and retrieve prompts", () => {
-			const p = ai.createPrompt({
-				name: "test-prompt",
-				template: "Hello {{name}}",
-				variables: {
-					name: { type: "string" },
-				},
+			const cost = service.estimateCost({
+				model: "unknown-model",
+				inputTokens: 1000,
+				outputTokens: 500,
 			});
-			expect(p.name).toBe("test-prompt");
-
-			const response = ai.getPrompt("test-prompt");
-			expect(response.error).toBeNull();
-			expect(response.data).toEqual(p);
-		});
-
-		it("should return error on missing prompt", () => {
-			const response = ai.getPrompt("missing");
-			expect(response.data).toBeNull();
-			expect(response.error).toBeDefined();
-			expect(response.error?.name).toBe("not_found");
-			expect(response.error?.statusCode).toBe(404);
+			expect(cost).toBeGreaterThan(0);
 		});
 	});
 
-	describe("Tool System", () => {
-		it("should register and execute tools", async () => {
-			const tool = ai.defineTool({
+	describe("prompt management", () => {
+		it("creates and retrieves a prompt", () => {
+			const { service } = createService([]);
+
+			const prompt = service.createPrompt({
+				name: "greeting",
+				template: "Hello {{name}}!",
+				variables: { name: { type: "string", required: true } },
+			});
+
+			expect(prompt.name).toBe("greeting");
+
+			const retrieved = service.getPrompt("greeting");
+			expect(retrieved.template).toBe("Hello {{name}}!");
+		});
+
+		it("throws for missing prompt", () => {
+			const { service } = createService([]);
+
+			expect(() => service.getPrompt("nonexistent")).toThrow(
+				"Prompt not found",
+			);
+		});
+
+		it("updates a prompt", () => {
+			const { service } = createService([]);
+
+			service.createPrompt({ name: "test", template: "v1", variables: {} });
+			const updated = service.updatePrompt("test", { template: "v2" });
+			expect(updated.template).toBe("v2");
+		});
+
+		it("chains prompts", () => {
+			const { service } = createService([]);
+
+			const p1 = service.createPrompt({
+				name: "step1",
+				template: "First",
+				variables: {},
+			});
+			const p2 = service.createPrompt({
+				name: "step2",
+				template: "Second",
+				variables: {},
+			});
+
+			const chain = service.chainPrompts(p1, p2);
+			expect(chain.prompts).toHaveLength(2);
+		});
+	});
+
+	describe("tool system", () => {
+		it("defines and registers a tool", () => {
+			const { service } = createService([]);
+
+			const tool = service.defineTool({
 				name: "calculator",
-				description: "Add numbers",
-				parameters: z.object({ a: z.number(), b: z.number() }),
-				execute: async ({ a, b }) => a + b,
+				description: "Performs math",
+				parameters: { a: "number", b: "number" },
+				execute: async (params: any) => params.a + params.b,
 			});
 
-			ai.registerTool(tool);
-			const tools = ai.getTools();
-			expect(tools).toHaveLength(1);
-			expect(tools[0].name).toBe("calculator");
-
-			const result = await ai.executeTool("calculator", { a: 5, b: 3 });
-			expect(result.error).toBeNull();
-			expect(result.data).toBe(8);
+			service.registerTool(tool);
+			expect(service.getTools()).toHaveLength(1);
+			expect(service.getTools()[0].name).toBe("calculator");
 		});
 
-		it("should return error on missing tool", async () => {
-			const result = await ai.executeTool("nonexistent", {});
-			expect(result.data).toBeNull();
-			expect(result.error).toBeDefined();
-			expect(result.error?.name).toBe("not_found");
-			expect(result.error?.statusCode).toBe(404);
+		it("executes a registered tool", async () => {
+			const { service } = createService([]);
+
+			service.registerTool(
+				service.defineTool({
+					name: "add",
+					description: "Adds numbers",
+					parameters: {},
+					execute: async () => 42,
+				}),
+			);
+
+			const result = await service.executeTool("add", {});
+			expect(result).toBe(42);
 		});
+
+		it("throws for unknown tool", async () => {
+			const { service } = createService([]);
+
+			await expect(service.executeTool("nonexistent", {})).rejects.toThrow(
+				"Tool not found",
+			);
+		});
+	});
+
+	describe("step tracking", () => {
+		it("tracks steps", () => {
+			const { service } = createService([]);
+
+			expect(service.getCurrentStep()).toBe(0);
+			service.stepCountIs(5);
+			expect(service.getCurrentStep()).toBe(5);
+			service.resetSteps();
+			expect(service.getCurrentStep()).toBe(0);
+		});
+	});
+});
+
+describe("AI (deprecated compat)", () => {
+	it("wraps results in APIResponse format", async () => {
+		const mockFetch = vi.fn().mockResolvedValue(
+			new Response(JSON.stringify(chatResponse("Hello")), {
+				status: 200,
+				headers: { "Content-Type": "application/json" },
+			}),
+		);
+		vi.stubGlobal("fetch", mockFetch);
+
+		const ai = new AI({
+			apiKey: "frt_test-api-key-1234567890",
+			baseUrl: "https://ai.test.frontal.dev/v1",
+		});
+		const result = await ai.generateText({ model: "gpt-4", prompt: "test" });
+
+		expect(result.data?.text).toBe("Hello");
+		expect(result.error).toBeNull();
+
+		vi.unstubAllGlobals();
 	});
 });

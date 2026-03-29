@@ -1,4 +1,4 @@
-# API Reference - @frontal-cloud/ai
+# API Reference - @frontal/ai
 
 ## Class: `AI`
 

@@ -92,6 +92,11 @@ export type InvocationStats = z.infer<typeof invocationStatsSchema>;
 export const functionsConfigSchema = z.object({
 	apiKey: z.string().optional(),
 	baseUrl: z.string().url().optional(),
+	environment: z.string().optional(),
+	timeout: z.number().optional(),
+	maxRetries: z.number().optional(),
+	retryDelay: z.number().optional(),
+	headers: z.record(z.string(), z.string()).optional(),
 });
 
 /**
@@ -106,19 +111,19 @@ export interface IFunctionsClient {
 	/**
 	 * Deploys a new function.
 	 */
-	deployFunction(config: FunctionConfig): Promise<APIResponse<FunctionEntry>>;
+	deploy(config: FunctionConfig): Promise<APIResponse<FunctionEntry>>;
 	/**
 	 * Lists all functions.
 	 */
-	listFunctions(): Promise<APIResponse<FunctionEntry[]>>;
+	list(): Promise<APIResponse<FunctionEntry[]>>;
 	/**
 	 * Gets details of a specific function.
 	 */
-	getFunction(id: string): Promise<APIResponse<FunctionEntry>>;
+	get(id: string): Promise<APIResponse<FunctionEntry>>;
 	/**
 	 * Deletes a function.
 	 */
-	deleteFunction(id: string): Promise<APIResponse<void>>;
+	delete(id: string): Promise<APIResponse<void>>;
 	/**
 	 * Invokes a function synchronously.
 	 */
@@ -126,7 +131,7 @@ export interface IFunctionsClient {
 	/**
 	 * Retrieves invocation statistics for a function.
 	 */
-	getInvocationStats(id: string): Promise<APIResponse<InvocationStats>>;
+	stats(id: string): Promise<APIResponse<InvocationStats>>;
 	/**
 	 * Updates only the trigger configuration for a function.
 	 */
