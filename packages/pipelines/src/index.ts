@@ -1,4 +1,4 @@
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { PipelinesService } from "./service";
 
 /** Config for standalone usage without @frontal/core */
@@ -37,5 +37,5 @@ export function createPipelinesClient(
 // Default instance that works automatically with environment variables
 export const pipelines = new PipelinesService(getDefaultClient()._http);
 
-export { PipelinesService } from "./service";
 export * from "./schemas";
+export { PipelinesService } from "./service";

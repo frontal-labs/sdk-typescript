@@ -6,8 +6,8 @@ import type {
 	FunctionConfig,
 	FunctionEntry,
 	FunctionsConfig,
-	InvokeOptions,
 	InvocationStats,
+	InvokeOptions,
 } from "./types";
 
 function toErrorResponse(error: unknown): APIResponse<never>["error"] {

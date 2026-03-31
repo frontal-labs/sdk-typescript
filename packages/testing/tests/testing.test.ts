@@ -2,7 +2,7 @@
  * Tests for the testing package
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock environment variables
 process.env.FRONTAL_API_KEY = "frt_test-api-key";

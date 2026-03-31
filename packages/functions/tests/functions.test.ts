@@ -1,7 +1,7 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { createTestHttpClient, type MockRoute } from "@frontal/testing";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { FunctionsService } from "../src/client";
 import { Functions } from "../src/compat";
-import { createTestHttpClient, type MockRoute } from "@frontal/testing";
 import { functionConfigSchema, invokeOptionsSchema } from "../src/types";
 
 function createService(routes: MockRoute[] = []) {

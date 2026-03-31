@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import type { ClientConfigOutput } from "./config";
-import { calculateDelay } from "./retry";
 import { NetworkError, parseFrontalError } from "./errors";
+import { calculateDelay } from "./retry";
 
 /**
  * HTTP client for making requests to the Frontal API.

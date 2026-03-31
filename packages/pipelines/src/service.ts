@@ -1,11 +1,11 @@
-import { z } from "zod";
 import {
-	HttpClient,
-	PageResult,
 	createPageResult,
-	pollUntil,
+	type HttpClient,
+	type PageResult,
 	type PollOptions,
+	pollUntil,
 } from "@frontal/core";
+import type { z } from "zod";
 import * as S from "./schemas";
 
 export class PipelinesService {
@@ -222,7 +222,7 @@ export class PipelineAccessor {
 
 	async trigger(input: Record<string, unknown> = {}): Promise<S.PipelineRun> {
 		return this.http.post(
-			`/pipelines/${this.id}/trigger`,
+			`/pipelines/${this.id}/execute`,
 			input,
 			S.PipelineRunSchema,
 		);

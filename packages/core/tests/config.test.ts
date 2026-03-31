@@ -2,12 +2,12 @@
  * Comprehensive tests for configuration schemas and types
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
-	clientConfigSchema,
 	type ClientConfigInput,
 	type ClientConfigOutput,
+	clientConfigSchema,
 } from "../src/config";
 import { cleanupMocks } from "./setup";
 

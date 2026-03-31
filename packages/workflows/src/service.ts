@@ -1,11 +1,11 @@
-import { z } from "zod";
 import {
-	HttpClient,
-	PageResult,
 	createPageResult,
-	pollUntil,
+	type HttpClient,
+	type PageResult,
 	type PollOptions,
+	pollUntil,
 } from "@frontal/core";
+import { z } from "zod";
 import * as S from "./schemas";
 
 export class WorkflowsService {

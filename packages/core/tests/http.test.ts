@@ -2,15 +2,15 @@
  * Comprehensive tests for HttpClient
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { NetworkError, NotFoundError, parseFrontalError } from "../src/errors";
 import { HttpClient } from "../src/http";
-import { parseFrontalError, NotFoundError, NetworkError } from "../src/errors";
 import {
-	createMockConfig,
-	createMockFetch,
-	createMockErrorResponse,
 	cleanupMocks,
+	createMockConfig,
+	createMockErrorResponse,
+	createMockFetch,
 } from "./setup";
 
 describe("HttpClient", () => {

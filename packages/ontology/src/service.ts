@@ -1,5 +1,9 @@
-import { z } from "zod";
-import { HttpClient, PageResult, createPageResult } from "@frontal/core";
+import {
+	createPageResult,
+	type HttpClient,
+	type PageResult,
+} from "@frontal/core";
+import type { z } from "zod";
 import * as S from "./schemas";
 
 export class OntologyService {
@@ -126,7 +130,7 @@ export class MigrationsNamespace {
 	async rollback(
 		migrationId: string,
 	): Promise<{ id: string; status: string; rolledBackAt: string }> {
-		return this.http.post(`/models/migrations/${migrationId}/rollback`);
+		return this.http.post(`/ontology/migrations/${migrationId}/rollback`);
 	}
 
 	async history(opts: { limit?: number; cursor?: string } = {}): Promise<
@@ -162,11 +166,11 @@ export class RulesNamespace {
 		ruleId: string,
 		definition: Partial<S.RuleDefinition>,
 	): Promise<S.RuleDefinition> {
-		return this.http.put(`/models/rules/${ruleId}`, definition);
+		return this.http.put(`/ontology/rules/${ruleId}`, definition);
 	}
 
 	async delete(ruleId: string): Promise<void> {
-		return this.http.delete(`/models/rules/${ruleId}`);
+		return this.http.delete(`/ontology/rules/${ruleId}`);
 	}
 
 	async evaluate(opts: {
@@ -220,11 +224,14 @@ export class GenerationNamespace {
 	}
 
 	async acceptSuggestion(suggestionId: string): Promise<any> {
-		return this.http.post(`/models/suggestions/${suggestionId}/accept`);
+		return this.http.post(`/ontology/suggestions/${suggestionId}/accept`);
 	}
 
-	async rejectSuggestion(suggestionId: string, reason?: string): Promise<any> {
-		return this.http.post(`/models/suggestions/${suggestionId}/reject`, {
+	async rejectSuggestion(
+		suggestionId: string,
+		reason?: string,
+	): Promise<unknown> {
+		return this.http.post(`/ontology/suggestions/${suggestionId}/reject`, {
 			reason,
 		});
 	}

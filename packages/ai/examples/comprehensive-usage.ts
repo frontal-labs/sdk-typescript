@@ -5,8 +5,8 @@
  * together in a real-world application scenario.
  */
 
-import { AI } from "../src";
 import { z } from "zod";
+import { AI } from "../src";
 
 // Initialize the AI client
 const ai = new AI();

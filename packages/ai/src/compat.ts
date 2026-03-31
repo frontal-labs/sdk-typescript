@@ -1,32 +1,32 @@
 import { FrontalClient, getDefaultClient } from "@frontal/core";
+import type { z } from "zod";
 import { AIService } from "./client";
 import { DEFAULT_AI_BASE_URL } from "./constants";
 import type {
 	APIResponse,
 	EmbedOptions,
 	EmbedResult,
-	GenerateTextOptions,
-	GenerateTextResult,
-	StreamTextOptions,
-	StreamTextResult,
+	GenerateImageOptions,
+	GenerateImageResult,
 	GenerateObjectOptions,
 	GenerateObjectResult,
 	GenerateSpeechOptions,
-	GenerateImageOptions,
-	GenerateImageResult,
+	GenerateTextOptions,
+	GenerateTextResult,
 	GenerateVideoOptions,
 	GenerateVideoResult,
-	TranscriptionOptions,
-	TranscriptionResult,
+	IAIClient,
 	ModerationOptions,
 	ModerationResult,
 	Prompt,
 	PromptChain,
+	StreamTextOptions,
+	StreamTextResult,
 	Tool,
+	TranscriptionOptions,
+	TranscriptionResult,
 	VariableDefinition,
-	IAIClient,
 } from "./types";
-import type { z } from "zod";
 
 function toErrorResponse(error: unknown): APIResponse<never>["error"] {
 	if (error instanceof Error) {

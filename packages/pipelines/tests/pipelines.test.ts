@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
 import {
 	createTestHttpClient,
-	mockPageResponse,
 	fixtures,
+	mockPageResponse,
 } from "@frontal/testing";
-import { PipelinesService, PipelineBuilder } from "../src/service";
+import { describe, expect, it, vi } from "vitest";
+import { PipelineBuilder, PipelinesService } from "../src/service";
 
 function createService(
 	routes: Parameters<typeof createTestHttpClient>[0] = [],
@@ -235,13 +235,13 @@ describe("PipelineAccessor", () => {
 		it("triggers a pipeline run", async () => {
 			const body = { id: "run_1", pipelineId, status: "running" };
 			const { service, mock } = createService([
-				{ method: "POST", path: `/pipelines/${pipelineId}/trigger`, body },
+				{ method: "POST", path: `/pipelines/${pipelineId}/execute`, body },
 			]);
 
 			const result = await service.use(pipelineId).trigger({ batchSize: 100 });
 
 			expect(result.status).toBe("running");
-			mock.expectCalledWith("POST", `/pipelines/${pipelineId}/trigger`, {
+			mock.expectCalledWith("POST", `/pipelines/${pipelineId}/execute`, {
 				batchSize: 100,
 			});
 		});

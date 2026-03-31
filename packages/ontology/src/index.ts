@@ -1,4 +1,4 @@
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { OntologyService } from "./service";
 
 /** Config for standalone usage without @frontal/core */
@@ -37,5 +37,5 @@ export function createOntologyClient(
 // Default instance that works automatically with environment variables
 export const ontology = new OntologyService(getDefaultClient()._http);
 
-export { OntologyService } from "./service";
 export * from "./schemas";
+export { OntologyService } from "./service";

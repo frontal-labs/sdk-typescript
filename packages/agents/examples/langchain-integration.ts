@@ -8,14 +8,13 @@
 import type { AgentHandler } from "@frontal/agents";
 import { AgentsService } from "@frontal/agents";
 import { HttpClient } from "@frontal/core";
-
-// LangChain imports (peer dependencies)
-import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { DynamicStructuredTool } from "@langchain/core/tools";
-import { z } from "zod";
-import { pull } from "langchain/hub";
+// LangChain imports (peer dependencies)
+import { ChatOpenAI } from "@langchain/openai";
 import { AgentExecutor, createReactAgent } from "langchain/agents";
+import { pull } from "langchain/hub";
+import { z } from "zod";
 
 const http = new HttpClient({
 	baseURL: process.env.FRONTAL_API_URL || "https://api.frontal.dev",

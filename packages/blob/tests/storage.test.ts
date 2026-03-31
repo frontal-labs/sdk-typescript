@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { createTestHttpClient, type MockRoute } from "@frontal/testing";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { BlobService } from "../src/client";
 import { Storage } from "../src/compat";
-import { createTestHttpClient, type MockRoute } from "@frontal/testing";
 import { signedUrlOptionsSchema } from "../src/types";
 
 function createService(routes: MockRoute[] = []) {

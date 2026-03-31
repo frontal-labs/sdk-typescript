@@ -1,10 +1,10 @@
-import { z } from "zod";
 import {
-	HttpClient,
-	PageResult,
 	createPageResult,
-	QueryBuilder,
+	type HttpClient,
+	type PageResult,
+	type QueryBuilder,
 } from "@frontal/core";
+import { z } from "zod";
 import * as S from "./schemas";
 
 export class GraphService {

@@ -1,9 +1,9 @@
-import { z } from "zod";
 import {
-	timestampSchema,
 	filterConditionsSchema,
 	QueryBuilder,
+	timestampSchema,
 } from "@frontal/core";
+import { z } from "zod";
 
 export const EntityMetaSchema = z
 	.object({

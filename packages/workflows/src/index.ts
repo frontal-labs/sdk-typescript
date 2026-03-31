@@ -1,4 +1,4 @@
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { WorkflowsService } from "./service";
 
 /** Config for standalone usage without @frontal/core */
@@ -37,5 +37,5 @@ export function createWorkflowsClient(
 // Default instance that works automatically with environment variables
 export const workflows = new WorkflowsService(getDefaultClient()._http);
 
-export { WorkflowsService } from "./service";
 export * from "./schemas";
+export { WorkflowsService } from "./service";

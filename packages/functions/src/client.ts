@@ -2,12 +2,12 @@ import type { HttpClient } from "@frontal/core";
 import {
 	type FunctionConfig,
 	type FunctionEntry,
-	type InvokeOptions,
-	type InvocationStats,
 	functionConfigSchema,
 	functionSchema,
-	invokeOptionsSchema,
+	type InvocationStats,
+	type InvokeOptions,
 	invocationStatsSchema,
+	invokeOptionsSchema,
 } from "./types";
 
 /**

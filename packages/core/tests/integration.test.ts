@@ -2,20 +2,20 @@
  * Integration tests for the complete @frontal/core package
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { FrontalClient } from "../src/client";
-import { HttpClient } from "../src/http";
 import { clientConfigSchema } from "../src/config";
 import {
 	FrontalError,
 	NotFoundError,
-	ValidationError,
 	parseFrontalError,
+	ValidationError,
 } from "../src/errors";
+import { HttpClient } from "../src/http";
+import { keys } from "../src/keys";
 import { createPageResult } from "../src/pagination";
 import { calculateDelay } from "../src/retry";
-import { keys } from "../src/keys";
 
 // Inline test utilities to avoid import issues
 const createMockConfig = (overrides = {}) => ({

@@ -2,7 +2,7 @@
  * Comprehensive tests for retry logic and strategies
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { calculateDelay } from "../src/retry";
 import { cleanupMocks } from "./setup";
 
@@ -67,7 +67,7 @@ describe("Retry Logic", () => {
 				const delay = calculateDelay(attempt, "exponential", baseDelay, true);
 
 				// Should be exponential delay plus some jitter
-				const expectedBase = baseDelay * Math.pow(2, attempt);
+				const expectedBase = baseDelay * 2 ** attempt;
 				expect(delay).toBeGreaterThanOrEqual(expectedBase);
 				expect(delay).toBeLessThan(expectedBase + 201); // JITTER_MAX is 200
 			});
@@ -79,7 +79,7 @@ describe("Retry Logic", () => {
 				const delay = calculateDelay(attempt, "exponential", baseDelay, false);
 
 				// Should be exactly exponential delay without jitter
-				expect(delay).toBe(baseDelay * Math.pow(2, attempt));
+				expect(delay).toBe(baseDelay * 2 ** attempt);
 			});
 		});
 
@@ -191,7 +191,7 @@ describe("Retry Logic", () => {
 				);
 
 				// All delays should be within expected range
-				const expectedBase = baseDelay * Math.pow(2, attempt);
+				const expectedBase = baseDelay * 2 ** attempt;
 				delays.forEach((delay) => {
 					expect(delay).toBeGreaterThanOrEqual(expectedBase);
 					expect(delay).toBeLessThan(expectedBase + 201);
@@ -217,7 +217,7 @@ describe("Retry Logic", () => {
 				expect(uniqueDelays.size).toBe(1);
 
 				// Should be exactly the expected delay
-				const expectedDelay = baseDelay * Math.pow(2, attempt);
+				const expectedDelay = baseDelay * 2 ** attempt;
 				delays.forEach((delay) => {
 					expect(delay).toBe(expectedDelay);
 				});
@@ -285,7 +285,7 @@ describe("Retry Logic", () => {
 
 				// Should handle large numbers without overflow
 				expect(calculateDelay(10, "exponential", baseDelay)).toBe(
-					baseDelay * Math.pow(2, 10),
+					baseDelay * 2 ** 10,
 				);
 			});
 
@@ -393,7 +393,7 @@ describe("Retry Logic", () => {
 
 				// Results should be correct
 				results.forEach((delay, index) => {
-					expect(delay).toBe(baseDelay * Math.pow(2, index));
+					expect(delay).toBe(baseDelay * 2 ** index);
 				});
 			});
 		});
@@ -490,7 +490,7 @@ describe("Retry Logic", () => {
 				);
 
 				// All delays should be within the expected range
-				const expectedBase = baseDelay * Math.pow(2, attempt);
+				const expectedBase = baseDelay * 2 ** attempt;
 				delays.forEach((delay) => {
 					expect(delay).toBeGreaterThanOrEqual(expectedBase);
 					expect(delay).toBeLessThan(expectedBase + 201);
@@ -512,7 +512,7 @@ describe("Retry Logic", () => {
 					calculateDelay(attempt, strategy, baseDelay, true),
 				);
 
-				const expectedBase = baseDelay * Math.pow(2, attempt);
+				const expectedBase = baseDelay * 2 ** attempt;
 				const minDelay = Math.min(...delays);
 				const maxDelay = Math.max(...delays);
 				const avgDelay =

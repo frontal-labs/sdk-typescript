@@ -1,5 +1,5 @@
+import { filterConditionsSchema, timestampSchema } from "@frontal/core";
 import { z } from "zod";
-import { timestampSchema, filterConditionsSchema } from "@frontal/core";
 
 export const WorkflowStatusSchema = z.enum([
 	"draft",

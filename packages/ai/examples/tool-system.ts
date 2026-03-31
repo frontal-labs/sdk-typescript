@@ -5,8 +5,8 @@
  * to define, register, and execute custom tools for AI agents.
  */
 
-import { AI } from "../src";
 import { z } from "zod";
+import { AI } from "../src";
 
 // Initialize the AI client
 const ai = new AI();
@@ -527,16 +527,14 @@ function calculateMedian(values: number[]): number {
 function calculateStdDev(values: number[]): number {
 	const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
 	const variance =
-		values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-		values.length;
+		values.reduce((sum, val) => sum + (val - mean) ** 2, 0) / values.length;
 	return Math.sqrt(variance);
 }
 
 function findOutliers(values: number[]): number[] {
 	const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
 	const stdDev = Math.sqrt(
-		values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-			values.length,
+		values.reduce((sum, val) => sum + (val - mean) ** 2, 0) / values.length,
 	);
 	return values.filter((val) => Math.abs(val - mean) > 2 * stdDev);
 }
@@ -570,7 +568,7 @@ function calculateCorrelation(dataset: any[]): number {
 	for (let i = 0; i < n; i++) {
 		const deviation = values[i] - mean;
 		numerator += (i - (n - 1) / 2) * deviation;
-		denominator += Math.pow(deviation, 2);
+		denominator += deviation ** 2;
 	}
 
 	return denominator === 0 ? 0 : numerator / denominator;

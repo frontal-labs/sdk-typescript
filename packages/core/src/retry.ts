@@ -1,4 +1,4 @@
-import { JITTER_MAX, EXPONENTIAL_BASE } from "./constants";
+import { EXPONENTIAL_BASE, JITTER_MAX } from "./constants";
 import type { RetryConfig } from "./schemas";
 
 /**

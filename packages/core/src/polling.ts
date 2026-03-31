@@ -1,5 +1,5 @@
-import { calculateDelay } from "./retry";
 import { TimeoutError } from "./errors";
+import { calculateDelay } from "./retry";
 
 /**
  * Options for the pollUntil utility.

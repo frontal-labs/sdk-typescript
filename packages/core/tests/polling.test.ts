@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
-import { pollUntil, withTimeout } from "../src/polling";
+import { describe, expect, it, vi } from "vitest";
 import { TimeoutError } from "../src/errors";
+import { pollUntil, withTimeout } from "../src/polling";
 
 describe("pollUntil", () => {
 	it("resolves immediately when condition is met on first call", async () => {

@@ -1,6 +1,6 @@
 import { createEnv } from "@t3-oss/env-core";
-import { ValidationError } from "./errors";
 import { z } from "zod";
+import { ValidationError } from "./errors";
 
 /**
  * Creates and validates environment variables for the Frontal Core.

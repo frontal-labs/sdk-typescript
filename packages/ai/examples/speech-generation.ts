@@ -5,8 +5,8 @@
  * to generate speech/audio from text using text-to-speech models.
  */
 
-import { AI } from "../src";
 import { writeFileSync } from "fs";
+import { AI } from "../src";
 
 // Initialize the AI client
 const ai = new AI();

@@ -2,7 +2,7 @@
  * Comprehensive tests for environment variable management
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { keys } from "../src/keys";
 import { cleanupMocks } from "./setup";
 

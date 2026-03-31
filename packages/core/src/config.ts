@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEFAULT_BASE_URL, API_KEY_PREFIX } from "./constants";
+import { API_KEY_PREFIX, DEFAULT_BASE_URL } from "./constants";
 
 /**
  * Zod schema for client configuration.

@@ -1,4 +1,4 @@
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { AgentsService } from "./service";
 
 /** Config for standalone usage without @frontal/core */
@@ -35,6 +35,6 @@ export function createAgentsClient(
 // Default instance that works automatically with environment variables
 export const agents = new AgentsService(getDefaultClient()._http);
 
-export { AgentsService, AgentBuilder } from "./service";
-export type { AgentHandler, AgentContext } from "./context";
+export type { AgentContext, AgentHandler } from "./context";
 export * from "./schemas";
+export { AgentBuilder, AgentsService } from "./service";

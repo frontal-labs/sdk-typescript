@@ -5,13 +5,12 @@
  * with Frontal agents for modern AI-powered workflows.
  */
 
+// Vercel AI SDK imports (peer dependencies)
+import { openai } from "@ai-sdk/openai";
 import type { AgentHandler } from "@frontal/agents";
 import { AgentsService } from "@frontal/agents";
 import { HttpClient } from "@frontal/core";
-
-// Vercel AI SDK imports (peer dependencies)
-import { openai } from "@ai-sdk/openai";
-import { generateText, generateObject, streamText } from "ai";
+import { generateObject, generateText, streamText } from "ai";
 import { z } from "zod";
 
 const http = new HttpClient({

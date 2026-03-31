@@ -1,13 +1,13 @@
-import { z } from "zod";
 import {
-	HttpClient,
-	PageResult,
 	createPageResult,
-	pollUntil,
+	type HttpClient,
+	type PageResult,
 	type PollOptions,
+	pollUntil,
 } from "@frontal/core";
+import type { z } from "zod";
+import type { AgentHandler } from "./context";
 import * as S from "./schemas";
-import { AgentHandler } from "./context";
 
 export class AgentsService {
 	constructor(private readonly http: HttpClient) {}

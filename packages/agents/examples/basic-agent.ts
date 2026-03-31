@@ -5,7 +5,7 @@
  * with automated responses based on sentiment analysis.
  */
 
-import { AgentsService, AgentHandler } from "@frontal/agents";
+import { type AgentHandler, AgentsService } from "@frontal/agents";
 import { HttpClient } from "@frontal/core";
 
 // Initialize the agents service

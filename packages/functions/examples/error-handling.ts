@@ -9,7 +9,7 @@
  * - Graceful degradation
  */
 
-import { Functions, type FunctionConfig } from "@frontal/functions";
+import { type FunctionConfig, Functions } from "@frontal/functions";
 
 const functions = new Functions();
 
@@ -71,7 +71,7 @@ async function invokeWithRetry(functionId: string, maxRetries = 3) {
 				}
 
 				// Exponential backoff: wait 1s, 2s, 4s, etc.
-				const delay = Math.pow(2, attempt - 1) * 1000;
+				const delay = 2 ** (attempt - 1) * 1000;
 				console.log(`Retrying in ${delay}ms...`);
 				await new Promise((resolve) => setTimeout(resolve, delay));
 				continue;

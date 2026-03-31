@@ -1,5 +1,5 @@
-import { createGraphClient, graph } from "@frontal/graph";
 import { FrontalClient } from "@frontal/core";
+import { createGraphClient, graph } from "@frontal/graph";
 
 // Initialize client
 const client = new FrontalClient({

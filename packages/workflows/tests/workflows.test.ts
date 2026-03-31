@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
 import {
 	createTestHttpClient,
-	mockPageResponse,
 	fixtures,
+	mockPageResponse,
 } from "@frontal/testing";
-import { WorkflowsService, WorkflowBuilder } from "../src/service";
+import { describe, expect, it, vi } from "vitest";
+import { WorkflowBuilder, WorkflowsService } from "../src/service";
 
 function createService(
 	routes: Parameters<typeof createTestHttpClient>[0] = [],

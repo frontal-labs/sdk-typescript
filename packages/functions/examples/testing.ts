@@ -9,7 +9,7 @@
  * - End-to-end testing
  */
 
-import { Functions, type FunctionConfig } from "@frontal/functions";
+import { type FunctionConfig, Functions } from "@frontal/functions";
 
 // Mock implementation for testing
 class MockFunctions {

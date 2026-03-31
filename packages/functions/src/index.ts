@@ -4,7 +4,7 @@
  * Deploy and manage serverless functions on Frontal.
  */
 
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { FunctionsService } from "./client";
 
 /** Config for standalone usage without @frontal/core */
@@ -49,13 +49,13 @@ export { FunctionsService } from "./client";
 // Deprecated Pattern A compat
 export { Functions } from "./compat";
 
-export { VERSION, DEFAULT_FUNCTIONS_BASE_URL } from "./constants";
+export { DEFAULT_FUNCTIONS_BASE_URL, VERSION } from "./constants";
 export type {
-	FunctionConfig,
-	FunctionEntry,
-	InvokeOptions,
-	FunctionsConfig,
-	InvocationStats,
 	APIResponse,
 	ErrorResponse,
+	FunctionConfig,
+	FunctionEntry,
+	FunctionsConfig,
+	InvocationStats,
+	InvokeOptions,
 } from "./types";

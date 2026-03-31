@@ -1,9 +1,9 @@
-import { z } from "zod";
 import {
-	timestampSchema,
 	filterConditionsSchema,
 	retryConfigSchema,
+	timestampSchema,
 } from "@frontal/core";
+import { z } from "zod";
 
 export const FieldTypeSchema = z.enum([
 	"string",

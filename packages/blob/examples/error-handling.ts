@@ -106,7 +106,7 @@ async function retryWithBackoff() {
 
 				// Retry on server errors (5xx) or network issues
 				if (attempt < maxRetries) {
-					const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+					const delay = baseDelay * 2 ** (attempt - 1); // Exponential backoff
 					console.log(`⏳ Waiting ${delay}ms before retry...`);
 					await new Promise((resolve) => setTimeout(resolve, delay));
 				}
@@ -115,7 +115,7 @@ async function retryWithBackoff() {
 				console.log(`❌ Exception on attempt ${attempt}:`, error);
 
 				if (attempt < maxRetries) {
-					const delay = baseDelay * Math.pow(2, attempt - 1);
+					const delay = baseDelay * 2 ** (attempt - 1);
 					console.log(`⏳ Waiting ${delay}ms before retry...`);
 					await new Promise((resolve) => setTimeout(resolve, delay));
 				}

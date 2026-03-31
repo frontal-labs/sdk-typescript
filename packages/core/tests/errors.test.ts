@@ -2,20 +2,20 @@
  * Comprehensive tests for error classes and error handling
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
-	FrontalError,
-	NotFoundError,
-	UnauthorizedError,
-	ForbiddenError,
-	ValidationError,
 	ConflictError,
+	ForbiddenError,
+	FrontalError,
+	NetworkError,
+	NotFoundError,
+	parseFrontalError,
 	RateLimitError,
 	ServiceError,
-	NetworkError,
-	parseFrontalError,
+	UnauthorizedError,
+	ValidationError,
 } from "../src/errors";
-import { createMockErrorResponse, cleanupMocks } from "./setup";
+import { cleanupMocks, createMockErrorResponse } from "./setup";
 
 describe("Error Classes", () => {
 	beforeEach(() => {

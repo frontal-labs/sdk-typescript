@@ -3,8 +3,8 @@
  * Shared testing utilities for all Frontal Core packages
  */
 
-import { vi } from "vitest";
 import { FrontalClient, HttpClient } from "@frontal/core";
+import { vi } from "vitest";
 
 // ============================================================================
 // Configuration
@@ -82,7 +82,7 @@ export function createMockFetch(routes: MockRoute[] = []) {
 			const parsedUrl = new URL(url);
 			const path = parsedUrl.pathname + parsedUrl.search;
 
-			let reqBody: unknown = undefined;
+			let reqBody: unknown;
 			if (init?.body && typeof init.body === "string") {
 				try {
 					reqBody = JSON.parse(init.body);

@@ -1,16 +1,16 @@
-import { describe, it, expect } from "vitest";
 import {
 	createTestHttpClient,
-	mockPageResponse,
 	fixtures,
+	mockPageResponse,
 } from "@frontal/testing";
+import { describe, expect, it } from "vitest";
 import {
-	OntologyService,
-	ModelAccessor,
-	MigrationsNamespace,
-	RulesNamespace,
-	MixinsNamespace,
 	GenerationNamespace,
+	MigrationsNamespace,
+	MixinsNamespace,
+	ModelAccessor,
+	OntologyService,
+	RulesNamespace,
 } from "../src/service";
 
 function createService(
@@ -306,13 +306,13 @@ describe("MigrationsNamespace", () => {
 				rolledBackAt: "2024-01-01",
 			};
 			const { service, mock } = createService([
-				{ method: "POST", path: "/models/migrations/mig_1/rollback", body },
+				{ method: "POST", path: "/ontology/migrations/mig_1/rollback", body },
 			]);
 
 			const result = await service.migrations.rollback("mig_1");
 
 			expect(result.status).toBe("rolled_back");
-			mock.expectCalled("POST", "/models/migrations/mig_1/rollback");
+			mock.expectCalled("POST", "/ontology/migrations/mig_1/rollback");
 		});
 	});
 
@@ -389,7 +389,7 @@ describe("RulesNamespace", () => {
 				type: "validation",
 			};
 			const { service, mock } = createService([
-				{ method: "PUT", path: "/models/rules/rule_1", body },
+				{ method: "PUT", path: "/ontology/rules/rule_1", body },
 			]);
 
 			const result = await service.rules.update("rule_1", {
@@ -397,19 +397,19 @@ describe("RulesNamespace", () => {
 			});
 
 			expect(result.name).toBe("email_format_v2");
-			mock.expectCalled("PUT", "/models/rules/rule_1");
+			mock.expectCalled("PUT", "/ontology/rules/rule_1");
 		});
 	});
 
 	describe("delete()", () => {
 		it("deletes a rule", async () => {
 			const { service, mock } = createService([
-				{ method: "DELETE", path: "/models/rules/rule_1", status: 204 },
+				{ method: "DELETE", path: "/ontology/rules/rule_1", status: 204 },
 			]);
 
 			await service.rules.delete("rule_1");
 
-			mock.expectCalled("DELETE", "/models/rules/rule_1");
+			mock.expectCalled("DELETE", "/ontology/rules/rule_1");
 		});
 	});
 
@@ -523,13 +523,13 @@ describe("GenerationNamespace", () => {
 		it("accepts a suggestion", async () => {
 			const body = { id: "sug_1", status: "accepted" };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/models/suggestions/sug_1/accept", body },
+				{ method: "POST", path: "/ontology/suggestions/sug_1/accept", body },
 			]);
 
 			const result = await service.generation.acceptSuggestion("sug_1");
 
 			expect(result.status).toBe("accepted");
-			mock.expectCalled("POST", "/models/suggestions/sug_1/accept");
+			mock.expectCalled("POST", "/ontology/suggestions/sug_1/accept");
 		});
 	});
 
@@ -537,7 +537,7 @@ describe("GenerationNamespace", () => {
 		it("rejects a suggestion with reason", async () => {
 			const body = { id: "sug_1", status: "rejected" };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/models/suggestions/sug_1/reject", body },
+				{ method: "POST", path: "/ontology/suggestions/sug_1/reject", body },
 			]);
 
 			const result = await service.generation.rejectSuggestion(
@@ -546,7 +546,7 @@ describe("GenerationNamespace", () => {
 			);
 
 			expect(result.status).toBe("rejected");
-			mock.expectCalledWith("POST", "/models/suggestions/sug_1/reject", {
+			mock.expectCalledWith("POST", "/ontology/suggestions/sug_1/reject", {
 				reason: "Not relevant",
 			});
 		});

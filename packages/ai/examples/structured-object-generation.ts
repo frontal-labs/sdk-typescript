@@ -6,8 +6,8 @@
  * ensuring type-safe and validated output.
  */
 
-import { AI } from "../src";
 import { z } from "zod";
+import { AI } from "../src";
 
 // Initialize the AI client
 const ai = new AI();

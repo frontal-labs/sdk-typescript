@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { errorResponseSchema, type ErrorField } from "./schemas";
+import { type ErrorField, errorResponseSchema } from "./schemas";
 
 type ErrorResponseInput = z.infer<typeof errorResponseSchema>;
 

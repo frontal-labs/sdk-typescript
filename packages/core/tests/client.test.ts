@@ -2,16 +2,16 @@
  * Comprehensive tests for FrontalClient
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { FrontalClient } from "../src/client";
 import { HttpClient } from "../src/http";
 import {
+	cleanupMocks,
 	createMockConfig,
 	createMockFetch,
 	createMockResponse,
 	testUserSchema,
-	cleanupMocks,
 } from "./setup";
 
 describe("FrontalClient", () => {

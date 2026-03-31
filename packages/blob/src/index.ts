@@ -5,7 +5,7 @@
  * Fully compatible with Blob and S3 standard patterns.
  */
 
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { BlobService } from "./client";
 
 /** Config for standalone usage without @frontal/core */
@@ -56,12 +56,12 @@ export {
 	VERSION,
 } from "./constants";
 export type {
+	APIResponse,
+	BlobObject,
 	BucketConfig,
-	StorageObject,
+	ErrorResponse,
 	ListObjectsResult,
 	SignedUrlOptions,
 	StorageConfig,
-	BlobObject,
-	APIResponse,
-	ErrorResponse,
+	StorageObject,
 } from "./types";

@@ -1,5 +1,5 @@
-import { z, type ZodType } from "zod";
-import { responseMetaSchema, paginationMetaSchema } from "./schemas";
+import { type ZodType, z } from "zod";
+import { paginationMetaSchema, responseMetaSchema } from "./schemas";
 import type { PageResult } from "./types";
 
 /**

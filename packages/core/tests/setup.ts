@@ -2,7 +2,7 @@
  * Test setup and utilities for @frontal/core
  */
 
-import { vi, expect } from "vitest";
+import { expect, vi } from "vitest";
 
 // Mock console methods to avoid noise in tests
 Object.defineProperty(console, "log", {

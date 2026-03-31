@@ -4,7 +4,7 @@
   <img src="./assets/banner-dark.png" alt="Frontal Banner">
 </picture>
 
-# Frontal SDK
+# Frontal Typescript SDK
 
 A powerful, modular SDK for building high-performance applications with AI, Functions, Flags, Logging, Notifications, and Storage capabilities.
 

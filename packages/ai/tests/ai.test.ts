@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { createTestHttpClient, type MockRoute } from "@frontal/testing";
+import { describe, expect, it, vi } from "vitest";
 import { AIService } from "../src/client";
 import { AI } from "../src/compat";
-import { createTestHttpClient, type MockRoute } from "@frontal/testing";
 
 function createService(routes: MockRoute[] = []) {
 	const { http, mock } = createTestHttpClient(routes);

@@ -1,4 +1,4 @@
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { GraphService } from "./service";
 
 /** Config for standalone usage without @frontal/core */
@@ -35,5 +35,5 @@ export function createGraphClient(
 // Default instance that works automatically with environment variables
 export const graph = new GraphService(getDefaultClient()._http);
 
-export { GraphService } from "./service";
 export * from "./schemas";
+export { GraphService } from "./service";

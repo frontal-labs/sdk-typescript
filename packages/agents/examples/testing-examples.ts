@@ -6,11 +6,11 @@
  */
 
 import {
-	AgentsService,
-	AgentHandler,
 	type AgentContext,
+	type AgentHandler,
+	AgentsService,
 } from "@frontal/agents";
-import { HttpClient } from "@frontal/core";
+import type { HttpClient } from "@frontal/core";
 
 // Mock HTTP client for testing
 class MockHttpClient implements Partial<HttpClient> {
@@ -108,23 +108,26 @@ export class AgentTestUtils {
 	static agentsService = new AgentsService(this.mockHttpClient as any);
 
 	static resetMocks() {
-		this.mockHttpClient.reset();
+		AgentTestUtils.mockHttpClient.reset();
 	}
 
 	static setupMockAgent(agentData: any) {
-		this.mockHttpClient.setMockResponse("/agents", agentData);
-		this.mockHttpClient.setMockResponse("/agents/test-agent", agentData);
+		AgentTestUtils.mockHttpClient.setMockResponse("/agents", agentData);
+		AgentTestUtils.mockHttpClient.setMockResponse(
+			"/agents/test-agent",
+			agentData,
+		);
 	}
 
 	static setupMockDeployment(deploymentData: any) {
-		this.mockHttpClient.setMockResponse(
+		AgentTestUtils.mockHttpClient.setMockResponse(
 			"/agents/test-agent/deploy",
 			deploymentData,
 		);
 	}
 
 	static getHttpClientCalls() {
-		return this.mockHttpClient.getCalls();
+		return AgentTestUtils.mockHttpClient.getCalls();
 	}
 }
 

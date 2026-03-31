@@ -5,7 +5,7 @@
  * Provides unified access to LLMs, embeddings, and more.
  */
 
-import { FrontalClient, HttpClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { AIService } from "./client";
 
 /** Config for standalone usage without @frontal/core */
@@ -48,15 +48,15 @@ export { AIService } from "./client";
 // Deprecated Pattern A compat
 export { AI } from "./compat";
 
-export { VERSION, DEFAULT_AI_BASE_URL } from "./constants";
+export { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
 export type {
-	Message,
-	GenerateTextOptions,
-	GenerateTextResult,
-	StreamTextOptions,
-	EmbedOptions,
-	EmbedResult,
 	AIConfig,
 	APIResponse,
+	EmbedOptions,
+	EmbedResult,
 	ErrorResponse,
+	GenerateTextOptions,
+	GenerateTextResult,
+	Message,
+	StreamTextOptions,
 } from "./types";

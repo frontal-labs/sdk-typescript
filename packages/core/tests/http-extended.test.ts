@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HttpClient } from "../src/http";
-import { createMockConfig, createMockSSEStream, cleanupMocks } from "./setup";
+import { cleanupMocks, createMockConfig, createMockSSEStream } from "./setup";
 
 describe("HttpClient extended methods", () => {
 	let http: HttpClient;

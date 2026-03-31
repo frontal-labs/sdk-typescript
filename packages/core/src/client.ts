@@ -1,5 +1,5 @@
-import type { ClientConfigOutput } from "./config";
 import type { z } from "zod";
+import type { ClientConfigOutput } from "./config";
 import { HttpClient } from "./http";
 import { keys } from "./keys";
 

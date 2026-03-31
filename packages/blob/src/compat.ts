@@ -3,10 +3,10 @@ import { BlobService } from "./client";
 import { DEFAULT_BLOB_BASE_URL } from "./constants";
 import type {
 	APIResponse,
-	StorageConfig,
+	BlobObject,
 	ListObjectsResult,
 	SignedUrlOptions,
-	BlobObject,
+	StorageConfig,
 } from "./types";
 
 function toErrorResponse(
