@@ -37,7 +37,7 @@ async function embeddingsExample() {
 			);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Multiple text embeddings
 		console.log("[EXAMPLE] Example 2: Multiple text embeddings");
@@ -68,7 +68,7 @@ async function embeddingsExample() {
 			console.log("[USAGE] Usage:", result2.data.usage);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Similarity comparison
 		console.log("[EXAMPLE] Example 3: Text similarity comparison");
@@ -111,7 +111,7 @@ async function embeddingsExample() {
 			);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Semantic search demonstration
 		console.log("[EXAMPLE] Example 4: Semantic search demonstration");
@@ -249,7 +249,7 @@ async function clusteringExample() {
 // Run the examples
 if (import.meta.main) {
 	await embeddingsExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await clusteringExample();
 }
 

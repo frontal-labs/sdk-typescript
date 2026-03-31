@@ -2,7 +2,7 @@
  * Comprehensive tests for environment variable management
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { keys } from "../src/keys";
 import { cleanupMocks } from "./setup";
 
@@ -80,7 +80,7 @@ describe("Environment Variable Management", () => {
 				"frt_1234567890abcdef",
 				"frt_abcdef1234567890",
 				"frt_12345",
-				"frt_" + "a".repeat(100),
+				`frt_${"a".repeat(100)}`,
 			];
 
 			validKeys.forEach((validKey) => {
@@ -438,7 +438,7 @@ describe("Environment Variable Management", () => {
 
 		it("should validate API key format strictly", () => {
 			const suspiciousKeys = [
-				"frt_" + "a".repeat(1000), // Very long key
+				`frt_${"a".repeat(1000)}`, // Very long key
 				"frt_".repeat(100), // Repeated prefix
 				"frt_\0null\0", // Null bytes
 				'frt_<script>alert("xss")</script>', // XSS attempt

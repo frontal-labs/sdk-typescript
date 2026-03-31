@@ -258,7 +258,7 @@ async function modelOperations() {
 	try {
 		// Get model details
 		const model = await ontology.model(modelName).get();
-		console.log("📄 Model details:", model.name, "v" + model.version);
+		console.log("📄 Model details:", model.name, `v${model.version}`);
 
 		// Update model
 		const updatedModel = await ontology.model(modelName).update({

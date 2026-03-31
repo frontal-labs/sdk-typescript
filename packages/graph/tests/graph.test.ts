@@ -4,7 +4,7 @@ import {
 	mockPageResponse,
 } from "@frontal/testing";
 import { describe, expect, it } from "vitest";
-import { EntityAccessor, GraphService, HistoryNamespace } from "../src/service";
+import { EntityAccessor, GraphService } from "../src/service";
 
 function createService(
 	routes: Parameters<typeof createTestHttpClient>[0] = [],

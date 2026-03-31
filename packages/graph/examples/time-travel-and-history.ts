@@ -45,7 +45,7 @@ async function timeTravelExample() {
 		});
 
 		// Query user at different points in time
-		const currentTime = new Date().toISOString();
+		const _currentTime = new Date().toISOString();
 		const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
 		// Get current version
@@ -111,7 +111,7 @@ async function entityHistoryExample() {
 		console.log("Entity history:", history);
 
 		// Display change history
-		history.history.forEach((change, index) => {
+		history.history.forEach((change, _index) => {
 			console.log(`\nVersion ${change.version}:`);
 			console.log(`  Changed by: ${change.changedBy}`);
 			console.log(`  Changed at: ${change.changedAt}`);
@@ -144,7 +144,7 @@ async function versionSpecificOperations() {
 			},
 		});
 
-		const updatedUser = await userEntities.update(user.id, {
+		const _updatedUser = await userEntities.update(user.id, {
 			skills: ["javascript", "typescript", "react"],
 			experience: 4,
 		});

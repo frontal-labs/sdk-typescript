@@ -315,7 +315,7 @@ export function parseFrontalError(
 		case 409:
 			return new ConflictError(r);
 		case 429:
-			return new RateLimitError(r, parseInt(retryAfter ?? "60"));
+			return new RateLimitError(r, parseInt(retryAfter ?? "60", 10));
 		default:
 			return new ServiceError(r, status);
 	}

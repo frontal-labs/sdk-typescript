@@ -31,7 +31,7 @@ async function videoGenerationExample() {
 			console.log("🔗 Video URL:", result1.data.videoUrl);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Different durations
 		console.log("📝 Example 2: Different video durations");
@@ -52,7 +52,7 @@ async function videoGenerationExample() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Different resolutions
 		console.log("📝 Example 3: Different video resolutions");
@@ -81,7 +81,7 @@ async function videoGenerationExample() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Different aspect ratios
 		console.log("📝 Example 4: Different aspect ratios");
@@ -110,7 +110,7 @@ async function videoGenerationExample() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Different frame rates
 		console.log("📝 Example 5: Different frame rates");
@@ -427,15 +427,15 @@ async function videoOptimizationExample() {
 // Run the examples
 if (import.meta.main) {
 	await videoGenerationExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await themedVideoExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await productDemoExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await educationalContentExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await artStyleExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await videoOptimizationExample();
 }
 

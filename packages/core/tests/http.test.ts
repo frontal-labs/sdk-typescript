@@ -4,7 +4,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { NetworkError, NotFoundError, parseFrontalError } from "../src/errors";
+import { NetworkError } from "../src/errors";
 import { HttpClient } from "../src/http";
 import {
 	cleanupMocks,
@@ -553,7 +553,7 @@ describe("HttpClient", () => {
 
 			const params = { type: "user", since: "2023-01-01" };
 
-			for await (const event of httpClient.stream("/events", params)) {
+			for await (const _event of httpClient.stream("/events", params)) {
 				// Process events
 			}
 

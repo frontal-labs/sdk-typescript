@@ -41,7 +41,7 @@ async function basicWorkflowCreation() {
 		console.log("[INFO] Workflow status:", approvalWorkflow.status);
 		console.log("[INFO] Workflow steps:", approvalWorkflow.steps.length);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Create a scheduled data processing workflow
 		console.log("[EXAMPLE] Example 2: Scheduled data processing workflow");
@@ -88,7 +88,7 @@ async function basicWorkflowCreation() {
 		);
 		console.log("[INFO] Workflow status:", dataProcessingWorkflow.status);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Create a webhook-triggered workflow with parallel steps
 		console.log(
@@ -124,7 +124,7 @@ async function basicWorkflowCreation() {
 		console.log("[SUCCESS] Created webhook workflow:", webhookWorkflow.id);
 		console.log("[INFO] Triggers:", webhookWorkflow.triggers.length);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: List all workflows
 		console.log("[EXAMPLE] Example 4: List workflows");
@@ -137,7 +137,7 @@ async function basicWorkflowCreation() {
 			);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Get workflow details and trigger execution
 		console.log("[EXAMPLE] Example 5: Trigger workflow execution");

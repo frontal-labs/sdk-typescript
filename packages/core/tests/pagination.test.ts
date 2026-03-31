@@ -500,7 +500,7 @@ describe("Pagination", () => {
 			const nextPagePromise2 = pageResult.nextPage();
 
 			// Resolve the promise
-			resolvePromise!(
+			resolvePromise?.(
 				createPageResult(nextPageData, nextPagePagination, async () => null),
 			);
 

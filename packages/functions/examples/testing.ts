@@ -9,7 +9,7 @@
  * - End-to-end testing
  */
 
-import { type FunctionConfig, Functions } from "@frontal/functions";
+import type { FunctionConfig } from "@frontal/functions";
 
 // Mock implementation for testing
 class MockFunctions {
@@ -338,7 +338,7 @@ async function testFunctionInvocation() {
 		timeout: 30,
 	});
 
-	const functionId = deployResult.data!.id;
+	const functionId = deployResult.data?.id;
 
 	runner.test("should invoke function successfully", async () => {
 		const result = await mockFunctions.invoke(functionId, {
@@ -396,7 +396,7 @@ async function performanceTest() {
 		timeout: 30,
 	});
 
-	const functionId = deployResult.data!.id;
+	const functionId = deployResult.data?.id;
 
 	console.log("Running performance test...");
 
@@ -451,7 +451,7 @@ async function loadTest() {
 			memory: 256,
 			timeout: 30,
 		});
-		functionIds.push(deployResult.data!.id);
+		functionIds.push(deployResult.data?.id);
 	}
 
 	console.log("Running load test...");
@@ -522,7 +522,7 @@ async function endToEndTest() {
 		throw new Error(`Deployment failed: ${deployResult.error.message}`);
 	}
 
-	const functionId = deployResult.data!.id;
+	const functionId = deployResult.data?.id;
 	console.log(`✓ Function deployed with ID: ${functionId}`);
 
 	// Step 2: List functions

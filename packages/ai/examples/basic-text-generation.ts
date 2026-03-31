@@ -32,7 +32,7 @@ async function basicTextGeneration() {
 			console.log("[FINISH] Finish reason:", result1.data.finishReason);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Text generation with conversation history
 		console.log("[EXAMPLE] Example 2: Conversation with history");
@@ -55,7 +55,7 @@ async function basicTextGeneration() {
 			console.log("[USAGE] Usage:", result2.data.usage);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Text generation with custom parameters
 		console.log("[EXAMPLE] Example 3: Custom parameters");

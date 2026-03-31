@@ -150,7 +150,7 @@ describe("Configuration", () => {
 					"frt_1234567890abcdef",
 					"frt_abcdef1234567890",
 					"frt_12345",
-					"frt_" + "a".repeat(100),
+					`frt_${"a".repeat(100)}`,
 				];
 
 				validKeys.forEach((key) => {

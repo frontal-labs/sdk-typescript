@@ -44,7 +44,7 @@ async function promptManagementExample() {
 		console.log("   Template:", welcomePrompt.template);
 		console.log("   Variables:", Object.keys(welcomePrompt.variables));
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Retrieve and use a prompt
 		console.log("📝 Example 2: Retrieve and use a prompt");
@@ -68,7 +68,7 @@ async function promptManagementExample() {
 			console.log("   Filled template:", filledTemplate);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Update an existing prompt
 		console.log("📝 Example 3: Update an existing prompt");
@@ -92,7 +92,7 @@ async function promptManagementExample() {
 			console.log("   Version:", updatedPrompt.data.metadata?.version);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Create complex prompts with different variable types
 		console.log("📝 Example 4: Complex prompts with different variable types");
@@ -142,7 +142,7 @@ Please provide insights and recommendations.
 			console.log(`     - ${name}: ${variable.type} (${variable.description})`);
 		});
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Prompt chaining
 		console.log("📝 Example 5: Prompt chaining");
@@ -351,7 +351,7 @@ Next Steps:
 	];
 
 	for (const useCase of useCases) {
-		const prompt = ai.createPrompt({
+		const _prompt = ai.createPrompt({
 			name: useCase.name,
 			template: useCase.template,
 			variables: useCase.variables,
@@ -371,7 +371,7 @@ async function promptVersioningExample() {
 	console.log("🎯 Example: Prompt Versioning and Evolution\n");
 
 	// Version 1.0 - Basic prompt
-	const v1Prompt = ai.createPrompt({
+	const _v1Prompt = ai.createPrompt({
 		name: "content-generator",
 		template: "Generate content about: {topic}",
 		variables: {
@@ -447,11 +447,11 @@ Format: {format}
 // Run the examples
 if (import.meta.main) {
 	await promptManagementExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await dynamicPromptExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await useCaseTemplatesExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await promptVersioningExample();
 }
 

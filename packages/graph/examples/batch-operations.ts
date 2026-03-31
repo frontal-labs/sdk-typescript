@@ -42,7 +42,7 @@ async function batchCreateExample() {
 			},
 		];
 
-		const batchOperations = usersToCreate.map((userData, index) => ({
+		const batchOperations = usersToCreate.map((userData, _index) => ({
 			type: "create" as const,
 			entityType: "user",
 			entity: {

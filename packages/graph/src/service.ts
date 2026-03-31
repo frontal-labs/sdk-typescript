@@ -4,7 +4,6 @@ import {
 	type PageResult,
 	type QueryBuilder,
 } from "@frontal/core";
-import { z } from "zod";
 import * as S from "./schemas";
 
 export class GraphService {
@@ -208,7 +207,7 @@ class GraphQueryBuilder implements QueryBuilder<S.Entity> {
 		return this;
 	}
 
-	fields(...fields: string[]): this {
+	fields(..._fields: string[]): this {
 		// Implementation would filter returned fields
 		return this;
 	}
@@ -222,7 +221,7 @@ class GraphQueryBuilder implements QueryBuilder<S.Entity> {
 	async execute(): Promise<PageResult<S.Entity>> {
 		const body = S.GraphQuerySchema.parse(this._query);
 		const raw = await this.http.post("/graph/query", body);
-		return createPageResult(raw as any, (cursor) => this.execute());
+		return createPageResult(raw as any, (_cursor) => this.execute());
 	}
 
 	async first(): Promise<S.Entity | null> {

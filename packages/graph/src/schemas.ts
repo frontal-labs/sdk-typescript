@@ -1,8 +1,4 @@
-import {
-	filterConditionsSchema,
-	QueryBuilder,
-	timestampSchema,
-} from "@frontal/core";
+import { filterConditionsSchema, timestampSchema } from "@frontal/core";
 import { z } from "zod";
 
 export const EntityMetaSchema = z

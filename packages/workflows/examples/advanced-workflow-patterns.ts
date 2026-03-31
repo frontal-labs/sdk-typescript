@@ -92,7 +92,7 @@ async function advancedWorkflowPatterns() {
 
 		console.log("[SUCCESS] Created parallel workflow:", parallelWorkflow.id);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Workflow with complex conditional logic and error handling
 		console.log(
@@ -194,7 +194,7 @@ async function advancedWorkflowPatterns() {
 			conditionalWorkflow.id,
 		);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Dynamic workflow with runtime modifications
 		console.log(
@@ -289,7 +289,7 @@ async function advancedWorkflowPatterns() {
 
 		console.log("[SUCCESS] Created dynamic workflow:", dynamicWorkflow.id);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Workflow with comprehensive error handling
 		console.log("[EXAMPLE] Example 4: Comprehensive error handling workflow");
@@ -392,7 +392,7 @@ async function advancedWorkflowPatterns() {
 			errorHandlingWorkflow.id,
 		);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Execute and monitor workflows
 		console.log("[EXAMPLE] Example 5: Execute and monitor workflows");

@@ -5,9 +5,9 @@
  * including different data types, content types, and file handling patterns.
  */
 
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { Storage } from "@frontal/blob";
-import { readFileSync, writeFileSync } from "fs";
-import { join } from "path";
 
 const storage = new Storage();
 
@@ -140,10 +140,10 @@ async function downloadAndProcessFiles(bucketName: string) {
 	);
 
 	if (!textResult.error) {
-		const textContent = await textResult.data!.text();
+		const textContent = await textResult.data?.text();
 		console.log("✅ Text file downloaded");
 		console.log("Content:", textContent);
-		console.log("Size:", textResult.data!.size, "bytes");
+		console.log("Size:", textResult.data?.size, "bytes");
 	} else {
 		console.error("❌ Text download failed:", textResult.error.message);
 	}
@@ -153,7 +153,7 @@ async function downloadAndProcessFiles(bucketName: string) {
 	const jsonResult = await storage.download(bucketName, "data/users.json");
 
 	if (!jsonResult.error) {
-		const jsonContent = await jsonResult.data!.text();
+		const jsonContent = await jsonResult.data?.text();
 		const parsedData = JSON.parse(jsonContent);
 		console.log("✅ JSON file downloaded");
 		console.log("Parsed data:", parsedData);
@@ -166,7 +166,7 @@ async function downloadAndProcessFiles(bucketName: string) {
 	const binaryResult = await storage.download(bucketName, "images/tiny.png");
 
 	if (!binaryResult.error) {
-		const arrayBuffer = await binaryResult.data!.arrayBuffer();
+		const arrayBuffer = await binaryResult.data?.arrayBuffer();
 		const uint8Array = new Uint8Array(arrayBuffer);
 		console.log("✅ Binary file downloaded");
 		console.log("Size:", uint8Array.length, "bytes");
@@ -185,7 +185,7 @@ async function downloadAndProcessFiles(bucketName: string) {
 	const csvResult = await storage.download(bucketName, "data/users.csv");
 
 	if (!csvResult.error) {
-		const csvContent = await csvResult.data!.text();
+		const csvContent = await csvResult.data?.text();
 		const lines = csvContent.split("\n");
 		const headers = lines[0].split(",");
 		console.log("✅ CSV file downloaded");
@@ -236,7 +236,7 @@ async function uploadFromLocalFile() {
 				`uploads/${fileName}`,
 			);
 			if (!downloadResult.error) {
-				const downloadedContent = await downloadResult.data!.text();
+				const downloadedContent = await downloadResult.data?.text();
 				console.log(
 					"✅ Upload verified - content matches:",
 					downloadedContent === fileContent,
@@ -264,7 +264,7 @@ async function downloadToLocalFile() {
 	}
 
 	try {
-		const arrayBuffer = await downloadResult.data!.arrayBuffer();
+		const arrayBuffer = await downloadResult.data?.arrayBuffer();
 		const buffer = Buffer.from(arrayBuffer);
 		writeFileSync(localPath, buffer);
 
@@ -274,7 +274,7 @@ async function downloadToLocalFile() {
 		const savedContent = readFileSync(localPath, "utf8");
 		console.log(
 			"Saved content preview:",
-			savedContent.substring(0, 50) + "...",
+			`${savedContent.substring(0, 50)}...`,
 		);
 	} catch (error) {
 		console.error("❌ Local save error:", error);
@@ -324,9 +324,9 @@ async function batchOperations() {
 
 	if (!listResult.error) {
 		console.log(
-			`Found ${listResult.data!.objects.length} files in batch/ directory:`,
+			`Found ${listResult.data?.objects.length} files in batch/ directory:`,
 		);
-		listResult.data!.objects.forEach((obj: any) => {
+		listResult.data?.objects.forEach((obj: any) => {
 			console.log(`  - ${obj.key} (${obj.size} bytes)`);
 		});
 	}

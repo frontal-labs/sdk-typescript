@@ -80,7 +80,7 @@ export function createMockFetch(routes: MockRoute[] = []) {
 						: input.url;
 			const method = init?.method ?? "GET";
 			const parsedUrl = new URL(url);
-			const path = parsedUrl.pathname + parsedUrl.search;
+			const _path = parsedUrl.pathname + parsedUrl.search;
 
 			let reqBody: unknown;
 			if (init?.body && typeof init.body === "string") {
@@ -252,7 +252,7 @@ export function mockPageResponse<T>(
 			total: opts.total ?? data.length,
 		},
 		meta: {
-			requestId: "req_test_" + Math.random().toString(36).slice(2, 8),
+			requestId: `req_test_${Math.random().toString(36).slice(2, 8)}`,
 			timestamp: new Date().toISOString(),
 			version: "1.0.0",
 		},
@@ -260,11 +260,15 @@ export function mockPageResponse<T>(
 }
 
 /** Creates an error response body */
-export function mockErrorResponse(code: string, message: string, status = 400) {
+export function mockErrorResponse(
+	code: string,
+	message: string,
+	_status = 400,
+) {
 	return {
 		code,
 		message,
-		requestId: "req_err_" + Math.random().toString(36).slice(2, 8),
+		requestId: `req_err_${Math.random().toString(36).slice(2, 8)}`,
 	};
 }
 
@@ -274,7 +278,7 @@ export function mockErrorResponse(code: string, message: string, status = 400) {
 
 export const fixtures = {
 	entity: (overrides: Record<string, unknown> = {}) => ({
-		id: "ent_" + Math.random().toString(36).slice(2, 8),
+		id: `ent_${Math.random().toString(36).slice(2, 8)}`,
 		type: "user",
 		fields: { name: "Test User", email: "test@example.com" },
 		version: 1,
@@ -284,7 +288,7 @@ export const fixtures = {
 	}),
 
 	agent: (overrides: Record<string, unknown> = {}) => ({
-		id: "agt_" + Math.random().toString(36).slice(2, 8),
+		id: `agt_${Math.random().toString(36).slice(2, 8)}`,
 		name: "test-agent",
 		status: "active",
 		version: 1,
@@ -318,7 +322,7 @@ export const fixtures = {
 	}),
 
 	workflow: (overrides: Record<string, unknown> = {}) => ({
-		id: "wfl_" + Math.random().toString(36).slice(2, 8),
+		id: `wfl_${Math.random().toString(36).slice(2, 8)}`,
 		name: "test-workflow",
 		status: "draft",
 		version: "1.0.0",
@@ -332,7 +336,7 @@ export const fixtures = {
 	}),
 
 	pipeline: (overrides: Record<string, unknown> = {}) => ({
-		id: "ppl_" + Math.random().toString(36).slice(2, 8),
+		id: `ppl_${Math.random().toString(36).slice(2, 8)}`,
 		name: "test-pipeline",
 		status: "draft",
 		source: { type: "manual" },
@@ -344,7 +348,7 @@ export const fixtures = {
 	}),
 
 	model: (overrides: Record<string, unknown> = {}) => ({
-		id: "mdl_" + Math.random().toString(36).slice(2, 8),
+		id: `mdl_${Math.random().toString(36).slice(2, 8)}`,
 		name: "test-model",
 		status: "draft",
 		version: 1,
@@ -359,7 +363,7 @@ export const fixtures = {
 	}),
 
 	functionEntry: (overrides: Record<string, unknown> = {}) => ({
-		id: "fn_" + Math.random().toString(36).slice(2, 8),
+		id: `fn_${Math.random().toString(36).slice(2, 8)}`,
 		name: "test-function",
 		runtime: "nodejs20",
 		handler: "index.handler",

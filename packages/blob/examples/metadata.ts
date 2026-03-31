@@ -165,8 +165,8 @@ async function metadataAnalysis() {
 	const smallestFile = metadataList.find((m) => m.size === minSize);
 
 	console.log(`\n📂 File Details:`);
-	console.log(`  Largest: ${largestFile!.key} (${largestFile!.size} bytes)`);
-	console.log(`  Smallest: ${smallestFile!.key} (${smallestFile!.size} bytes)`);
+	console.log(`  Largest: ${largestFile?.key} (${largestFile?.size} bytes)`);
+	console.log(`  Smallest: ${smallestFile?.key} (${smallestFile?.size} bytes)`);
 
 	// Clean up
 	for (const file of files) {
@@ -327,7 +327,7 @@ async function metadataValidation() {
 			name: "Last Modified is valid date",
 			test: () => {
 				const date = new Date(metadata.lastModified);
-				return !isNaN(date.getTime());
+				return !Number.isNaN(date.getTime());
 			},
 		},
 		{
@@ -354,8 +354,8 @@ async function metadataValidation() {
 	const downloadResult = await storage.download(bucketName, objectKey);
 
 	if (!downloadResult.error) {
-		const actualSize = downloadResult.data!.size;
-		const actualContentType = downloadResult.data!.type;
+		const actualSize = downloadResult.data?.size;
+		const actualContentType = downloadResult.data?.type;
 
 		const sizeMatch = metadata.size === actualSize;
 		const contentTypeMatch = metadata.contentType === actualContentType;

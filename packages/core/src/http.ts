@@ -351,7 +351,7 @@ export class HttpClient {
 			if (shouldRetry) {
 				const retryAfter = res.headers.get("Retry-After");
 				const delay = retryAfter
-					? parseInt(retryAfter) * 1000
+					? parseInt(retryAfter, 10) * 1000
 					: calculateDelay(attempt, {
 							maxRetries: this.config.maxRetries,
 							retryDelay: this.config.retryDelay,

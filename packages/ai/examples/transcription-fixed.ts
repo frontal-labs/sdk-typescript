@@ -8,7 +8,7 @@
 import { AI } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
+const _ai = new AI();
 
 async function transcriptionExample() {
 	console.log("🚀 Starting Audio Transcription Example\n");
@@ -40,7 +40,7 @@ async function transcriptionExample() {
     }
     */
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Transcription with language specification
 		console.log("📝 Example 2: Transcription with language specification");
@@ -63,7 +63,7 @@ async function transcriptionExample() {
     }
     */
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Transcription with prompt for context
 		console.log("📝 Example 3: Transcription with context prompt");
@@ -84,7 +84,7 @@ async function transcriptionExample() {
     }
     */
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Different response formats
 		console.log("📝 Example 4: Different response formats");
@@ -122,7 +122,7 @@ async function transcriptionExample() {
     }
     */
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Temperature control for transcription
 		console.log("📝 Example 5: Temperature control");
@@ -345,13 +345,13 @@ async function qualityAnalysisExample() {
 // Run the examples
 if (import.meta.main) {
 	await transcriptionExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await batchTranscriptionExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await realTimeTranscriptionExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await multiLanguageTranscriptionExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await qualityAnalysisExample();
 }
 

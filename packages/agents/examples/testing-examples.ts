@@ -21,17 +21,17 @@ class MockHttpClient implements Partial<HttpClient> {
 		this.responses.set(url, response);
 	}
 
-	async get(url: string, params?: any, schema?: any): Promise<any> {
+	async get(url: string, params?: any, _schema?: any): Promise<any> {
 		this.calls.push({ method: "GET", url, data: params });
 		return this.responses.get(url) || { data: [] };
 	}
 
-	async post(url: string, data?: any, schema?: any): Promise<any> {
+	async post(url: string, data?: any, _schema?: any): Promise<any> {
 		this.calls.push({ method: "POST", url, data });
 		return this.responses.get(url) || { id: "mock-id", ...data };
 	}
 
-	async put(url: string, data?: any, schema?: any): Promise<any> {
+	async put(url: string, data?: any, _schema?: any): Promise<any> {
 		this.calls.push({ method: "PUT", url, data });
 		return this.responses.get(url) || { id: "mock-id", ...data };
 	}
@@ -339,7 +339,7 @@ export class PerformanceTester {
 			try {
 				await handler(context);
 				successes++;
-			} catch (error) {
+			} catch (_error) {
 				// Count failures but continue
 			}
 
@@ -376,7 +376,7 @@ export async function runIntegrationTest() {
 	AgentTestUtils.setupMockAgent(mockAgent);
 
 	// Test agent creation
-	const agent = AgentTestUtils.agentsService
+	const _agent = AgentTestUtils.agentsService
 		.define("test-agent")
 		.description("Test agent for integration testing")
 		.trigger("test.event")

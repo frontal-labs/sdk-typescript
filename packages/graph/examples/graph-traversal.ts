@@ -52,7 +52,7 @@ async function graphTraversalExample() {
 		});
 
 		// Create projects
-		const project1 = await projectEntities.create({
+		const _project1 = await projectEntities.create({
 			data: {
 				name: "Mobile App",
 				status: "active",

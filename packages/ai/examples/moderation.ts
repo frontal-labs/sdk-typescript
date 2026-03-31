@@ -41,7 +41,7 @@ async function moderationExample() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Multiple texts moderation
 		console.log("📝 Example 2: Multiple texts moderation");
@@ -75,7 +75,7 @@ async function moderationExample() {
 			});
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Content category analysis
 		console.log("📝 Example 3: Content category analysis");
@@ -111,7 +111,7 @@ async function moderationExample() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Different moderation models
 		console.log("📝 Example 4: Different moderation models");
@@ -340,13 +340,13 @@ async function customThresholdsExample() {
 // Run the examples
 if (import.meta.main) {
 	await moderationExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await realTimeFilteringExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await contentSafetyLevelsExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await multiLanguageModerationExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await customThresholdsExample();
 }
 

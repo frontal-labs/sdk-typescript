@@ -4,14 +4,7 @@ import {
 	mockPageResponse,
 } from "@frontal/testing";
 import { describe, expect, it } from "vitest";
-import {
-	GenerationNamespace,
-	MigrationsNamespace,
-	MixinsNamespace,
-	ModelAccessor,
-	OntologyService,
-	RulesNamespace,
-} from "../src/service";
+import { ModelAccessor, OntologyService } from "../src/service";
 
 function createService(
 	routes: Parameters<typeof createTestHttpClient>[0] = [],

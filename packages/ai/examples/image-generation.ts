@@ -5,7 +5,7 @@
  * to generate images from text prompts using image generation models.
  */
 
-import { writeFileSync } from "fs";
+import { writeFileSync } from "node:fs";
 import { AI } from "../src";
 
 // Initialize the AI client
@@ -42,7 +42,7 @@ async function imageGeneration() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Different sizes
 		console.log("📝 Example 2: Different image sizes");
@@ -66,7 +66,7 @@ async function imageGeneration() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Quality settings
 		console.log("📝 Example 3: Quality settings");
@@ -94,7 +94,7 @@ async function imageGeneration() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Style settings
 		console.log("📝 Example 4: Style settings");
@@ -119,7 +119,7 @@ async function imageGeneration() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Multiple images
 		console.log("📝 Example 5: Multiple images generation");
@@ -327,13 +327,13 @@ async function architecturalVisualization() {
 // Run the examples
 if (import.meta.main) {
 	await imageGeneration();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await artStyleExploration();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await productVisualization();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await characterDesign();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await architecturalVisualization();
 }
 

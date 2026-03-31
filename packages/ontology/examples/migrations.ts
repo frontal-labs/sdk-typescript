@@ -323,7 +323,7 @@ async function runMigrationExamples() {
 		await checkIntegrity();
 		console.log("");
 
-		const plan = await migrationPlanning();
+		const _plan = await migrationPlanning();
 		console.log("");
 
 		await migrationHistory();

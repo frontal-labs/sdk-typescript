@@ -5,7 +5,7 @@
  * to generate speech/audio from text using text-to-speech models.
  */
 
-import { writeFileSync } from "fs";
+import { writeFileSync } from "node:fs";
 import { AI } from "../src";
 
 // Initialize the AI client
@@ -34,7 +34,7 @@ async function speechGeneration() {
 			console.log("💾 Saved as output1.mp3");
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Different voices
 		console.log("📝 Example 2: Different voices");
@@ -57,7 +57,7 @@ async function speechGeneration() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Different formats
 		console.log("📝 Example 3: Different audio formats");
@@ -82,7 +82,7 @@ async function speechGeneration() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Speed control
 		console.log("📝 Example 4: Speed control");
@@ -107,7 +107,7 @@ async function speechGeneration() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Long text generation
 		console.log("📝 Example 5: Long text generation");
@@ -259,11 +259,11 @@ async function voiceCharacteristicsExample() {
 // Run the examples
 if (import.meta.main) {
 	await speechGeneration();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await multiLanguageExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await audioBookExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await voiceCharacteristicsExample();
 }
 

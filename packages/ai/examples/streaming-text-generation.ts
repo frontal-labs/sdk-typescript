@@ -32,7 +32,7 @@ async function streamingTextGeneration() {
 		console.log("\n\n[SUCCESS] Stream completed!");
 		console.log("[USAGE] Usage:", usage1);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Manual stream processing
 		console.log("[EXAMPLE] Example 2: Manual stream processing");
@@ -46,7 +46,7 @@ async function streamingTextGeneration() {
 		// Process the stream manually
 		const reader = result2.textStream.getReader();
 		const decoder = new TextDecoder();
-		let fullText = "";
+		let _fullText = "";
 
 		console.log("🔄 Streaming response:");
 		while (true) {
@@ -54,7 +54,7 @@ async function streamingTextGeneration() {
 			if (done) break;
 
 			const chunk = decoder.decode(value, { stream: true });
-			fullText += chunk;
+			_fullText += chunk;
 			process.stdout.write(chunk);
 		}
 
@@ -62,7 +62,7 @@ async function streamingTextGeneration() {
 		console.log("\n\n[SUCCESS] Full text received!");
 		console.log("[USAGE] Usage:", usage2);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Streaming with conversation history
 		console.log("[EXAMPLE] Example 3: Streaming with conversation history");
@@ -87,7 +87,7 @@ async function streamingTextGeneration() {
 		console.log("\n\n[SUCCESS] Story continuation completed!");
 		console.log("[USAGE] Usage:", usage3);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Error handling in streaming
 		console.log("[EXAMPLE] Example 4: Error handling");
@@ -130,7 +130,7 @@ async function demonstrateStreamingPatterns() {
 	});
 	await stream1.usage;
 
-	console.log("\n\n" + "─".repeat(30) + "\n");
+	console.log(`\n\n${"─".repeat(30)}\n`);
 
 	// Pattern 2: Buffer and process
 	console.log("📦 Pattern 2: Buffer and process");
@@ -153,7 +153,7 @@ async function demonstrateStreamingPatterns() {
 	console.log("Number of chunks:", chunks.length);
 	console.log("Usage:", await stream2.usage);
 
-	console.log("\n" + "─".repeat(30) + "\n");
+	console.log(`\n${"─".repeat(30)}\n`);
 
 	// Pattern 3: Transform on the fly
 	console.log("🔄 Pattern 3: Transform on the fly");
@@ -172,7 +172,7 @@ async function demonstrateStreamingPatterns() {
 // Run the examples
 if (import.meta.main) {
 	await streamingTextGeneration();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await demonstrateStreamingPatterns();
 }
 

@@ -6,19 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { FrontalClient } from "../src/client";
 import { clientConfigSchema } from "../src/config";
-import {
-	FrontalError,
-	NotFoundError,
-	parseFrontalError,
-	ValidationError,
-} from "../src/errors";
-import { HttpClient } from "../src/http";
+import { parseFrontalError, ValidationError } from "../src/errors";
 import { keys } from "../src/keys";
 import { createPageResult } from "../src/pagination";
-import { calculateDelay } from "../src/retry";
 
 // Inline test utilities to avoid import issues
-const createMockConfig = (overrides = {}) => ({
+const _createMockConfig = (overrides = {}) => ({
 	apiKey: "frt_test1234567890abcdef",
 	baseUrl: "https://api.test.com/v1",
 	timeout: 5000,
@@ -44,7 +37,7 @@ const createMockFetch = (responses: any[] = []) => {
 	return vi
 		.fn()
 		.mockImplementation(
-			async (input: RequestInfo | URL, init?: RequestInit) => {
+			async (_input: RequestInfo | URL, _init?: RequestInit) => {
 				const response = responses[callCount] ||
 					responses[0] || {
 						ok: true,
@@ -649,7 +642,7 @@ describe("Integration Tests", () => {
 				name: `Item ${i + 1}`,
 			}));
 
-			responses.forEach((response, index) => {
+			responses.forEach((response, _index) => {
 				mockFetch.mockResolvedValueOnce({
 					ok: true,
 					status: 200,

@@ -2,17 +2,11 @@
  * Comprehensive tests for FrontalClient
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { FrontalClient } from "../src/client";
 import { HttpClient } from "../src/http";
-import {
-	cleanupMocks,
-	createMockConfig,
-	createMockFetch,
-	createMockResponse,
-	testUserSchema,
-} from "./setup";
+import { cleanupMocks, createMockConfig, createMockFetch } from "./setup";
 
 describe("FrontalClient", () => {
 	let client: FrontalClient;
@@ -401,7 +395,7 @@ describe("FrontalClient", () => {
 
 			const params = { type: "user", since: "2023-01-01" };
 
-			for await (const event of client.stream("/events", params)) {
+			for await (const _event of client.stream("/events", params)) {
 				// Process events
 			}
 
@@ -582,7 +576,7 @@ describe("FrontalClient", () => {
 
 			mockFetch.mockImplementationOnce(
 				() =>
-					new Promise((resolve, reject) => {
+					new Promise((_resolve, reject) => {
 						setTimeout(() => reject(new Error("Timeout")), 500);
 					}),
 			);

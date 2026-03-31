@@ -125,7 +125,7 @@ export const createMockFetch = (responses: any[] = []) => {
 	return vi
 		.fn()
 		.mockImplementation(
-			async (input: RequestInfo | URL, init?: RequestInit) => {
+			async (_input: RequestInfo | URL, _init?: RequestInit) => {
 				const response = responses[callCount] ||
 					responses[0] || {
 						ok: true,

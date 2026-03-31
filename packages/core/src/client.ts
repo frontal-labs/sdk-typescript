@@ -98,7 +98,7 @@ export class FrontalClient {
 	 * @param schema - Optional Zod schema for response validation
 	 * @returns Promise resolving to the response data
 	 */
-	async delete<T = void>(path: string, schema?: z.ZodType<T>): Promise<T> {
+	async delete<T = void>(path: string, _schema?: z.ZodType<T>): Promise<T> {
 		return this._http.delete(path, undefined);
 	}
 

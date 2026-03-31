@@ -146,7 +146,7 @@ async function useSignedUrls(urls: {
 				"uploads/new-document.txt",
 			);
 			if (!verifyResult.error) {
-				const uploadedContent = await verifyResult.data!.text();
+				const uploadedContent = await verifyResult.data?.text();
 				console.log("✅ Upload verified:", uploadedContent === newContent);
 			}
 		} else {
@@ -230,7 +230,7 @@ async function signedUrlExpiryExamples() {
 			);
 		} else {
 			console.log(`✅ ${expiry.description} URL generated successfully`);
-			console.log(`   URL: ${result.data!.substring(0, 100)}...`);
+			console.log(`   URL: ${result.data?.substring(0, 100)}...`);
 		}
 		console.log();
 	}
@@ -373,7 +373,7 @@ async function browserUploadExample() {
 			const verifyResult = await storage.download(bucketName, uploadKey);
 			if (!verifyResult.error) {
 				console.log("✅ Upload verified on server");
-				console.log(`   File size: ${verifyResult.data!.size} bytes`);
+				console.log(`   File size: ${verifyResult.data?.size} bytes`);
 			}
 		} else {
 			console.error("❌ Browser upload failed:", browserUploadResponse.status);

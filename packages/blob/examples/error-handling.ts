@@ -155,8 +155,9 @@ class CircuitBreaker {
 
 	constructor(
 		private threshold: number = 5,
-		private timeout: number = 60000, // 1 minute
-		private storage: Storage,
+		private timeout: number = 60000,
+		// 1 minute
+		_storage: Storage,
 	) {}
 
 	async execute<T>(operation: () => Promise<T>): Promise<T> {
@@ -205,7 +206,7 @@ class CircuitBreaker {
 }
 
 async function circuitBreakerExample() {
-	const bucketName = "error-handling-bucket";
+	const _bucketName = "error-handling-bucket";
 	const circuitBreaker = new CircuitBreaker(3, 5000, storage); // 3 failures, 5 second timeout
 
 	console.log("\n🔌 Circuit Breaker Pattern Example\n");
@@ -285,7 +286,7 @@ async function gracefulDegradation() {
 		const primaryResult = await storage.download(bucketName, primaryObjectKey);
 
 		if (!primaryResult.error) {
-			const content = await primaryResult.data!.text();
+			const content = await primaryResult.data?.text();
 			console.log("✅ Primary data retrieved successfully");
 			return { content, source: "primary" };
 		}
@@ -300,7 +301,7 @@ async function gracefulDegradation() {
 		);
 
 		if (!fallbackResult.error) {
-			const content = await fallbackResult.data!.text();
+			const content = await fallbackResult.data?.text();
 			console.log("✅ Fallback data retrieved successfully");
 			return { content, source: "fallback" };
 		}
@@ -498,7 +499,7 @@ class SafeStorageOperations {
 		// Try primary key
 		const result = await this.storage.download(bucket, key);
 		if (!result.error) {
-			const content = await result.data!.text();
+			const content = await result.data?.text();
 			return { success: true, content, source: key };
 		}
 
@@ -506,7 +507,7 @@ class SafeStorageOperations {
 		for (const fallbackKey of fallbackKeys) {
 			const fallbackResult = await this.storage.download(bucket, fallbackKey);
 			if (!fallbackResult.error) {
-				const content = await fallbackResult.data!.text();
+				const content = await fallbackResult.data?.text();
 				return { success: true, content, source: fallbackKey };
 			}
 		}

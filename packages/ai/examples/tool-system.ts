@@ -61,7 +61,7 @@ async function toolSystemExample() {
 			console.log("✅ Calculator result:", testResult.data);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Weather information tool
 		console.log("📝 Example 2: Weather information tool");
@@ -109,7 +109,7 @@ async function toolSystemExample() {
 			);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Database query tool
 		console.log("📝 Example 3: Database query tool");
@@ -183,7 +183,7 @@ async function toolSystemExample() {
 			console.log("   Found", dbResult.data.results.length, "users");
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: File operations tool
 		console.log("📝 Example 4: File operations tool");
@@ -205,7 +205,7 @@ async function toolSystemExample() {
 						return {
 							operation: "read",
 							path,
-							content: "This is the content of " + path,
+							content: `This is the content of ${path}`,
 							size: 100,
 						};
 					case "write":
@@ -249,7 +249,7 @@ async function toolSystemExample() {
 			console.log("   Files:", fileResult.data.files);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: List all registered tools
 		console.log("📝 Example 5: List all registered tools");
@@ -577,11 +577,11 @@ function calculateCorrelation(dataset: any[]): number {
 // Run the examples
 if (import.meta.main) {
 	await toolSystemExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await toolCompositionExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await errorHandlingExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await complexDataExample();
 }
 

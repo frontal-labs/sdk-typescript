@@ -8,7 +8,6 @@
 import type { AgentHandler } from "@frontal/agents";
 import { AgentsService } from "@frontal/agents";
 import { HttpClient } from "@frontal/core";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { DynamicStructuredTool } from "@langchain/core/tools";
 // LangChain imports (peer dependencies)
 import { ChatOpenAI } from "@langchain/openai";

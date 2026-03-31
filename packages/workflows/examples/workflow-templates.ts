@@ -55,7 +55,7 @@ async function workflowTemplatesExample() {
 		console.log("[SUCCESS] Created approval template:", approvalTemplate.id);
 		console.log("[INFO] Template category:", approvalTemplate.category);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Create a data processing template
 		console.log("[EXAMPLE] Example 2: Create data processing template");
@@ -141,7 +141,7 @@ async function workflowTemplatesExample() {
 
 		console.log("[SUCCESS] Created ETL template:", dataProcessingTemplate.id);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: List available templates
 		console.log("[EXAMPLE] Example 3: List workflow templates");
@@ -162,7 +162,7 @@ async function workflowTemplatesExample() {
 			console.log("");
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Use a template to create a workflow
 		console.log("[EXAMPLE] Example 4: Create workflow from template");
@@ -202,7 +202,7 @@ async function workflowTemplatesExample() {
 
 		console.log("[SUCCESS] Customized workflow:", customizedWorkflow.id);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Create a complex multi-category template
 		console.log(
@@ -311,7 +311,7 @@ async function workflowTemplatesExample() {
 			incidentResponseTemplate.id,
 		);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 6: Get template details and usage statistics
 		console.log("[EXAMPLE] Example 6: Get template details");

@@ -157,7 +157,7 @@ async function streamWithBackpressure() {
 			for (const line of lines) {
 				if (line.trim()) {
 					try {
-						const record = JSON.parse(line);
+						const _record = JSON.parse(line);
 						processedRecords++;
 
 						// Simulate processing time
@@ -166,7 +166,7 @@ async function streamWithBackpressure() {
 							// Simulate some processing delay
 							await new Promise((resolve) => setTimeout(resolve, 10));
 						}
-					} catch (e) {
+					} catch (_e) {
 						// Skip malformed JSON lines
 					}
 				}
@@ -178,7 +178,7 @@ async function streamWithBackpressure() {
 			try {
 				JSON.parse(buffer);
 				processedRecords++;
-			} catch (e) {
+			} catch (_e) {
 				// Skip malformed JSON
 			}
 		}
@@ -374,7 +374,7 @@ async function streamTransformation() {
 			// Verify transformation
 			const verifyResult = await storage.download(bucketName, targetKey);
 			if (!verifyResult.error) {
-				const verifyContent = await verifyResult.data!.text();
+				const verifyContent = await verifyResult.data?.text();
 				const verifyData = JSON.parse(verifyContent);
 				console.log(`✅ Transformation verified: ${verifyData.length} records`);
 			}

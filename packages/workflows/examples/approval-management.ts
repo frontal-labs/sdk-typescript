@@ -64,7 +64,7 @@ async function approvalManagementExample() {
 			multiApprovalWorkflow.id,
 		);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Trigger workflow and wait for approvals
 		console.log("[EXAMPLE] Example 2: Trigger workflow and manage approvals");
@@ -95,7 +95,7 @@ async function approvalManagementExample() {
 
 		console.log("[INFO] Pending approvals:", approvalSteps.length);
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: List and manage pending approvals
 		console.log("[EXAMPLE] Example 3: Manage pending approvals");
@@ -115,7 +115,7 @@ async function approvalManagementExample() {
 			console.log(`    Approvers: ${approval.approvers.length}`);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Simulate approval process
 		if (pendingApprovals.items.length > 0) {
@@ -144,7 +144,7 @@ async function approvalManagementExample() {
 			}
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 5: Create a conditional approval workflow
 		console.log("[EXAMPLE] Example 5: Conditional approval workflow");

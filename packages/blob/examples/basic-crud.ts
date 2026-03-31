@@ -41,7 +41,7 @@ async function basicCrudExample() {
 		return;
 	}
 
-	const downloadedContent = await downloadResult.data!.text();
+	const downloadedContent = await downloadResult.data?.text();
 	console.log("✅ Object downloaded successfully");
 	console.log("Content:", downloadedContent);
 
@@ -64,7 +64,7 @@ async function basicCrudExample() {
 	// Verify the update
 	const verifyResult = await storage.download(bucketName, objectKey);
 	if (!verifyResult.error) {
-		const verifyContent = await verifyResult.data!.text();
+		const verifyContent = await verifyResult.data?.text();
 		console.log("Updated content:", verifyContent);
 	}
 
@@ -122,7 +122,7 @@ async function listObjectsExample() {
 		return;
 	}
 
-	listResult.data!.objects.forEach((obj, index) => {
+	listResult.data?.objects.forEach((obj, index) => {
 		console.log(
 			`${index + 1}. ${obj.key} (${obj.size} bytes, ${obj.contentType})`,
 		);
@@ -133,7 +133,7 @@ async function listObjectsExample() {
 	const docsResult = await storage.list(bucketName, "docs/");
 
 	if (!docsResult.error) {
-		docsResult.data!.objects.forEach((obj, index) => {
+		docsResult.data?.objects.forEach((obj, index) => {
 			console.log(
 				`${index + 1}. ${obj.key} (${obj.size} bytes, ${obj.contentType})`,
 			);

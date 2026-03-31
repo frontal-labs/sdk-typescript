@@ -66,7 +66,7 @@ async function structuredObjectGeneration() {
 			console.log("📊 Usage:", result1.data.usage);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 2: Generate a product
 		console.log("📝 Example 2: Generate a product");
@@ -85,7 +85,7 @@ async function structuredObjectGeneration() {
 			console.log("📊 Usage:", result2.data.usage);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 3: Generate a recipe
 		console.log("📝 Example 3: Generate a recipe");
@@ -104,7 +104,7 @@ async function structuredObjectGeneration() {
 			console.log("📊 Usage:", result3.data.usage);
 		}
 
-		console.log("\n" + "=".repeat(50) + "\n");
+		console.log(`\n${"=".repeat(50)}\n`);
 
 		// Example 4: Generate with retry mechanism
 		console.log("📝 Example 4: Generate with retry mechanism");
@@ -296,11 +296,11 @@ async function validationExample() {
 // Run the examples
 if (import.meta.main) {
 	await structuredObjectGeneration();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await dynamicSchemaExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await dataExtractionExample();
-	console.log("\n" + "=".repeat(60) + "\n");
+	console.log(`\n${"=".repeat(60)}\n`);
 	await validationExample();
 }
 

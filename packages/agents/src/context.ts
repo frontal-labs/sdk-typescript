@@ -1,6 +1,6 @@
 import type { FilterConditions } from "@frontal/core";
 import { z } from "zod";
-import { type EscalateOptions, EscalateOptionsSchema } from "./schemas";
+import type { EscalateOptions } from "./schemas";
 
 export const ReasoningResultSchema = z.object({
 	decision: z.string(),

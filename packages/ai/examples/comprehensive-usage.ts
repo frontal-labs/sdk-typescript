@@ -196,7 +196,7 @@ async function comprehensiveUsageExample() {
 		// Step 8: Create and manage prompts
 		console.log("\n📋 Step 8: Create and manage prompts");
 
-		const analysisPrompt = ai.createPrompt({
+		const _analysisPrompt = ai.createPrompt({
 			name: "ml-concept-analysis",
 			template: `
 Analyze this machine learning concept: {concept}
@@ -277,7 +277,7 @@ Language: {language}
 		});
 		console.log("💰 Estimated cost:", `$${estimatedCost.toFixed(6)}`);
 
-		console.log("\n" + "=".repeat(60));
+		console.log(`\n${"=".repeat(60)}`);
 		console.log("🎉 Comprehensive usage example completed successfully!");
 		console.log("🎯 Demonstrated features:");
 		console.log("   ✅ Content moderation");
@@ -465,9 +465,9 @@ async function performanceExample() {
 // Run the examples
 if (import.meta.main) {
 	await comprehensiveUsageExample();
-	console.log("\n" + "=".repeat(80) + "\n");
+	console.log(`\n${"=".repeat(80)}\n`);
 	await multiModalAssistantExample();
-	console.log("\n" + "=".repeat(80) + "\n");
+	console.log(`\n${"=".repeat(80)}\n`);
 	await performanceExample();
 }
 
