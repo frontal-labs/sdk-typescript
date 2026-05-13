@@ -53,15 +53,25 @@ describe("BlobService", () => {
 	});
 
 	describe("download()", () => {
-		it("downloads data as a blob", async () => {
-			// getRaw returns raw Response — we need a custom mock fetch for this
-			const { http } = createTestHttpClient([]);
-			// Override getRaw directly for this test
-			const mockBlob = new Blob(["file content"], { type: "text/plain" });
-			const getRawSpy = vi.spyOn(http, "getRaw" as any).mockResolvedValue({
-				blob: async () => mockBlob,
-				body: null,
-			});
+			it("downloads data as a blob", async () => {
+				// getRaw returns raw Response — we need a custom mock fetch for this
+				const { http } = createTestHttpClient([]);
+				// Override getRaw directly for this test
+				const mockBlob = new Blob(["file content"], { type: "text/plain" });
+				const getRawSpy = vi
+					.spyOn(
+						http as unknown as {
+							getRaw: () => Promise<{
+								blob: () => Promise<Blob>;
+								body: null;
+							}>;
+						},
+						"getRaw",
+					)
+					.mockResolvedValue({
+						blob: async () => mockBlob,
+						body: null,
+					});
 
 			const service = new BlobService(http);
 			const result = await service.download("my-bucket", "file.txt");
@@ -79,13 +89,18 @@ describe("BlobService", () => {
 		});
 	});
 
-	describe("downloadStream()", () => {
-		it("downloads data as a readable stream", async () => {
-			const { http } = createTestHttpClient([]);
-			const stream = new ReadableStream();
-			vi.spyOn(http, "getRaw" as any).mockResolvedValue({
-				body: stream,
-			});
+		describe("downloadStream()", () => {
+			it("downloads data as a readable stream", async () => {
+				const { http } = createTestHttpClient([]);
+				const stream = new ReadableStream();
+				vi.spyOn(
+					http as unknown as {
+						getRaw: () => Promise<{ body: ReadableStream | null }>;
+					},
+					"getRaw",
+				).mockResolvedValue({
+					body: stream,
+				});
 
 			const service = new BlobService(http);
 			const result = await service.downloadStream("my-bucket", "file.bin");
@@ -93,11 +108,16 @@ describe("BlobService", () => {
 			expect(result).toBe(stream);
 		});
 
-		it("throws when response has no body", async () => {
-			const { http } = createTestHttpClient([]);
-			vi.spyOn(http, "getRaw" as any).mockResolvedValue({
-				body: null,
-			});
+			it("throws when response has no body", async () => {
+				const { http } = createTestHttpClient([]);
+				vi.spyOn(
+					http as unknown as {
+						getRaw: () => Promise<{ body: ReadableStream | null }>;
+					},
+					"getRaw",
+				).mockResolvedValue({
+					body: null,
+				});
 
 			const service = new BlobService(http);
 			await expect(
@@ -197,15 +217,15 @@ describe("BlobService", () => {
 		it("throws on invalid options (negative expiresIn)", async () => {
 			const { service } = createService([]);
 
-			await expect(
-				service.getSignedUrl("my-bucket", {
-					key: "file.txt",
-					operation: "read",
-					expiresIn: -100,
-				} as any),
-			).rejects.toThrow();
+				await expect(
+					service.getSignedUrl("my-bucket", {
+						key: "file.txt",
+						operation: "read",
+						expiresIn: -100,
+					}),
+				).rejects.toThrow();
+			});
 		});
-	});
 
 	describe("copyObject()", () => {
 		it("copies an object across buckets", async () => {

@@ -21,7 +21,6 @@ function computeBaseDelay(
 			return Math.max(0, baseDelay * (normalizedAttempt + 1));
 		case "constant":
 			return baseDelay;
-		case "exponential":
 		default:
 			return baseDelay * EXPONENTIAL_BASE ** normalizedAttempt;
 	}

@@ -95,7 +95,7 @@ export class EntityAccessor {
 		opts: { version?: number; at?: string } = {},
 	): Promise<S.Entity> {
 		const params = { ...opts };
-		return this.http.get("/ontology/graph/entities/" + id, params);
+		return this.http.get(`/ontology/graph/entities/${id}`, params);
 	}
 
 	async create(fields: Record<string, unknown>): Promise<S.Entity> {
@@ -108,7 +108,7 @@ export class EntityAccessor {
 		opts: { version?: number } = {},
 	): Promise<S.Entity> {
 		const params = opts.version ? { version: opts.version } : undefined;
-		return this.http.put("/ontology/graph/entities/" + id, {
+		return this.http.put(`/ontology/graph/entities/${id}`, {
 			fields,
 			...params,
 		});
@@ -135,7 +135,7 @@ export class EntityAccessor {
 	}
 
 	async relationships(id: string): Promise<{ data: S.LinkedEntity[] }> {
-		return this.http.get("/ontology/graph/entities/" + id + "/provenance");
+		return this.http.get(`/ontology/graph/entities/${id}/provenance`);
 	}
 
 	async addRelationship(
@@ -144,15 +144,15 @@ export class EntityAccessor {
 		relationType: string,
 		opts: { weight?: number } = {},
 	): Promise<S.Edge> {
-		return this.http.post("/ontology/graph/entities/" + id + "/provenance", {
+		return this.http.post(`/ontology/graph/entities/${id}/provenance`, {
 			targetEntityId,
 			relationType,
 			...opts,
 		});
 	}
 
-	async removeRelationship(id: string, relationshipId: string): Promise<void> {
-		return this.http.delete("/ontology/graph/relationships/" + relationshipId);
+	async removeRelationship(_id: string, relationshipId: string): Promise<void> {
+		return this.http.delete(`/ontology/graph/relationships/${relationshipId}`);
 	}
 
 	query(): QueryBuilder<S.Entity> {
@@ -163,15 +163,15 @@ export class EntityAccessor {
 export class HistoryNamespace {
 	constructor(private readonly http: HttpClient) {}
 
-	async get(entityId: string, entityType: string): Promise<S.EntityHistory> {
+	async get(entityId: string, _entityType: string): Promise<S.EntityHistory> {
 		return this.http.get(
-			"/ontology/graph/entities/" + entityId + "/provenance",
+			`/ontology/graph/entities/${entityId}/provenance`,
 		);
 	}
 
 	async revert(
-		entityId: string,
-		entityType: string,
+		_entityId: string,
+		_entityType: string,
 		toVersion: number,
 	): Promise<S.Entity> {
 		return this.http.post("/ontology/graph/runs", {

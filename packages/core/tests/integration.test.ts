@@ -32,7 +32,14 @@ const createMockErrorResponse = (overrides = {}) => ({
 	...overrides,
 });
 
-const createMockFetch = (responses: any[] = []) => {
+type MockFetchResponse = {
+	ok: boolean;
+	status: number;
+	headers: Headers;
+	json: () => Promise<unknown>;
+};
+
+const createMockFetch = (responses: MockFetchResponse[] = []) => {
 	let callCount = 0;
 	return vi
 		.fn()
@@ -62,7 +69,7 @@ describe("Integration Tests", () => {
 
 	beforeEach(() => {
 		mockFetch = createMockFetch();
-		global.fetch = mockFetch as any;
+		global.fetch = mockFetch as unknown as typeof fetch;
 		cleanupMocks();
 	});
 

@@ -14,7 +14,11 @@ function toErrorResponse(
 	defaultName: string,
 ): APIResponse<never>["error"] {
 	if (error instanceof Error) {
-		const statusCode = "statusCode" in error ? (error as any).statusCode : 0;
+		const errorWithStatus = error as Error & { statusCode?: number };
+		const statusCode =
+			typeof errorWithStatus.statusCode === "number"
+				? errorWithStatus.statusCode
+				: 0;
 		return {
 			message: error.message,
 			statusCode,

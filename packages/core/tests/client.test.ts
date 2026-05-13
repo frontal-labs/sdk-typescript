@@ -22,18 +22,19 @@ describe("FrontalClient", () => {
 		cleanupMocks();
 	});
 
-	describe("Constructor", () => {
-		it("should create a client with valid configuration", () => {
-			expect(client).toBeInstanceOf(FrontalClient);
-			expect(client._http).toBeInstanceOf(HttpClient);
-		});
+		describe("Constructor", () => {
+			it("should create a client with valid configuration", () => {
+				expect(client).toBeInstanceOf(FrontalClient);
+				expect(client._http).toBeInstanceOf(HttpClient);
+			});
 
-		it("should store the HTTP client as readonly", () => {
-			expect(() => {
-				(client as any)._http = null;
-			}).toThrow();
+			it("should store the HTTP client as readonly", () => {
+				const mutableClient = client as unknown as { _http: unknown };
+				expect(() => {
+					mutableClient._http = null;
+				}).toThrow();
+			});
 		});
-	});
 
 	describe("GET requests", () => {
 		it("should make a successful GET request without schema", async () => {

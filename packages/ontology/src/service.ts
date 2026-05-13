@@ -64,8 +64,7 @@ export class OntologyService {
 }
 
 export class ModelAccessor {
-	constructor(
-		private readonly name: string,
+	constructor(readonly _name: string,
 		private readonly http: HttpClient,
 	) {}
 
@@ -145,7 +144,7 @@ export class MigrationsNamespace {
 	}
 
 	async rollback(
-		migrationId: string,
+		_migrationId: string,
 	): Promise<{ id: string; status: string; rolledBackAt: string }> {
 		return this.http.post("/ontology/engine/runs");
 	}
@@ -188,7 +187,7 @@ export class RulesNamespace {
 	}
 
 	async update(
-		ruleId: string,
+		_ruleId: string,
 		definition: Partial<S.RuleDefinition>,
 	): Promise<S.RuleDefinition> {
 		return this.http.post("/ontology/engine/runs", definition);
@@ -254,12 +253,12 @@ export class GenerationNamespace {
 		return this.http.get("/ontology/engine/runs", opts);
 	}
 
-	async acceptSuggestion(suggestionId: string): Promise<unknown> {
+	async acceptSuggestion(_suggestionId: string): Promise<unknown> {
 		return this.http.post("/ontology/engine/runs");
 	}
 
 	async rejectSuggestion(
-		suggestionId: string,
+		_suggestionId: string,
 		reason?: string,
 	): Promise<unknown> {
 		return this.http.post("/ontology/engine/runs", {

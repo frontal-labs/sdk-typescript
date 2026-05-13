@@ -12,7 +12,11 @@ import type {
 
 function toErrorResponse(error: unknown): APIResponse<never>["error"] {
 	if (error instanceof Error) {
-		const statusCode = "statusCode" in error ? (error as any).statusCode : 0;
+		const errorWithStatus = error as Error & { statusCode?: number };
+		const statusCode =
+			typeof errorWithStatus.statusCode === "number"
+				? errorWithStatus.statusCode
+				: 0;
 		return {
 			message: error.message,
 			statusCode,
@@ -77,7 +81,7 @@ export class Functions {
 	async delete(id: string): Promise<APIResponse<void>> {
 		try {
 			await this.service.delete(id);
-			return { data: undefined as any, error: null, headers: {} };
+			return { data: undefined, error: null, headers: {} };
 		} catch (error) {
 			return { data: null, error: toErrorResponse(error), headers: null };
 		}

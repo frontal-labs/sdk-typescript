@@ -16,7 +16,7 @@ const chatResponse = (content: string, finishReason = "stop") => ({
 describe("AIService", () => {
 	describe("generateText()", () => {
 		it("sends chat completion request and returns text", async () => {
-			const { service, mock } = createService([
+			const { service } = createService([
 				{
 					method: "POST",
 					path: "/ai/chat/completions",
@@ -68,7 +68,8 @@ describe("AIService", () => {
 			});
 
 			const req = mock.requests[0];
-			expect((req.body as any).messages[0].role).toBe("system");
+			const reqBody = req.body as { messages: Array<{ role: string }> };
+			expect(reqBody.messages[0]?.role).toBe("system");
 		});
 
 		it("passes temperature and other options", async () => {
@@ -228,7 +229,7 @@ describe("AIService", () => {
 			});
 
 			expect(result).toBeDefined();
-			expect((result as any).id).toBe("vid_1");
+			expect("id" in result ? result.id : undefined).toBe("vid_1");
 		});
 	});
 
@@ -236,7 +237,12 @@ describe("AIService", () => {
 		it("generates speech and returns ArrayBuffer", async () => {
 			const { http } = createTestHttpClient([]);
 			const mockArrayBuffer = new ArrayBuffer(8);
-			vi.spyOn(http, "postRaw" as any).mockResolvedValue({
+			vi.spyOn(
+				http as unknown as {
+					postRaw: () => Promise<{ arrayBuffer: () => Promise<ArrayBuffer> }>;
+				},
+				"postRaw",
+			).mockResolvedValue({
 				arrayBuffer: async () => mockArrayBuffer,
 			});
 
@@ -253,7 +259,12 @@ describe("AIService", () => {
 	describe("transcribe()", () => {
 		it("transcribes audio", async () => {
 			const { http } = createTestHttpClient([]);
-			vi.spyOn(http, "postFormData" as any).mockResolvedValue({
+			vi.spyOn(
+				http as unknown as {
+					postFormData: () => Promise<{ text: string }>;
+				},
+				"postFormData",
+			).mockResolvedValue({
 				text: "Hello world",
 			});
 
@@ -410,7 +421,8 @@ describe("AIService", () => {
 				name: "calculator",
 				description: "Performs math",
 				parameters: { a: "number", b: "number" },
-				execute: async (params: any) => params.a + params.b,
+				execute: async (params: { a: number; b: number }) =>
+					params.a + params.b,
 			});
 
 			service.registerTool(tool);

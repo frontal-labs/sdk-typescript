@@ -55,7 +55,7 @@ export class BlobService {
 	 */
 	async download(bucket: string, key: string): Promise<Blob> {
 		const response = await this.http.getRaw(
-			"/storage/lake/lake/tables/" + key,
+			`/storage/lake/lake/tables/${key}`,
 			{
 				operation: "blob.download",
 				bucket,
@@ -75,7 +75,7 @@ export class BlobService {
 		key: string,
 	): Promise<ReadableStream<Uint8Array>> {
 		const response = await this.http.getRaw(
-			"/storage/lake/lake/tables/" + key,
+			`/storage/lake/lake/tables/${key}`,
 			{
 				operation: "blob.download.stream",
 				bucket,
@@ -94,7 +94,7 @@ export class BlobService {
 	 */
 	async delete(bucket: string, key: string): Promise<void> {
 		return this.http.post(
-			"/storage/lake/lake/tables/" + key + "/materializations",
+			`/storage/lake/lake/tables/${key}/materializations`,
 			this.command("blob.delete", { bucket }),
 		);
 	}
@@ -127,7 +127,7 @@ export class BlobService {
 	): Promise<string> {
 		const validated = signedUrlOptionsSchema.parse(options);
 		return this.http.post<string>(
-			"/storage/lake/lake/tables/" + bucket + "/materializations",
+			`/storage/lake/lake/tables/${bucket}/materializations`,
 			this.command("blob.sign", validated),
 		);
 	}
@@ -142,7 +142,7 @@ export class BlobService {
 		destKey: string,
 	): Promise<void> {
 		return this.http.post(
-			"/storage/lake/lake/tables/" + sourceKey + "/materializations",
+			`/storage/lake/lake/tables/${sourceKey}/materializations`,
 			this.command("blob.copy", {
 				sourceBucket,
 				destBucket,
@@ -161,7 +161,7 @@ export class BlobService {
 		destKey: string,
 	): Promise<void> {
 		return this.http.post(
-			"/storage/lake/lake/tables/" + sourceKey + "/materializations",
+			`/storage/lake/lake/tables/${sourceKey}/materializations`,
 			this.command("blob.move", {
 				sourceBucket,
 				destBucket,
@@ -177,7 +177,7 @@ export class BlobService {
 	 */
 	async getMetadata(bucket: string, key: string): Promise<BlobObject> {
 		return this.http.get<BlobObject>(
-			"/storage/lake/lake/tables/" + key,
+			`/storage/lake/lake/tables/${key}`,
 			{ operation: "blob.metadata", bucket },
 			blobObjectSchema,
 		);

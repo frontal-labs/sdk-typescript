@@ -27,15 +27,16 @@ describe("HttpClient", () => {
 		cleanupMocks();
 	});
 
-	describe("Constructor", () => {
-		it("should create an HTTP client with valid configuration", () => {
-			expect(httpClient).toBeInstanceOf(HttpClient);
-		});
+		describe("Constructor", () => {
+			it("should create an HTTP client with valid configuration", () => {
+				expect(httpClient).toBeInstanceOf(HttpClient);
+			});
 
-		it("should store configuration privately", () => {
-			expect((httpClient as any).config).toBeDefined();
+			it("should store configuration privately", () => {
+				const privateHttpClient = httpClient as unknown as { config: unknown };
+				expect(privateHttpClient.config).toBeDefined();
+			});
 		});
-	});
 
 	describe("Request Headers", () => {
 		it("should include default headers in requests", async () => {

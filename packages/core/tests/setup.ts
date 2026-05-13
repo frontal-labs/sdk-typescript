@@ -23,7 +23,7 @@ Object.defineProperty(console, "error", {
 // Global test utilities
 declare global {
 	namespace Vi {
-		interface JestAssertion<T = any> extends JestMatchers<T> {
+		interface JestAssertion<T = unknown> extends JestMatchers<T> {
 			toBeValidFrontalError(): T;
 			toBeValidPageResult(): T;
 		}
@@ -120,7 +120,7 @@ export const createMockResponseMeta = (overrides = {}) => ({
 });
 
 // Mock fetch implementation
-export const createMockFetch = (responses: any[] = []) => {
+export const createMockFetch = (responses: unknown[] = []) => {
 	let callCount = 0;
 	return vi
 		.fn()
@@ -141,7 +141,9 @@ export const createMockFetch = (responses: any[] = []) => {
 };
 
 // Mock server for SSE
-export const createMockSSEStream = (events: any[] = []) => {
+export const createMockSSEStream = (
+	events: Array<{ type: string; data: unknown }> = [],
+) => {
 	const encoder = new TextEncoder();
 	const stream = new ReadableStream({
 		start(controller) {

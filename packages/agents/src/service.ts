@@ -260,7 +260,7 @@ export class AgentAccessor {
 	}
 
 	async execution(executionId: string): Promise<S.Execution> {
-		return this.http.get("/workflows/" + this.id + "/" + executionId);
+		return this.http.get(`/workflows/${this.id}/${executionId}`);
 	}
 
 	async escalations(
@@ -322,7 +322,7 @@ export class AgentAccessor {
 		executionId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
 		yield* this.http.stream(
-			"/workflows/" + this.id + "/" + executionId + "/timeline",
+			`/workflows/${this.id}/${executionId}/timeline`,
 		);
 	}
 }
@@ -344,12 +344,12 @@ export class EscalationsNamespace {
 		);
 	}
 
-	async get(escalationId: string): Promise<S.Escalation> {
+	async get(_escalationId: string): Promise<S.Escalation> {
 		return this.http.get("/workflows");
 	}
 
 	async resolve(
-		escalationId: string,
+		_escalationId: string,
 		opts: z.input<typeof S.ResolveEscalationSchema>,
 	): Promise<S.Escalation> {
 		const body = S.ResolveEscalationSchema.parse(opts);
@@ -357,14 +357,14 @@ export class EscalationsNamespace {
 	}
 
 	async delegate(
-		escalationId: string,
+		_escalationId: string,
 		opts: { delegateTo: string; note?: string },
 	): Promise<S.Escalation> {
 		return this.http.post("/workflows/batch", opts);
 	}
 
 	async override(
-		escalationId: string,
+		_escalationId: string,
 		opts: {
 			action: string;
 			parameters?: Record<string, unknown>;
@@ -376,8 +376,7 @@ export class EscalationsNamespace {
 }
 
 export class ExperimentsAccessor {
-	constructor(
-		private readonly agentId: string,
+	constructor(readonly _agentId: string,
 		private readonly http: HttpClient,
 	) {}
 
@@ -386,12 +385,12 @@ export class ExperimentsAccessor {
 		return this.http.post("/workflows/batch", body);
 	}
 
-	async get(experimentId: string): Promise<Experiment> {
+	async get(_experimentId: string): Promise<Experiment> {
 		return this.http.get("/workflows");
 	}
 
 	async conclude(
-		experimentId: string,
+		_experimentId: string,
 		opts: { winnerVariant: string; promoteToProduction?: boolean },
 	): Promise<Experiment> {
 		return this.http.post("/workflows/batch", opts);

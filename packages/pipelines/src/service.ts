@@ -226,7 +226,7 @@ export class PipelineAccessor {
 	}
 
 	async get(): Promise<S.Pipeline> {
-		return this.http.get("/data/pipelines/pipelines/" + this.id, {
+		return this.http.get(`/data/pipelines/pipelines/${this.id}`, {
 			operation: "pipelines.get",
 		});
 	}
@@ -259,7 +259,7 @@ export class PipelineAccessor {
 	}
 
 	async run(runId: string): Promise<S.PipelineRun> {
-		return this.http.get("/data/pipelines/pipeline-runs/" + runId, {
+		return this.http.get(`/data/pipelines/pipeline-runs/${runId}`, {
 			operation: "pipelines.runs.get",
 			pipelineId: this.id,
 		});
@@ -325,7 +325,7 @@ export class PipelineAccessor {
 	async *watchRun(
 		runId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-		yield* this.http.stream("/data/pipelines/pipeline-runs/" + runId);
+		yield* this.http.stream(`/data/pipelines/pipeline-runs/${runId}`);
 	}
 }
 
@@ -344,15 +344,15 @@ export class LineageNamespace {
 	}
 
 	async upstream(
-		entityType: string,
-		entityId: string,
+		_entityType: string,
+		_entityId: string,
 	): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
 		return this.http.get("/data/pipelines/info");
 	}
 
 	async downstream(
-		entityType: string,
-		entityId: string,
+		_entityType: string,
+		_entityId: string,
 	): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
 		return this.http.get("/data/pipelines/info");
 	}

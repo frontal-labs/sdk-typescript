@@ -223,7 +223,7 @@ export class WorkflowBuilder {
 	}
 
 	async activate(): Promise<S.Workflow> {
-		const workflow = await this.create();
+		const _workflow = await this.create();
 		return this.http.patch("/workflows", { status: "active" });
 	}
 }
@@ -267,7 +267,7 @@ export class WorkflowAccessor {
 	}
 
 	async execution(executionId: string): Promise<S.WorkflowExecution> {
-		return this.http.get("/workflows/" + this.id + "/" + executionId);
+		return this.http.get(`/workflows/${this.id}/${executionId}`);
 	}
 
 	async trigger(
@@ -300,7 +300,7 @@ export class WorkflowAccessor {
 		executionId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
 		yield* this.http.stream(
-			"/workflows/" + this.id + "/" + executionId + "/timeline",
+			`/workflows/${this.id}/${executionId}/timeline`,
 		);
 	}
 }
@@ -317,15 +317,15 @@ export class ApprovalsNamespace {
 		);
 	}
 
-	async get(id: string): Promise<S.Approval> {
+	async get(_id: string): Promise<S.Approval> {
 		return this.http.get("/workflows");
 	}
 
-	async approve(id: string, comment?: string): Promise<S.Approval> {
+	async approve(_id: string, comment?: string): Promise<S.Approval> {
 		return this.http.post("/workflows/batch", { comment });
 	}
 
-	async reject(id: string, comment?: string): Promise<S.Approval> {
+	async reject(_id: string, comment?: string): Promise<S.Approval> {
 		return this.http.post("/workflows/batch", { comment });
 	}
 }
@@ -337,7 +337,7 @@ export class StepsNamespace {
 		return this.http.get("/workflows");
 	}
 
-	async get(id: string): Promise<S.StepDefinition> {
+	async get(_id: string): Promise<S.StepDefinition> {
 		return this.http.get("/workflows");
 	}
 
@@ -347,13 +347,13 @@ export class StepsNamespace {
 	}
 
 	async update(
-		id: string,
+		_id: string,
 		definition: Partial<S.StepDefinition>,
 	): Promise<S.StepDefinition> {
 		return this.http.put("/workflows", definition);
 	}
 
-	async delete(id: string): Promise<void> {
+	async delete(_id: string): Promise<void> {
 		return this.http.delete("/workflows");
 	}
 }
@@ -370,7 +370,7 @@ export class TemplatesNamespace {
 		);
 	}
 
-	async get(id: string): Promise<S.WorkflowTemplate> {
+	async get(_id: string): Promise<S.WorkflowTemplate> {
 		return this.http.get("/workflows");
 	}
 
@@ -383,7 +383,7 @@ export class TemplatesNamespace {
 		return this.http.post("/workflows", template);
 	}
 
-	async use(id: string, name: string): Promise<S.Workflow> {
+	async use(_id: string, name: string): Promise<S.Workflow> {
 		return this.http.post("/workflows/batch", { name });
 	}
 }
