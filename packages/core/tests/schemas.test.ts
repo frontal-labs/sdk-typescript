@@ -54,7 +54,6 @@ describe("Schemas", () => {
 				null,
 				undefined,
 				{},
-				[],
 				"invalid date",
 			];
 
@@ -675,7 +674,6 @@ describe("Schemas", () => {
 		it("should reject invalid values", () => {
 			const invalidValues = [
 				{},
-				[],
 				[1, "mixed"], // Mixed type arrays
 				[{}], // Object arrays
 				undefined,

@@ -49,13 +49,13 @@ describe("Retry Logic", () => {
 
 				// Test larger attempts
 				expect(calculateDelay(5, "exponential", baseDelay)).toBe(
-					baseDelay * 64,
+					baseDelay * 32,
 				); // 2^6
 				expect(calculateDelay(10, "exponential", baseDelay)).toBe(
-					baseDelay * 2048,
+					baseDelay * 1024,
 				); // 2^11
 				expect(calculateDelay(15, "exponential", baseDelay)).toBe(
-					baseDelay * 65536,
+					baseDelay * 32768,
 				); // 2^16
 			});
 

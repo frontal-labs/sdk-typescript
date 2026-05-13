@@ -1,93 +1,36 @@
-import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
-import { ValidationError } from "./errors";
+
+const apiKeySchema = z
+	.string()
+	.min(9)
+	.max(128, "FRONTAL_API_KEY is too long")
+	.refine(
+		(value) =>
+			/^frt_[A-Za-z0-9_]+$/.test(value) ||
+			/^fr_typed[A-Za-z0-9_]+$/.test(value),
+		"FRONTAL_API_KEY must start with frt_",
+	)
+	.refine((value) => value.length >= 9, "FRONTAL_API_KEY is too short");
+
+const debugSchema = z.preprocess((value) => {
+	if (typeof value === "boolean") return value;
+	if (typeof value !== "string") return value;
+
+	const normalized = value.toLowerCase();
+	if (normalized === "true" || normalized === "1") return true;
+	if (normalized === "false" || normalized === "0") return false;
+	return value;
+}, z.boolean().optional());
 
 /**
- * Creates and validates environment variables for the Frontal Core.
- * Uses T3 Env for type-safe environment variable handling.
- *
- * @example
- * ```typescript
- * import { keys } from '@frontal/core'
- *
- * const env = keys()
- * console.log('API URL:', env.FRONTAL_API_URL)
- * console.log('API Key:', env.FRONTAL_API_KEY)
- * ```
- *
- * @returns Validated environment variables object
- *
- * @throws {Error} When required environment variables are missing in production
+ * Shared env schemas used by packages.
  */
-export const keys = () =>
-	createEnv({
-		/**
-		 * Server-side environment variables schema.
-		 * Defines validation rules for all supported environment variables.
-		 */
-		server: {
-			/**
-			 * Node.js environment (development, test, production).
-			 * Defaults to 'development' when not specified.
-			 */
-			NODE_ENV: z
-				.enum(["development", "test", "production"])
-				.default("development"),
-			/**
-			 * Frontal API base URL.
-			 * Optional in non-production environments, required in production.
-			 * @example 'https://api.frontal.dev/v1'
-			 */
-			FRONTAL_API_URL: z
-				.url()
-				.optional()
-				.refine((val) => !(process.env.NODE_ENV === "production") || !!val, {
-					message: "FRONTAL_API_URL is required in production",
-				}),
-			/**
-			 * Frontal API authentication key.
-			 * Optional in non-production environments, required in production.
-			 * @example 'frl_1234567890abcdef'
-			 */
-			FRONTAL_API_KEY: z
-				.string()
-				.min(1)
-				.optional()
-				.refine((val) => !(process.env.NODE_ENV === "production") || !!val, {
-					message: "FRONTAL_API_KEY is required in production",
-				}),
-		},
-		/**
-		 * Runtime environment variables mapping.
-		 * Connects the schema to actual process.env values.
-		 */
-		runtimeEnv: {
-			NODE_ENV: process.env.NODE_ENV,
-			FRONTAL_API_URL: process.env.FRONTAL_API_URL,
-			FRONTAL_API_KEY: process.env.FRONTAL_API_KEY,
-		},
-		/**
-		 * Skip validation in production for performance.
-		 * Set to true to bypass validation checks.
-		 */
-		skipValidation: process.env.NODE_ENV === "production",
-		/**
-		 * Treat empty strings as undefined.
-		 * Useful when environment variables might be set but empty.
-		 */
-		emptyStringAsUndefined: true,
-		onValidationError: (error) => {
-			throw new ValidationError({
-				code: "VALIDATION_ERROR",
-				message: `Environment validation error: ${error.map((e) => e.message).join(", ")}`,
-				requestId: "env-validation",
-				fields: [
-					{
-						field: "environment",
-						code: "VALIDATION_ERROR",
-						message: error.map((e) => e.message).join(", "),
-					},
-				],
-			});
-		},
-	});
+export const keys = {
+	client: z
+		.object({
+			FRONTAL_API_KEY: apiKeySchema,
+			FRONTAL_ENVIRONMENT: z.string().optional(),
+			FRONTAL_DEBUG: debugSchema,
+		})
+		.strip(),
+};

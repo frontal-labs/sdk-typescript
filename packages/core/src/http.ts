@@ -3,38 +3,9 @@ import type { ClientConfigOutput } from "./config";
 import { NetworkError, parseFrontalError } from "./errors";
 import { calculateDelay } from "./retry";
 
-/**
- * HTTP client for making requests to the Frontal API.
- * Handles authentication, retries, timeouts, and response parsing.
- *
- * @example
- * ```typescript
- * const client = new HttpClient(config)
- * const users = await client.get('/users')
- * const user = await client.post('/users', { name: 'John' })
- * ```
- */
 export class HttpClient {
-	/**
-	 * Creates a new HttpClient instance.
-	 * @param config - Client configuration
-	 */
 	constructor(private readonly config: ClientConfigOutput) {}
 
-	/**
-	 * Makes a GET request to the specified endpoint.
-	 * @param path - API endpoint path
-	 * @param params - Optional query parameters
-	 * @param schema - Optional Zod schema for response validation
-	 * @returns Promise resolving to the response data
-	 *
-	 * @example
-	 * ```typescript
-	 * const users = await client.get('/users')
-	 * const user = await client.get('/users/123')
-	 * const filtered = await client.get('/users', { page: 1, limit: 10 })
-	 * ```
-	 */
 	async get<T>(
 		path: string,
 		params?: Record<string, unknown>,
@@ -43,100 +14,38 @@ export class HttpClient {
 		return this.request("GET", path, undefined, params, schema);
 	}
 
-	/**
-	 * Makes a POST request to the specified endpoint.
-	 * @param path - API endpoint path
-	 * @param body - Optional request body data
-	 * @param schema - Optional Zod schema for response validation
-	 * @returns Promise resolving to the response data
-	 *
-	 * @example
-	 * ```typescript
-	 * const user = await client.post('/users', { name: 'John', email: 'john@example.com' })
-	 * ```
-	 */
 	async post<T>(
 		path: string,
 		body?: unknown,
 		schema?: z.ZodType<T>,
 	): Promise<T> {
-		return this.request("POST", path, body, undefined, schema);
+		return this.request("POST", path, body ?? {}, undefined, schema);
 	}
 
-	/**
-	 * Makes a PUT request to the specified endpoint.
-	 * @param path - API endpoint path
-	 * @param body - Optional request body data
-	 * @param schema - Optional Zod schema for response validation
-	 * @returns Promise resolving to the response data
-	 *
-	 * @example
-	 * ```typescript
-	 * const updated = await client.put('/users/123', { name: 'John Updated' })
-	 * ```
-	 */
 	async put<T>(
 		path: string,
 		body?: unknown,
 		schema?: z.ZodType<T>,
 	): Promise<T> {
-		return this.request("PUT", path, body, undefined, schema);
+		return this.request("PUT", path, body ?? {}, undefined, schema);
 	}
 
-	/**
-	 * Makes a PATCH request to the specified endpoint.
-	 * @param path - API endpoint path
-	 * @param body - Optional request body data
-	 * @param schema - Optional Zod schema for response validation
-	 * @returns Promise resolving to the response data
-	 *
-	 * @example
-	 * ```typescript
-	 * const updated = await client.patch('/users/123', { name: 'John Updated' })
-	 * ```
-	 */
 	async patch<T>(
 		path: string,
 		body?: unknown,
 		schema?: z.ZodType<T>,
 	): Promise<T> {
-		return this.request("PATCH", path, body, undefined, schema);
+		return this.request("PATCH", path, body ?? {}, undefined, schema);
 	}
 
-	/**
-	 * Makes a DELETE request to the specified endpoint.
-	 * @param path - API endpoint path
-	 * @param params - Optional query parameters
-	 * @returns Promise resolving to void or response data
-	 *
-	 * @example
-	 * ```typescript
-	 * await client.delete('/users/123')
-	 * await client.delete('/users', { soft: true })
-	 * ```
-	 */
 	async delete<T = void>(
 		path: string,
 		params?: Record<string, unknown>,
+		schema?: z.ZodType<T>,
 	): Promise<T> {
-		return this.request("DELETE", path, undefined, params);
+		return this.request("DELETE", path, {}, params, schema);
 	}
 
-	/**
-	 * Makes a PUT request with raw binary data.
-	 * Useful for file uploads or streaming data.
-	 * @param path - API endpoint path
-	 * @param body - Raw data (Buffer or ReadableStream)
-	 * @param contentType - Content-Type header value
-	 * @param headers - Additional headers to include
-	 * @returns Promise resolving to the response data
-	 *
-	 * @example
-	 * ```typescript
-	 * const fileData = fs.readFileSync('file.txt')
-	 * const result = await client.putRaw('/files/upload', fileData, 'text/plain')
-	 * ```
-	 */
 	async putRaw(
 		path: string,
 		body: Buffer | ReadableStream,
@@ -150,40 +59,22 @@ export class HttpClient {
 			body: body as ReadableStream | Buffer | string,
 		});
 		if (!res.ok) await this.throwError(res);
-		return res.status === 204 ? undefined : res.json();
+		return res.status === 204 ? undefined : await res.json();
 	}
 
-	/**
-	 * Creates an async iterator for Server-Sent Events (SSE) streaming.
-	 * @param path - API endpoint path
-	 * @param params - Optional query parameters
-	 * @returns AsyncIterable yielding SSE events
-	 *
-	 * @example
-	 * ```typescript
-	 * for await (const event of client.stream('/events')) {
-	 *   console.log('Event:', event.type, event.data)
-	 * }
-	 * ```
-	 */
 	async *stream(
 		path: string,
 		params?: Record<string, string>,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
 		const url = this.buildUrl(path, params);
-		const res = await (this.config.fetch ?? fetch)(url, {
+		const res = await this.fetchWithTimeout(url, {
+			method: "GET",
 			headers: this.buildHeaders({ Accept: "text/event-stream" }),
 		});
 		if (!res.ok) await this.throwError(res);
 		yield* this.parseSSEResponse(res);
 	}
 
-	/**
-	 * Creates an async iterator for POST-based Server-Sent Events (SSE) streaming.
-	 * @param path - API endpoint path
-	 * @param body - Optional request body data (sent as JSON)
-	 * @returns AsyncIterable yielding SSE events
-	 */
 	async *postStream(
 		path: string,
 		body?: unknown,
@@ -192,20 +83,12 @@ export class HttpClient {
 		const res = await this.fetchWithTimeout(url, {
 			method: "POST",
 			headers: this.buildHeaders({ Accept: "text/event-stream" }),
-			...(body !== undefined && { body: JSON.stringify(body) }),
+			body: JSON.stringify(body ?? {}),
 		});
 		if (!res.ok) await this.throwError(res);
 		yield* this.parseSSEResponse(res);
 	}
 
-	/**
-	 * Makes a POST request and returns the raw Response object.
-	 * Useful when the caller needs to consume the response as ArrayBuffer, Blob, etc.
-	 * @param path - API endpoint path
-	 * @param body - Optional request body data (sent as JSON)
-	 * @param headers - Additional headers to include
-	 * @returns Promise resolving to the raw Response
-	 */
 	async postRaw(
 		path: string,
 		body?: unknown,
@@ -214,46 +97,31 @@ export class HttpClient {
 		const url = this.buildUrl(path);
 		const res = await this.fetchWithTimeout(url, {
 			method: "POST",
-			headers: this.buildHeaders(headers),
-			...(body !== undefined && { body: JSON.stringify(body) }),
+			headers: new Headers(this.buildHeaders(headers)),
+			body: JSON.stringify(body ?? {}),
 		});
 		if (!res.ok) await this.throwError(res);
 		return res;
 	}
 
-	/**
-	 * Makes a POST request with FormData body.
-	 * Omits Content-Type header so the runtime sets the multipart boundary automatically.
-	 * @param path - API endpoint path
-	 * @param formData - FormData to send
-	 * @param headers - Additional headers to include
-	 * @returns Promise resolving to the parsed JSON response
-	 */
 	async postFormData<T>(
 		path: string,
 		formData: FormData,
 		headers: Record<string, string> = {},
 	): Promise<T> {
 		const url = this.buildUrl(path);
-		const h = this.buildHeaders(headers);
-		h.delete("Content-Type"); // let runtime set multipart boundary
+		const merged = new Headers(this.buildHeaders(headers));
+		merged.delete("Content-Type");
+
 		const res = await this.fetchWithTimeout(url, {
 			method: "POST",
-			headers: h,
+			headers: merged,
 			body: formData,
 		});
 		if (!res.ok) await this.throwError(res);
-		return res.json();
+		return (await res.json()) as T;
 	}
 
-	/**
-	 * Makes a GET request and returns the raw Response object.
-	 * Useful for downloading files as Blob or ReadableStream.
-	 * @param path - API endpoint path
-	 * @param params - Optional query parameters
-	 * @param headers - Additional headers to include
-	 * @returns Promise resolving to the raw Response
-	 */
 	async getRaw(
 		path: string,
 		params?: Record<string, unknown>,
@@ -280,6 +148,7 @@ export class HttpClient {
 		while (true) {
 			const { done, value } = await reader.read();
 			if (done) break;
+
 			buffer += decoder.decode(value, { stream: true });
 			const lines = buffer.split("\n");
 			buffer = lines.pop() ?? "";
@@ -288,17 +157,22 @@ export class HttpClient {
 				type: "message",
 				data: null,
 			};
-			for (const line of lines) {
-				if (line.startsWith("id:")) event.id = line.slice(3).trim();
-				else if (line.startsWith("event:")) event.type = line.slice(6).trim();
-				else if (line.startsWith("data:")) {
+
+			for (const rawLine of lines) {
+				const line = rawLine.trimEnd();
+				if (line.startsWith("id:")) {
+					event.id = line.slice(3).trim();
+				} else if (line.startsWith("event:")) {
+					event.type = line.slice(6).trim();
+				} else if (line.startsWith("data:")) {
+					const payload = line.slice(5).trim();
 					try {
-						event.data = JSON.parse(line.slice(5).trim());
+						event.data = JSON.parse(payload);
 					} catch {
-						event.data = line.slice(5).trim();
+						event.data = payload;
 					}
 				} else if (line === "") {
-					yield event;
+					if (event.data !== null) yield event;
 					event = { type: "message", data: null };
 				}
 			}
@@ -319,69 +193,73 @@ export class HttpClient {
 		const reqInit: RequestInit = {
 			method,
 			headers: this.buildHeaders({ "X-Request-Id": requestId }),
-			...(body !== undefined && { body: JSON.stringify(body) }),
+			...(method !== "GET"
+				? { body: JSON.stringify(body ?? {}) }
+				: { body: undefined }),
 		};
 
-		this.config.logger?.request?.();
+		this.config.logger?.request?.(method, url, reqInit);
 
 		let res: Response;
 		try {
 			res = await this.fetchWithTimeout(url, reqInit);
-		} catch (err) {
-			if (attempt < this.config.maxRetries) {
-				await sleep(
-					calculateDelay(attempt, {
-						maxRetries: this.config.maxRetries,
-						retryDelay: this.config.retryDelay,
-						backoff: "exponential",
-						retryOn: [],
-					}),
-				);
-				return this.request(method, path, body, params, schema, attempt + 1);
-			}
-			throw new NetworkError(err);
+		} catch (error) {
+			this.config.logger?.error?.(error);
+			throw new NetworkError(error);
 		}
 
-		this.config.logger?.response?.();
+		this.config.logger?.response?.(res);
 
 		if (!res.ok) {
 			const shouldRetry =
 				[429, 500, 502, 503, 504].includes(res.status) &&
 				attempt < this.config.maxRetries;
+
 			if (shouldRetry) {
-				const retryAfter = res.headers.get("Retry-After");
-				const delay = retryAfter
-					? parseInt(retryAfter, 10) * 1000
-					: calculateDelay(attempt, {
-							maxRetries: this.config.maxRetries,
-							retryDelay: this.config.retryDelay,
-							backoff: "exponential",
-							retryOn: [],
-						});
+				const retryAfterValue = res.headers.get("Retry-After");
+				const retryAfterSeconds = retryAfterValue
+					? Number.parseInt(retryAfterValue, 10)
+					: NaN;
+				const delay = Number.isFinite(retryAfterSeconds)
+					? retryAfterSeconds * 1000
+					: calculateDelay(
+							attempt,
+							"exponential",
+							this.config.retryDelay,
+							true,
+						);
+
 				await sleep(delay);
 				return this.request(method, path, body, params, schema, attempt + 1);
 			}
+
 			await this.throwError(res);
 		}
 
 		if (res.status === 204) return undefined as T;
 
-		const json = await res.json();
+		const contentType = (res.headers.get("content-type") || "").toLowerCase();
+		const payload = contentType.includes("application/json")
+			? await res.json()
+			: await res.text();
 
 		if (schema) {
-			const parsed = schema.safeParse(json);
-			if (!parsed.success) {
-				if (this.config.debug)
-					console.warn(
-						"[frontal] Response schema mismatch:",
-						parsed.error.issues,
-					);
-				return json as T;
+			try {
+				const parsed = schema.safeParse(payload);
+				if (!parsed.success) {
+					this.config.logger?.error?.(parsed.error);
+					throw parsed.error;
+				}
+				return parsed.data;
+			} catch (error) {
+				if (error instanceof Error && error.message.includes("_zod")) {
+					return payload as T;
+				}
+				throw error;
 			}
-			return parsed.data;
 		}
 
-		return json as T;
+		return payload as T;
 	}
 
 	private async throwError(res: Response): Promise<never> {
@@ -397,25 +275,37 @@ export class HttpClient {
 
 	private buildUrl(path: string, params?: Record<string, unknown>): string {
 		const base = this.config.baseUrl.replace(/\/$/, "");
-		const url = new URL(`${base}${path}`);
-		if (params) {
-			for (const [k, v] of Object.entries(params)) {
-				if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
-			}
+		const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+		const url = `${base}${normalizedPath}`;
+
+		if (!params || Object.keys(params).length === 0) {
+			return url;
 		}
-		return url.toString();
+
+		const query = Object.entries(params)
+			.filter(([, value]) => value !== undefined && value !== null)
+			.map(
+				([key, value]) =>
+					`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+			)
+			.join("&");
+
+		return query ? `${url}?${query}` : url;
 	}
 
-	private buildHeaders(extra: Record<string, string> = {}): Headers {
-		return new Headers({
+	private buildHeaders(
+		extra: Record<string, string> = {},
+	): Record<string, string> {
+		return {
 			Authorization: `Bearer ${this.config.apiKey}`,
 			"Content-Type": "application/json",
 			Accept: "application/json",
+			"User-Agent": "@frontal/core",
 			"X-Frontal-Core": "typescript@1.0.0",
 			"X-Frontal-Environment": this.config.environment,
 			...this.config.headers,
 			...extra,
-		});
+		};
 	}
 
 	private async fetchWithTimeout(
@@ -435,8 +325,7 @@ export class HttpClient {
 	}
 }
 
-const sleep = async (ms: number): Promise<void> => {
-	await new Promise<void>((resolve) => {
+const sleep = async (ms: number): Promise<void> =>
+	new Promise((resolve) => {
 		setTimeout(resolve, ms);
 	});
-};
