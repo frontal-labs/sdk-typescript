@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-05-13T18:11:25.961Z",
+  "drift": {
+    "errors": [],
+    "hasDrift": false
+  },
+  "conformance": {
+    "issues": [],
+    "summary": {
+      "ai": {
+        "total": 6,
+        "matched": 6,
+        "unmatched": 0
+      },
+      "agents": {
+        "total": 6,
+        "matched": 6,
+        "unmatched": 0
+      },
+      "blob": {
+        "total": 2,
+        "matched": 2,
+        "unmatched": 0
+      },
+      "functions": {
+        "total": 5,
+        "matched": 5,
+        "unmatched": 0
+      },
+      "graph": {
+        "total": 7,
+        "matched": 7,
+        "unmatched": 0
+      },
+      "ontology": {
+        "total": 7,
+        "matched": 7,
+        "unmatched": 0
+      },
+      "pipelines": {
+        "total": 7,
+        "matched": 7,
+        "unmatched": 0
+      },
+      "workflows": {
+        "total": 7,
+        "matched": 7,
+        "unmatched": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "ai": [
+    {
+      "method": "GET",
+      "path": "/internal/models"
+    },
+    {
+      "method": "POST",
+      "path": "/ai/chat/completions"
+    },
+    {
+      "method": "POST",
+      "path": "/internal/embeddings"
+    },
+    {
+      "method": "POST",
+      "path": "/internal/predictions"
+    },
+    {
+      "method": "POSTFORMDATA",
+      "path": "/internal/predictions"
+    },
+    {
+      "method": "POSTRAW",
+      "path": "/internal/predictions"
+    }
+  ],
+  "agents": [
+    {
+      "method": "DELETE",
+      "path": "/workflows"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/batch"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/search"
+    },
+    {
+      "method": "PUT",
+      "path": "/workflows"
+    }
+  ],
+  "blob": [
+    {
+      "method": "GET",
+      "path": "/storage/lake/lake/tables"
+    },
+    {
+      "method": "POST",
+      "path": "/storage/lake/lake/tables"
+    }
+  ],
+  "functions": [
+    {
+      "method": "DELETE",
+      "path": "/workflows"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/batch"
+    },
+    {
+      "method": "POSTSTREAM",
+      "path": "/workflows/batch"
+    },
+    {
+      "method": "PUT",
+      "path": "/workflows"
+    }
+  ],
+  "graph": [
+    {
+      "method": "GET",
+      "path": "/ontology/graph/runs"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/graph/graph/analyze"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/graph/graph/build"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/graph/graph/neighborhood"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/graph/graph/path"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/graph/graph/query"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/graph/runs"
+    }
+  ],
+  "ontology": [
+    {
+      "method": "GET",
+      "path": "/ontology/engine/health"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/engine/runs"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/compare-versions"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/generate"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/infer-classes"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/validate"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/runs"
+    }
+  ],
+  "pipelines": [
+    {
+      "method": "GET",
+      "path": "/data/pipelines/health"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/info"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/pipeline-runs"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/pipelines"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/runs"
+    },
+    {
+      "method": "POST",
+      "path": "/data/pipelines/pipelines"
+    },
+    {
+      "method": "POST",
+      "path": "/data/pipelines/runs"
+    }
+  ],
+  "workflows": [
+    {
+      "method": "DELETE",
+      "path": "/workflows"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows"
+    },
+    {
+      "method": "PATCH",
+      "path": "/workflows"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/batch"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/search"
+    },
+    {
+      "method": "PUT",
+      "path": "/workflows"
+    }
+  ]
+}
