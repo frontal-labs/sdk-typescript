@@ -5,7 +5,7 @@ bun run lint || {
   exit 1
 }
 
-bun x biome format --staged || {
+bun x biome format --staged --files-ignore-unknown=true --no-errors-on-unmatched || {
 	echo "❌ Formatting check failed. Please run 'bun run format' and try again."
 	exit 1
 }
