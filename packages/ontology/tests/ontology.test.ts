@@ -29,7 +29,11 @@ describe("OntologyService", () => {
 		it("fetches models with pagination", async () => {
 			const items = [model(), model()];
 			const { service, mock } = createService([
-				{ method: "GET", path: "/v1/ontology/engine/runs", body: mockPageResponse(items) },
+				{
+					method: "GET",
+					path: "/v1/ontology/engine/runs",
+					body: mockPageResponse(items),
+				},
 			]);
 
 			const result = await service.list();
@@ -40,7 +44,11 @@ describe("OntologyService", () => {
 
 		it("passes filter options", async () => {
 			const { service } = createService([
-				{ method: "GET", path: "/v1/ontology/engine/runs", body: mockPageResponse([]) },
+				{
+					method: "GET",
+					path: "/v1/ontology/engine/runs",
+					body: mockPageResponse([]),
+				},
 			]);
 
 			await service.list({ status: "active", limit: 5 });
@@ -68,7 +76,11 @@ describe("OntologyService", () => {
 		it("validates a model definition", async () => {
 			const body = { valid: true };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/v1/ontology/engine/ontologies/validate", body },
+				{
+					method: "POST",
+					path: "/v1/ontology/engine/ontologies/validate",
+					body,
+				},
 			]);
 
 			const result = await service.validate({
@@ -86,7 +98,11 @@ describe("OntologyService", () => {
 				errors: [{ field: "name", message: "required" }],
 			};
 			const { service } = createService([
-				{ method: "POST", path: "/v1/ontology/engine/ontologies/validate", body },
+				{
+					method: "POST",
+					path: "/v1/ontology/engine/ontologies/validate",
+					body,
+				},
 			]);
 
 			const result = await service.validate({
@@ -224,7 +240,11 @@ describe("ModelAccessor", () => {
 		it("validates data against the model", async () => {
 			const body = { entityType: "user", totalChecked: 100, violations: [] };
 			const { service, mock } = createService([
-				{ method: "POST", path: `/v1/ontology/engine/ontologies/validate`, body },
+				{
+					method: "POST",
+					path: `/v1/ontology/engine/ontologies/validate`,
+					body,
+				},
 			]);
 
 			const result = await service.use(modelName).validateData();
@@ -264,13 +284,20 @@ describe("MigrationsNamespace", () => {
 		it("creates a migration plan", async () => {
 			const body = { id: "mig_1", steps: [], estimatedDuration: "5m" };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/v1/ontology/engine/ontologies/compare-versions", body },
+				{
+					method: "POST",
+					path: "/v1/ontology/engine/ontologies/compare-versions",
+					body,
+				},
 			]);
 
 			const result = await service.migrations.plan({ modelId: "mdl_1" });
 
 			expect(result.id).toBe("mig_1");
-			mock.expectCalled("POST", "/v1/ontology/engine/ontologies/compare-versions");
+			mock.expectCalled(
+				"POST",
+				"/v1/ontology/engine/ontologies/compare-versions",
+			);
 		});
 	});
 
@@ -413,7 +440,11 @@ describe("RulesNamespace", () => {
 				summary: { totalChecked: 50, violations: 0 },
 			};
 			const { service, mock } = createService([
-				{ method: "POST", path: "/v1/ontology/engine/ontologies/validate", body },
+				{
+					method: "POST",
+					path: "/v1/ontology/engine/ontologies/validate",
+					body,
+				},
 			]);
 
 			const result = await service.rules.evaluate({ entityType: "user" });
@@ -469,7 +500,11 @@ describe("GenerationNamespace", () => {
 				reasoning: "Based on description...",
 			};
 			const { service, mock } = createService([
-				{ method: "POST", path: "/v1/ontology/engine/ontologies/generate", body },
+				{
+					method: "POST",
+					path: "/v1/ontology/engine/ontologies/generate",
+					body,
+				},
 			]);
 
 			const result = await service.generation.generate(
@@ -486,7 +521,11 @@ describe("GenerationNamespace", () => {
 		it("infers models from substrates", async () => {
 			const body = { proposals: [{ name: "inferred_model" }] };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/v1/ontology/engine/ontologies/infer-classes", body },
+				{
+					method: "POST",
+					path: "/v1/ontology/engine/ontologies/infer-classes",
+					body,
+				},
 			]);
 
 			const result = await service.generation.infer({

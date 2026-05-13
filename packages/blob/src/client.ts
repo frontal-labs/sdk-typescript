@@ -54,10 +54,13 @@ export class BlobService {
 	 * @param key - The object key.
 	 */
 	async download(bucket: string, key: string): Promise<Blob> {
-		const response = await this.http.getRaw("/storage/lake/lake/tables/" + key, {
-			operation: "blob.download",
-			bucket,
-		});
+		const response = await this.http.getRaw(
+			"/storage/lake/lake/tables/" + key,
+			{
+				operation: "blob.download",
+				bucket,
+			},
+		);
 		return response.blob();
 	}
 
@@ -71,10 +74,13 @@ export class BlobService {
 		bucket: string,
 		key: string,
 	): Promise<ReadableStream<Uint8Array>> {
-		const response = await this.http.getRaw("/storage/lake/lake/tables/" + key, {
-			operation: "blob.download.stream",
-			bucket,
-		});
+		const response = await this.http.getRaw(
+			"/storage/lake/lake/tables/" + key,
+			{
+				operation: "blob.download.stream",
+				bucket,
+			},
+		);
 		if (!response.body) {
 			throw new Error("Response has no body stream");
 		}
@@ -99,7 +105,10 @@ export class BlobService {
 	 * @param prefix - Optional prefix to filter objects.
 	 */
 	async list(bucket: string, prefix?: string): Promise<ListObjectsResult> {
-		const params = this.command("blob.list", { bucket, ...(prefix ? { prefix } : {}) });
+		const params = this.command("blob.list", {
+			bucket,
+			...(prefix ? { prefix } : {}),
+		});
 		return this.http.get<ListObjectsResult>(
 			"/storage/lake/lake/tables",
 			params,

@@ -79,7 +79,10 @@ export class ModelAccessor {
 	}
 
 	async delete(force = false): Promise<void> {
-		return this.http.post("/ontology/engine/runs", { action: "delete-model", force });
+		return this.http.post("/ontology/engine/runs", {
+			action: "delete-model",
+			force,
+		});
 	}
 
 	async relationships(): Promise<{ data: S.RelationshipDefinition[] }> {
@@ -94,7 +97,10 @@ export class ModelAccessor {
 	}
 
 	async removeRelationship(relationshipId: string): Promise<void> {
-		return this.http.post("/ontology/engine/runs", { action: "delete-relationship", relationshipId });
+		return this.http.post("/ontology/engine/runs", {
+			action: "delete-relationship",
+			relationshipId,
+		});
 	}
 
 	async validateData(): Promise<{
@@ -125,7 +131,10 @@ export class MigrationsNamespace {
 		modelId?: string;
 		changes?: S.ModelDefinition[];
 	}): Promise<S.MigrationPlan> {
-		return this.http.post("/ontology/engine/ontologies/compare-versions", request);
+		return this.http.post(
+			"/ontology/engine/ontologies/compare-versions",
+			request,
+		);
 	}
 
 	async apply(
@@ -186,7 +195,10 @@ export class RulesNamespace {
 	}
 
 	async delete(ruleId: string): Promise<void> {
-		return this.http.post("/ontology/engine/runs", { action: "delete-rule", ruleId });
+		return this.http.post("/ontology/engine/runs", {
+			action: "delete-rule",
+			ruleId,
+		});
 	}
 
 	async evaluate(opts: {
@@ -222,7 +234,10 @@ export class GenerationNamespace {
 		confidence: number;
 		reasoning: string;
 	}> {
-		return this.http.post("/ontology/engine/ontologies/generate", { description, ...opts });
+		return this.http.post("/ontology/engine/ontologies/generate", {
+			description,
+			...opts,
+		});
 	}
 
 	async infer(opts: {

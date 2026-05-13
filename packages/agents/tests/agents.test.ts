@@ -403,10 +403,7 @@ describe("AgentAccessor", () => {
 			});
 
 			expect(result.winnerVariant).toBe("treatment");
-			mock.expectCalled(
-				"POST",
-				`/v1/workflows/batch`,
-			);
+			mock.expectCalled("POST", `/v1/workflows/batch`);
 		});
 	});
 

@@ -425,7 +425,10 @@ export class AIService {
 			input: validated.input,
 			model: validated.model || "text-moderation-latest",
 		};
-		return this.http.post<ModerationResult>("/internal/predictions", requestBody);
+		return this.http.post<ModerationResult>(
+			"/internal/predictions",
+			requestBody,
+		);
 	}
 
 	// ── Models ────────────────────────────────────────────────────────────

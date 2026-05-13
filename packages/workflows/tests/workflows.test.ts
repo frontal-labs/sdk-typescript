@@ -259,20 +259,20 @@ describe("WorkflowAccessor", () => {
 	describe("execution()", () => {
 		it("fetches a specific execution", async () => {
 			const body = { id: "exec_1", workflowId, status: "completed" };
-				const { service, mock } = createService([
-					{
-						method: "GET",
-						path: `/v1/workflows/${workflowId}/exec_1`,
-						body,
-					},
-				]);
+			const { service, mock } = createService([
+				{
+					method: "GET",
+					path: `/v1/workflows/${workflowId}/exec_1`,
+					body,
+				},
+			]);
 
 			const result = await service.use(workflowId).execution("exec_1");
 
 			expect(result.id).toBe("exec_1");
-				mock.expectCalled("GET", `/v1/workflows/${workflowId}/exec_1`);
-			});
+			mock.expectCalled("GET", `/v1/workflows/${workflowId}/exec_1`);
 		});
+	});
 
 	describe("trigger()", () => {
 		it("triggers a workflow execution", async () => {

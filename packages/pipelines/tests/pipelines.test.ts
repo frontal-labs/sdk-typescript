@@ -29,7 +29,11 @@ describe("PipelinesService", () => {
 		it("lists pipelines with pagination", async () => {
 			const items = [pipeline(), pipeline()];
 			const { service, mock } = createService([
-				{ method: "GET", path: "/v1/data/pipelines/pipelines", body: mockPageResponse(items) },
+				{
+					method: "GET",
+					path: "/v1/data/pipelines/pipelines",
+					body: mockPageResponse(items),
+				},
 			]);
 
 			const result = await service.list();

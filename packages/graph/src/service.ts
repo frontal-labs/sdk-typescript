@@ -39,7 +39,10 @@ export class GraphService {
 		question: string,
 		opts: { entityType?: string; limit?: number } = {},
 	): Promise<{ answer: string; entities: S.Entity[]; confidence: number }> {
-		return this.http.post("/ontology/graph/graph/analyze", { question, ...opts });
+		return this.http.post("/ontology/graph/graph/analyze", {
+			question,
+			...opts,
+		});
 	}
 
 	async semanticSearch(options: S.SemanticSearchOptions): Promise<{
@@ -112,7 +115,10 @@ export class EntityAccessor {
 	}
 
 	async delete(id: string): Promise<void> {
-		return this.http.post("/ontology/graph/runs", { action: "delete", entityId: id });
+		return this.http.post("/ontology/graph/runs", {
+			action: "delete",
+			entityId: id,
+		});
 	}
 
 	async list(
@@ -129,9 +135,7 @@ export class EntityAccessor {
 	}
 
 	async relationships(id: string): Promise<{ data: S.LinkedEntity[] }> {
-		return this.http.get(
-			"/ontology/graph/entities/" + id + "/provenance",
-		);
+		return this.http.get("/ontology/graph/entities/" + id + "/provenance");
 	}
 
 	async addRelationship(
@@ -140,16 +144,15 @@ export class EntityAccessor {
 		relationType: string,
 		opts: { weight?: number } = {},
 	): Promise<S.Edge> {
-		return this.http.post(
-			"/ontology/graph/entities/" + id + "/provenance",
-			{ targetEntityId, relationType, ...opts },
-		);
+		return this.http.post("/ontology/graph/entities/" + id + "/provenance", {
+			targetEntityId,
+			relationType,
+			...opts,
+		});
 	}
 
 	async removeRelationship(id: string, relationshipId: string): Promise<void> {
-		return this.http.delete(
-			"/ontology/graph/relationships/" + relationshipId,
-		);
+		return this.http.delete("/ontology/graph/relationships/" + relationshipId);
 	}
 
 	query(): QueryBuilder<S.Entity> {
@@ -161,7 +164,9 @@ export class HistoryNamespace {
 	constructor(private readonly http: HttpClient) {}
 
 	async get(entityId: string, entityType: string): Promise<S.EntityHistory> {
-		return this.http.get("/ontology/graph/entities/" + entityId + "/provenance");
+		return this.http.get(
+			"/ontology/graph/entities/" + entityId + "/provenance",
+		);
 	}
 
 	async revert(

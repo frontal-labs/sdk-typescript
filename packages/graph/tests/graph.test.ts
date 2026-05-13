@@ -29,7 +29,11 @@ describe("GraphService", () => {
 		it("posts to /v1/ontology/graph/graph/query and returns paginated results", async () => {
 			const items = [entity(), entity()];
 			const { service, mock } = createService([
-				{ method: "POST", path: "/v1/ontology/graph/graph/query", body: mockPageResponse(items) },
+				{
+					method: "POST",
+					path: "/v1/ontology/graph/graph/query",
+					body: mockPageResponse(items),
+				},
 			]);
 
 			const result = await service.query({ entityType: "user" });
@@ -343,13 +347,20 @@ describe("HistoryNamespace", () => {
 				versions: [{ version: 1, createdAt: "2024-01-01" }],
 			};
 			const { service, mock } = createService([
-				{ method: "GET", path: "/v1/ontology/graph/entities/ent_abc/provenance", body },
+				{
+					method: "GET",
+					path: "/v1/ontology/graph/entities/ent_abc/provenance",
+					body,
+				},
 			]);
 
 			const result = await service.history.get("ent_abc", "user");
 
 			expect(result.entityId).toBe("ent_abc");
-			mock.expectCalled("GET", "/v1/ontology/graph/entities/ent_abc/provenance");
+			mock.expectCalled(
+				"GET",
+				"/v1/ontology/graph/entities/ent_abc/provenance",
+			);
 		});
 	});
 

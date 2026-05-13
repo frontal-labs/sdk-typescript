@@ -257,7 +257,10 @@ export class WorkflowAccessor {
 	async executions(
 		opts: { status?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.WorkflowExecution>> {
-		const raw = await this.http.post("/workflows/search", { workflowId: this.id, ...opts });
+		const raw = await this.http.post("/workflows/search", {
+			workflowId: this.id,
+			...opts,
+		});
 		return createPageResult(asPagePayload<S.WorkflowExecution>(raw), (cursor) =>
 			this.executions({ ...opts, cursor }),
 		);

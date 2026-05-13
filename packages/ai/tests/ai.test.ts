@@ -274,7 +274,11 @@ describe("AIService", () => {
 				results: [{ flagged: false, categories: {} }],
 			};
 			const { service } = createService([
-				{ method: "POST", path: "/internal/predictions", body: moderationResponse },
+				{
+					method: "POST",
+					path: "/internal/predictions",
+					body: moderationResponse,
+				},
 			]);
 
 			const result = await service.moderate({ input: "Hello, how are you?" });
@@ -300,7 +304,11 @@ describe("AIService", () => {
 
 		it("handles simple array format", async () => {
 			const { service } = createService([
-				{ method: "GET", path: "/internal/models", body: ["gpt-4", "gpt-3.5-turbo"] },
+				{
+					method: "GET",
+					path: "/internal/models",
+					body: ["gpt-4", "gpt-3.5-turbo"],
+				},
 			]);
 
 			const result = await service.listModels();

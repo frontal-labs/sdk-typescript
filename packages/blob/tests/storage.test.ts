@@ -109,13 +109,20 @@ describe("BlobService", () => {
 	describe("delete()", () => {
 		it("deletes an object from a bucket", async () => {
 			const { service, mock } = createService([
-				{ method: "POST", path: "/v1/storage/lake/lake/tables/file.txt/materializations", status: 204 },
+				{
+					method: "POST",
+					path: "/v1/storage/lake/lake/tables/file.txt/materializations",
+					status: 204,
+				},
 			]);
 
 			await expect(
 				service.delete("my-bucket", "file.txt"),
 			).resolves.not.toThrow();
-			mock.expectCalled("POST", "/v1/storage/lake/lake/tables/file.txt/materializations");
+			mock.expectCalled(
+				"POST",
+				"/v1/storage/lake/lake/tables/file.txt/materializations",
+			);
 		});
 	});
 
@@ -140,7 +147,11 @@ describe("BlobService", () => {
 				],
 			};
 			const { service } = createService([
-				{ method: "GET", path: "/v1/storage/lake/lake/tables", body: listResponse },
+				{
+					method: "GET",
+					path: "/v1/storage/lake/lake/tables",
+					body: listResponse,
+				},
 			]);
 
 			const result = await service.list("my-bucket");
@@ -150,7 +161,11 @@ describe("BlobService", () => {
 
 		it("lists objects with prefix", async () => {
 			const { service, mock } = createService([
-				{ method: "GET", path: "/v1/storage/lake/lake/tables", body: { objects: [] } },
+				{
+					method: "GET",
+					path: "/v1/storage/lake/lake/tables",
+					body: { objects: [] },
+				},
 			]);
 
 			await service.list("my-bucket", "docs/");
@@ -210,14 +225,14 @@ describe("BlobService", () => {
 				"copy.txt",
 			);
 
-				mock.expectCalledWith(
-					"POST",
-					"/v1/storage/lake/lake/tables/file.txt/materializations",
-					{
+			mock.expectCalledWith(
+				"POST",
+				"/v1/storage/lake/lake/tables/file.txt/materializations",
+				{
 					destBucket: "dest-bucket",
 					destKey: "copy.txt",
-					},
-				);
+				},
+			);
 		});
 	});
 
@@ -239,14 +254,14 @@ describe("BlobService", () => {
 				"moved.txt",
 			);
 
-				mock.expectCalledWith(
-					"POST",
-					"/v1/storage/lake/lake/tables/file.txt/materializations",
-					{
+			mock.expectCalledWith(
+				"POST",
+				"/v1/storage/lake/lake/tables/file.txt/materializations",
+				{
 					destBucket: "dest-bucket",
 					destKey: "moved.txt",
-					},
-				);
+				},
+			);
 		});
 	});
 

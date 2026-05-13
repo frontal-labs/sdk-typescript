@@ -250,7 +250,10 @@ export class AgentAccessor {
 			cursor?: string;
 		} = {},
 	): Promise<PageResult<S.Execution>> {
-		const raw = await this.http.post("/workflows/search", { agentId: this.id, ...opts });
+		const raw = await this.http.post("/workflows/search", {
+			agentId: this.id,
+			...opts,
+		});
 		return createPageResult(asPagePayload<S.Execution>(raw), (cursor) =>
 			this.executions({ ...opts, cursor }),
 		);
@@ -391,10 +394,7 @@ export class ExperimentsAccessor {
 		experimentId: string,
 		opts: { winnerVariant: string; promoteToProduction?: boolean },
 	): Promise<Experiment> {
-		return this.http.post(
-			"/workflows/batch",
-			opts,
-		);
+		return this.http.post("/workflows/batch", opts);
 	}
 }
 

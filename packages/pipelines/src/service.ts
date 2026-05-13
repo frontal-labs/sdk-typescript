@@ -239,7 +239,10 @@ export class PipelineAccessor {
 	}
 
 	async delete(): Promise<void> {
-		return this.http.post("/data/pipelines/runs", this.command("pipelines.delete"));
+		return this.http.post(
+			"/data/pipelines/runs",
+			this.command("pipelines.delete"),
+		);
 	}
 
 	async runs(
@@ -344,17 +347,13 @@ export class LineageNamespace {
 		entityType: string,
 		entityId: string,
 	): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
-		return this.http.get(
-			"/data/pipelines/info",
-		);
+		return this.http.get("/data/pipelines/info");
 	}
 
 	async downstream(
 		entityType: string,
 		entityId: string,
 	): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
-		return this.http.get(
-			"/data/pipelines/info",
-		);
+		return this.http.get("/data/pipelines/info");
 	}
 }
