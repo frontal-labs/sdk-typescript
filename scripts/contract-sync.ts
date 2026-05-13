@@ -25,12 +25,7 @@ const AI_TARGET = join(
 	"openapi",
 	"ai.openapi.generated.json",
 );
-const MANIFEST_TARGET = join(
-	ROOT,
-	"contracts",
-	"openapi",
-	"manifest.json",
-);
+const MANIFEST_TARGET = join(ROOT, "contracts", "openapi", "manifest.json");
 
 const GATEWAY_ROOT =
 	process.env.FRONTAL_GATEWAY_ROOT ??
@@ -51,7 +46,9 @@ function sha256String(value: string): string {
 function parseRuntimeApiRoutes(runtimeApiPath: string): string[] {
 	const src = readFileSync(runtimeApiPath, "utf8");
 	const routes = new Set<string>();
-	const matchBlock = src.match(/match\s+route\.as_str\(\)\s*\{([\s\S]*?)\n\s*\}/m);
+	const matchBlock = src.match(
+		/match\s+route\.as_str\(\)\s*\{([\s\S]*?)\n\s*\}/m,
+	);
 	if (!matchBlock) return [];
 
 	const armRegex = /"([^"]+)"\s*=>\s*self\.handle_/g;
@@ -198,7 +195,11 @@ function main(): void {
 		},
 	};
 
-	writeFileSync(MANIFEST_TARGET, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+	writeFileSync(
+		MANIFEST_TARGET,
+		`${JSON.stringify(manifest, null, 2)}\n`,
+		"utf8",
+	);
 
 	console.log(`Synced API contract: ${API_TARGET}`);
 	console.log(`Generated AI contract: ${AI_TARGET}`);

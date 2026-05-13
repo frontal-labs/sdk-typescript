@@ -15,7 +15,12 @@ type OpenApi = { paths?: Record<string, Record<string, unknown>> };
 const ROOT = process.cwd();
 const REPORT = join(ROOT, "contracts", "reports", "conformance.json");
 const API_OPENAPI = join(ROOT, "contracts", "openapi", "api.openapi.json");
-const AI_OPENAPI = join(ROOT, "contracts", "openapi", "ai.openapi.generated.json");
+const AI_OPENAPI = join(
+	ROOT,
+	"contracts",
+	"openapi",
+	"ai.openapi.generated.json",
+);
 const OUT = join(ROOT, "contracts", "reports", "migration-matrix.md");
 
 function openApiOps(path: string): Array<{ method: string; path: string }> {
@@ -37,21 +42,45 @@ function pathPrefix(path: string): string {
 	return segs.slice(0, 2).join("/");
 }
 
-function suggest(issue: Issue, ops: Array<{ method: string; path: string }>): string {
+function suggest(
+	issue: Issue,
+	ops: Array<{ method: string; path: string }>,
+): string {
 	const methodOps = ops.filter((op) => op.method === issue.resolvedMethod);
 	const prefix = pathPrefix(issue.endpoint.path);
 	const byPrefix = methodOps.filter((op) => pathPrefix(op.path) === prefix);
-	if (byPrefix.length > 0) return byPrefix.slice(0, 3).map((v) => v.path).join(", ");
-	return methodOps.slice(0, 3).map((v) => v.path).join(", ") || "n/a";
+	if (byPrefix.length > 0)
+		return byPrefix
+			.slice(0, 3)
+			.map((v) => v.path)
+			.join(", ");
+	return (
+		methodOps
+			.slice(0, 3)
+			.map((v) => v.path)
+			.join(", ") || "n/a"
+	);
 }
 
 function main(): void {
-	if (!existsSync(REPORT) || !existsSync(API_OPENAPI) || !existsSync(AI_OPENAPI)) {
-		throw new Error("Missing conformance artifacts. Run: bun run contract:sync && bun run contract:report");
+	if (
+		!existsSync(REPORT) ||
+		!existsSync(API_OPENAPI) ||
+		!existsSync(AI_OPENAPI)
+	) {
+		throw new Error(
+			"Missing conformance artifacts. Run: bun run contract:sync && bun run contract:report",
+		);
 	}
 
 	const report = JSON.parse(readFileSync(REPORT, "utf8")) as {
-		conformance: { issues: Issue[]; summary: Record<string, { total: number; matched: number; unmatched: number }> };
+		conformance: {
+			issues: Issue[];
+			summary: Record<
+				string,
+				{ total: number; matched: number; unmatched: number }
+			>;
+		};
 	};
 	const apiOps = openApiOps(API_OPENAPI);
 	const aiOps = openApiOps(AI_OPENAPI);
@@ -72,7 +101,9 @@ function main(): void {
 	lines.push("");
 	lines.push("## Endpoint Gaps");
 	lines.push("");
-	lines.push("| Package | SDK Endpoint | Method | Reason | Suggested Contract Paths |");
+	lines.push(
+		"| Package | SDK Endpoint | Method | Reason | Suggested Contract Paths |",
+	);
 	lines.push("|---|---|---|---|---|");
 
 	for (const issue of report.conformance.issues) {

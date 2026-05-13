@@ -1,9 +1,4 @@
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
 
@@ -107,7 +102,10 @@ function extractFromFile(filePath: string): Endpoint[] {
 	const endpoints: Endpoint[] = [];
 
 	const visit = (node: ts.Node): void => {
-		if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
+		if (
+			ts.isCallExpression(node) &&
+			ts.isPropertyAccessExpression(node.expression)
+		) {
 			const call = node.expression;
 			const method = call.name.text;
 
@@ -143,8 +141,12 @@ function buildCurrentContract(): Contract {
 
 		const endpoints = files.flatMap((file) => extractFromFile(file));
 		const unique = [
-			...new Map(endpoints.map((ep) => [`${ep.method} ${ep.path}`, ep])).values(),
-		].sort((a, b) => `${a.method} ${a.path}`.localeCompare(`${b.method} ${b.path}`));
+			...new Map(
+				endpoints.map((ep) => [`${ep.method} ${ep.path}`, ep]),
+			).values(),
+		].sort((a, b) =>
+			`${a.method} ${a.path}`.localeCompare(`${b.method} ${b.path}`),
+		);
 
 		contract[pkg] = unique;
 	}
@@ -155,8 +157,12 @@ function buildCurrentContract(): Contract {
 function compareContracts(expected: Contract, actual: Contract): string[] {
 	const errors: string[] = [];
 	for (const pkg of PACKAGES) {
-		const exp = new Set((expected[pkg] ?? []).map((e) => `${e.method} ${e.path}`));
-		const got = new Set((actual[pkg] ?? []).map((e) => `${e.method} ${e.path}`));
+		const exp = new Set(
+			(expected[pkg] ?? []).map((e) => `${e.method} ${e.path}`),
+		);
+		const got = new Set(
+			(actual[pkg] ?? []).map((e) => `${e.method} ${e.path}`),
+		);
 
 		const missing = [...exp].filter((item) => !got.has(item)).sort();
 		const unexpected = [...got].filter((item) => !exp.has(item)).sort();
@@ -216,7 +222,9 @@ function pathMatches(contractPath: string, sdkPath: string): boolean {
 	return true;
 }
 
-function parseOpenApiOperations(path: string): Array<{ method: string; path: string }> {
+function parseOpenApiOperations(
+	path: string,
+): Array<{ method: string; path: string }> {
 	const raw = JSON.parse(readFileSync(path, "utf8")) as {
 		paths?: Record<string, Record<string, unknown>>;
 	};
@@ -237,33 +245,48 @@ function buildCandidatePaths(surface: Surface, sdkPath: string): string[] {
 		if (sdkPath.startsWith("/v1/")) return [sdkPath];
 		return [`/v1${sdkPath}`, sdkPath];
 	}
-	if (sdkPath.startsWith("/v1/")) return [sdkPath, sdkPath.replace(/^\/v1/, "")];
+	if (sdkPath.startsWith("/v1/"))
+		return [sdkPath, sdkPath.replace(/^\/v1/, "")];
 	return [sdkPath, `/v1${sdkPath}`];
 }
 
 function surfaceAllowsPath(surface: Surface, path: string): boolean {
 	if (surface === "ai") {
-		return path.startsWith("/ai/") || path.startsWith("/internal/") || path === "/health";
+		return (
+			path.startsWith("/ai/") ||
+			path.startsWith("/internal/") ||
+			path === "/health"
+		);
 	}
 	return !path.startsWith("/ai/") && !path.startsWith("/internal/");
 }
 
 function runConformance(contract: Contract): {
 	issues: ConformanceIssue[];
-	summary: Record<string, { total: number; matched: number; unmatched: number }>;
+	summary: Record<
+		string,
+		{ total: number; matched: number; unmatched: number }
+	>;
 } {
 	if (!existsSync(API_OPENAPI_PATH)) {
-		throw new Error(`Missing API OpenAPI contract: ${API_OPENAPI_PATH}. Run bun run contract:sync`);
+		throw new Error(
+			`Missing API OpenAPI contract: ${API_OPENAPI_PATH}. Run bun run contract:sync`,
+		);
 	}
 	if (!existsSync(AI_OPENAPI_PATH)) {
-		throw new Error(`Missing AI OpenAPI contract: ${AI_OPENAPI_PATH}. Run bun run contract:sync`);
+		throw new Error(
+			`Missing AI OpenAPI contract: ${AI_OPENAPI_PATH}. Run bun run contract:sync`,
+		);
 	}
 
 	const apiOps = parseOpenApiOperations(API_OPENAPI_PATH);
 	const aiOps = parseOpenApiOperations(AI_OPENAPI_PATH);
 
 	const issues: ConformanceIssue[] = [];
-	const summary: Record<string, { total: number; matched: number; unmatched: number }> = {};
+	const summary: Record<
+		string,
+		{ total: number; matched: number; unmatched: number }
+	> = {};
 
 	for (const pkg of PACKAGES) {
 		const endpoints = contract[pkg] ?? [];
@@ -275,7 +298,9 @@ function runConformance(contract: Contract): {
 			const resolvedMethod = resolveHttpMethod(endpoint.method);
 			const candidates = buildCandidatePaths(surface, endpoint.path);
 
-			if (!candidates.some((candidate) => surfaceAllowsPath(surface, candidate))) {
+			if (
+				!candidates.some((candidate) => surfaceAllowsPath(surface, candidate))
+			) {
 				issues.push({
 					package: pkg,
 					endpoint,
@@ -328,7 +353,11 @@ function main(): void {
 
 	if (shouldUpdate) {
 		mkdirSync(join(ROOT, "contracts"), { recursive: true });
-		writeFileSync(SDK_CONTRACT_PATH, `${JSON.stringify(current, null, 2)}\n`, "utf8");
+		writeFileSync(
+			SDK_CONTRACT_PATH,
+			`${JSON.stringify(current, null, 2)}\n`,
+			"utf8",
+		);
 		console.log(`Updated endpoint snapshot: ${SDK_CONTRACT_PATH}`);
 		if (skipSnapshot) return;
 	}
@@ -339,7 +368,9 @@ function main(): void {
 		);
 	}
 
-	const expected = JSON.parse(readFileSync(SDK_CONTRACT_PATH, "utf8")) as Contract;
+	const expected = JSON.parse(
+		readFileSync(SDK_CONTRACT_PATH, "utf8"),
+	) as Contract;
 	const driftErrors = compareContracts(expected, current);
 	const conformance = runConformance(current);
 
@@ -370,7 +401,9 @@ function main(): void {
 			);
 		}
 		if (conformance.issues.length > 40) {
-			console.error(`...and ${conformance.issues.length - 40} more (see report)`);
+			console.error(
+				`...and ${conformance.issues.length - 40} more (see report)`,
+			);
 		}
 		if (!reportOnly) {
 			process.exit(1);
