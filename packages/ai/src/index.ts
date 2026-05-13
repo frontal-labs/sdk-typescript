@@ -7,6 +7,7 @@
 
 import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { AIService } from "./client";
+import { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
 
 /** Config for standalone usage without @frontal/core */
 export interface AIClientConfig {
@@ -26,9 +27,15 @@ export function createAIClient(
 	if (clientOrConfig instanceof FrontalClient) {
 		return new AIService(clientOrConfig._http);
 	}
+
+	const baseUrl =
+		clientOrConfig.baseUrl ??
+		process.env.FRONTAL_AI_API_URL ??
+		DEFAULT_AI_BASE_URL;
+
 	const http = new HttpClient({
 		apiKey: clientOrConfig.apiKey,
-		baseUrl: clientOrConfig.baseUrl ?? "https://api.frontal.dev/v1",
+		baseUrl,
 		timeout: clientOrConfig.timeout ?? 30000,
 		maxRetries: clientOrConfig.maxRetries ?? 3,
 		retryDelay: 1000,
@@ -36,6 +43,7 @@ export function createAIClient(
 		environment: "production",
 		debug: false,
 	});
+
 	return new AIService(http);
 }
 
@@ -48,7 +56,7 @@ export { AIService } from "./client";
 // Deprecated Pattern A compat
 export { AI } from "./compat";
 
-export { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
+export { DEFAULT_AI_BASE_URL, VERSION };
 export type {
 	AIConfig,
 	APIResponse,

@@ -22,7 +22,12 @@ bun add @frontal/agents
 ## Quick Start
 
 ```typescript
-import { agents } from '@frontal/agents';
+import { createAgentsClient } from '@frontal/agents';
+
+const agents = createAgentsClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_BASE_URL,
+});
 
 // Define an agent
 const agent = agents.define('customer-support')
@@ -37,9 +42,10 @@ const agent = agents.define('customer-support')
 
 // Deploy the agent
 const deployedAgent = await agent.deploy();
+const customerSupport = agents.use(deployedAgent.id);
 
 // Send a message to the agent
-const result = await deployedAgent.message('support.ticket.created', {
+const result = await customerSupport.message('support.ticket.created', {
   ticketId: 'ticket-123',
   customerId: 'customer-456',
   issue: 'Product not working'
@@ -58,15 +64,12 @@ FRONTAL_BASE_URL=https://api.frontal.dev/v1
 Or create a custom client:
 
 ```typescript
-import { createAgentsClient, AgentsService } from '@frontal/agents';
-import { FrontalClient } from '@frontal/core';
+import { createAgentsClient } from '@frontal/agents';
 
-const client = new FrontalClient({
+const agents = createAgentsClient({
   apiKey: 'your-api-key',
   baseUrl: 'https://api.frontal.dev/v1'
 });
-
-const agents = createAgentsClient(client);
 ```
 
 ## Documentation

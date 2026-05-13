@@ -122,7 +122,7 @@ describe("AIService", () => {
 				usage: { total_tokens: 5 },
 			};
 			const { service } = createService([
-				{ method: "POST", path: "/ai/embeddings", body: embedResponse },
+				{ method: "POST", path: "/internal/embeddings", body: embedResponse },
 			]);
 
 			const result = await service.embed({
@@ -141,7 +141,7 @@ describe("AIService", () => {
 				usage: { total_tokens: 10 },
 			};
 			const { service } = createService([
-				{ method: "POST", path: "/ai/embeddings", body: embedResponse },
+				{ method: "POST", path: "/internal/embeddings", body: embedResponse },
 			]);
 
 			const result = await service.embed({
@@ -201,7 +201,7 @@ describe("AIService", () => {
 				data: [{ url: "https://images.example.com/generated.png" }],
 			};
 			const { service } = createService([
-				{ method: "POST", path: "/ai/images/generations", body: imageResponse },
+				{ method: "POST", path: "/internal/predictions", body: imageResponse },
 			]);
 
 			const result = await service.generateImage({
@@ -219,7 +219,7 @@ describe("AIService", () => {
 		it("generates a video", async () => {
 			const videoResponse = { id: "vid_1", status: "processing", url: null };
 			const { service } = createService([
-				{ method: "POST", path: "/ai/videos/generate", body: videoResponse },
+				{ method: "POST", path: "/internal/predictions", body: videoResponse },
 			]);
 
 			const result = await service.generateVideo({
@@ -274,7 +274,7 @@ describe("AIService", () => {
 				results: [{ flagged: false, categories: {} }],
 			};
 			const { service } = createService([
-				{ method: "POST", path: "/ai/moderations", body: moderationResponse },
+				{ method: "POST", path: "/internal/predictions", body: moderationResponse },
 			]);
 
 			const result = await service.moderate({ input: "Hello, how are you?" });
@@ -290,7 +290,7 @@ describe("AIService", () => {
 				data: [{ id: "gpt-4" }, { id: "gpt-3.5-turbo" }],
 			};
 			const { service } = createService([
-				{ method: "GET", path: "/ai/models", body: modelsResponse },
+				{ method: "GET", path: "/internal/models", body: modelsResponse },
 			]);
 
 			const result = await service.listModels();
@@ -300,7 +300,7 @@ describe("AIService", () => {
 
 		it("handles simple array format", async () => {
 			const { service } = createService([
-				{ method: "GET", path: "/ai/models", body: ["gpt-4", "gpt-3.5-turbo"] },
+				{ method: "GET", path: "/internal/models", body: ["gpt-4", "gpt-3.5-turbo"] },
 			]);
 
 			const result = await service.listModels();

@@ -2,9 +2,23 @@ import {
 	createPageResult,
 	type HttpClient,
 	type PageResult,
+	type PaginationMeta,
 	type QueryBuilder,
 } from "@frontal/core";
 import * as S from "./schemas";
+
+const asPagePayload = <T>(
+	raw: unknown,
+): {
+	data: T[];
+	pagination: PaginationMeta;
+	meta?: unknown;
+} =>
+	raw as {
+		data: T[];
+		pagination: PaginationMeta;
+		meta?: unknown;
+	};
 
 export class GraphService {
 	constructor(private readonly http: HttpClient) {}
@@ -15,8 +29,8 @@ export class GraphService {
 
 	async query(query: S.GraphQuery): Promise<PageResult<S.Entity>> {
 		const body = S.GraphQuerySchema.parse(query);
-		const raw = await this.http.post("/graph/query", body);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.post("/ontology/graph/graph/query", body);
+		return createPageResult(asPagePayload<S.Entity>(raw), (cursor) =>
 			this.query({ ...query, cursor }),
 		);
 	}
@@ -25,7 +39,7 @@ export class GraphService {
 		question: string,
 		opts: { entityType?: string; limit?: number } = {},
 	): Promise<{ answer: string; entities: S.Entity[]; confidence: number }> {
-		return this.http.post("/graph/nl-query", { question, ...opts });
+		return this.http.post("/ontology/graph/graph/analyze", { question, ...opts });
 	}
 
 	async semanticSearch(options: S.SemanticSearchOptions): Promise<{
@@ -33,7 +47,7 @@ export class GraphService {
 		query: string;
 	}> {
 		const body = S.SemanticSearchOptionsSchema.parse(options);
-		return this.http.post("/graph/semantic-search", body);
+		return this.http.post("/ontology/graph/graph/neighborhood", body);
 	}
 
 	async traverse(request: S.TraversalRequest): Promise<{
@@ -41,7 +55,7 @@ export class GraphService {
 		totalFound: number;
 	}> {
 		const body = S.TraversalRequestSchema.parse(request);
-		return this.http.post("/graph/traverse", body);
+		return this.http.post("/ontology/graph/graph/neighborhood", body);
 	}
 
 	async findPath(request: S.PathRequest): Promise<{
@@ -49,7 +63,7 @@ export class GraphService {
 		shortestPath?: Array<{ entity: S.Entity; edge: S.Edge }>;
 	}> {
 		const body = S.PathRequestSchema.parse(request);
-		return this.http.post("/graph/find-path", body);
+		return this.http.post("/ontology/graph/graph/path", body);
 	}
 
 	async batch(
@@ -61,7 +75,7 @@ export class GraphService {
 			fields?: Record<string, unknown>;
 		}>,
 	): Promise<S.BatchResult> {
-		return this.http.post("/graph/batch", { operations });
+		return this.http.post("/ontology/graph/graph/build", { operations });
 	}
 
 	readonly history = new HistoryNamespace(this.http);
@@ -78,19 +92,11 @@ export class EntityAccessor {
 		opts: { version?: number; at?: string } = {},
 	): Promise<S.Entity> {
 		const params = { ...opts };
-		return this.http.get(
-			`/graph/entities/${this.entityType}/${id}`,
-			params,
-			S.EntitySchema,
-		);
+		return this.http.get("/ontology/graph/entities/" + id, params);
 	}
 
 	async create(fields: Record<string, unknown>): Promise<S.Entity> {
-		return this.http.post(
-			`/graph/entities/${this.entityType}`,
-			{ fields },
-			S.EntitySchema,
-		);
+		return this.http.post("/ontology/graph/runs", { fields });
 	}
 
 	async update(
@@ -99,15 +105,14 @@ export class EntityAccessor {
 		opts: { version?: number } = {},
 	): Promise<S.Entity> {
 		const params = opts.version ? { version: opts.version } : undefined;
-		return this.http.put(
-			`/graph/entities/${this.entityType}/${id}`,
-			{ fields, ...params },
-			S.EntitySchema,
-		);
+		return this.http.put("/ontology/graph/entities/" + id, {
+			fields,
+			...params,
+		});
 	}
 
 	async delete(id: string): Promise<void> {
-		return this.http.delete(`/graph/entities/${this.entityType}/${id}`);
+		return this.http.post("/ontology/graph/runs", { action: "delete", entityId: id });
 	}
 
 	async list(
@@ -117,15 +122,15 @@ export class EntityAccessor {
 			cursor?: string;
 		} = {},
 	): Promise<PageResult<S.Entity>> {
-		const raw = await this.http.get(`/graph/entities/${this.entityType}`, opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/ontology/graph/runs", opts);
+		return createPageResult(asPagePayload<S.Entity>(raw), (cursor) =>
 			this.list({ ...opts, cursor }),
 		);
 	}
 
 	async relationships(id: string): Promise<{ data: S.LinkedEntity[] }> {
 		return this.http.get(
-			`/graph/entities/${this.entityType}/${id}/relationships`,
+			"/ontology/graph/entities/" + id + "/provenance",
 		);
 	}
 
@@ -136,14 +141,14 @@ export class EntityAccessor {
 		opts: { weight?: number } = {},
 	): Promise<S.Edge> {
 		return this.http.post(
-			`/graph/entities/${this.entityType}/${id}/relationships`,
+			"/ontology/graph/entities/" + id + "/provenance",
 			{ targetEntityId, relationType, ...opts },
 		);
 	}
 
 	async removeRelationship(id: string, relationshipId: string): Promise<void> {
 		return this.http.delete(
-			`/graph/entities/${this.entityType}/${id}/relationships/${relationshipId}`,
+			"/ontology/graph/relationships/" + relationshipId,
 		);
 	}
 
@@ -156,11 +161,7 @@ export class HistoryNamespace {
 	constructor(private readonly http: HttpClient) {}
 
 	async get(entityId: string, entityType: string): Promise<S.EntityHistory> {
-		return this.http.get(
-			`/graph/history/${entityType}/${entityId}`,
-			undefined,
-			S.EntityHistorySchema,
-		);
+		return this.http.get("/ontology/graph/entities/" + entityId + "/provenance");
 	}
 
 	async revert(
@@ -168,11 +169,9 @@ export class HistoryNamespace {
 		entityType: string,
 		toVersion: number,
 	): Promise<S.Entity> {
-		return this.http.post(
-			`/graph/history/${entityType}/${entityId}/revert`,
-			{ toVersion },
-			S.EntitySchema,
-		);
+		return this.http.post("/ontology/graph/runs", {
+			toVersion,
+		});
 	}
 }
 
@@ -220,8 +219,10 @@ class GraphQueryBuilder implements QueryBuilder<S.Entity> {
 
 	async execute(): Promise<PageResult<S.Entity>> {
 		const body = S.GraphQuerySchema.parse(this._query);
-		const raw = await this.http.post("/graph/query", body);
-		return createPageResult(raw as any, (_cursor) => this.execute());
+		const raw = await this.http.post("/ontology/graph/graph/query", body);
+		return createPageResult(asPagePayload<S.Entity>(raw), (_cursor) =>
+			this.execute(),
+		);
 	}
 
 	async first(): Promise<S.Entity | null> {

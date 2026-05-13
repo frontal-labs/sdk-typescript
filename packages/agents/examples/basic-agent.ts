@@ -5,16 +5,12 @@
  * with automated responses based on sentiment analysis.
  */
 
-import { type AgentHandler, AgentsService } from "@frontal/agents";
-import { HttpClient } from "@frontal/core";
+import { type AgentHandler, createAgentsClient } from "@frontal/agents";
 
-// Initialize the agents service
-const http = new HttpClient({
-	baseURL: process.env.FRONTAL_API_URL || "https://api.frontal.dev",
-	apiKey: process.env.FRONTAL_API_KEY,
+const agents = createAgentsClient({
+	apiKey: process.env.FRONTAL_API_KEY ?? "",
+	baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1",
 });
-
-const agents = new AgentsService(http);
 
 // Define the agent handler for processing messages
 const messageHandler: AgentHandler = async (ctx) => {

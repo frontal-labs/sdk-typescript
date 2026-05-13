@@ -2,11 +2,25 @@ import {
 	createPageResult,
 	type HttpClient,
 	type PageResult,
+	type PaginationMeta,
 	type PollOptions,
 	pollUntil,
 } from "@frontal/core";
-import { z } from "zod";
+import type { z } from "zod";
 import * as S from "./schemas";
+
+const asPagePayload = <T>(
+	raw: unknown,
+): {
+	data: T[];
+	pagination: PaginationMeta;
+	meta?: unknown;
+} =>
+	raw as {
+		data: T[];
+		pagination: PaginationMeta;
+		meta?: unknown;
+	};
 
 export class WorkflowsService {
 	constructor(private readonly http: HttpClient) {}
@@ -23,14 +37,14 @@ export class WorkflowsService {
 		opts: { status?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.Workflow>> {
 		const raw = await this.http.get("/workflows", opts);
-		return createPageResult(raw as any, (cursor) =>
+		return createPageResult(asPagePayload<S.Workflow>(raw), (cursor) =>
 			this.list({ ...opts, cursor }),
 		);
 	}
 
 	async create(definition: S.WorkflowDefinition): Promise<S.Workflow> {
 		const body = S.WorkflowDefinitionSchema.parse(definition);
-		return this.http.post("/workflows", body, S.WorkflowSchema);
+		return this.http.post("/workflows", body);
 	}
 
 	readonly approvals = new ApprovalsNamespace(this.http);
@@ -205,16 +219,12 @@ export class WorkflowBuilder {
 
 	async create(): Promise<S.Workflow> {
 		const definition = S.WorkflowDefinitionSchema.parse(this._definition);
-		return this.http.post("/workflows", definition, S.WorkflowSchema);
+		return this.http.post("/workflows", definition);
 	}
 
 	async activate(): Promise<S.Workflow> {
 		const workflow = await this.create();
-		return this.http.patch(
-			`/workflows/${workflow.id}`,
-			{ status: "active" },
-			S.WorkflowSchema,
-		);
+		return this.http.patch("/workflows", { status: "active" });
 	}
 }
 
@@ -225,58 +235,42 @@ export class WorkflowAccessor {
 	) {}
 
 	async get(): Promise<S.Workflow> {
-		return this.http.get(`/workflows/${this.id}`, undefined, S.WorkflowSchema);
+		return this.http.get("/workflows");
 	}
 
 	async update(definition: Partial<S.WorkflowDefinition>): Promise<S.Workflow> {
-		return this.http.put(`/workflows/${this.id}`, definition, S.WorkflowSchema);
+		return this.http.put("/workflows", definition);
 	}
 
 	async delete(): Promise<void> {
-		return this.http.delete(`/workflows/${this.id}`);
+		return this.http.delete("/workflows");
 	}
 
 	async activate(): Promise<S.Workflow> {
-		return this.http.patch(
-			`/workflows/${this.id}`,
-			{ status: "active" },
-			S.WorkflowSchema,
-		);
+		return this.http.patch("/workflows", { status: "active" });
 	}
 
 	async pause(): Promise<S.Workflow> {
-		return this.http.patch(
-			`/workflows/${this.id}`,
-			{ status: "paused" },
-			S.WorkflowSchema,
-		);
+		return this.http.patch("/workflows", { status: "paused" });
 	}
 
 	async executions(
 		opts: { status?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.WorkflowExecution>> {
-		const raw = await this.http.get(`/workflows/${this.id}/executions`, opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.post("/workflows/search", { workflowId: this.id, ...opts });
+		return createPageResult(asPagePayload<S.WorkflowExecution>(raw), (cursor) =>
 			this.executions({ ...opts, cursor }),
 		);
 	}
 
 	async execution(executionId: string): Promise<S.WorkflowExecution> {
-		return this.http.get(
-			`/workflows/${this.id}/executions/${executionId}`,
-			undefined,
-			S.WorkflowExecutionSchema,
-		);
+		return this.http.get("/workflows/" + this.id + "/" + executionId);
 	}
 
 	async trigger(
 		input: Record<string, unknown> = {},
 	): Promise<S.WorkflowExecution> {
-		return this.http.post(
-			`/workflows/${this.id}/trigger`,
-			input,
-			S.WorkflowExecutionSchema,
-		);
+		return this.http.post("/workflows/batch", input);
 	}
 
 	/**
@@ -303,7 +297,7 @@ export class WorkflowAccessor {
 		executionId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
 		yield* this.http.stream(
-			`/workflows/${this.id}/executions/${executionId}/events`,
+			"/workflows/" + this.id + "/" + executionId + "/timeline",
 		);
 	}
 }
@@ -314,34 +308,22 @@ export class ApprovalsNamespace {
 	async list(
 		opts: { status?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.Approval>> {
-		const raw = await this.http.get("/workflows/approvals", opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/workflows", opts);
+		return createPageResult(asPagePayload<S.Approval>(raw), (cursor) =>
 			this.list({ ...opts, cursor }),
 		);
 	}
 
 	async get(id: string): Promise<S.Approval> {
-		return this.http.get(
-			`/workflows/approvals/${id}`,
-			undefined,
-			S.ApprovalSchema,
-		);
+		return this.http.get("/workflows");
 	}
 
 	async approve(id: string, comment?: string): Promise<S.Approval> {
-		return this.http.post(
-			`/workflows/approvals/${id}/approve`,
-			{ comment },
-			S.ApprovalSchema,
-		);
+		return this.http.post("/workflows/batch", { comment });
 	}
 
 	async reject(id: string, comment?: string): Promise<S.Approval> {
-		return this.http.post(
-			`/workflows/approvals/${id}/reject`,
-			{ comment },
-			S.ApprovalSchema,
-		);
+		return this.http.post("/workflows/batch", { comment });
 	}
 }
 
@@ -349,39 +331,27 @@ export class StepsNamespace {
 	constructor(private readonly http: HttpClient) {}
 
 	async list(): Promise<S.StepDefinition[]> {
-		return this.http.get(
-			"/workflows/steps",
-			undefined,
-			z.array(S.StepDefinitionSchema),
-		);
+		return this.http.get("/workflows");
 	}
 
 	async get(id: string): Promise<S.StepDefinition> {
-		return this.http.get(
-			`/workflows/steps/${id}`,
-			undefined,
-			S.StepDefinitionSchema,
-		);
+		return this.http.get("/workflows");
 	}
 
 	async create(definition: S.StepDefinition): Promise<S.StepDefinition> {
 		const body = S.StepDefinitionSchema.parse(definition);
-		return this.http.post("/workflows/steps", body, S.StepDefinitionSchema);
+		return this.http.post("/workflows", body);
 	}
 
 	async update(
 		id: string,
 		definition: Partial<S.StepDefinition>,
 	): Promise<S.StepDefinition> {
-		return this.http.put(
-			`/workflows/steps/${id}`,
-			definition,
-			S.StepDefinitionSchema,
-		);
+		return this.http.put("/workflows", definition);
 	}
 
 	async delete(id: string): Promise<void> {
-		return this.http.delete(`/workflows/steps/${id}`);
+		return this.http.delete("/workflows");
 	}
 }
 
@@ -391,18 +361,14 @@ export class TemplatesNamespace {
 	async list(
 		opts: { category?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.WorkflowTemplate>> {
-		const raw = await this.http.get("/workflows/templates", opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/workflows", opts);
+		return createPageResult(asPagePayload<S.WorkflowTemplate>(raw), (cursor) =>
 			this.list({ ...opts, cursor }),
 		);
 	}
 
 	async get(id: string): Promise<S.WorkflowTemplate> {
-		return this.http.get(
-			`/workflows/templates/${id}`,
-			undefined,
-			S.WorkflowTemplateSchema,
-		);
+		return this.http.get("/workflows");
 	}
 
 	async create(template: {
@@ -411,18 +377,10 @@ export class TemplatesNamespace {
 		category?: string;
 		definition: S.WorkflowDefinition;
 	}): Promise<S.WorkflowTemplate> {
-		return this.http.post(
-			"/workflows/templates",
-			template,
-			S.WorkflowTemplateSchema,
-		);
+		return this.http.post("/workflows", template);
 	}
 
 	async use(id: string, name: string): Promise<S.Workflow> {
-		return this.http.post(
-			`/workflows/templates/${id}/use`,
-			{ name },
-			S.WorkflowSchema,
-		);
+		return this.http.post("/workflows/batch", { name });
 	}
 }

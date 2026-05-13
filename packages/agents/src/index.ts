@@ -1,7 +1,7 @@
 import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
 import { AgentsService } from "./service";
 
-/** Config for standalone usage without @frontal/core */
+/** Config for standalone usage of the public agents SDK */
 export interface AgentsClientConfig {
 	apiKey: string;
 	baseUrl?: string;
@@ -19,9 +19,16 @@ export function createAgentsClient(
 	if (clientOrConfig instanceof FrontalClient) {
 		return new AgentsService(clientOrConfig._http);
 	}
+
+	const baseUrl =
+		clientOrConfig.baseUrl ??
+		process.env.FRONTAL_AGENTS_API_URL ??
+		process.env.FRONTAL_API_URL ??
+		"https://api.frontal.dev/v1";
+
 	const http = new HttpClient({
 		apiKey: clientOrConfig.apiKey,
-		baseUrl: clientOrConfig.baseUrl ?? "https://api.frontal.dev/v1",
+		baseUrl,
 		timeout: clientOrConfig.timeout ?? 30000,
 		maxRetries: clientOrConfig.maxRetries ?? 3,
 		retryDelay: 1000,
@@ -29,6 +36,7 @@ export function createAgentsClient(
 		environment: "production",
 		debug: false,
 	});
+
 	return new AgentsService(http);
 }
 

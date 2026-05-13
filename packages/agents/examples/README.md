@@ -69,11 +69,11 @@ Comprehensive testing utilities and examples:
 
 ### Prerequisites
 
-1. **Frontal Core Setup**
+1. **Agents SDK Setup**
    ```bash
-   npm install @frontal/agents @frontal/core
+   npm install @frontal/agents
    # or
-   bun add @frontal/agents @frontal/core
+   bun add @frontal/agents
    ```
 
 2. **Environment Variables**

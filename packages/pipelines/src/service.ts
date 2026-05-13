@@ -2,15 +2,33 @@ import {
 	createPageResult,
 	type HttpClient,
 	type PageResult,
+	type PaginationMeta,
 	type PollOptions,
 	pollUntil,
 } from "@frontal/core";
 import type { z } from "zod";
 import * as S from "./schemas";
 
+const asPagePayload = <T>(
+	raw: unknown,
+): {
+	data: T[];
+	pagination: PaginationMeta;
+	meta?: unknown;
+} =>
+	raw as {
+		data: T[];
+		pagination: PaginationMeta;
+		meta?: unknown;
+	};
+
 export class PipelinesService {
 	readonly lineage = new LineageNamespace(this.http);
 	constructor(private readonly http: HttpClient) {}
+
+	private command(operation: string, payload: Record<string, unknown> = {}) {
+		return { operation, ...payload };
+	}
 
 	define(name: string): PipelineBuilder {
 		return new PipelineBuilder(name, this.http);
@@ -23,15 +41,21 @@ export class PipelinesService {
 	async list(
 		opts: { status?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.Pipeline>> {
-		const raw = await this.http.get("/pipelines", opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/data/pipelines/pipelines", {
+			operation: "pipelines.list",
+			...opts,
+		});
+		return createPageResult(asPagePayload<S.Pipeline>(raw), (cursor) =>
 			this.list({ ...opts, cursor }),
 		);
 	}
 
 	async create(definition: S.PipelineDefinition): Promise<S.Pipeline> {
 		const body = S.PipelineDefinitionSchema.parse(definition);
-		return this.http.post("/pipelines", body, S.PipelineSchema);
+		return this.http.post(
+			"/data/pipelines/pipelines",
+			this.command("pipelines.create", { definition: body }),
+		);
 	}
 }
 
@@ -45,6 +69,10 @@ export class PipelineBuilder {
 		private readonly http: HttpClient,
 	) {
 		this._definition = { name, steps: [], tags: [] };
+	}
+
+	private command(operation: string, payload: Record<string, unknown> = {}) {
+		return { operation, ...payload };
 	}
 
 	description(text: string): this {
@@ -172,15 +200,17 @@ export class PipelineBuilder {
 
 	async create(): Promise<S.Pipeline> {
 		const definition = S.PipelineDefinitionSchema.parse(this._definition);
-		return this.http.post("/pipelines", definition, S.PipelineSchema);
+		return this.http.post(
+			"/data/pipelines/pipelines",
+			this.command("pipelines.create", { definition }),
+		);
 	}
 
 	async activate(): Promise<S.Pipeline> {
 		const pipeline = await this.create();
-		return this.http.patch(
-			`/pipelines/${pipeline.id}`,
-			{ status: "active" },
-			S.PipelineSchema,
+		return this.http.post(
+			"/data/pipelines/runs",
+			this.command("pipelines.activate", { pipelineId: pipeline.id }),
 		);
 	}
 }
@@ -191,48 +221,63 @@ export class PipelineAccessor {
 		private readonly http: HttpClient,
 	) {}
 
+	private command(operation: string, payload: Record<string, unknown> = {}) {
+		return { operation, pipelineId: this.id, ...payload };
+	}
+
 	async get(): Promise<S.Pipeline> {
-		return this.http.get(`/pipelines/${this.id}`, undefined, S.PipelineSchema);
+		return this.http.get("/data/pipelines/pipelines/" + this.id, {
+			operation: "pipelines.get",
+		});
 	}
 
 	async update(definition: Partial<S.PipelineDefinition>): Promise<S.Pipeline> {
-		return this.http.put(`/pipelines/${this.id}`, definition, S.PipelineSchema);
+		return this.http.post(
+			"/data/pipelines/pipelines",
+			this.command("pipelines.update", { definition }),
+		);
 	}
 
 	async delete(): Promise<void> {
-		return this.http.delete(`/pipelines/${this.id}`);
+		return this.http.post("/data/pipelines/runs", this.command("pipelines.delete"));
 	}
 
 	async runs(
 		opts: { status?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.PipelineRun>> {
-		const raw = await this.http.get(`/pipelines/${this.id}/runs`, opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/data/pipelines/pipeline-runs", {
+			operation: "pipelines.runs.list",
+			pipelineId: this.id,
+			...opts,
+		});
+		return createPageResult(asPagePayload<S.PipelineRun>(raw), (cursor) =>
 			this.runs({ ...opts, cursor }),
 		);
 	}
 
 	async run(runId: string): Promise<S.PipelineRun> {
-		return this.http.get(
-			`/pipelines/${this.id}/runs/${runId}`,
-			undefined,
-			S.PipelineRunSchema,
-		);
+		return this.http.get("/data/pipelines/pipeline-runs/" + runId, {
+			operation: "pipelines.runs.get",
+			pipelineId: this.id,
+		});
 	}
 
 	async trigger(input: Record<string, unknown> = {}): Promise<S.PipelineRun> {
 		return this.http.post(
-			`/pipelines/${this.id}/execute`,
-			input,
-			S.PipelineRunSchema,
+			"/data/pipelines/runs",
+			this.command("pipelines.runs.trigger", input),
 		);
 	}
 
 	async backfills(
 		opts: { status?: string; limit?: number; cursor?: string } = {},
 	): Promise<PageResult<S.Backfill>> {
-		const raw = await this.http.get(`/pipelines/${this.id}/backfills`, opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/data/pipelines/runs", {
+			operation: "pipelines.backfills.list",
+			pipelineId: this.id,
+			...opts,
+		});
+		return createPageResult(asPagePayload<S.Backfill>(raw), (cursor) =>
 			this.backfills({ ...opts, cursor }),
 		);
 	}
@@ -243,18 +288,16 @@ export class PipelineAccessor {
 		opts: { strategy?: "full" | "incremental"; dryRun?: boolean } = {},
 	): Promise<S.Backfill> {
 		return this.http.post(
-			`/pipelines/${this.id}/backfills`,
-			{ from, to, ...opts },
-			S.BackfillSchema,
+			"/data/pipelines/runs",
+			this.command("pipelines.backfills.create", { from, to, ...opts }),
 		);
 	}
 
 	async health(): Promise<S.PipelineHealth> {
-		return this.http.get(
-			`/pipelines/${this.id}/health`,
-			undefined,
-			S.PipelineHealthSchema,
-		);
+		return this.http.get("/data/pipelines/health", {
+			operation: "pipelines.health",
+			pipelineId: this.id,
+		});
 	}
 
 	/**
@@ -279,7 +322,7 @@ export class PipelineAccessor {
 	async *watchRun(
 		runId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-		yield* this.http.stream(`/pipelines/${this.id}/runs/${runId}/events`);
+		yield* this.http.stream("/data/pipelines/pipeline-runs/" + runId);
 	}
 }
 
@@ -294,24 +337,24 @@ export class LineageNamespace {
 			to?: string;
 		} = {},
 	): Promise<S.LineageGraph> {
-		return this.http.get("/pipelines/lineage", opts, S.LineageGraphSchema);
+		return this.http.get("/data/pipelines/info", opts);
 	}
 
 	async upstream(
 		entityType: string,
 		entityId: string,
-	): Promise<{ pipelines: S.Pipeline[]; entities: any[] }> {
+	): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
 		return this.http.get(
-			`/pipelines/lineage/upstream/${entityType}/${entityId}`,
+			"/data/pipelines/info",
 		);
 	}
 
 	async downstream(
 		entityType: string,
 		entityId: string,
-	): Promise<{ pipelines: S.Pipeline[]; entities: any[] }> {
+	): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
 		return this.http.get(
-			`/pipelines/lineage/downstream/${entityType}/${entityId}`,
+			"/data/pipelines/info",
 		);
 	}
 }

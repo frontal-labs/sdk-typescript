@@ -33,8 +33,8 @@ describe("testing Package", () => {
 					key.toLowerCase().includes("service"),
 			);
 
-			// Testing package doesn't have client/service classes, it's utilities
-			expect(hasClientOrService).toBe(false);
+			// Testing package exports utility factories including client helpers
+			expect(hasClientOrService).toBe(true);
 		});
 	});
 

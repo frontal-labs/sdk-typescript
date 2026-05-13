@@ -210,7 +210,7 @@ export class AIService {
 		};
 
 		const response = await this.http.post<EmbeddingsResponse>(
-			"/ai/embeddings",
+			"/internal/embeddings",
 			requestBody,
 		);
 
@@ -325,7 +325,7 @@ export class AIService {
 			response_format: validated.format,
 		};
 
-		const response = await this.http.postRaw("/ai/audio/speech", body);
+		const response = await this.http.postRaw("/internal/predictions", body);
 		return response.arrayBuffer();
 	}
 
@@ -354,7 +354,7 @@ export class AIService {
 
 		const response = await this.http.post<{
 			data: Array<{ url?: string; b64_json?: string }>;
-		}>("/ai/images/generations", requestBody);
+		}>("/internal/predictions", requestBody);
 
 		return {
 			images: response.data.map((img) => ({
@@ -377,7 +377,7 @@ export class AIService {
 	): Promise<GenerateVideoResult> {
 		const validated = generateVideoOptionsSchema.parse(options);
 		return this.http.post<GenerateVideoResult>(
-			"/ai/videos/generate",
+			"/internal/predictions",
 			validated,
 		);
 	}
@@ -406,7 +406,7 @@ export class AIService {
 			formData.append("temperature", String(validated.temperature));
 
 		return this.http.postFormData<TranscriptionResult>(
-			"/audio/transcriptions",
+			"/internal/predictions",
 			formData,
 		);
 	}
@@ -425,7 +425,7 @@ export class AIService {
 			input: validated.input,
 			model: validated.model || "text-moderation-latest",
 		};
-		return this.http.post<ModerationResult>("/ai/moderations", requestBody);
+		return this.http.post<ModerationResult>("/internal/predictions", requestBody);
 	}
 
 	// ── Models ────────────────────────────────────────────────────────────
@@ -436,7 +436,7 @@ export class AIService {
 	 * @throws FrontalError on API errors.
 	 */
 	async listModels(): Promise<string[]> {
-		const response = await this.http.get<unknown>("/ai/models");
+		const response = await this.http.get<unknown>("/internal/models");
 
 		// Handle OpenAI format { object: "list", data: [{ id: "..." }] }
 		if (

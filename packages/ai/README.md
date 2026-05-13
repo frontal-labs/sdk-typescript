@@ -1,70 +1,32 @@
 # @frontal/ai
 
-A powerful, type-safe AI SDK for Frontal. Interacts seamlessly with the Frontal AI Gateway to provide access to LLMs, embeddings, and multimodal capabilities.
-
-## Features
-
-- **Unified Interface**: Simple, consistent API for various AI tasks.
-- **Strict Validation**: All inputs and outputs are validated with Zod.
-- **Multimodal**: Support for Text, Image, Audio (Speech & Transcription), and Video.
-- **Structured Output**: reliable valid JSON generation using `generateObject`.
-- **Tools & Prompts**: Built-in systems for managing prompts and tools.
-- **Gateway Integrated**: Pre-configured for `ai.frontal.dev` (Helicone).
+AI inference SDK for Frontal with text, embeddings, multimodal generation, and streaming APIs.
 
 ## Installation
 
 ```bash
-bun add @frontal/ai
+bun add @frontal/ai @frontal/core
 ```
-
-## Documentation
-
-- [Overview](docs/OVERVIEW.md)
-- [Integration Guide](docs/GUIDE.md)
-- [API Reference](docs/API-REFERENCE.md)
-- [Architecture](docs/ARCHITECTURE.md)
 
 ## Usage
 
-### Text Generation
+```ts
+import { createAIClient } from "@frontal/ai";
 
-```typescript
-import { AI } from '@frontal/ai';
-const ai = new AI();
+const ai = createAIClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_AI_API_URL ?? "https://ai.frontal.dev",
+});
 
 const result = await ai.generateText({
-  model: 'gpt-4o',
-  prompt: 'Hello world!',
+  model: "gpt-4o-mini",
+  prompt: "Summarize this incident report",
 });
 ```
 
-### Structured Data
-```typescript
-import { z } from "zod";
+## Configuration
 
-const result = await ai.generateObject({
-  model: 'gpt-4o',
-  prompt: 'Extract user info',
-  schema: z.object({ name: z.string(), age: z.number() })
-});
-```
+- `FRONTAL_API_KEY`
+- `FRONTAL_AI_API_URL` (optional)
 
-### Generate Image
-```typescript
-const image = await ai.generateImage({
-  prompt: "A futuristic city",
-  size: "1024x1024"
-});
-```
-
-### Transcribe Audio
-```typescript
-const transcript = await ai.transcribe({
-  file: audioFileBlob,
-  model: "whisper-1"
-});
-```
-
-## License
-
-MIT
+Default base URL: `https://ai.frontal.dev`.

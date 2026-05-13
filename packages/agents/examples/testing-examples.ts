@@ -10,7 +10,13 @@ import {
 	type AgentHandler,
 	AgentsService,
 } from "@frontal/agents";
-import type { HttpClient } from "@frontal/core";
+
+type HttpClient = {
+	get(url: string, params?: any, schema?: any): Promise<any>;
+	post(url: string, data?: any, schema?: any): Promise<any>;
+	put(url: string, data?: any, schema?: any): Promise<any>;
+	delete(url: string, params?: any): Promise<any>;
+};
 
 // Mock HTTP client for testing
 class MockHttpClient implements Partial<HttpClient> {

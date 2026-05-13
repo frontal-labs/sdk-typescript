@@ -9,6 +9,19 @@ import type { z } from "zod";
 import type { AgentHandler } from "./context";
 import * as S from "./schemas";
 
+const asPagePayload = <T>(raw: unknown) =>
+	raw as {
+		data: T[];
+		pagination: {
+			cursor: string;
+			hasMore: boolean;
+			total?: number;
+			limit?: number;
+			offset?: number;
+		};
+		meta?: unknown;
+	};
+
 export class AgentsService {
 	constructor(private readonly http: HttpClient) {}
 
@@ -28,15 +41,15 @@ export class AgentsService {
 			cursor?: string;
 		} = {},
 	): Promise<PageResult<S.Agent>> {
-		const raw = await this.http.get("/agents", opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/workflows", opts);
+		return createPageResult(asPagePayload<S.Agent>(raw), (cursor) =>
 			this.list({ ...opts, cursor }),
 		);
 	}
 
 	async create(definition: S.AgentDefinition): Promise<S.Agent> {
 		const body = S.AgentDefinitionSchema.parse(definition);
-		return this.http.post("/agents", body, S.AgentSchema);
+		return this.http.post("/workflows", body);
 	}
 
 	readonly escalations = new EscalationsNamespace(this.http);
@@ -163,13 +176,13 @@ export class AgentBuilder {
 
 	async create(): Promise<S.Agent> {
 		const definition = S.AgentDefinitionSchema.parse(this._definition);
-		const agent = await this.http.post("/agents", definition, S.AgentSchema);
+		const agent = await this.http.post("/workflows", definition);
 		return agent;
 	}
 
 	async deploy(environment = "production"): Promise<S.Agent> {
 		const agent = await this.create();
-		await this.http.post(`/agents/${agent.id}/deploy`, { environment });
+		await this.http.post("/workflows/batch", { environment });
 		return agent;
 	}
 }
@@ -181,44 +194,39 @@ export class AgentAccessor {
 	) {}
 
 	async get(): Promise<S.Agent> {
-		return this.http.get(`/agents/${this.id}`, undefined, S.AgentSchema);
+		return this.http.get("/workflows");
 	}
 
 	async update(definition: Partial<S.AgentDefinition>): Promise<S.Agent> {
-		return this.http.put(`/agents/${this.id}`, definition, S.AgentSchema);
+		return this.http.put("/workflows", definition);
 	}
 
 	async delete(): Promise<void> {
-		return this.http.delete(`/agents/${this.id}`);
+		return this.http.delete("/workflows");
 	}
 
 	async deploy(
 		environment = "production",
 		opts: { version?: number; runSimulationFirst?: boolean } = {},
 	): Promise<S.Deployment> {
-		return this.http.post(
-			`/agents/${this.id}/deploy`,
-			{ environment, ...opts },
-			S.DeploymentSchema,
-		);
+		return this.http.post("/workflows/batch", {
+			environment,
+			...opts,
+		});
 	}
 
 	async pause(
 		opts: { reason?: string; drainInFlight?: boolean } = {},
 	): Promise<S.Agent> {
-		return this.http.post(`/agents/${this.id}/pause`, opts, S.AgentSchema);
+		return this.http.post("/workflows/batch", opts);
 	}
 
 	async resume(): Promise<S.Agent> {
-		return this.http.post(
-			`/agents/${this.id}/resume`,
-			undefined,
-			S.AgentSchema,
-		);
+		return this.http.post("/workflows/batch");
 	}
 
 	async rollback(opts: { toVersion?: number } = {}): Promise<S.Agent> {
-		return this.http.post(`/agents/${this.id}/rollback`, opts, S.AgentSchema);
+		return this.http.post("/workflows/batch", opts);
 	}
 
 	async simulate(
@@ -226,11 +234,11 @@ export class AgentAccessor {
 		payload: Record<string, unknown>,
 		opts: { graphSnapshot?: string; version?: number } = {},
 	): Promise<S.SimulationResult> {
-		return this.http.post(
-			`/agents/${this.id}/simulate`,
-			{ event, payload, ...opts },
-			S.SimulationResultSchema,
-		);
+		return this.http.post("/workflows/batch", {
+			event,
+			payload,
+			...opts,
+		});
 	}
 
 	async executions(
@@ -242,18 +250,14 @@ export class AgentAccessor {
 			cursor?: string;
 		} = {},
 	): Promise<PageResult<S.Execution>> {
-		const raw = await this.http.get(`/agents/${this.id}/executions`, opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.post("/workflows/search", { agentId: this.id, ...opts });
+		return createPageResult(asPagePayload<S.Execution>(raw), (cursor) =>
 			this.executions({ ...opts, cursor }),
 		);
 	}
 
 	async execution(executionId: string): Promise<S.Execution> {
-		return this.http.get(
-			`/agents/${this.id}/executions/${executionId}`,
-			undefined,
-			S.ExecutionSchema,
-		);
+		return this.http.get("/workflows/" + this.id + "/" + executionId);
 	}
 
 	async escalations(
@@ -264,14 +268,14 @@ export class AgentAccessor {
 			cursor?: string;
 		} = {},
 	): Promise<PageResult<S.Escalation>> {
-		const raw = await this.http.get(`/agents/${this.id}/escalations`, opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/workflows", opts);
+		return createPageResult(asPagePayload<S.Escalation>(raw), (cursor) =>
 			this.escalations({ ...opts, cursor }),
 		);
 	}
 
 	async metrics(period = "7d"): Promise<AgentMetrics> {
-		return this.http.get(`/agents/${this.id}/metrics`, { period });
+		return this.http.get("/workflows", { period });
 	}
 
 	async message(
@@ -279,7 +283,7 @@ export class AgentAccessor {
 		payload: Record<string, unknown>,
 		opts: { waitForCompletion?: boolean; timeout?: number } = {},
 	): Promise<{ messageId: string; executionId: string; status: string }> {
-		return this.http.post(`/agents/${this.id}/message`, {
+		return this.http.post("/workflows/batch", {
 			event,
 			payload,
 			...opts,
@@ -315,7 +319,7 @@ export class AgentAccessor {
 		executionId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
 		yield* this.http.stream(
-			`/agents/${this.id}/executions/${executionId}/events`,
+			"/workflows/" + this.id + "/" + executionId + "/timeline",
 		);
 	}
 }
@@ -331,18 +335,14 @@ export class EscalationsNamespace {
 			cursor?: string;
 		} = {},
 	): Promise<PageResult<S.Escalation>> {
-		const raw = await this.http.get("/agents/escalations", opts);
-		return createPageResult(raw as any, (cursor) =>
+		const raw = await this.http.get("/workflows", opts);
+		return createPageResult(asPagePayload<S.Escalation>(raw), (cursor) =>
 			this.list({ ...opts, cursor }),
 		);
 	}
 
 	async get(escalationId: string): Promise<S.Escalation> {
-		return this.http.get(
-			`/agents/escalations/${escalationId}`,
-			undefined,
-			S.EscalationSchema,
-		);
+		return this.http.get("/workflows");
 	}
 
 	async resolve(
@@ -350,22 +350,14 @@ export class EscalationsNamespace {
 		opts: z.input<typeof S.ResolveEscalationSchema>,
 	): Promise<S.Escalation> {
 		const body = S.ResolveEscalationSchema.parse(opts);
-		return this.http.post(
-			`/agents/escalations/${escalationId}/resolve`,
-			body,
-			S.EscalationSchema,
-		);
+		return this.http.post("/workflows/batch", body);
 	}
 
 	async delegate(
 		escalationId: string,
 		opts: { delegateTo: string; note?: string },
 	): Promise<S.Escalation> {
-		return this.http.post(
-			`/agents/escalations/${escalationId}/delegate`,
-			opts,
-			S.EscalationSchema,
-		);
+		return this.http.post("/workflows/batch", opts);
 	}
 
 	async override(
@@ -376,11 +368,7 @@ export class EscalationsNamespace {
 			reasoning?: string;
 		},
 	): Promise<S.Escalation> {
-		return this.http.post(
-			`/agents/escalations/${escalationId}/override`,
-			opts,
-			S.EscalationSchema,
-		);
+		return this.http.post("/workflows/batch", opts);
 	}
 }
 
@@ -392,11 +380,11 @@ export class ExperimentsAccessor {
 
 	async create(definition: S.ExperimentDefinition): Promise<Experiment> {
 		const body = S.ExperimentDefinitionSchema.parse(definition);
-		return this.http.post(`/agents/${this.agentId}/experiments`, body);
+		return this.http.post("/workflows/batch", body);
 	}
 
 	async get(experimentId: string): Promise<Experiment> {
-		return this.http.get(`/agents/${this.agentId}/experiments/${experimentId}`);
+		return this.http.get("/workflows");
 	}
 
 	async conclude(
@@ -404,7 +392,7 @@ export class ExperimentsAccessor {
 		opts: { winnerVariant: string; promoteToProduction?: boolean },
 	): Promise<Experiment> {
 		return this.http.post(
-			`/agents/${this.agentId}/experiments/${experimentId}/conclude`,
+			"/workflows/batch",
 			opts,
 		);
 	}
@@ -422,7 +410,7 @@ interface Experiment {
 	id: string;
 	name: string;
 	status: string;
-	variants: any[];
+	variants: unknown[];
 	metric: string;
 	metricDirection: string;
 	duration: string;

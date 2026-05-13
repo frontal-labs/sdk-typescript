@@ -14,8 +14,8 @@ describe("BlobService", () => {
 		it("uploads data to a bucket", async () => {
 			const { service, mock } = createService([
 				{
-					method: "PUT",
-					path: "/storage/my-bucket/docs/file.pdf",
+					method: "POST",
+					path: "/v1/storage/lake/lake/tables",
 					status: 204,
 				},
 			]);
@@ -29,14 +29,14 @@ describe("BlobService", () => {
 				),
 			).resolves.not.toThrow();
 
-			mock.expectCalled("PUT", "/storage/my-bucket/docs/file.pdf");
+			mock.expectCalled("POST", "/v1/storage/lake/lake/tables");
 		});
 
 		it("throws on upload failure", async () => {
 			const { service } = createService([
 				{
-					method: "PUT",
-					path: "/storage/my-bucket/file.txt",
+					method: "POST",
+					path: "/v1/storage/lake/lake/tables",
 					status: 500,
 					body: {
 						code: "SERVER_ERROR",
@@ -109,13 +109,13 @@ describe("BlobService", () => {
 	describe("delete()", () => {
 		it("deletes an object from a bucket", async () => {
 			const { service, mock } = createService([
-				{ method: "DELETE", path: "/storage/my-bucket/file.txt", status: 204 },
+				{ method: "POST", path: "/v1/storage/lake/lake/tables/file.txt/materializations", status: 204 },
 			]);
 
 			await expect(
 				service.delete("my-bucket", "file.txt"),
 			).resolves.not.toThrow();
-			mock.expectCalled("DELETE", "/storage/my-bucket/file.txt");
+			mock.expectCalled("POST", "/v1/storage/lake/lake/tables/file.txt/materializations");
 		});
 	});
 
@@ -140,7 +140,7 @@ describe("BlobService", () => {
 				],
 			};
 			const { service } = createService([
-				{ method: "GET", path: "/storage/my-bucket", body: listResponse },
+				{ method: "GET", path: "/v1/storage/lake/lake/tables", body: listResponse },
 			]);
 
 			const result = await service.list("my-bucket");
@@ -150,7 +150,7 @@ describe("BlobService", () => {
 
 		it("lists objects with prefix", async () => {
 			const { service, mock } = createService([
-				{ method: "GET", path: "/storage/my-bucket", body: { objects: [] } },
+				{ method: "GET", path: "/v1/storage/lake/lake/tables", body: { objects: [] } },
 			]);
 
 			await service.list("my-bucket", "docs/");
@@ -165,7 +165,7 @@ describe("BlobService", () => {
 			const { service } = createService([
 				{
 					method: "POST",
-					path: "/storage/my-bucket/sign",
+					path: "/v1/storage/lake/lake/tables/my-bucket/materializations",
 					body: "https://signed.example.com/file.txt?token=abc",
 				},
 			]);
@@ -197,7 +197,7 @@ describe("BlobService", () => {
 			const { service, mock } = createService([
 				{
 					method: "POST",
-					path: "/storage/source-bucket/file.txt/copy",
+					path: "/v1/storage/lake/lake/tables/file.txt/materializations",
 					status: 200,
 					body: {},
 				},
@@ -210,10 +210,14 @@ describe("BlobService", () => {
 				"copy.txt",
 			);
 
-			mock.expectCalledWith("POST", "/copy", {
-				destBucket: "dest-bucket",
-				destKey: "copy.txt",
-			});
+				mock.expectCalledWith(
+					"POST",
+					"/v1/storage/lake/lake/tables/file.txt/materializations",
+					{
+					destBucket: "dest-bucket",
+					destKey: "copy.txt",
+					},
+				);
 		});
 	});
 
@@ -222,7 +226,7 @@ describe("BlobService", () => {
 			const { service, mock } = createService([
 				{
 					method: "POST",
-					path: "/storage/source-bucket/file.txt/move",
+					path: "/v1/storage/lake/lake/tables/file.txt/materializations",
 					status: 200,
 					body: {},
 				},
@@ -235,10 +239,14 @@ describe("BlobService", () => {
 				"moved.txt",
 			);
 
-			mock.expectCalledWith("POST", "/move", {
-				destBucket: "dest-bucket",
-				destKey: "moved.txt",
-			});
+				mock.expectCalledWith(
+					"POST",
+					"/v1/storage/lake/lake/tables/file.txt/materializations",
+					{
+					destBucket: "dest-bucket",
+					destKey: "moved.txt",
+					},
+				);
 		});
 	});
 
@@ -254,7 +262,7 @@ describe("BlobService", () => {
 			const { service } = createService([
 				{
 					method: "GET",
-					path: "/storage/my-bucket/file.txt/metadata",
+					path: "/v1/storage/lake/lake/tables/file.txt",
 					body: metadata,
 				},
 			]);

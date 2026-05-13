@@ -21,7 +21,11 @@ export function createGraphClient(
 	}
 	const http = new HttpClient({
 		apiKey: clientOrConfig.apiKey,
-		baseUrl: clientOrConfig.baseUrl ?? "https://api.frontal.dev/v1",
+		baseUrl:
+			clientOrConfig.baseUrl ??
+			process.env.FRONTAL_GRAPH_API_URL ??
+			process.env.FRONTAL_API_URL ??
+			"https://api.frontal.dev/v1",
 		timeout: clientOrConfig.timeout ?? 30000,
 		maxRetries: clientOrConfig.maxRetries ?? 3,
 		retryDelay: 1000,

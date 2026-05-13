@@ -1,9 +1,27 @@
-import {
-	filterConditionsSchema,
-	retryConfigSchema,
-	timestampSchema,
-} from "@frontal/core";
 import { z } from "zod";
+import { filterConditionsSchema } from "@frontal/core";
+
+export const timestampSchema = z
+	.union([z.string().datetime(), z.date()])
+	.transform((value) => (value instanceof Date ? value : new Date(value)));
+
+export const retryConfigSchema = z
+	.object({
+		maxRetries: z.number().int().min(0).default(3),
+		retryDelay: z.number().int().positive().default(1000),
+		backoff: z
+			.enum(["constant", "linear", "exponential"])
+			.default("exponential"),
+		retryOn: z
+			.array(z.number().int())
+			.default([408, 409, 425, 429, 500, 502, 503, 504]),
+	})
+	.default({
+		maxRetries: 3,
+		retryDelay: 1000,
+		backoff: "exponential",
+		retryOn: [408, 409, 425, 429, 500, 502, 503, 504],
+	});
 
 export const AgentStatusSchema = z.enum([
 	"draft",

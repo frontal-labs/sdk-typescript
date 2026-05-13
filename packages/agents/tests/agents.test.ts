@@ -29,18 +29,18 @@ describe("AgentsService", () => {
 		it("lists agents with pagination", async () => {
 			const items = [agent(), agent()];
 			const { service, mock } = createService([
-				{ method: "GET", path: "/agents", body: mockPageResponse(items) },
+				{ method: "GET", path: "/v1/workflows", body: mockPageResponse(items) },
 			]);
 
 			const result = await service.list();
 
 			expect(result.data).toHaveLength(2);
-			mock.expectCalled("GET", "/agents");
+			mock.expectCalled("GET", "/v1/workflows");
 		});
 
 		it("passes filter options", async () => {
 			const { service } = createService([
-				{ method: "GET", path: "/agents", body: mockPageResponse([]) },
+				{ method: "GET", path: "/v1/workflows", body: mockPageResponse([]) },
 			]);
 
 			await service.list({ status: "active", limit: 5 });
@@ -51,7 +51,7 @@ describe("AgentsService", () => {
 		it("creates an agent from definition", async () => {
 			const agt = agent({ name: "order-processor" });
 			const { service, mock } = createService([
-				{ method: "POST", path: "/agents", body: agt },
+				{ method: "POST", path: "/v1/workflows", body: agt },
 			]);
 
 			const result = await service.create({
@@ -80,7 +80,7 @@ describe("AgentsService", () => {
 			});
 
 			expect(result.name).toBe("order-processor");
-			mock.expectCalled("POST", "/agents");
+			mock.expectCalled("POST", "/v1/workflows");
 		});
 	});
 });
@@ -89,7 +89,7 @@ describe("AgentBuilder", () => {
 	it("builds and creates an agent with fluent API", async () => {
 		const agt = agent({ name: "fraud-detector" });
 		const { service, mock } = createService([
-			{ method: "POST", path: "/agents", body: agt },
+			{ method: "POST", path: "/v1/workflows", body: agt },
 		]);
 
 		const result = await service
@@ -106,20 +106,20 @@ describe("AgentBuilder", () => {
 			.create();
 
 		expect(result.name).toBe("fraud-detector");
-		mock.expectCalled("POST", "/agents");
+		mock.expectCalled("POST", "/v1/workflows");
 	});
 
 	it("deploys an agent after creation", async () => {
 		const agt = agent({ id: "agt_1", name: "test-agent" });
 		const { service, mock } = createService([
-			{ method: "POST", path: "/agents", body: agt },
-			{ method: "POST", path: "/agents/agt_1/deploy", body: {} },
+			{ method: "POST", path: "/v1/workflows", body: agt },
+			{ method: "POST", path: "/v1/workflows/batch", body: {} },
 		]);
 
 		await service.define("test-agent").trigger("entity.created").deploy();
 
-		mock.expectCalled("POST", "/agents");
-		mock.expectCalled("POST", "/agents/agt_1/deploy");
+		mock.expectCalled("POST", "/v1/workflows");
+		mock.expectCalled("POST", "/v1/workflows/batch");
 	});
 });
 
@@ -130,13 +130,13 @@ describe("AgentAccessor", () => {
 		it("fetches an agent by id", async () => {
 			const agt = agent({ id: agentId });
 			const { service, mock } = createService([
-				{ method: "GET", path: `/agents/${agentId}`, body: agt },
+				{ method: "GET", path: `/v1/workflows`, body: agt },
 			]);
 
 			const result = await service.use(agentId).get();
 
 			expect(result.id).toBe(agentId);
-			mock.expectCalled("GET", `/agents/${agentId}`);
+			mock.expectCalled("GET", `/v1/workflows`);
 		});
 	});
 
@@ -144,7 +144,7 @@ describe("AgentAccessor", () => {
 		it("updates an agent", async () => {
 			const agt = agent({ id: agentId, name: "updated-agent" });
 			const { service, mock } = createService([
-				{ method: "PUT", path: `/agents/${agentId}`, body: agt },
+				{ method: "PUT", path: `/v1/workflows`, body: agt },
 			]);
 
 			const result = await service
@@ -152,19 +152,19 @@ describe("AgentAccessor", () => {
 				.update({ name: "updated-agent" });
 
 			expect(result.name).toBe("updated-agent");
-			mock.expectCalled("PUT", `/agents/${agentId}`);
+			mock.expectCalled("PUT", `/v1/workflows`);
 		});
 	});
 
 	describe("delete()", () => {
 		it("deletes an agent", async () => {
 			const { service, mock } = createService([
-				{ method: "DELETE", path: `/agents/${agentId}`, status: 204 },
+				{ method: "DELETE", path: `/v1/workflows`, status: 204 },
 			]);
 
 			await service.use(agentId).delete();
 
-			mock.expectCalled("DELETE", `/agents/${agentId}`);
+			mock.expectCalled("DELETE", `/v1/workflows`);
 		});
 	});
 
@@ -177,13 +177,13 @@ describe("AgentAccessor", () => {
 				status: "deploying",
 			};
 			const { service, mock } = createService([
-				{ method: "POST", path: `/agents/${agentId}/deploy`, body },
+				{ method: "POST", path: `/v1/workflows/batch`, body },
 			]);
 
 			const result = await service.use(agentId).deploy("production");
 
 			expect(result.environment).toBe("production");
-			mock.expectCalled("POST", `/agents/${agentId}/deploy`);
+			mock.expectCalled("POST", `/v1/workflows/batch`);
 		});
 	});
 
@@ -191,7 +191,7 @@ describe("AgentAccessor", () => {
 		it("pauses an agent", async () => {
 			const agt = agent({ id: agentId, status: "paused" });
 			const { service, mock } = createService([
-				{ method: "POST", path: `/agents/${agentId}/pause`, body: agt },
+				{ method: "POST", path: `/v1/workflows/batch`, body: agt },
 			]);
 
 			const result = await service
@@ -199,7 +199,7 @@ describe("AgentAccessor", () => {
 				.pause({ reason: "maintenance" });
 
 			expect(result.status).toBe("paused");
-			mock.expectCalledWith("POST", `/agents/${agentId}/pause`, {
+			mock.expectCalledWith("POST", `/v1/workflows/batch`, {
 				reason: "maintenance",
 			});
 		});
@@ -209,13 +209,13 @@ describe("AgentAccessor", () => {
 		it("resumes a paused agent", async () => {
 			const agt = agent({ id: agentId, status: "active" });
 			const { service, mock } = createService([
-				{ method: "POST", path: `/agents/${agentId}/resume`, body: agt },
+				{ method: "POST", path: `/v1/workflows/batch`, body: agt },
 			]);
 
 			const result = await service.use(agentId).resume();
 
 			expect(result.status).toBe("active");
-			mock.expectCalled("POST", `/agents/${agentId}/resume`);
+			mock.expectCalled("POST", `/v1/workflows/batch`);
 		});
 	});
 
@@ -223,13 +223,13 @@ describe("AgentAccessor", () => {
 		it("rolls back to a previous version", async () => {
 			const agt = agent({ id: agentId, version: 1 });
 			const { service, mock } = createService([
-				{ method: "POST", path: `/agents/${agentId}/rollback`, body: agt },
+				{ method: "POST", path: `/v1/workflows/batch`, body: agt },
 			]);
 
 			const result = await service.use(agentId).rollback({ toVersion: 1 });
 
 			expect(result.version).toBe(1);
-			mock.expectCalledWith("POST", `/agents/${agentId}/rollback`, {
+			mock.expectCalledWith("POST", `/v1/workflows/batch`, {
 				toVersion: 1,
 			});
 		});
@@ -244,7 +244,7 @@ describe("AgentAccessor", () => {
 				confidence: 0.85,
 			};
 			const { service, mock } = createService([
-				{ method: "POST", path: `/agents/${agentId}/simulate`, body },
+				{ method: "POST", path: `/v1/workflows/batch`, body },
 			]);
 
 			const result = await service
@@ -252,7 +252,7 @@ describe("AgentAccessor", () => {
 				.simulate("order.created", { orderId: "ord_1" });
 
 			expect(result.confidence).toBe(0.85);
-			mock.expectCalledWith("POST", `/agents/${agentId}/simulate`, {
+			mock.expectCalledWith("POST", `/v1/workflows/batch`, {
 				event: "order.created",
 				payload: { orderId: "ord_1" },
 			});
@@ -267,8 +267,8 @@ describe("AgentAccessor", () => {
 			];
 			const { service, mock } = createService([
 				{
-					method: "GET",
-					path: `/agents/${agentId}/executions`,
+					method: "POST",
+					path: `/v1/workflows/search`,
 					body: mockPageResponse(items),
 				},
 			]);
@@ -276,7 +276,7 @@ describe("AgentAccessor", () => {
 			const result = await service.use(agentId).executions();
 
 			expect(result.data).toHaveLength(2);
-			mock.expectCalled("GET", `/agents/${agentId}/executions`);
+			mock.expectCalled("POST", `/v1/workflows/search`);
 		});
 	});
 
@@ -289,13 +289,13 @@ describe("AgentAccessor", () => {
 				startedAt: "2024-01-01",
 			};
 			const { service, mock } = createService([
-				{ method: "GET", path: `/agents/${agentId}/executions/exec_1`, body },
+				{ method: "GET", path: `/v1/workflows/${agentId}/exec_1`, body },
 			]);
 
 			const result = await service.use(agentId).execution("exec_1");
 
 			expect(result.id).toBe("exec_1");
-			mock.expectCalled("GET", `/agents/${agentId}/executions/exec_1`);
+			mock.expectCalled("GET", `/v1/workflows/${agentId}/exec_1`);
 		});
 	});
 
@@ -305,7 +305,7 @@ describe("AgentAccessor", () => {
 			const { service, mock } = createService([
 				{
 					method: "GET",
-					path: `/agents/${agentId}/escalations`,
+					path: `/v1/workflows`,
 					body: mockPageResponse(items),
 				},
 			]);
@@ -313,7 +313,7 @@ describe("AgentAccessor", () => {
 			const result = await service.use(agentId).escalations();
 
 			expect(result.data).toHaveLength(1);
-			mock.expectCalled("GET", `/agents/${agentId}/escalations`);
+			mock.expectCalled("GET", `/v1/workflows`);
 		});
 	});
 
@@ -326,14 +326,14 @@ describe("AgentAccessor", () => {
 				successRate: 0.98,
 			};
 			const { service, mock } = createService([
-				{ method: "GET", path: `/agents/${agentId}/metrics`, body },
+				{ method: "GET", path: `/v1/workflows`, body },
 			]);
 
 			const result = await service.use(agentId).metrics("30d");
 
 			expect(result.executionsToday).toBe(42);
 			expect(result.successRate).toBe(0.98);
-			mock.expectCalled("GET", `/agents/${agentId}/metrics`);
+			mock.expectCalled("GET", `/v1/workflows`);
 		});
 	});
 
@@ -345,7 +345,7 @@ describe("AgentAccessor", () => {
 				status: "accepted",
 			};
 			const { service, mock } = createService([
-				{ method: "POST", path: `/agents/${agentId}/message`, body },
+				{ method: "POST", path: `/v1/workflows/batch`, body },
 			]);
 
 			const result = await service
@@ -353,7 +353,7 @@ describe("AgentAccessor", () => {
 				.message("user.query", { question: "what is my balance?" });
 
 			expect(result.messageId).toBe("msg_1");
-			mock.expectCalledWith("POST", `/agents/${agentId}/message`, {
+			mock.expectCalledWith("POST", `/v1/workflows/batch`, {
 				event: "user.query",
 				payload: { question: "what is my balance?" },
 			});
@@ -364,7 +364,7 @@ describe("AgentAccessor", () => {
 		it("creates an experiment", async () => {
 			const body = { id: "exp_1", name: "prompt-test", status: "running" };
 			const { service, mock } = createService([
-				{ method: "POST", path: `/agents/${agentId}/experiments`, body },
+				{ method: "POST", path: `/v1/workflows/batch`, body },
 			]);
 
 			const result = await service.use(agentId).experiments.create({
@@ -379,7 +379,7 @@ describe("AgentAccessor", () => {
 			});
 
 			expect(result.name).toBe("prompt-test");
-			mock.expectCalled("POST", `/agents/${agentId}/experiments`);
+			mock.expectCalled("POST", `/v1/workflows/batch`);
 		});
 
 		it("concludes an experiment", async () => {
@@ -392,7 +392,7 @@ describe("AgentAccessor", () => {
 			const { service, mock } = createService([
 				{
 					method: "POST",
-					path: `/agents/${agentId}/experiments/exp_1/conclude`,
+					path: `/v1/workflows/batch`,
 					body,
 				},
 			]);
@@ -405,7 +405,7 @@ describe("AgentAccessor", () => {
 			expect(result.winnerVariant).toBe("treatment");
 			mock.expectCalled(
 				"POST",
-				`/agents/${agentId}/experiments/exp_1/conclude`,
+				`/v1/workflows/batch`,
 			);
 		});
 	});
@@ -446,7 +446,7 @@ describe("EscalationsNamespace", () => {
 			const { service, mock } = createService([
 				{
 					method: "GET",
-					path: "/agents/escalations",
+					path: "/v1/workflows",
 					body: mockPageResponse(items),
 				},
 			]);
@@ -454,7 +454,7 @@ describe("EscalationsNamespace", () => {
 			const result = await service.escalations.list();
 
 			expect(result.data).toHaveLength(1);
-			mock.expectCalled("GET", "/agents/escalations");
+			mock.expectCalled("GET", "/v1/workflows");
 		});
 	});
 
@@ -462,13 +462,13 @@ describe("EscalationsNamespace", () => {
 		it("fetches a specific escalation", async () => {
 			const body = { id: "esc_1", status: "pending", urgency: "critical" };
 			const { service, mock } = createService([
-				{ method: "GET", path: "/agents/escalations/esc_1", body },
+				{ method: "GET", path: "/v1/workflows", body },
 			]);
 
 			const result = await service.escalations.get("esc_1");
 
 			expect(result.urgency).toBe("critical");
-			mock.expectCalled("GET", "/agents/escalations/esc_1");
+			mock.expectCalled("GET", "/v1/workflows");
 		});
 	});
 
@@ -476,7 +476,7 @@ describe("EscalationsNamespace", () => {
 		it("resolves an escalation", async () => {
 			const body = { id: "esc_1", status: "resolved" };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/agents/escalations/esc_1/resolve", body },
+				{ method: "POST", path: "/v1/workflows/batch", body },
 			]);
 
 			const result = await service.escalations.resolve("esc_1", {
@@ -485,7 +485,7 @@ describe("EscalationsNamespace", () => {
 			});
 
 			expect(result.status).toBe("resolved");
-			mock.expectCalled("POST", "/agents/escalations/esc_1/resolve");
+			mock.expectCalled("POST", "/v1/workflows/batch");
 		});
 	});
 
@@ -493,7 +493,7 @@ describe("EscalationsNamespace", () => {
 		it("delegates an escalation", async () => {
 			const body = { id: "esc_1", status: "delegated" };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/agents/escalations/esc_1/delegate", body },
+				{ method: "POST", path: "/v1/workflows/batch", body },
 			]);
 
 			const result = await service.escalations.delegate("esc_1", {
@@ -502,7 +502,7 @@ describe("EscalationsNamespace", () => {
 			});
 
 			expect(result.status).toBe("delegated");
-			mock.expectCalled("POST", "/agents/escalations/esc_1/delegate");
+			mock.expectCalled("POST", "/v1/workflows/batch");
 		});
 	});
 
@@ -510,7 +510,7 @@ describe("EscalationsNamespace", () => {
 		it("overrides an escalation", async () => {
 			const body = { id: "esc_1", status: "overridden" };
 			const { service, mock } = createService([
-				{ method: "POST", path: "/agents/escalations/esc_1/override", body },
+				{ method: "POST", path: "/v1/workflows/batch", body },
 			]);
 
 			const result = await service.escalations.override("esc_1", {
@@ -519,7 +519,7 @@ describe("EscalationsNamespace", () => {
 			});
 
 			expect(result.status).toBe("overridden");
-			mock.expectCalled("POST", "/agents/escalations/esc_1/override");
+			mock.expectCalled("POST", "/v1/workflows/batch");
 		});
 	});
 });

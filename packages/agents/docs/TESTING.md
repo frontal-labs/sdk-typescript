@@ -880,9 +880,8 @@ export default defineConfig({
 import { vi } from 'vitest';
 
 // Global mocks
-vi.mock('@frontal/core', () => ({
-  FrontalClient: vi.fn(),
-  getDefaultClient: vi.fn()
+vi.mock('@frontal/agents', () => ({
+  createAgentsClient: vi.fn(),
 }));
 
 // Test utilities

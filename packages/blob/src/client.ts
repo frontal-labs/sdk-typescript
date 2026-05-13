@@ -25,6 +25,10 @@ import {
 export class BlobService {
 	constructor(private readonly http: HttpClient) {}
 
+	private command(operation: string, payload: Record<string, unknown> = {}) {
+		return { operation, ...payload };
+	}
+
 	/**
 	 * Uploads data to a bucket.
 	 * @param bucket - The bucket name.
@@ -38,7 +42,10 @@ export class BlobService {
 		data: Buffer | ReadableStream,
 		contentType = "application/octet-stream",
 	): Promise<void> {
-		await this.http.putRaw(`/storage/${bucket}/${key}`, data, contentType);
+		await this.http.post(
+			"/storage/lake/lake/tables",
+			this.command("blob.upload", { bucket, key, contentType, data }),
+		);
 	}
 
 	/**
@@ -47,7 +54,10 @@ export class BlobService {
 	 * @param key - The object key.
 	 */
 	async download(bucket: string, key: string): Promise<Blob> {
-		const response = await this.http.getRaw(`/storage/${bucket}/${key}`);
+		const response = await this.http.getRaw("/storage/lake/lake/tables/" + key, {
+			operation: "blob.download",
+			bucket,
+		});
 		return response.blob();
 	}
 
@@ -61,7 +71,10 @@ export class BlobService {
 		bucket: string,
 		key: string,
 	): Promise<ReadableStream<Uint8Array>> {
-		const response = await this.http.getRaw(`/storage/${bucket}/${key}`);
+		const response = await this.http.getRaw("/storage/lake/lake/tables/" + key, {
+			operation: "blob.download.stream",
+			bucket,
+		});
 		if (!response.body) {
 			throw new Error("Response has no body stream");
 		}
@@ -74,7 +87,10 @@ export class BlobService {
 	 * @param key - The object key.
 	 */
 	async delete(bucket: string, key: string): Promise<void> {
-		return this.http.delete(`/storage/${bucket}/${key}`);
+		return this.http.post(
+			"/storage/lake/lake/tables/" + key + "/materializations",
+			this.command("blob.delete", { bucket }),
+		);
 	}
 
 	/**
@@ -83,9 +99,9 @@ export class BlobService {
 	 * @param prefix - Optional prefix to filter objects.
 	 */
 	async list(bucket: string, prefix?: string): Promise<ListObjectsResult> {
-		const params = prefix ? { prefix } : undefined;
+		const params = this.command("blob.list", { bucket, ...(prefix ? { prefix } : {}) });
 		return this.http.get<ListObjectsResult>(
-			`/storage/${bucket}`,
+			"/storage/lake/lake/tables",
 			params,
 			listObjectsResultSchema,
 		);
@@ -101,7 +117,10 @@ export class BlobService {
 		options: SignedUrlOptions,
 	): Promise<string> {
 		const validated = signedUrlOptionsSchema.parse(options);
-		return this.http.post<string>(`/storage/${bucket}/sign`, validated);
+		return this.http.post<string>(
+			"/storage/lake/lake/tables/" + bucket + "/materializations",
+			this.command("blob.sign", validated),
+		);
 	}
 
 	/**
@@ -113,10 +132,14 @@ export class BlobService {
 		destBucket: string,
 		destKey: string,
 	): Promise<void> {
-		return this.http.post(`/storage/${sourceBucket}/${sourceKey}/copy`, {
-			destBucket,
-			destKey,
-		});
+		return this.http.post(
+			"/storage/lake/lake/tables/" + sourceKey + "/materializations",
+			this.command("blob.copy", {
+				sourceBucket,
+				destBucket,
+				destKey,
+			}),
+		);
 	}
 
 	/**
@@ -128,10 +151,14 @@ export class BlobService {
 		destBucket: string,
 		destKey: string,
 	): Promise<void> {
-		return this.http.post(`/storage/${sourceBucket}/${sourceKey}/move`, {
-			destBucket,
-			destKey,
-		});
+		return this.http.post(
+			"/storage/lake/lake/tables/" + sourceKey + "/materializations",
+			this.command("blob.move", {
+				sourceBucket,
+				destBucket,
+				destKey,
+			}),
+		);
 	}
 
 	/**
@@ -141,8 +168,8 @@ export class BlobService {
 	 */
 	async getMetadata(bucket: string, key: string): Promise<BlobObject> {
 		return this.http.get<BlobObject>(
-			`/storage/${bucket}/${key}/metadata`,
-			undefined,
+			"/storage/lake/lake/tables/" + key,
+			{ operation: "blob.metadata", bucket },
 			blobObjectSchema,
 		);
 	}
