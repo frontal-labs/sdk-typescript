@@ -5,9 +5,9 @@ bun run lint || {
   exit 1
 }
 
-bun run format:check || {
-  echo "❌ Formatting check failed. Please run 'bun run format' and try again."
-  exit 1
+bun x biome format --staged || {
+	echo "❌ Formatting check failed. Please run 'bun run format' and try again."
+	exit 1
 }
 
 echo "✅ Pre-commit checks passed!"
