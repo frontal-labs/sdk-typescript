@@ -1,12 +1,12 @@
 <picture>
-  <source srcset="./assets/banner-dark.png" media="(prefers-color-scheme: dark)">
-  <source srcset="./assets/banner.png" media="(prefers-color-scheme: light)">
-  <img src="./assets/banner-dark.png" alt="Frontal Banner">
+  <source srcset="./banner-dark.png" media="(prefers-color-scheme: dark)">
+  <source srcset="./banner.png" media="(prefers-color-scheme: light)">
+  <img src="./banner-dark.png" alt="Frontal Banner">
 </picture>
 
 # Frontal Typescript SDK
 
-A powerful, modular SDK for building high-performance applications with AI, Functions, Flags, Logging, Notifications, and Storage capabilities.
+A modular SDK for building on Frontal with AI inference, agents, graph/ontology, workflows, pipelines, storage, and functions.
 
 ## Overview
 
@@ -23,19 +23,16 @@ This repository is a monorepo containing various packages designed to simplify t
 
 | Package | Description | Version |
 | :--- | :--- | :--- |
+| [`@frontal/core`](./packages/core) | Shared client transport, auth, retries, pagination, and error types. | ![npm](https://img.shields.io/npm/v/@frontal/core) |
 | [`@frontal/ai`](./packages/ai) | AI integration and utilities. | ![npm](https://img.shields.io/npm/v/@frontal/ai) |
 | [`@frontal/agents`](./packages/agents) | AI agent integrations and workflows. | ![npm](https://img.shields.io/npm/v/@frontal/agents) |
-| [`@frontal/core`](./packages/core) | Core HTTP client and utilities. | ![npm](https://img.shields.io/npm/v/@frontal/core) |
 | [`@frontal/functions`](./packages/functions) | Serverless functions orchestration. | ![npm](https://img.shields.io/npm/v/@frontal/functions) |
-| [`@frontal/flags`](./packages/flags) | Feature flags and configuration. | ![npm](https://img.shields.io/npm/v/@frontal/flags) |
 | [`@frontal/graph`](./packages/graph) | Graph database operations. | ![npm](https://img.shields.io/npm/v/@frontal/graph) |
-| [`@frontal/logging`](./packages/logging) | Structured logging utilities. | ![npm](https://img.shields.io/npm/v/@frontal/logging) |
 | [`@frontal/ontology`](./packages/ontology) | Model deployment and management. | ![npm](https://img.shields.io/npm/v/@frontal/ontology) |
-| [`@frontal/notifications`](./packages/notifications) | Notifications delivery and management. | ![npm](https://img.shields.io/npm/v/@frontal/notifications) |
 | [`@frontal/pipelines`](./packages/pipelines) | Data pipeline orchestration. | ![npm](https://img.shields.io/npm/v/@frontal/pipelines) |
 | [`@frontal/blob`](./packages/blob) | Scalable storage interactions. | ![npm](https://img.shields.io/npm/v/@frontal/blob) |
-| [`@frontal/testing`](./packages/testing) | Shared testing utilities. | ![npm](https://img.shields.io/npm/v/@frontal/testing) |
 | [`@frontal/workflows`](./packages/workflows) | Workflow automation and management. | ![npm](https://img.shields.io/npm/v/@frontal/workflows) |
+| [`@frontal/testing`](./packages/testing) | Shared test harness, mocks, and fixtures for SDK packages. | ![npm](https://img.shields.io/npm/v/@frontal/testing) |
 
 ## Getting Started
 
@@ -90,6 +87,18 @@ bun run format
 # Type checking
 bun run type-check
 
+# Sync API/AI contract artifacts from local source specs
+bun run contract:sync
+
+# Endpoint snapshot + OpenAPI conformance check (fails on drift)
+bun run contract:endpoints
+
+# Conformance report only (non-failing)
+bun run contract:report
+
+# Migration matrix from current SDK -> contract paths
+bun run contract:matrix
+
 # Clean build artifacts
 bun run clean
 ```
@@ -104,8 +113,29 @@ cp .env.example .env
 
 Key environment variables:
 - `FRONTAL_API_KEY` - Your API key
+- `FRONTAL_API_URL` - Base API URL (default `https://api.frontal.dev/v1`)
+- `FRONTAL_AI_API_URL` - AI Gateway URL (default `https://ai.frontal.dev`)
+- `FRONTAL_AGENTS_API_URL` - Optional override for Agents SDK
+- `FRONTAL_GRAPH_API_URL` - Optional override for Graph SDK
+- `FRONTAL_ONTOLOGY_API_URL` - Optional override for Ontology SDK
+- `FRONTAL_PIPELINES_API_URL` - Optional override for Pipelines SDK
+- `FRONTAL_WORKFLOWS_API_URL` - Optional override for Workflows SDK
+- `FRONTAL_FUNCTIONS_API_URL` - Optional override for Functions SDK
+- `FRONTAL_BLOB_API_URL` - Optional override for Blob SDK
 - `NODE_ENV` - Environment (development/test/production)
 - `DEBUG` - Enable debug logging (optional)
+
+### Live Backend Compatibility Check
+
+Run an opt-in smoke validation against a live backend:
+
+```bash
+FRONTAL_API_KEY=frt_... bun run test:live
+```
+
+Optional inputs:
+- `FRONTAL_GRAPH_ENTITY_TYPE` - required for `graph.query` smoke check
+- `FRONTAL_BLOB_BUCKET` - required for `blob.list` smoke check
 
 ## Documentation
 
@@ -114,15 +144,12 @@ Detailed documentation for each package can be found in their respective directo
 - [Agents](./packages/agents/README.md)
 - [Core](./packages/core/README.md)
 - [Functions](./packages/functions/README.md)
-- [Flags](./packages/flags/README.md)
 - [Graph](./packages/graph/README.md)
-- [Logging](./packages/logging/README.md)
 - [Models](./packages/ontology/README.md)
-- [Notifications](./packages/notifications/README.md)
 - [Pipelines](./packages/pipelines/README.md)
 - [Storage](./packages/blob/README.md)
-- [Testing](./packages/testing/README.md)
 - [Workflows](./packages/workflows/README.md)
+- [Testing](./packages/testing/README.md)
 
 General project documentation is available in the [`docs`](./docs) folder.
 

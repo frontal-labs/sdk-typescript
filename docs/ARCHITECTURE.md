@@ -4,57 +4,49 @@ This SDK is designed as a modular monorepo, allowing for clear separation of con
 
 ## Core Components
 
-### 1. AI (`@frontal/ai`)
+### 1. Core (`@frontal/core`)
+
+Shared transport primitives and defaults used by all domain SDKs:
+- API key/base URL configuration
+- HTTP client, retries, and timeout behavior
+- typed error mapping
+- pagination and polling utilities
+
+### 2. AI (`@frontal/ai`)
 
 Handles interactions with AI models, including inference, prompt management, and streaming responses.
 
-### 2. Agents (`@frontal/agents`)
+### 3. Agents (`@frontal/agents`)
 
 AI agent integrations and workflows with support for LangChain, LangGraph, and Vercel AI SDK.
-
-### 3. Core (`@frontal/core`)
-
-Core HTTP client and utilities that provide the foundation for all other packages.
 
 ### 4. Functions (`@frontal/functions`)
 
 A serverless functions orchestration layer, enabling developers to deploy and trigger functions easily.
 
-### 5. Flags (`@frontal/flags`)
-
-Feature flags and configuration, enabling runtime toggles and gradual rollouts.
-
-### 6. Graph (`@frontal/graph`)
+### 5. Graph (`@frontal/graph`)
 
 Graph database operations, entity CRUD, traversal, time travel, and semantic search capabilities.
 
-### 7. Logging (`@frontal/logging`)
-
-Structured logging utilities for application and request-level logs.
-
-### 8. Models (`@frontal/ontology`)
+### 6. Models (`@frontal/ontology`)
 
 Model deployment and management for machine learning models.
 
-### 9. Notifications (`@frontal/notifications`)
-
-Notification delivery (email, push, etc.) and management.
-
-### 10. Pipelines (`@frontal/pipelines`)
+### 7. Pipelines (`@frontal/pipelines`)
 
 Data pipeline orchestration for complex data processing workflows.
 
-### 11. Storage (`@frontal/blob`)
+### 8. Storage (`@frontal/blob`)
 
 An interface for interacting with various storage providers (S3, local, etc.) in a unified way.
 
-### 12. Testing (`@frontal/testing`)
-
-Shared testing utilities and helpers used across all packages.
-
-### 13. Workflows (`@frontal/workflows`)
+### 9. Workflows (`@frontal/workflows`)
 
 Workflow automation and management for complex business processes.
+
+### 10. Testing (`@frontal/testing`)
+
+Reusable mock clients, fixtures, and helper utilities used by package test suites to enforce consistent behavior.
 
 ## Build System
 

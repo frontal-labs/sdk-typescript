@@ -13,16 +13,13 @@ This repository is a monorepo containing various packages designed to simplify t
 
 | Package | Description |
 | :--- | :--- |
+| `@frontal/core` | Shared transport, auth, retries, pagination, and typed errors used by all SDKs. |
 | `@frontal/ai` | AI integration and utilities. |
 | `@frontal/agents` | AI agent integrations and workflows with LangChain, LangGraph, and Vercel AI SDK. |
-| `@frontal/core` | Core HTTP client and utilities. |
 | `@frontal/functions` | Serverless functions orchestration. |
-| `@frontal/flags` | Feature flags and configuration. |
 | `@frontal/graph` | Graph database operations and semantic search. |
-| `@frontal/logging` | Structured logging utilities. |
 | `@frontal/ontology` | Model deployment and management. |
-| `@frontal/notifications` | Notifications delivery and management. |
 | `@frontal/pipelines` | Data pipeline orchestration. |
 | `@frontal/blob` | Scalable storage interactions. |
-| `@frontal/testing` | Shared testing utilities. |
 | `@frontal/workflows` | Workflow automation and management. |
+| `@frontal/testing` | Test utilities, mock transport, and fixtures for package-level SDK tests. |

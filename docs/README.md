@@ -29,17 +29,14 @@ Each package in the monorepo contains its own documentation:
 
 - **[@frontal/ai](../packages/ai/)** - AI integration and utilities
 - **[@frontal/agents](../packages/agents/)** - AI agent integrations and workflows
-- **[@frontal/core](../packages/core/)** - Core HTTP client and utilities
+- **[@frontal/core](../packages/core/)** - Shared client transport, retries, errors, and pagination
 - **[@frontal/functions](../packages/functions/)** - Serverless functions orchestration
-- **[@frontal/flags](../packages/flags/)** - Feature flags and configuration
 - **[@frontal/graph](../packages/graph/)** - Graph database operations
-- **[@frontal/logging](../packages/logging/)** - Structured logging utilities
 - **[@frontal/ontology](../packages/ontology/)** - Model deployment and management
-- **[@frontal/notifications](../packages/notifications/)** - Notifications delivery and management
 - **[@frontal/pipelines](../packages/pipelines/)** - Data pipeline orchestration
 - **[@frontal/blob](../packages/blob/)** - Scalable storage interactions
-- **[@frontal/testing](../packages/testing/)** - Shared testing utilities
 - **[@frontal/workflows](../packages/workflows/)** - Workflow automation and management
+- **[@frontal/testing](../packages/testing/)** - Shared SDK testing helpers and fixtures
 
 ## Getting Help
 
