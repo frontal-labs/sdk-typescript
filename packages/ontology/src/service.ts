@@ -64,7 +64,8 @@ export class OntologyService {
 }
 
 export class ModelAccessor {
-	constructor(readonly _name: string,
+	constructor(
+		readonly _name: string,
 		private readonly http: HttpClient,
 	) {}
 

@@ -321,9 +321,7 @@ export class AgentAccessor {
 	async *watch(
 		executionId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-		yield* this.http.stream(
-			`/workflows/${this.id}/${executionId}/timeline`,
-		);
+		yield* this.http.stream(`/workflows/${this.id}/${executionId}/timeline`);
 	}
 }
 
@@ -376,7 +374,8 @@ export class EscalationsNamespace {
 }
 
 export class ExperimentsAccessor {
-	constructor(readonly _agentId: string,
+	constructor(
+		readonly _agentId: string,
 		private readonly http: HttpClient,
 	) {}
 

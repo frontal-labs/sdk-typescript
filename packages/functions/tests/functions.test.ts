@@ -41,17 +41,16 @@ describe("FunctionsService", () => {
 			});
 		});
 
-			it("throws on invalid config (missing memory)", async () => {
-				const { service } = createService([]);
+		it("throws on invalid config (missing memory)", async () => {
+			const { service } = createService([]);
 
-				await expect(
-					service.deploy(
-						{ ...validConfig, memory: undefined } as unknown as Parameters<
-							typeof service.deploy
-						>[0],
-					),
-				).rejects.toThrow();
-			});
+			await expect(
+				service.deploy({
+					...validConfig,
+					memory: undefined,
+				} as unknown as Parameters<typeof service.deploy>[0]),
+			).rejects.toThrow();
+		});
 
 		it("throws on invalid config (memory out of range)", async () => {
 			const { service } = createService([]);
@@ -242,13 +241,13 @@ describe("Functions (deprecated compat)", () => {
 		const mockFetch = vi.fn();
 		vi.stubGlobal("fetch", mockFetch);
 
-			const fns = new Functions({
-				apiKey: "frt_test-api-key-1234567890",
-				baseUrl: "https://api.test.frontal.dev/v1",
-			});
-			const result = await fns.deploy(
-				{} as unknown as Parameters<typeof fns.deploy>[0],
-			);
+		const fns = new Functions({
+			apiKey: "frt_test-api-key-1234567890",
+			baseUrl: "https://api.test.frontal.dev/v1",
+		});
+		const result = await fns.deploy(
+			{} as unknown as Parameters<typeof fns.deploy>[0],
+		);
 
 		expect(result.data).toBeNull();
 		expect(result.error).toBeDefined();

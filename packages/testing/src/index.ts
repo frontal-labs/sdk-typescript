@@ -161,21 +161,21 @@ export function createMockFetch(routes: MockRoute[] = []) {
 			return found;
 		},
 		/** Assert endpoint was called with specific body */
-			expectCalledWith(
-				method: string,
-				pathSubstring: string,
-				body: Record<string, unknown>,
-			) {
-				const req = this.expectCalled(method, pathSubstring);
-				const requestBody = req.body as Record<string, unknown> | undefined;
-				for (const [key, value] of Object.entries(body)) {
-					const actualValue = requestBody?.[key];
-					if (JSON.stringify(actualValue) !== JSON.stringify(value)) {
-						throw new Error(
-							`Expected ${method} ${pathSubstring} body.${key} to be ${JSON.stringify(value)}, got ${JSON.stringify(actualValue)}`,
-						);
-					}
+		expectCalledWith(
+			method: string,
+			pathSubstring: string,
+			body: Record<string, unknown>,
+		) {
+			const req = this.expectCalled(method, pathSubstring);
+			const requestBody = req.body as Record<string, unknown> | undefined;
+			for (const [key, value] of Object.entries(body)) {
+				const actualValue = requestBody?.[key];
+				if (JSON.stringify(actualValue) !== JSON.stringify(value)) {
+					throw new Error(
+						`Expected ${method} ${pathSubstring} body.${key} to be ${JSON.stringify(value)}, got ${JSON.stringify(actualValue)}`,
+					);
 				}
+			}
 			return req;
 		},
 		/** Get number of calls to a specific endpoint */

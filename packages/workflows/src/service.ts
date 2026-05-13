@@ -299,9 +299,7 @@ export class WorkflowAccessor {
 	async *watch(
 		executionId: string,
 	): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-		yield* this.http.stream(
-			`/workflows/${this.id}/${executionId}/timeline`,
-		);
+		yield* this.http.stream(`/workflows/${this.id}/${executionId}/timeline`);
 	}
 }
 

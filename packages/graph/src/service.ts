@@ -164,9 +164,7 @@ export class HistoryNamespace {
 	constructor(private readonly http: HttpClient) {}
 
 	async get(entityId: string, _entityType: string): Promise<S.EntityHistory> {
-		return this.http.get(
-			`/ontology/graph/entities/${entityId}/provenance`,
-		);
+		return this.http.get(`/ontology/graph/entities/${entityId}/provenance`);
 	}
 
 	async revert(

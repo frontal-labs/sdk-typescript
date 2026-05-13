@@ -452,25 +452,25 @@ describe("Environment Variable Management", () => {
 			});
 		});
 
-			it("should handle environment variable injection attempts", () => {
-				// Attempt to inject additional properties
-				const maliciousEnv = {
-					FRONTAL_API_KEY: "frt_valid1234567890abcdef",
-					FRONTAL_ENVIRONMENT: "development",
-					__proto__: { injected: "malicious" }, // Prototype pollution attempt
-					constructor: { injected: "malicious" }, // Constructor pollution attempt
-				} as unknown as NodeJS.ProcessEnv;
+		it("should handle environment variable injection attempts", () => {
+			// Attempt to inject additional properties
+			const maliciousEnv = {
+				FRONTAL_API_KEY: "frt_valid1234567890abcdef",
+				FRONTAL_ENVIRONMENT: "development",
+				__proto__: { injected: "malicious" }, // Prototype pollution attempt
+				constructor: { injected: "malicious" }, // Constructor pollution attempt
+			} as unknown as NodeJS.ProcessEnv;
 
-				const config = keys.client.parse(maliciousEnv);
+			const config = keys.client.parse(maliciousEnv);
 
 			// Should only contain the expected properties
 			expect(Object.keys(config)).toEqual([
 				"FRONTAL_API_KEY",
 				"FRONTAL_ENVIRONMENT",
 			]);
-				expect((config as Record<string, unknown>).injected).toBeUndefined();
-			});
+			expect((config as Record<string, unknown>).injected).toBeUndefined();
 		});
+	});
 
 	describe("Performance and efficiency", () => {
 		it("should handle large environment objects efficiently", () => {
