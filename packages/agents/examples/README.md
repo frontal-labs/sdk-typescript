@@ -225,4 +225,4 @@ When adding new examples:
 For questions or issues with these examples:
 - Check the [Frontal Documentation](https://docs.frontal.dev)
 - Review the [API Reference](../src/)
-- Open an issue on [GitHub](https://github.com/frontal-cloud/sdk-ts/issues)
+- Open an issue on [GitHub](https://github.com/frontal-labs/sdk-typescript/issues)

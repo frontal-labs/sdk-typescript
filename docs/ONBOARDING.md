@@ -13,8 +13,8 @@ First, you need to create your own copy of the project. Go to the project's GitH
 Now, clone the forked repository to your local machine.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/sdk-ts.git
-cd sdk-ts
+git clone https://github.com/YOUR_USERNAME/sdk-typescript.git
+cd sdk-typescript
 ```
 
 ### 1.3. Install Dependencies and Set Up

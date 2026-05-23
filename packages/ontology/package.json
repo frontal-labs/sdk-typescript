@@ -14,8 +14,8 @@
     "cloud",
     "frontal"
   ],
-  "homepage": "https://github.com/frontal-cloud/sdk-ts/tree/master/packages/ontology",
-  "bugs": "https://github.com/frontal-cloud/sdk-ts/issues",
+  "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/ontology",
+  "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
   "license": "MIT",
   "author": "Frontal Labs",
   "files": [
@@ -45,7 +45,7 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/frontal-cloud/sdk-ts.git",
+    "url": "https://github.com/frontal-labs/sdk-typescript.git",
     "directory": "packages/ontology"
   },
   "scripts": {

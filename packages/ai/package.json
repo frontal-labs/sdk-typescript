@@ -20,10 +20,10 @@
     "ai-as-a-service",
     "agentic-ai",
     "frontal",
-    "frontal-cloud"
+    "frontal-labs"
   ],
-  "homepage": "https://github.com/frontal-cloud/sdk-ts/tree/master/packages/ai",
-  "bugs": "https://github.com/frontal-cloud/sdk-ts/issues",
+  "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/ai",
+  "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
   "license": "MIT",
   "author": "Frontal Labs",
   "files": [
@@ -53,7 +53,7 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/frontal-cloud/sdk-ts.git",
+    "url": "https://github.com/frontal-labs/sdk-typescript.git",
     "directory": "packages/ai"
   },
   "scripts": {

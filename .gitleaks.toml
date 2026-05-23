@@ -1,4 +1,4 @@
-title = "sdk-ts"
+title = "sdk-typescript"
 
 [extend]
 useDefault = true

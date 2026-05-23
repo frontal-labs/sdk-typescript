@@ -40,8 +40,8 @@ Each package in the monorepo contains its own documentation:
 
 ## Getting Help
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/frontal-cloud/sdk-ts/issues)
-- **Discussions**: [Community discussions and Q&A](https://github.com/frontal-cloud/sdk-ts/discussions)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/frontal-labs/sdk-typescript/issues)
+- **Discussions**: [Community discussions and Q&A](https://github.com/frontal-labs/sdk-typescript/discussions)
 - **Documentation**: Browse the available documentation sections above
 
 ## Documentation Structure

@@ -225,5 +225,5 @@ When adding new examples:
 
 For issues with the examples or the Blob SDK:
 - Check the [Frontal Documentation](https://docs.frontal.dev)
-- Review the [SDK Repository Issues](https://github.com/frontal-cloud/sdk-ts/issues)
+- Review the [SDK Repository Issues](https://github.com/frontal-labs/sdk-typescript/issues)
 - Contact Frontal support for production issues

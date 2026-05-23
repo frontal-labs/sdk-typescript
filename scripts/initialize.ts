@@ -33,10 +33,10 @@ const createPackage = async (name: string, type: string, packageManager: string)
       "cloud",
       "frontal",
       "frontal-labs",
-      "frontal-cloud"
+      "frontal-labs"
     ],
-    homepage: `https://github.com/frontal-cloud/sdk-ts/tree/master/packages/${name}`,
-    bugs: "https://github.com/frontal-cloud/sdk-ts/issues",
+    homepage: `https://github.com/frontal-labs/sdk-typescript/tree/master/packages/${name}`,
+    bugs: "https://github.com/frontal-labs/sdk-typescript/issues",
     license: "MIT",
     author: "Frontal Labs",
     files: ["dist", "src"],
@@ -60,7 +60,7 @@ const createPackage = async (name: string, type: string, packageManager: string)
     sideEffects: false,
     repository: {
       type: "git",
-      url: "https://github.com/frontal-cloud/sdk-ts.git",
+      url: "https://github.com/frontal-labs/sdk-typescript.git",
       directory: `packages/${name}`
     },
     scripts: {

@@ -48,8 +48,8 @@ This repository is a monorepo containing various packages designed to simplify t
 
 ```bash
 # Clone the repository
-git clone https://github.com/frontal-cloud/sdk-ts.git
-cd sdk-ts
+git clone https://github.com/frontal-labs/sdk-typescript.git
+cd sdk-typescript
 
 # Install dependencies
 bun install
