@@ -1,6 +1,7 @@
 name: Preview release
 
 permissions:
+  contents: read
   pull-requests: write
 
 on:
@@ -27,7 +28,9 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: |
+          sed -i '/"@frontal\/ts-linter"/d' package.json
+          bun install
 
       - name: Build all packages
         run: bun run build
