@@ -6,26 +6,26 @@ export type { ClientConfigInput, ClientConfigOutput } from "./config";
 export { clientConfigSchema } from "./config";
 // Constants
 export {
-	API_KEY_PREFIX,
-	BACKOFF_STRATEGIES,
-	DEFAULT_BASE_URL,
-	DEFAULT_RETRY_ON,
-	EXPONENTIAL_BASE,
-	JITTER_MAX,
+  API_KEY_PREFIX,
+  BACKOFF_STRATEGIES,
+  DEFAULT_BASE_URL,
+  DEFAULT_RETRY_ON,
+  EXPONENTIAL_BASE,
+  JITTER_MAX,
 } from "./constants";
 // Error handling
 export {
-	ConflictError,
-	ForbiddenError,
-	FrontalError,
-	NetworkError,
-	NotFoundError,
-	parseFrontalError,
-	RateLimitError,
-	ServiceError,
-	TimeoutError,
-	UnauthorizedError,
-	ValidationError,
+  ConflictError,
+  ForbiddenError,
+  FrontalError,
+  NetworkError,
+  NotFoundError,
+  parseFrontalError,
+  RateLimitError,
+  ServiceError,
+  TimeoutError,
+  UnauthorizedError,
+  ValidationError,
 } from "./errors";
 // HTTP client for API requests
 export { HttpClient } from "./http";
@@ -40,29 +40,28 @@ export { pollUntil, withTimeout } from "./polling";
 export { calculateDelay } from "./retry";
 
 export type {
-	ErrorField,
-	ErrorResponse,
-	FilterConditions,
-	FilterValue,
-	PaginationMeta,
-	ResponseMeta,
-	RetryConfig,
-	Scalar,
+  ErrorField,
+  ErrorResponse,
+  FilterConditions,
+  FilterValue,
+  PaginationMeta,
+  ResponseMeta,
+  RetryConfig,
 } from "./schemas";
 // Schema validation and types
 export {
-	errorFieldSchema,
-	errorResponseSchema,
-	filterConditionsSchema,
-	filterValueSchema,
-	paginationMetaSchema,
-	responseMetaSchema,
-	retryConfigSchema,
-	timestampSchema,
+  errorFieldSchema,
+  errorResponseSchema,
+  filterConditionsSchema,
+  filterValueSchema,
+  paginationMetaSchema,
+  responseMetaSchema,
+  retryConfigSchema,
+  timestampSchema,
 } from "./schemas";
 // Core types and interfaces
 export type {
-	APIResponse,
-	PageResult,
-	QueryBuilder,
+  APIResponse,
+  PageResult,
+  QueryBuilder,
 } from "./types";

@@ -11,10 +11,10 @@ import { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
 
 /** Config for standalone usage without @frontal/core */
 export interface AIClientConfig {
-	apiKey: string;
-	baseUrl?: string;
-	timeout?: number;
-	maxRetries?: number;
+  apiKey: string;
+  baseUrl?: string;
+  timeout?: number;
+  maxRetries?: number;
 }
 
 /** Create from a FrontalClient instance */
@@ -22,29 +22,29 @@ export function createAIClient(client: FrontalClient): AIService;
 /** Create standalone with just config */
 export function createAIClient(config: AIClientConfig): AIService;
 export function createAIClient(
-	clientOrConfig: FrontalClient | AIClientConfig,
+  clientOrConfig: FrontalClient | AIClientConfig
 ): AIService {
-	if (clientOrConfig instanceof FrontalClient) {
-		return new AIService(clientOrConfig._http);
-	}
+  if (clientOrConfig instanceof FrontalClient) {
+    return new AIService(clientOrConfig._http);
+  }
 
-	const baseUrl =
-		clientOrConfig.baseUrl ??
-		process.env.FRONTAL_AI_API_URL ??
-		DEFAULT_AI_BASE_URL;
+  const baseUrl =
+    clientOrConfig.baseUrl ??
+    process.env.FRONTAL_AI_API_URL ??
+    DEFAULT_AI_BASE_URL;
 
-	const http = new HttpClient({
-		apiKey: clientOrConfig.apiKey,
-		baseUrl,
-		timeout: clientOrConfig.timeout ?? 30000,
-		maxRetries: clientOrConfig.maxRetries ?? 3,
-		retryDelay: 1000,
-		headers: {},
-		environment: "production",
-		debug: false,
-	});
+  const http = new HttpClient({
+    apiKey: clientOrConfig.apiKey,
+    baseUrl,
+    timeout: clientOrConfig.timeout ?? 30000,
+    maxRetries: clientOrConfig.maxRetries ?? 3,
+    retryDelay: 1000,
+    headers: {},
+    environment: "production",
+    debug: false,
+  });
 
-	return new AIService(http);
+  return new AIService(http);
 }
 
 // Default instance
@@ -58,13 +58,13 @@ export { AI } from "./compat";
 
 export { DEFAULT_AI_BASE_URL, VERSION };
 export type {
-	AIConfig,
-	APIResponse,
-	EmbedOptions,
-	EmbedResult,
-	ErrorResponse,
-	GenerateTextOptions,
-	GenerateTextResult,
-	Message,
-	StreamTextOptions,
+  AIConfig,
+  APIResponse,
+  EmbedOptions,
+  EmbedResult,
+  ErrorResponse,
+  GenerateTextOptions,
+  GenerateTextResult,
+  Message,
+  StreamTextOptions,
 } from "./types";
