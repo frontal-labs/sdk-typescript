@@ -7,7 +7,7 @@ const paginationSchema = z
     cursor: z.string().min(1),
     hasMore: z.boolean(),
     total: z.number().int().min(0).optional(),
-    limit: z.number().int().positive(),
+    limit: z.number().int().positive().optional(),
     offset: z.number().int().min(0).optional(),
   })
   .strict();

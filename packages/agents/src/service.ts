@@ -16,7 +16,7 @@ const asPagePayload = <T>(raw: unknown) =>
       cursor: string;
       hasMore: boolean;
       total?: number;
-      limit: number;
+      limit?: number;
       offset?: number;
     };
     meta?: unknown;

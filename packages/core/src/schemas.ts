@@ -26,7 +26,7 @@ export const paginationMetaSchema = z
   .object({
     cursor: z.string().min(1),
     hasMore: z.boolean(),
-    limit: z.number().int().positive(),
+    limit: z.number().int().positive().optional(),
     total: z.number().int().min(0).optional(),
     offset: z.number().int().min(0).optional(),
   })
