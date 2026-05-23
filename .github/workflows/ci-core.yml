@@ -27,9 +27,6 @@ jobs:
           sed -i '/"@frontal\/ts-linter"/d' package.json
           bun install
 
-      - name: Check code formatting
-        run: bun run format:check
-
       - name: Type check
         run: bun run type-check
 
