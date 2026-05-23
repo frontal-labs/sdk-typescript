@@ -25,6 +25,9 @@
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.cts",
+  "bin": {
+    "frontal-ontology": "./dist/index.mjs"
+  },
   "exports": {
     ".": {
       "import": {

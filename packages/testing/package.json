@@ -5,6 +5,9 @@
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
+  "bin": {
+    "frontal-testing": "./dist/index.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",

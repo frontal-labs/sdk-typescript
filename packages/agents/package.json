@@ -25,6 +25,9 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "bin": {
+    "frontal-agents": "./dist/index.mjs"
+  },
   "exports": {
     ".": {
       "import": {
