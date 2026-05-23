@@ -6,7 +6,35 @@ on:
 
 jobs:
   block-merge:
-    uses: supabase/actions/.github/workflows/block-merge.yml@659b3cd74a64ee2f1ca0a527922f134707e54671
-    with:
-      block_labels: 'do-not-merge'
-      block_keywords: 'wip,do not merge'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for blocked labels
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          BLOCK_LABELS=("do-not-merge" "wip" "blocked")
+          for label in "${BLOCK_LABELS[@]}"; do
+            if echo "$LABELS" | grep -qi "\"$label\""; then
+              echo "PR has blocked label: $label"
+              exit 1
+            fi
+          done
+
+      - name: Check for blocked keywords in title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          BLOCK_KEYWORDS=("wip" "do not merge" "draft")
+          TITLE_LOWER=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]')
+          for keyword in "${BLOCK_KEYWORDS[@]}"; do
+            if echo "$TITLE_LOWER" | grep -qi "$keyword"; then
+              echo "PR title contains blocked keyword: $keyword"
+              exit 1
+            fi
+          done
+
+      - name: Check if PR is a draft
+        if: github.event.pull_request.draft == true
+        run: |
+          echo "Draft PRs cannot be merged"
+          exit 1

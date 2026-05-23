@@ -73,8 +73,8 @@ jobs:
           stale-issue-label: 'stale'
           stale-pr-label: 'stale'
           # Exempt: manually handled, priority, planned, contributor-seeking, and awaiting-response labels
-          exempt-issue-labels: 'security,pinned,p1,p2,p3,planned,v3,help wanted,good first issue,needs server code,needs more info,repro needed,retry with latest'
-          exempt-pr-labels: 'security,p1,p2,p3,planned,v3,do-not-merge,needs server code'
+          exempt-issue-labels: 'security,pinned,p1,p2,p3,planned,help wanted,good first issue,needs more info,repro needed,retry with latest'
+          exempt-pr-labels: 'security,p1,p2,p3,planned,do-not-merge'
           exempt-all-assignees: true
           remove-stale-when-updated: true
           operations-per-run: 100

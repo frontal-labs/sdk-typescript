@@ -56,7 +56,7 @@ jobs:
               },
               {
                 "type": "section",
-                "text": { "type": "mrkdwn", "text": "See workflow details below. @group-sdk" }
+                "text": { "type": "mrkdwn", "text": "See workflow details below. @team-sdk" }
               },
               {
                 "type": "section",
@@ -94,4 +94,4 @@ jobs:
           EOF
           )
 
-          curl -X POST -H 'Content-type: application/json' --data "$payload" ${{ secrets.SLACK_CLIENT_LIBS_WEBHOOK }}
+          curl -X POST -H 'Content-type: application/json' --data "$payload" ${{ secrets.SLACK_WEBHOOK_URL }}
