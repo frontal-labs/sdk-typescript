@@ -28,9 +28,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: |
-          sed -i '/"@frontal\/ts-linter"/d' package.json
-          bun install
+        run: bun install --frozen-lockfile
 
       - name: Build all packages
         run: bun run build
