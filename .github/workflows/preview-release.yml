@@ -1,6 +1,7 @@
 name: Preview release
 
 permissions:
+  contents: read
   pull-requests: write
 
 on:
@@ -9,37 +10,25 @@ on:
     paths:
       - 'packages/**'
       - 'package.json'
-      - 'package-lock.json'
+      - 'bun.lock'
       - 'tsconfig.base.json'
       - 'scripts/**'
       - '.github/workflows/preview-release.yml'
-      - '.github/workflows/integration-tests.yml'
-      - '!packages/core/**/*.md'
-      - '!packages/core/**/docs/**'
-      - '!packages/core/**/.prettierrc'
-      - '!packages/core/**/*ignore'
 
 jobs:
   preview:
-    if: github.repository == 'supabase/supabase-js'
     runs-on: ubuntu-latest
-    outputs:
-      commit_hash: ${{ steps.commit.outputs.sha }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@v4
         with:
-          filter: tree:0
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build all packages
         run: bun run build
@@ -47,27 +36,14 @@ jobs:
       - name: Publish preview packages
         run: |
           npx pkg-pr-new@latest publish --compact \
-            ./packages/core/auth-js \
-            ./packages/core/functions-js \
-            ./packages/core/postgrest-js \
-            ./packages/core/realtime-js \
-            ./packages/core/storage-js \
-            ./packages/core/supabase-js
-
-      - name: Get commit hash
-        id: commit
-        run: |
-          # Use PR head SHA, not merge commit SHA
-          # pkg.pr.new publishes based on actual repo commits, not GitHub's temporary merge commits
-          COMMIT_SHA="${{ github.event.pull_request.head.sha }}"
-          echo "sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
-          echo "📍 PR Head commit: $COMMIT_SHA"
-          echo "📍 Current HEAD (merge commit): $(git rev-parse HEAD)"
-          echo "📍 These are different - we use PR head for pkg.pr.new URLs"
-
-  integration-tests:
-    name: Run Integration Tests
-    needs: preview
-    uses: ./.github/workflows/integration-tests.yml
-    with:
-      commit_hash: ${{ needs.preview.outputs.commit_hash }}
+            ./packages/agents \
+            ./packages/ai \
+            ./packages/blob \
+            ./packages/core \
+            ./packages/functions \
+            ./packages/graph \
+            ./packages/ontology \
+            ./packages/pipelines \
+            ./packages/testing \
+            ./packages/workflows || \
+            echo "Preview publish skipped (pkg-pr-new app not installed)"

@@ -6,9 +6,7 @@ node_modules
 .pnp.js
 
 # Bun
-bun.lock
 bun.lockb
-*.lock
 
 # Local env files
 .env
@@ -35,7 +33,6 @@ out/
 build
 dist
 lib
-node_modules
 
 # Debug
 npm-debug.log*

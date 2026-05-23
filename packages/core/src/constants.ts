@@ -15,9 +15,9 @@ export const API_KEY_PREFIX = "frt_";
  * - 'constant': Delay stays constant (baseDelay)
  */
 export const BACKOFF_STRATEGIES = [
-	"exponential",
-	"linear",
-	"constant",
+  "exponential",
+  "linear",
+  "constant",
 ] as const;
 
 /**

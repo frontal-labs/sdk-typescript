@@ -1,4 +1,4 @@
-bun commitlint --config commitlint.config.cjs --edit $1 || {
+bun commitlint --config commitlint.config.js --edit $1 || {
   echo ""
   echo "❌ Commit message does not follow conventional commit guidelines."
   echo "💡 See: https://www.conventionalcommits.org/"

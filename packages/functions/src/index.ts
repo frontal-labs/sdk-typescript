@@ -9,39 +9,39 @@ import { FunctionsService } from "./client";
 
 /** Config for standalone usage without @frontal/core */
 export interface FunctionsClientConfig {
-	apiKey: string;
-	baseUrl?: string;
-	timeout?: number;
-	maxRetries?: number;
+  apiKey: string;
+  baseUrl?: string;
+  timeout?: number;
+  maxRetries?: number;
 }
 
 /** Create from a FrontalClient instance */
 export function createFunctionsClient(client: FrontalClient): FunctionsService;
 /** Create standalone with just config */
 export function createFunctionsClient(
-	config: FunctionsClientConfig,
+  config: FunctionsClientConfig
 ): FunctionsService;
 export function createFunctionsClient(
-	clientOrConfig: FrontalClient | FunctionsClientConfig,
+  clientOrConfig: FrontalClient | FunctionsClientConfig
 ): FunctionsService {
-	if (clientOrConfig instanceof FrontalClient) {
-		return new FunctionsService(clientOrConfig._http);
-	}
-	const http = new HttpClient({
-		apiKey: clientOrConfig.apiKey,
-		baseUrl:
-			clientOrConfig.baseUrl ??
-			process.env.FRONTAL_FUNCTIONS_API_URL ??
-			process.env.FRONTAL_API_URL ??
-			"https://api.frontal.dev/v1",
-		timeout: clientOrConfig.timeout ?? 30000,
-		maxRetries: clientOrConfig.maxRetries ?? 3,
-		retryDelay: 1000,
-		headers: {},
-		environment: "production",
-		debug: false,
-	});
-	return new FunctionsService(http);
+  if (clientOrConfig instanceof FrontalClient) {
+    return new FunctionsService(clientOrConfig._http);
+  }
+  const http = new HttpClient({
+    apiKey: clientOrConfig.apiKey,
+    baseUrl:
+      clientOrConfig.baseUrl ??
+      process.env.FRONTAL_FUNCTIONS_API_URL ??
+      process.env.FRONTAL_API_URL ??
+      "https://api.frontal.dev/v1",
+    timeout: clientOrConfig.timeout ?? 30000,
+    maxRetries: clientOrConfig.maxRetries ?? 3,
+    retryDelay: 1000,
+    headers: {},
+    environment: "production",
+    debug: false,
+  });
+  return new FunctionsService(http);
 }
 
 // Default instance
@@ -55,11 +55,11 @@ export { Functions } from "./compat";
 
 export { DEFAULT_FUNCTIONS_BASE_URL, VERSION } from "./constants";
 export type {
-	APIResponse,
-	ErrorResponse,
-	FunctionConfig,
-	FunctionEntry,
-	FunctionsConfig,
-	InvocationStats,
-	InvokeOptions,
+  APIResponse,
+  ErrorResponse,
+  FunctionConfig,
+  FunctionEntry,
+  FunctionsConfig,
+  InvocationStats,
+  InvokeOptions,
 } from "./types";

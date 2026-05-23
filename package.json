@@ -1,93 +1,91 @@
 {
-	"name": "@frontal/root",
-	"version": "0.0.0",
-	"private": true,
-	"description": "Frontal JavaScript/Typescript SDK Monorepo",
-	"keywords": [
-		"javascript",
-		"typescript",
-		"sdk",
-		"monorepo",
-		"frontal",
-		"frontal-labs",
-		"frontal-cloud"
-	],
-	"homepage": "https://github.com/frontal-cloud/sdk-ts",
-	"bugs": "https://github.com/frontal-cloud/sdk-ts/issues",
-	"license": "MIT",
-	"author": "Frontal Labs",
-	"files": [
-		"dist",
-		"src"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/frontal-cloud/sdk-ts.git",
-		"directory": "packages/root"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"scripts": {
-		"build": "turbo run build",
-		"lint": "turbo run lint",
-		"lint:fix": "turbo run lint -- --fix",
-		"format": "biome format --write packages/ biome.jsonc package.json",
-		"format:check": "biome format packages/ biome.jsonc package.json",
-		"lint:ts": "node node_modules/@frontal/ts-linter/dist/main.js check",
-		"test": "vitest run",
-		"test:live": "bun scripts/live-backend-compat.ts",
-		"contract:sync": "bun scripts/contract-sync.ts",
-		"contract:endpoints": "bun scripts/endpoint-contract.ts",
-		"contract:endpoints:update": "bun scripts/endpoint-contract.ts --update",
-		"contract:report": "bun scripts/endpoint-contract.ts --report-only",
-		"contract:matrix": "bun scripts/contract-migration-matrix.ts",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
-		"type-check": "turbo run type-check",
-		"clean": "turbo run clean && bun run clean:workspaces",
-		"clean:workspaces": "bun scripts/clean.sh",
-		"changeset": "changeset",
-		"version-packages": "changeset version",
-		"release": "bun run build && changeset publish",
-		"release:semantic": "semantic-release --config release.config.js",
-		"prepare": "husky",
-		"setup": "bun scripts/setup.sh"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.3.14",
-		"@changesets/cli": "^2.27.12",
-		"@commitlint/cli": "^19.7.1",
-		"@commitlint/config-conventional": "^19.7.1",
-		"@frontal/ts-linter": "git@github.com:frontal-labs/ts-linter.git",
-		"@semantic-release/changelog": "^6.0.3",
-		"@semantic-release/commit-analyzer": "^13.0.0",
-		"@semantic-release/git": "^10.0.1",
-		"@semantic-release/github": "^10.3.5",
-		"@semantic-release/npm": "^12.0.1",
-		"@semantic-release/release-notes-generator": "^14.0.1",
-		"@types/bun": "^1.3.10",
-		"@types/node": "^25.3.5",
-		"@vitest/coverage-v8": "^2.1.8",
-		"husky": "^9.1.7",
-		"semantic-release": "^24.2.0",
-		"turbo": "^2.4.2",
-		"typescript": "^5.7.3",
-		"vitest": "^2.1.8"
-	},
-	"engines": {
-		"node": ">=18",
-		"bun": ">=1.3.8"
-	},
-	"packageManager": "bun@1.3.8",
-	"workspaces": [
-		"packages/*"
-	],
-	"bin": {
-		"frontal-sdk": "scripts/index.ts"
-	},
-	"dependencies": {
-		"@clack/prompts": "^1.1.0",
-		"commander": "^14.0.3"
-	}
+  "name": "@frontal/root",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Frontal JavaScript/Typescript SDK Monorepo",
+  "keywords": [
+    "javascript",
+    "typescript",
+    "sdk",
+    "monorepo",
+    "frontal",
+    "frontal-labs",
+    "frontal-cloud"
+  ],
+  "homepage": "https://github.com/frontal-cloud/sdk-ts",
+  "bugs": "https://github.com/frontal-cloud/sdk-ts/issues",
+  "license": "MIT",
+  "author": "Frontal Labs",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frontal-cloud/sdk-ts.git",
+    "directory": "packages/root"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "format": "biome format --write packages/ biome.jsonc package.json",
+    "format:check": "biome format packages/ biome.jsonc package.json",
+    "test": "vitest run",
+    "test:live": "bun scripts/live-backend-compat.ts",
+    "contract:sync": "bun scripts/contract-sync.ts",
+    "contract:endpoints": "bun scripts/endpoint-contract.ts",
+    "contract:endpoints:update": "bun scripts/endpoint-contract.ts --update",
+    "contract:report": "bun scripts/endpoint-contract.ts --report-only",
+    "contract:matrix": "bun scripts/contract-migration-matrix.ts",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && bun run clean:workspaces",
+    "clean:workspaces": "bun scripts/clean.sh",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "bun run build && changeset publish",
+    "release:semantic": "semantic-release --config release.config.js",
+    "prepare": "husky",
+    "setup": "bun scripts/setup.sh"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.14",
+    "@changesets/cli": "^2.27.12",
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.3.5",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.1",
+    "@types/bun": "^1.3.10",
+    "@types/node": "^25.3.5",
+    "@vitest/coverage-v8": "^2.1.8",
+    "husky": "^9.1.7",
+    "semantic-release": "^24.2.0",
+    "turbo": "^2.4.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.3.8"
+  },
+  "packageManager": "bun@1.3.8",
+  "workspaces": [
+    "packages/*"
+  ],
+  "bin": {
+    "frontal-sdk": "scripts/index.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.1.0",
+    "commander": "^14.0.3"
+  }
 }

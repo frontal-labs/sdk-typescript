@@ -1,0 +1,21 @@
+title = "sdk-ts"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore test fixtures, example env files, documentation, and generated code"
+paths = [
+  '''(^|.*/)fixtures(/.*|$)''',
+  '''(^|.*/)testdata(/.*|$)''',
+  '''\.env\.example$''',
+  '''\.env\.sample$''',
+  '''\.env$''',
+  '''README\.md$''',
+  '''AGENTS\.md$''',
+  '''docs/''',
+  '''\.test\.ts$''',
+  '''\.spec\.ts$''',
+  '''test\.env$''',
+  '''openapi\.yaml$''',
+]

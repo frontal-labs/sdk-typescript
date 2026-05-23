@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 	extends: ["@commitlint/config-conventional"],
 
 	rules: {
@@ -25,13 +25,16 @@ export default {
 			"always",
 			[
 				// Core library packages
+				"agents",
 				"ai",
-				"compute",
+				"blob",
+				"core",
 				"functions",
-				"storage",
-				"flags",
-				"logging",
-				"notifications",
+				"graph",
+				"ontology",
+				"pipelines",
+				"testing",
+				"workflows",
 
 				// Workspace-level scopes
 				"repo",
@@ -110,13 +113,16 @@ export default {
 			scope: {
 				description: "What is the scope of this change",
 				enum: {
+					agents: { description: "Anything @frontal/agents specific" },
 					ai: { description: "Anything @frontal/ai specific" },
-					compute: { description: "Anything @frontal/compute specific" },
-					functions: {
-						description: "Anything @frontal/functions specific",
-					},
-					storage: { description: "Anything @frontal/storage specific" },
-					flags: { description: "Anything @frontal/flags specific" },
+					blob: { description: "Anything @frontal/blob specific" },
+					core: { description: "Anything @frontal/core specific" },
+					functions: { description: "Anything @frontal/functions specific" },
+					graph: { description: "Anything @frontal/graph specific" },
+					ontology: { description: "Anything @frontal/ontology specific" },
+					pipelines: { description: "Anything @frontal/pipelines specific" },
+					testing: { description: "Anything @frontal/testing specific" },
+					workflows: { description: "Anything @frontal/workflows specific" },
 					repo: { description: "Repository-level changes" },
 					deps: { description: "Dependencies" },
 					ci: { description: "Changes to CI" },
