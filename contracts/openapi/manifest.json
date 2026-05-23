@@ -1,22 +1,22 @@
 {
-	"generatedAt": "2026-05-13T17:33:00.489Z",
-	"sources": {
-		"api": {
-			"path": "/Volumes/Frontal Labs IP/sdk-ts/openapi.spec3.json",
-			"sha256": "9f517ace58e908fdc2caf248f77e5a08c75b3abacfe7f5dd9a7e020ca70fbc66",
-			"targetPath": "/Volumes/Frontal Labs IP/sdk-ts/contracts/openapi/api.openapi.json",
-			"targetSha256": "9f517ace58e908fdc2caf248f77e5a08c75b3abacfe7f5dd9a7e020ca70fbc66"
-		},
-		"ai": {
-			"gatewayRoot": "/Volumes/Frontal Labs IP/frontal/inference/backend/gateway",
-			"infrastructureRoot": "/Volumes/Frontal Labs IP/frontal/infrastructure",
-			"hasAiPublicHostname": true,
-			"targetPath": "/Volumes/Frontal Labs IP/sdk-ts/contracts/openapi/ai.openapi.generated.json",
-			"targetSha256": "a82f517d8756941080402c84281b1e3fb00557eaa46800b7039aa04fc75f2aec",
-			"derivation": {
-				"runtimeApi": "src/router/runtime_api.rs",
-				"unifiedApi": "src/router/unified_api.rs"
-			}
-		}
-	}
+  "generatedAt": "2026-05-23T18:09:33.014Z",
+  "sources": {
+    "api": {
+      "url": "https://openapi.frontal.dev",
+      "sha256": "c460357731c565d8e65c37a1ca04ca83c8dc3b7e8b149cc02b28c5b1c7439a95",
+      "targetPath": "/Volumes/Frontal Labs IP/sdk-ts/contracts/openapi/api.openapi.json",
+      "targetSha256": "c460357731c565d8e65c37a1ca04ca83c8dc3b7e8b149cc02b28c5b1c7439a95"
+    },
+    "ai": {
+      "gatewayRoot": "/Volumes/Frontal Labs IP/frontal/inference/backend/gateway",
+      "infrastructureRoot": "/Volumes/Frontal Labs IP/frontal/infrastructure",
+      "hasAiPublicHostname": true,
+      "targetPath": "/Volumes/Frontal Labs IP/sdk-ts/contracts/openapi/ai.openapi.generated.json",
+      "targetSha256": "a82f517d8756941080402c84281b1e3fb00557eaa46800b7039aa04fc75f2aec",
+      "derivation": {
+        "runtimeApi": "src/router/runtime_api.rs",
+        "unifiedApi": "src/router/unified_api.rs"
+      }
+    }
+  }
 }
