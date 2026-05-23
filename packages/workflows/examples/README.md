@@ -171,5 +171,5 @@ For questions or issues with these examples:
 
 1. Check the [Frontal Documentation](https://docs.frontal.dev)
 2. Review the [API Reference](https://api.frontal.dev/docs)
-3. Open an issue on the [GitHub Repository](https://github.com/frontal-cloud/sdk-ts)
+3. Open an issue on the [GitHub Repository](https://github.com/frontal-labs/sdk-typescript)
 4. Contact Frontal Support at support@frontal.dev

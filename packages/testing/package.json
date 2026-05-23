@@ -23,7 +23,7 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/frontal-cloud/sdk-ts.git",
+    "url": "https://github.com/frontal-labs/sdk-typescript.git",
     "directory": "packages/testing"
   },
   "scripts": {

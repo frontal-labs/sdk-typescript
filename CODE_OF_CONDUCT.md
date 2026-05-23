@@ -61,6 +61,6 @@ This Code of Conduct is adapted from the [Contributor Covenant][homepage], versi
 
 ## Additional Resources
 
-- [Frontal SDK Community Guidelines](https://github.com/frontal-cloud/sdk-ts/discussions)
+- [Frontal SDK Community Guidelines](https://github.com/frontal-labs/sdk-typescript/discussions)
 - [GitHub Community Guidelines](https://docs.github.com/en/github/site-policy/github-community-guidelines)
 - [Contributor Covenant FAQ](https://www.contributor-covenant.org/faq)

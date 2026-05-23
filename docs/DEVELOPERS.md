@@ -16,8 +16,8 @@ This guide provides information for developers contributing to this project.
 1.  **Fork and Clone the repository**:
 
     ```bash
-    git clone https://github.com/YOUR_USERNAME/sdk-ts.git
-    cd sdk-ts
+    git clone https://github.com/YOUR_USERNAME/sdk-typescript.git
+    cd sdk-typescript
     ```
 
 2.  **Install dependencies and run setup**:

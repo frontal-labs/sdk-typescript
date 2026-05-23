@@ -100,7 +100,7 @@ We publish security advisories for:
 - **Medium/Low**: With next scheduled release
 
 Subscribe to security updates:
-- **GitHub Security Advisories**: [Watch our repository](https://github.com/frontal-cloud/sdk-ts/security/advisories)
+- **GitHub Security Advisories**: [Watch our repository](https://github.com/frontal-labs/sdk-typescript/security/advisories)
 - **Email Newsletter**: Subscribe at [frontal.cloud](https://frontal.cloud)
 - **Discord**: Join our security announcements channel
 
@@ -150,7 +150,7 @@ Our security team includes:
 ### Community
 
 - [Frontal Discord](https://discord.gg/frontal)
-- [GitHub Discussions](https://github.com/frontal-cloud/sdk-ts/discussions)
+- [GitHub Discussions](https://github.com/frontal-labs/sdk-typescript/discussions)
 - [Security Researcher Program](mailto:security@frontal.cloud)
 
 ## Compliance

@@ -44,8 +44,8 @@ Thank you for your interest in contributing to the Frontal SDK! We want to make 
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/sdk-ts.git
-cd sdk-ts
+git clone https://github.com/YOUR_USERNAME/sdk-typescript.git
+cd sdk-typescript
 
 # Install dependencies
 bun install
@@ -292,8 +292,8 @@ Follow the interactive prompt to:
 ### Getting Help
 
 - **Discord**: [Join our Discord](https://discord.gg/frontal)
-- **GitHub Discussions**: [Ask questions](https://github.com/frontal-cloud/sdk-ts/discussions)
-- **Issues**: [Report bugs](https://github.com/frontal-cloud/sdk-ts/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/frontal-labs/sdk-typescript/discussions)
+- **Issues**: [Report bugs](https://github.com/frontal-labs/sdk-typescript/issues)
 
 ### Code of Conduct
 

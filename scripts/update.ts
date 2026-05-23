@@ -36,7 +36,7 @@ const createTemporaryDirectory = async (name: string) => {
 };
 
 const cloneRepository = async (name: string) =>
-  await exec(`git clone https://github.com/frontal-cloud/sdk-ts ${name}`);
+  await exec(`git clone https://github.com/frontal-labs/sdk-typescript ${name}`);
 
 const getFiles = async (version: string) => {
   await exec(`git checkout ${version}`);
