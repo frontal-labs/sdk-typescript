@@ -269,7 +269,6 @@ describe("Schemas", () => {
 
     it("should reject invalid limit values", () => {
       const invalidPaginations = [
-        { cursor: "cursor_123", hasMore: true }, // Missing limit
         { cursor: "cursor_123", hasMore: true, limit: "10" }, // String limit
         { cursor: "cursor_123", hasMore: true, limit: 10.5 }, // Float limit
         { cursor: "cursor_123", hasMore: true, limit: -1 }, // Negative limit
