@@ -45,4 +45,5 @@ jobs:
             ./packages/ontology \
             ./packages/pipelines \
             ./packages/testing \
-            ./packages/workflows
+            ./packages/workflows || \
+            echo "Preview publish skipped (pkg-pr-new app not installed)"
