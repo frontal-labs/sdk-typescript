@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-TypeScript/JavaScript SDK monorepo for Frontal services. Packages: ai, compute, functions, blob, flags, logging, notifications.
+TypeScript/JavaScript SDK monorepo for Frontal services. Packages: ai, agents, blob, core, functions, graph, ontology, pipelines, testing, workflows.
 
 ## Code Style
 

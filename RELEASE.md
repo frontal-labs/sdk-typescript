@@ -50,7 +50,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/logging`
+## `@frontal/agents`
 
 ### ✨ New Features
 -
@@ -62,17 +62,6 @@ This release includes the following changes across our packages.
 -
 
 ## `@frontal/ontology`
-
-### ✨ New Features
--
-
-### 🐛 Bug Fixes
--
-
-### 💥 Breaking Changes
--
-
-## `@frontal/notifications`
 
 ### ✨ New Features
 -
