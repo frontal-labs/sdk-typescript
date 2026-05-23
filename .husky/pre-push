@@ -1,5 +1,9 @@
-# Check code formatting
-echo "🔍 Checking code formatting..."
-bun run format:check
+echo "Running pre-push checks..."
 
-echo "✅ Code formatting check passed"
+# Run Biome lint and format check across all files
+bun run format:check || {
+  echo "Format check failed. Run 'bun run format' to fix."
+  exit 1
+}
+
+echo "Pre-push checks passed!"
