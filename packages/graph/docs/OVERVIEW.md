@@ -1,4 +1,4 @@
-# @frontal/graph
+# @frontal-labs/graph
 
 The **Frontal Graph SDK** provides a powerful and flexible interface for working with graph databases in the Frontal ecosystem. It enables you to model complex relationships, perform sophisticated queries, and traverse connected data with ease.
 
@@ -16,7 +16,7 @@ The **Frontal Graph SDK** provides a powerful and flexible interface for working
 ## Installation
 
 ```bash
-bun add @frontal/graph
+bun add @frontal-labs/graph
 ```
 
 ## Quick Start
@@ -24,7 +24,7 @@ bun add @frontal/graph
 ### Basic Entity Operations
 
 ```typescript
-import { graph } from "@frontal/graph";
+import { graph } from "@frontal-labs/graph";
 
 // Create a user entity
 const user = await graph.entities("user").create({
@@ -153,8 +153,8 @@ FRONTAL_BASE_URL=https://api.frontal.dev
 Or configure programmatically:
 
 ```typescript
-import { createGraphClient } from "@frontal/graph";
-import { FrontalClient } from "@frontal/core";
+import { createGraphClient } from "@frontal-labs/graph";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

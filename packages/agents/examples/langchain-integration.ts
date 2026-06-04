@@ -5,8 +5,8 @@
  * with Frontal agents for enhanced AI capabilities.
  */
 
-import type { AgentHandler } from "@frontal/agents";
-import { createAgentsClient } from "@frontal/agents";
+import type { AgentHandler } from "@frontal-labs/agents";
+import { createAgentsClient } from "@frontal-labs/agents";
 import { DynamicStructuredTool } from "@langchain/core/tools";
 // LangChain imports (peer dependencies)
 import { ChatOpenAI } from "@langchain/openai";

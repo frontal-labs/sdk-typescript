@@ -1,4 +1,4 @@
-import type { FilterConditions } from "@frontal/core";
+import type { FilterConditions } from "@frontal-labs/core";
 import { z } from "zod";
 import type { EscalateOptions } from "./schemas";
 

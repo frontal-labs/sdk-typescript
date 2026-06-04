@@ -23,7 +23,7 @@ const createPackage = async (name: string, type: string, packageManager: string)
 
   // Create package.json
   const packageJson = {
-    name: `@frontal/${name}`,
+    name: `@frontal-labs/${name}`,
     version: "0.0.0",
     description: `${type} client for the Frontal SDK.`,
     keywords: [
@@ -79,7 +79,7 @@ const createPackage = async (name: string, type: string, packageManager: string)
       "node": ">=18.0.0"
     },
     dependencies: {
-      "@frontal/core": "workspace:*",
+      "@frontal-labs/core": "workspace:*",
       "tslib": "^2.8.1",
       "zod": "^4.3.6"
     },
@@ -127,7 +127,7 @@ const createWorkspace = async (name: string, packageManager: string) => {
 
   // Create root package.json for workspace
   const rootPackageJson = {
-    name: `@frontal/${name}-workspace`,
+    name: `@frontal-labs/${name}-workspace`,
     version: "0.0.0",
     private: true,
     description: "Frontal SDK Workspace",
@@ -139,7 +139,7 @@ const createWorkspace = async (name: string, packageManager: string) => {
       "clean": "turbo run clean"
     },
     devDependencies: {
-      "@frontal/core": "workspace:*",
+      "@frontal-labs/core": "workspace:*",
       "turbo": "^2.4.2",
       "typescript": "^5.7.3"
     },
@@ -327,7 +327,7 @@ Documentation for the ${name} package.
 ## Usage
 
 \`\`\`typescript
-import { ${type.charAt(0).toUpperCase() + type.slice(1)}Client } from "@frontal/${name}";
+import { ${type.charAt(0).toUpperCase() + type.slice(1)}Client } from "@frontal-labs/${name}";
 
 const client = new ${type.charAt(0).toUpperCase() + type.slice(1)}Client({
   // configuration
@@ -335,20 +335,20 @@ const client = new ${type.charAt(0).toUpperCase() + type.slice(1)}Client({
 \`\`\`
 `;
 
-const generatePackageReadme = (name: string, type: string) => `# @frontal/${name}
+const generatePackageReadme = (name: string, type: string) => `# @frontal-labs/${name}
 
 ${type.charAt(0).toUpperCase() + type.slice(1)} client for the Frontal SDK.
 
 ## Installation
 
 \`\`\`bash
-bun add @frontal/${name}
+bun add @frontal-labs/${name}
 \`\`\`
 
 ## Usage
 
 \`\`\`typescript
-import { ${type.charAt(0).toUpperCase() + type.slice(1)}Client } from "@frontal/${name}";
+import { ${type.charAt(0).toUpperCase() + type.slice(1)}Client } from "@frontal-labs/${name}";
 
 const client = new ${type.charAt(0).toUpperCase() + type.slice(1)}Client({
   // configuration options
@@ -372,7 +372,7 @@ constructor(config: ${type.charAt(0).toUpperCase() + type.slice(1)}Config)
 MIT
 `;
 
-const generateChangelogContent = (name: string) => `# @frontal/${name}
+const generateChangelogContent = (name: string) => `# @frontal-labs/${name}
 
 ## 0.0.0
 

@@ -3,6 +3,7 @@
 		"composite": true,
 		"declaration": true,
 		"declarationMap": true,
+		"tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
 		"importHelpers": true,
 		"isolatedModules": true,
 		"lib": ["es2022"],

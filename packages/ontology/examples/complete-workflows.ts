@@ -1,4 +1,4 @@
-import { ontology } from "@frontal/ontology";
+import { ontology } from "@frontal-labs/ontology";
 
 /**
  * Complete workflow example demonstrating end-to-end model management

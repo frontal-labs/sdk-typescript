@@ -13,12 +13,12 @@ new PipelinesService(http: HttpClient)
 Creates a new PipelinesService instance with an HTTP client.
 
 **Parameters:**
-- `http`: HTTP client instance from `@frontal/core`
+- `http`: HTTP client instance from `@frontal-labs/core`
 
 **Example:**
 ```typescript
-import { PipelinesService } from "@frontal/pipelines";
-import { getDefaultClient } from "@frontal/core";
+import { PipelinesService } from "@frontal-labs/pipelines";
+import { getDefaultClient } from "@frontal-labs/core";
 
 const pipelines = new PipelinesService(getDefaultClient()._http);
 ```
@@ -982,8 +982,8 @@ Creates a PipelinesService instance with a custom FrontalClient.
 
 **Example:**
 ```typescript
-import { createPipelinesClient } from "@frontal/pipelines";
-import { FrontalClient } from "@frontal/core";
+import { createPipelinesClient } from "@frontal-labs/pipelines";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",
@@ -998,7 +998,7 @@ const pipelines = createPipelinesClient(client);
 The package also exports a default pipelines instance configured with environment variables:
 
 ```typescript
-import { pipelines } from "@frontal/pipelines";
+import { pipelines } from "@frontal-labs/pipelines";
 
 // Use the default instance
 const pipelineList = await pipelines.list();

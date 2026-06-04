@@ -9,7 +9,7 @@ import {
 	type AgentContext,
 	type AgentHandler,
 	AgentsService,
-} from "@frontal/agents";
+} from "@frontal-labs/agents";
 
 type HttpClient = {
 	get(url: string, params?: any, schema?: any): Promise<any>;

@@ -1,4 +1,4 @@
-# @frontal/ontology
+# @frontal-labs/ontology
 
 The **Frontal Models SDK** provides a comprehensive system for entity schema management, database migrations, and AI-powered model generation. It enables you to define, evolve, and manage data models with type safety and intelligent automation.
 
@@ -16,7 +16,7 @@ The **Frontal Models SDK** provides a comprehensive system for entity schema man
 ## Installation
 
 ```bash
-bun add @frontal/ontology
+bun add @frontal-labs/ontology
 ```
 
 ## Quick Start
@@ -24,7 +24,7 @@ bun add @frontal/ontology
 ### Define a Model
 
 ```typescript
-import { ontology } from "@frontal/ontology";
+import { ontology } from "@frontal-labs/ontology";
 
 const user = await ontology.create({
   name: "user",
@@ -271,8 +271,8 @@ FRONTAL_BASE_URL=https://api.frontal.dev
 Or configure programmatically:
 
 ```typescript
-import { createOntologyClient } from "@frontal/ontology";
-import { FrontalClient } from "@frontal/core";
+import { createOntologyClient } from "@frontal-labs/ontology";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

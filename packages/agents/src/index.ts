@@ -1,4 +1,8 @@
-import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
+import {
+  FrontalClient,
+  getDefaultClient,
+  HttpClient,
+} from "@frontal-labs/core";
 import { AgentsService } from "./service";
 
 /** Config for standalone usage of the public agents SDK */

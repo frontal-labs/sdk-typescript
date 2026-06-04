@@ -1,5 +1,5 @@
-import { FrontalClient } from "@frontal/core";
-import { createMockFetch, mockPageResponse } from "@frontal/testing";
+import { FrontalClient } from "@frontal-labs/core";
+import { createMockFetch, mockPageResponse } from "@frontal-labs/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AgentsService } from "../src/service";
 import { createAgentsClient } from "../src";

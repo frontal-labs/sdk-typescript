@@ -1,4 +1,4 @@
-# @frontal/pipelines
+# @frontal-labs/pipelines
 
 The **Frontal Pipelines SDK** provides a powerful declarative system for building, orchestrating, and managing data pipelines with substrate orchestration and graph entity awareness. It enables you to create complex data workflows with type safety and intelligent automation.
 
@@ -16,7 +16,7 @@ The **Frontal Pipelines SDK** provides a powerful declarative system for buildin
 ## Installation
 
 ```bash
-bun add @frontal/pipelines
+bun add @frontal-labs/pipelines
 ```
 
 ## Quick Start
@@ -24,7 +24,7 @@ bun add @frontal/pipelines
 ### Define a Simple Pipeline
 
 ```typescript
-import { pipelines } from "@frontal/pipelines";
+import { pipelines } from "@frontal-labs/pipelines";
 
 // Create a data processing pipeline
 const pipeline = await pipelines.define("user-activity-processing")
@@ -277,8 +277,8 @@ FRONTAL_BASE_URL=https://api.frontal.dev
 Or configure programmatically:
 
 ```typescript
-import { createPipelinesClient } from "@frontal/pipelines";
-import { FrontalClient } from "@frontal/core";
+import { createPipelinesClient } from "@frontal-labs/pipelines";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

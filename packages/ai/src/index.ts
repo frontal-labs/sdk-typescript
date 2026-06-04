@@ -1,15 +1,19 @@
 /**
- * @frontal/ai
+ * @frontal-labs/ai
  *
  * A powerful, type-safe AI SDK for Frontal
  * Provides unified access to LLMs, embeddings, and more.
  */
 
-import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
+import {
+  FrontalClient,
+  getDefaultClient,
+  HttpClient,
+} from "@frontal-labs/core";
 import { AIService } from "./client";
 import { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
 
-/** Config for standalone usage without @frontal/core */
+/** Config for standalone usage without @frontal-labs/core */
 export interface AIClientConfig {
   apiKey: string;
   baseUrl?: string;

@@ -156,8 +156,8 @@ The examples demonstrate several best practices:
 
 ### Client Initialization
 ```typescript
-import { createGraphClient } from '@frontal/graph'
-import { FrontalClient } from '@frontal/core'
+import { createGraphClient } from '@frontal-labs/graph'
+import { FrontalClient } from '@frontal-labs/core'
 
 const client = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY,

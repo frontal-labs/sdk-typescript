@@ -1,4 +1,4 @@
-import { ontology } from "@frontal/ontology";
+import { ontology } from "@frontal-labs/ontology";
 
 /**
  * AI-powered model generation examples

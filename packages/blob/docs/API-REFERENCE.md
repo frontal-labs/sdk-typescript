@@ -17,7 +17,7 @@ Creates a new Storage client instance.
 
 **Example:**
 ```typescript
-import { Storage } from "@frontal/blob";
+import { Storage } from "@frontal-labs/blob";
 
 // Use default configuration (environment variables)
 const storage = new Storage();
@@ -292,7 +292,7 @@ Configures the global Storage client instance.
 
 **Example:**
 ```typescript
-import { configure } from "@frontal/blob";
+import { configure } from "@frontal-labs/blob";
 
 configure({
   apiKey: "your-api-key",
@@ -316,7 +316,7 @@ Uploads data using the global client instance.
 
 **Example:**
 ```typescript
-import { upload } from "@frontal/blob";
+import { upload } from "@frontal-labs/blob";
 
 await upload("my-bucket", "data.json", JSON.stringify(data), {
   contentType: "application/json"
@@ -337,7 +337,7 @@ Downloads data using the global client instance.
 
 **Example:**
 ```typescript
-import { download } from "@frontal/blob";
+import { download } from "@frontal-labs/blob";
 
 const result = await download("my-bucket", "image.jpg");
 if (result.data) {
@@ -360,7 +360,7 @@ Lists objects using the global client instance.
 
 **Example:**
 ```typescript
-import { list } from "@frontal/blob";
+import { list } from "@frontal-labs/blob";
 
 const result = await list("my-bucket", "images/");
 if (result.data) {
@@ -384,7 +384,7 @@ Generates signed URL using the global client instance.
 
 **Example:**
 ```typescript
-import { getSignedUrl } from "@frontal/blob";
+import { getSignedUrl } from "@frontal-labs/blob";
 
 const result = await getSignedUrl("private-bucket", {
   key: "document.pdf",
@@ -551,7 +551,7 @@ if (result.error) {
 The package exports a default storage instance:
 
 ```typescript
-import { storage } from "@frontal/blob";
+import { storage } from "@frontal-labs/blob";
 
 // Uses configuration from environment variables
 const result = await storage.upload("my-bucket", "file.txt", data);
@@ -562,8 +562,8 @@ const result = await storage.upload("my-bucket", "file.txt", data);
 Factory function for creating custom client instances:
 
 ```typescript
-import { createStorageClient } from "@frontal/blob";
-import { FrontalClient } from "@frontal/core";
+import { createStorageClient } from "@frontal-labs/blob";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

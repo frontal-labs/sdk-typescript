@@ -8,7 +8,7 @@
  * - Managing function lifecycle
  */
 
-import { type FunctionConfig, Functions } from "@frontal/functions";
+import { type FunctionConfig, Functions } from "@frontal-labs/functions";
 
 // Initialize the functions client
 // Uses environment variables for authentication by default

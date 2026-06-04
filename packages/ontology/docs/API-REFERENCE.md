@@ -191,8 +191,8 @@ Creates a OntologyService instance with a custom FrontalClient.
 
 **Example:**
 ```typescript
-import { createOntologyClient } from "@frontal/ontology";
-import { FrontalClient } from "@frontal/core";
+import { createOntologyClient } from "@frontal-labs/ontology";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",
@@ -207,7 +207,7 @@ const ontology = createOntologyClient(client);
 The package also exports a default models instance configured with environment variables:
 
 ```typescript
-import { ontology } from "@frontal/ontology";
+import { ontology } from "@frontal-labs/ontology";
 
 // Use the default instance
 const modelList = await ontology.list();

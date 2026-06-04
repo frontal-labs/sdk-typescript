@@ -1,4 +1,4 @@
-# @frontal/ai
+# @frontal-labs/ai
 
 The **Frontal AI SDK** is the definitive toolkit for building intelligent applications on the Frontal platform. It provides a unified, type-safe interface to state-of-the-art AI models for text, image, audio, and video.
 
@@ -17,13 +17,13 @@ The **Frontal AI SDK** is the definitive toolkit for building intelligent applic
 ## Installation
 
 ```bash
-bun add @frontal/ai
+bun add @frontal-labs/ai
 ```
 
 ## Quick Start
 
 ```typescript
-import { AI } from "@frontal/ai";
+import { AI } from "@frontal-labs/ai";
 
 const ai = new AI();
 

@@ -37,16 +37,16 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-      "@frontal/core": ["./packages/core/src"],
-			"@frontal/ai": ["./packages/ai/src"],
-			"@frontal/functions": ["./packages/functions/src"],
-			"@frontal/blob": ["./packages/blob/src"],
-			"@frontal/agents": ["./packages/agents/src"],
-			"@frontal/graph": ["./packages/graph/src"],
-			"@frontal/ontology": ["./packages/ontology/src"],
-			"@frontal/pipelines": ["./packages/pipelines/src"],
-			"@frontal/workflows": ["./packages/workflows/src"],
-      "@frontal/testing": ["./packages/testing/src"]
+      "@frontal-labs/core": ["./packages/core/src"],
+			"@frontal-labs/ai": ["./packages/ai/src"],
+			"@frontal-labs/functions": ["./packages/functions/src"],
+			"@frontal-labs/blob": ["./packages/blob/src"],
+			"@frontal-labs/agents": ["./packages/agents/src"],
+			"@frontal-labs/graph": ["./packages/graph/src"],
+			"@frontal-labs/ontology": ["./packages/ontology/src"],
+			"@frontal-labs/pipelines": ["./packages/pipelines/src"],
+			"@frontal-labs/workflows": ["./packages/workflows/src"],
+      "@frontal-labs/testing": ["./packages/testing/src"]
 		}
 	}
 }

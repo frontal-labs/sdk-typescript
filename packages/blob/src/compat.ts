@@ -1,4 +1,5 @@
-import { FrontalClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient } from "@frontal-labs/core";
+import type { ClientConfigOutput } from "@frontal-labs/core";
 import { BlobService } from "./client";
 import { DEFAULT_BLOB_BASE_URL } from "./constants";
 import type {
@@ -46,7 +47,7 @@ export class Storage {
       client = new FrontalClient({
         apiKey: config.apiKey || "",
         baseUrl: config.baseUrl || DEFAULT_BLOB_BASE_URL,
-      });
+      } as ClientConfigOutput);
     } else {
       client = getDefaultClient();
     }

@@ -16,13 +16,13 @@ A powerful framework for building, deploying, and managing intelligent autonomou
 ## Installation
 
 ```bash
-bun add @frontal/agents
+bun add @frontal-labs/agents
 ```
 
 ## Quick Start
 
 ```typescript
-import { createAgentsClient } from '@frontal/agents';
+import { createAgentsClient } from '@frontal-labs/agents';
 
 const agents = createAgentsClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -64,7 +64,7 @@ FRONTAL_BASE_URL=https://api.frontal.dev/v1
 Or create a custom client:
 
 ```typescript
-import { createAgentsClient } from '@frontal/agents';
+import { createAgentsClient } from '@frontal-labs/agents';
 
 const agents = createAgentsClient({
   apiKey: 'your-api-key',

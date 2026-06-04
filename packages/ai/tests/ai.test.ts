@@ -1,4 +1,4 @@
-import { createTestHttpClient, type MockRoute } from "@frontal/testing";
+import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
 import { AIService } from "../src/client";
 import { AI } from "../src/compat";

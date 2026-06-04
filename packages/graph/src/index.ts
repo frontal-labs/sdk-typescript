@@ -1,7 +1,11 @@
-import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
+import {
+  FrontalClient,
+  getDefaultClient,
+  HttpClient,
+} from "@frontal-labs/core";
 import { GraphService } from "./service";
 
-/** Config for standalone usage without @frontal/core */
+/** Config for standalone usage without @frontal-labs/core */
 export interface GraphClientConfig {
   apiKey: string;
   baseUrl?: string;

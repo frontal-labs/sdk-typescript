@@ -1,4 +1,5 @@
-import { FrontalClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient } from "@frontal-labs/core";
+import type { ClientConfigOutput } from "@frontal-labs/core";
 import { FunctionsService } from "./client";
 import { DEFAULT_FUNCTIONS_BASE_URL } from "./constants";
 import type {
@@ -44,7 +45,7 @@ export class Functions {
       client = new FrontalClient({
         apiKey: config.apiKey || "",
         baseUrl: config.baseUrl || DEFAULT_FUNCTIONS_BASE_URL,
-      });
+      } as ClientConfigOutput);
     } else {
       client = getDefaultClient();
     }

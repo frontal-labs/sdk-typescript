@@ -300,7 +300,7 @@ export class HttpClient {
       Authorization: `Bearer ${this.config.apiKey}`,
       "Content-Type": "application/json",
       Accept: "application/json",
-      "User-Agent": "@frontal/core",
+      "User-Agent": "@frontal-labs/core",
       "X-Frontal-Core": "typescript@1.0.0",
       "X-Frontal-Environment": this.config.environment,
       ...this.config.headers,

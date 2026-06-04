@@ -151,7 +151,7 @@ Examples leverage TypeScript for type safety:
 
 ### 1. Initialization
 ```typescript
-import { AI } from "@frontal/ai";
+import { AI } from "@frontal-labs/ai";
 
 const ai = new AI();
 // Or with custom config

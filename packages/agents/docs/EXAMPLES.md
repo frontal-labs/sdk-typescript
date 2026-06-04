@@ -18,7 +18,7 @@ This page contains practical examples and tutorials for using the Frontal Agents
 ### Simple Customer Support Agent
 
 ```typescript
-import { agents } from '@frontal/agents';
+import { agents } from '@frontal-labs/agents';
 
 const supportAgent = agents.define('customer-support')
   .description('Handles basic customer support inquiries')

@@ -21,16 +21,16 @@ body:
       label: Package affected
       description: Select the package that is affected by the bug
       options:
-        - "@frontal/agents"
-        - "@frontal/ai"
-        - "@frontal/blob"
-        - "@frontal/core"
-        - "@frontal/functions"
-        - "@frontal/graph"
-        - "@frontal/ontology"
-        - "@frontal/pipelines"
-        - "@frontal/testing"
-        - "@frontal/workflows"
+        - "@frontal-labs/agents"
+        - "@frontal-labs/ai"
+        - "@frontal-labs/blob"
+        - "@frontal-labs/core"
+        - "@frontal-labs/functions"
+        - "@frontal-labs/graph"
+        - "@frontal-labs/ontology"
+        - "@frontal-labs/pipelines"
+        - "@frontal-labs/testing"
+        - "@frontal-labs/workflows"
         - "multiple / unsure"
     validations:
       required: true

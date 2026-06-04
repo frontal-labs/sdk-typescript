@@ -1,5 +1,5 @@
 name: Core packages tests
-# Reusable workflow - called by ci.yml (PRs) and publish.yml (main)
+# Reusable workflow — called by ci.yml (PRs) and publish.yml (main)
 
 on:
   workflow_call:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-test:
-    name: Build and test
+    name: Build, type-check, and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +26,9 @@ jobs:
 
       - name: Build all packages
         run: bun run build
+
+      - name: Type check
+        run: bun run type-check
 
       - name: Run tests
         run: bun run test

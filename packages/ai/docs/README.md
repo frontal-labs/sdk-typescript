@@ -19,13 +19,13 @@ A powerful, type-safe AI SDK for Frontal. Provides unified access to LLMs, embed
 ## Installation
 
 ```bash
-bun add @frontal/ai
+bun add @frontal-labs/ai
 ```
 
 ## Quick Start
 
 ```typescript
-import { ai, generateText, streamText, embed } from '@frontal/ai';
+import { ai, generateText, streamText, embed } from '@frontal-labs/ai';
 
 // Text generation
 const result = await generateText({
@@ -69,7 +69,7 @@ FRONTAL_BASE_URL=https://api.frontal.dev/v1
 Or create a custom client:
 
 ```typescript
-import { AI } from '@frontal/ai';
+import { AI } from '@frontal-labs/ai';
 
 const ai = new AI({
   apiKey: 'your-api-key',

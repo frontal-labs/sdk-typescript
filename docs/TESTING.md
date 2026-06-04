@@ -111,7 +111,7 @@ describe('AI Package', () => {
 import { vi } from 'vitest';
 
 // Mock external dependencies
-vi.mock('@frontal/core', () => ({
+vi.mock('@frontal-labs/core', () => ({
   HttpClient: vi.fn(),
 }));
 

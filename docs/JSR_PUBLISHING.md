@@ -41,7 +41,7 @@ When we enable JSR publishing, packages will need a `jsr.json` configuration:
 
 ```json
 {
-  "name": "@frontal/ai",
+  "name": "@frontal-labs/ai",
   "version": "1.0.0",
   "description": "Frontal AI SDK - integration and utilities",
   "exports": {

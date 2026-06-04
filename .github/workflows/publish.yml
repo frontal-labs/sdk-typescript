@@ -7,16 +7,12 @@ on:
       - '*.md'
       - 'docs/**'
       - 'CHANGELOG.md'
+      - '.vscode/**'
   workflow_dispatch:
-    inputs:
-      release_type:
-        description: 'Release type (patch, minor, major)'
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   ci-core:
@@ -58,7 +54,7 @@ jobs:
           version: bun run version-packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
 
   docs:
     name: Generate Documentation

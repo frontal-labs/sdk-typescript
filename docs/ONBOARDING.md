@@ -63,7 +63,7 @@ bun run type-check
 Ensure your code adheres to our style guidelines by running the linter and formatter.
 
 ```bash
-bun run lint:ts
+bun run lint
 bun run lint:fix
 bun run format
 ```

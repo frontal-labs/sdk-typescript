@@ -1,36 +1,83 @@
-# @frontal/blob
+# @frontal-labs/blob
 
-Blob storage SDK for object upload, download, metadata, and signed URLs.
+Object storage SDK — upload, download, streaming, metadata, signed URLs,
+and copy/move operations.
 
 ## Installation
 
 ```bash
-bun add @frontal/blob @frontal/core
+npm install @frontal-labs/blob
 ```
 
-## Usage
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
 
 ```ts
-import { FrontalClient } from "@frontal/core";
-import { createBlobClient } from "@frontal/blob";
-
-const client = new FrontalClient({
-  apiKey: process.env.FRONTAL_API_KEY!,
-  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1",
-});
-
-const blob = createBlobClient(client);
+import { blob } from "@frontal-labs/blob";
 
 await blob.upload("assets", "logo.png", file, "image/png");
+
 const url = await blob.getSignedUrl("assets", {
   key: "logo.png",
   operation: "read",
-  expiresIn: 3600,
+  expiresIn: 3_600,
 });
+```
+
+The `blob` singleton reads `FRONTAL_API_KEY` and `FRONTAL_BLOB_API_URL` from
+the environment.
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createBlobClient } from "@frontal-labs/blob";
+
+const blob = createBlobClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+await blob.upload("bucket", "path/file.pdf", buffer, "application/pdf");
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createBlobClient } from "@frontal-labs/blob";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const blob = createBlobClient(client);
+```
+
+### Download and stream
+
+```ts
+const data = await blob.download("bucket", "path/file.pdf");
+
+const stream = await blob.downloadStream("bucket", "large-file.bin");
+for await (const chunk of stream) {
+  // process chunk
+}
+```
+
+### Metadata
+
+```ts
+const meta = await blob.getMetadata("bucket", "path/file.pdf");
+console.log(meta.size, meta.contentType, meta.lastModified);
 ```
 
 ## Configuration
 
-- `FRONTAL_API_KEY`
-- `FRONTAL_BLOB_API_URL` (optional)
-- `FRONTAL_API_URL` (fallback)
+| Variable | Default |
+|:---|:---|
+| `FRONTAL_API_KEY` | — |
+| `FRONTAL_BLOB_API_URL` | `https://api.frontal.dev/v1` |

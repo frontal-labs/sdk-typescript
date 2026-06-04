@@ -71,9 +71,9 @@ Comprehensive testing utilities and examples:
 
 1. **Agents SDK Setup**
    ```bash
-   npm install @frontal/agents
+   npm install @frontal-labs/agents
    # or
-   bun add @frontal/agents
+   bun add @frontal-labs/agents
    ```
 
 2. **Environment Variables**

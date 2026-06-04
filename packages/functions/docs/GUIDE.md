@@ -21,7 +21,7 @@ This guide covers advanced usage patterns, best practices, and common scenarios 
 You can configure the Functions SDK with a custom HTTP client for advanced scenarios:
 
 ```typescript
-import { Functions } from "@frontal/functions";
+import { Functions } from "@frontal-labs/functions";
 
 const functions = new Functions({
   apiKey: "your-api-key",
@@ -41,7 +41,7 @@ const functions = new Functions({
 Set up different configurations for development and production:
 
 ```typescript
-import { configure } from "@frontal/functions";
+import { configure } from "@frontal-labs/functions";
 
 const config = {
   apiKey: process.env.FRONTAL_API_KEY,
@@ -472,7 +472,7 @@ Test the deployed function:
 ```typescript
 // integration.test.ts
 import { describe, it, expect } from "bun:test";
-import { invoke } from "@frontal/functions";
+import { invoke } from "@frontal-labs/functions";
 
 describe("deployed function", () => {
   it("should handle real requests", async () => {

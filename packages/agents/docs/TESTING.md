@@ -16,7 +16,7 @@ This guide covers testing strategies and patterns for the Frontal Agents SDK.
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AgentsService, AgentBuilder } from '@frontal/agents';
+import { AgentsService, AgentBuilder } from '@frontal-labs/agents';
 
 describe('AgentBuilder', () => {
   let builder: AgentBuilder;
@@ -309,7 +309,7 @@ describe('Agent Simulation', () => {
 
 ```typescript
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { agents } from '@frontal/agents';
+import { agents } from '@frontal-labs/agents';
 
 describe('Agent Integration Tests', () => {
   let agentId: string;
@@ -880,7 +880,7 @@ export default defineConfig({
 import { vi } from 'vitest';
 
 // Global mocks
-vi.mock('@frontal/agents', () => ({
+vi.mock('@frontal-labs/agents', () => ({
   createAgentsClient: vi.fn(),
 }));
 

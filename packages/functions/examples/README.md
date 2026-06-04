@@ -72,9 +72,9 @@ This directory contains comprehensive examples demonstrating how to use the Fron
 
 1. Install the Functions SDK:
 ```bash
-npm install @frontal/functions
+npm install @frontal-labs/functions
 # or
-bun add @frontal/functions
+bun add @frontal-labs/functions
 ```
 
 2. Set up your environment variables:
@@ -106,7 +106,7 @@ bun run examples/testing.ts
 You can also import and use the example functions in your own code:
 
 ```typescript
-import { deployHttpFunction, invokeFunction } from "@frontal/functions/examples/basic-usage";
+import { deployHttpFunction, invokeFunction } from "@frontal-labs/functions/examples/basic-usage";
 
 // Deploy a function
 const deployed = await deployHttpFunction();
@@ -122,7 +122,7 @@ if (deployed) {
 ### 1. Basic Function Deployment
 
 ```typescript
-import { Functions, type FunctionConfig } from "@frontal/functions";
+import { Functions, type FunctionConfig } from "@frontal-labs/functions";
 
 const functions = new Functions();
 

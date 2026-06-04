@@ -5,7 +5,7 @@
  * operations using the Frontal Storage SDK.
  */
 
-import { Storage } from "@frontal/blob";
+import { Storage } from "@frontal-labs/blob";
 
 // Initialize the storage client
 const storage = new Storage();

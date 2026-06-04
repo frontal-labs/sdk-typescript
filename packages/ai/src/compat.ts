@@ -1,4 +1,5 @@
-import { FrontalClient, getDefaultClient } from "@frontal/core";
+import { FrontalClient, getDefaultClient } from "@frontal-labs/core";
+import type { ClientConfigOutput } from "@frontal-labs/core";
 import type { z } from "zod";
 import { AIService } from "./client";
 import { DEFAULT_AI_BASE_URL } from "./constants";
@@ -62,7 +63,7 @@ export class AI implements IAIClient {
       client = new FrontalClient({
         apiKey: config.apiKey || "",
         baseUrl: config.baseUrl || DEFAULT_AI_BASE_URL,
-      });
+      } as ClientConfigOutput);
     } else {
       client = getDefaultClient();
     }

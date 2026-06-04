@@ -1,4 +1,4 @@
-import { ontology } from "@frontal/ontology";
+import { ontology } from "@frontal-labs/ontology";
 
 /**
  * Basic model creation example

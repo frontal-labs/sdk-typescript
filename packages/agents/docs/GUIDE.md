@@ -7,7 +7,7 @@ Step-by-step guide for using the Agents package.
 1. Install the package:
 
 ```bash
-npm install @frontal/agents
+npm install @frontal-labs/agents
 ```
 
 2. Set up environment variables:
@@ -20,7 +20,7 @@ cp .env.example .env
 3. Create an agent instance:
 
 ```typescript
-import { AgentService } from '@frontal/agents';
+import { AgentService } from '@frontal-labs/agents';
 
 const agent = new AgentService({
   apiKey: process.env.FRONTAL_API_KEY!,

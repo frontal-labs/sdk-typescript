@@ -9,7 +9,7 @@
  * - Function orchestration
  */
 
-import { Functions, type InvokeOptions } from "@frontal/functions";
+import { Functions, type InvokeOptions } from "@frontal-labs/functions";
 
 const functions = new Functions();
 

@@ -16,7 +16,7 @@ This guide covers testing strategies and patterns for the Frontal AI SDK.
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AI } from '@frontal/ai';
+import { AI } from '@frontal-labs/ai';
 
 describe('AI Client', () => {
   let ai: AI;
@@ -155,7 +155,7 @@ describe('streamText', () => {
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { ai } from '@frontal/ai';
+import { ai } from '@frontal-labs/ai';
 
 describe('Integration Tests', () => {
   // These tests require actual API credentials
@@ -470,7 +470,7 @@ export default defineConfig({
 import { vi } from 'vitest';
 
 // Global mocks
-vi.mock('@frontal/core', () => ({
+vi.mock('@frontal-labs/core', () => ({
   FrontalClient: vi.fn()
 }));
 

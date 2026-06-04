@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { filterConditionsSchema } from "@frontal/core";
+import { filterConditionsSchema } from "@frontal-labs/core";
 
 export const timestampSchema = z
   .union([z.string().datetime(), z.date()])

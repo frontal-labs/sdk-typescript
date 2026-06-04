@@ -1,6 +1,6 @@
 {
-  "name": "@frontal/core",
-  "version": "1.0.0",
+  "name": "@frontal-labs/core",
+  "version": "1.0.1",
   "description": "Frontal platform — shared client, schemas, and utilities",
   "type": "module",
   "main": "dist/index.cjs",
@@ -22,14 +22,25 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frontal-labs/sdk-typescript.git",
+    "directory": "packages/core"
+  },
+  "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
+  "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/core",
+  "license": "MIT",
+  "author": "Frontal Labs",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsc --emitDeclarationOnly",
     "build:watch": "tsup --watch",
     "type-check": "tsc --noEmit",
     "test": "bun test",

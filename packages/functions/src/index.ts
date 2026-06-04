@@ -1,13 +1,17 @@
 /**
- * @frontal/functions
+ * @frontal-labs/functions
  *
  * Deploy and manage serverless functions on Frontal.
  */
 
-import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
+import {
+  FrontalClient,
+  getDefaultClient,
+  HttpClient,
+} from "@frontal-labs/core";
 import { FunctionsService } from "./client";
 
-/** Config for standalone usage without @frontal/core */
+/** Config for standalone usage without @frontal-labs/core */
 export interface FunctionsClientConfig {
   apiKey: string;
   baseUrl?: string;

@@ -1,55 +1,41 @@
 {
-	"$schema": "https://turborepo.dev/schema.json",
-	"ui": "tui",
-	"tasks": {
-		"build": {
-			"dependsOn": ["^build"],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": ["dist/**", "lib/**", ".next/**", "!.next/cache/**"]
-		},
-		"lint": {
-			"dependsOn": ["^lint"],
-			"outputs": []
-		},
-		"lint:ts": {
-			"dependsOn": ["^lint:ts"],
-			"outputs": []
-		},
-		"format": {
-			"dependsOn": ["^format"],
-			"outputs": []
-		},
-		"format:check": {
-			"dependsOn": ["^format:check"],
-			"outputs": []
-		},
-		"type-check": {
-			"dependsOn": ["^type-check"],
-			"outputs": []
-		},
-		"test": {
-			"dependsOn": ["build"],
-			"inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"]
-		},
-		"test:watch": {
-			"dependsOn": ["build"],
-			"inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"]
-		},
-		"test:coverage": {
-			"dependsOn": ["build"],
-			"inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"]
-		},
-		"clean": {
-			"dependsOn": ["^clean"],
-			"outputs": ["dist/**", "lib/**", ".turbo"]
-		},
-		"clean:workspaces": {
-			"cache": false,
-			"outputs": ["node_modules/**", "dist/**", "lib/**", ".turbo"]
-		},
-		"dev": {
-			"cache": false,
-			"persistent": true
-		}
-	}
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"],
+      "outputs": []
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:coverage": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"],
+      "outputs": ["coverage/**"]
+    },
+    "clean": {
+      "cache": false,
+      "outputs": ["dist/**", ".turbo"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
 }

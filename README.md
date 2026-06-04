@@ -23,16 +23,16 @@ This repository is a monorepo containing various packages designed to simplify t
 
 | Package | Description | Version |
 | :--- | :--- | :--- |
-| [`@frontal/core`](./packages/core) | Shared client transport, auth, retries, pagination, and error types. | ![npm](https://img.shields.io/npm/v/@frontal/core) |
-| [`@frontal/ai`](./packages/ai) | AI integration and utilities. | ![npm](https://img.shields.io/npm/v/@frontal/ai) |
-| [`@frontal/agents`](./packages/agents) | AI agent integrations and workflows. | ![npm](https://img.shields.io/npm/v/@frontal/agents) |
-| [`@frontal/functions`](./packages/functions) | Serverless functions orchestration. | ![npm](https://img.shields.io/npm/v/@frontal/functions) |
-| [`@frontal/graph`](./packages/graph) | Graph database operations. | ![npm](https://img.shields.io/npm/v/@frontal/graph) |
-| [`@frontal/ontology`](./packages/ontology) | Model deployment and management. | ![npm](https://img.shields.io/npm/v/@frontal/ontology) |
-| [`@frontal/pipelines`](./packages/pipelines) | Data pipeline orchestration. | ![npm](https://img.shields.io/npm/v/@frontal/pipelines) |
-| [`@frontal/blob`](./packages/blob) | Scalable storage interactions. | ![npm](https://img.shields.io/npm/v/@frontal/blob) |
-| [`@frontal/workflows`](./packages/workflows) | Workflow automation and management. | ![npm](https://img.shields.io/npm/v/@frontal/workflows) |
-| [`@frontal/testing`](./packages/testing) | Shared test harness, mocks, and fixtures for SDK packages. | ![npm](https://img.shields.io/npm/v/@frontal/testing) |
+| [`@frontal-labs/core`](./packages/core) | Shared client transport, auth, retries, pagination, and error types. | ![npm](https://img.shields.io/npm/v/@frontal-labs/core) |
+| [`@frontal-labs/ai`](./packages/ai) | AI integration and utilities. | ![npm](https://img.shields.io/npm/v/@frontal-labs/ai) |
+| [`@frontal-labs/agents`](./packages/agents) | AI agent integrations and workflows. | ![npm](https://img.shields.io/npm/v/@frontal-labs/agents) |
+| [`@frontal-labs/functions`](./packages/functions) | Serverless functions orchestration. | ![npm](https://img.shields.io/npm/v/@frontal-labs/functions) |
+| [`@frontal-labs/graph`](./packages/graph) | Graph database operations. | ![npm](https://img.shields.io/npm/v/@frontal-labs/graph) |
+| [`@frontal-labs/ontology`](./packages/ontology) | Model deployment and management. | ![npm](https://img.shields.io/npm/v/@frontal-labs/ontology) |
+| [`@frontal-labs/pipelines`](./packages/pipelines) | Data pipeline orchestration. | ![npm](https://img.shields.io/npm/v/@frontal-labs/pipelines) |
+| [`@frontal-labs/blob`](./packages/blob) | Scalable storage interactions. | ![npm](https://img.shields.io/npm/v/@frontal-labs/blob) |
+| [`@frontal-labs/workflows`](./packages/workflows) | Workflow automation and management. | ![npm](https://img.shields.io/npm/v/@frontal-labs/workflows) |
+| [`@frontal-labs/testing`](./packages/testing) | Shared test harness, mocks, and fixtures for SDK packages. | ![npm](https://img.shields.io/npm/v/@frontal-labs/testing) |
 
 ## Getting Started
 

@@ -5,7 +5,7 @@
  * with automated responses based on sentiment analysis.
  */
 
-import { type AgentHandler, createAgentsClient } from "@frontal/agents";
+import { type AgentHandler, createAgentsClient } from "@frontal-labs/agents";
 
 const agents = createAgentsClient({
 	apiKey: process.env.FRONTAL_API_KEY ?? "",

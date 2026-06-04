@@ -5,7 +5,7 @@
  * access to storage objects without requiring authentication for each request.
  */
 
-import { Storage } from "@frontal/blob";
+import { Storage } from "@frontal-labs/blob";
 
 const storage = new Storage();
 

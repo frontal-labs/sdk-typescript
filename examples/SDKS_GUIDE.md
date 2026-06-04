@@ -2,16 +2,16 @@
 
 This guide covers all SDK packages in this repository:
 
-- `@frontal/core`
-- `@frontal/ai`
-- `@frontal/agents`
-- `@frontal/workflows`
-- `@frontal/pipelines`
-- `@frontal/graph`
-- `@frontal/ontology`
-- `@frontal/blob`
-- `@frontal/functions`
-- `@frontal/testing`
+- `@frontal-labs/core`
+- `@frontal-labs/ai`
+- `@frontal-labs/agents`
+- `@frontal-labs/workflows`
+- `@frontal-labs/pipelines`
+- `@frontal-labs/graph`
+- `@frontal-labs/ontology`
+- `@frontal-labs/blob`
+- `@frontal-labs/functions`
+- `@frontal-labs/testing`
 
 It includes architecture, setup, usage patterns, and end-to-end examples.
 
@@ -20,7 +20,7 @@ It includes architecture, setup, usage patterns, and end-to-end examples.
 Install:
 
 ```bash
-bun add @frontal/core @frontal/ai @frontal/agents @frontal/workflows @frontal/pipelines @frontal/graph @frontal/ontology @frontal/blob @frontal/functions
+bun add @frontal-labs/core @frontal-labs/ai @frontal-labs/agents @frontal-labs/workflows @frontal-labs/pipelines @frontal-labs/graph @frontal-labs/ontology @frontal-labs/blob @frontal-labs/functions
 ```
 
 Typical environment variables:
@@ -34,7 +34,7 @@ FRONTAL_AI_API_URL=https://ai.frontal.dev
 Shared client setup pattern:
 
 ```ts
-import { FrontalClient } from "@frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -44,7 +44,7 @@ const client = new FrontalClient({
 });
 ```
 
-## 2) `@frontal/core`
+## 2) `@frontal-labs/core`
 
 ### What it does
 
@@ -65,7 +65,7 @@ Core transport/runtime used by all packages:
 ### Example: custom endpoint + polling
 
 ```ts
-import { FrontalClient, pollUntil } from "@frontal/core";
+import { FrontalClient, pollUntil } from "@frontal-labs/core";
 
 const core = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -87,7 +87,7 @@ const final = await pollUntil(
 );
 ```
 
-## 3) `@frontal/ai`
+## 3) `@frontal-labs/ai`
 
 ### What it does
 
@@ -110,7 +110,7 @@ Inference SDK for `ai.frontal.dev`:
 ### Example: generate + stream + embeddings
 
 ```ts
-import { createAIClient } from "@frontal/ai";
+import { createAIClient } from "@frontal-labs/ai";
 
 const ai = createAIClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -154,7 +154,7 @@ const incident = await ai.generateObject({
 });
 ```
 
-## 4) `@frontal/agents`
+## 4) `@frontal-labs/agents`
 
 ### What it does
 
@@ -175,7 +175,7 @@ Agent lifecycle and execution SDK:
 ### Example: define and deploy an agent
 
 ```ts
-import { createAgentsClient } from "@frontal/agents";
+import { createAgentsClient } from "@frontal-labs/agents";
 
 const agents = createAgentsClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -206,7 +206,7 @@ for await (const event of agents.use("agt_123").watch(exec.executionId)) {
 }
 ```
 
-## 5) `@frontal/workflows`
+## 5) `@frontal-labs/workflows`
 
 ### What it does
 
@@ -227,7 +227,7 @@ Workflow orchestration SDK:
 ### Example: approval workflow
 
 ```ts
-import { createWorkflowsClient } from "@frontal/workflows";
+import { createWorkflowsClient } from "@frontal-labs/workflows";
 
 const workflows = createWorkflowsClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -247,7 +247,7 @@ const run = await workflows.use(wf.id).trigger({ invoiceId: "inv_001" });
 const done = await workflows.use(wf.id).waitForCompletion(run.id);
 ```
 
-## 6) `@frontal/pipelines`
+## 6) `@frontal-labs/pipelines`
 
 ### What it does
 
@@ -267,7 +267,7 @@ Data pipeline orchestration SDK:
 ### Example: scheduled ingest pipeline
 
 ```ts
-import { createPipelinesClient } from "@frontal/pipelines";
+import { createPipelinesClient } from "@frontal-labs/pipelines";
 
 const pipelines = createPipelinesClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -286,7 +286,7 @@ const run = await pipelines.use(pipeline.id).trigger({ dryRun: false });
 const final = await pipelines.use(pipeline.id).waitForRun(run.id);
 ```
 
-## 7) `@frontal/graph`
+## 7) `@frontal-labs/graph`
 
 ### What it does
 
@@ -306,7 +306,7 @@ Graph operations SDK:
 ### Example: query + relationships
 
 ```ts
-import { createGraphClient } from "@frontal/graph";
+import { createGraphClient } from "@frontal-labs/graph";
 
 const graph = createGraphClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -327,7 +327,7 @@ await graph.use("customer").addRelationship(
 );
 ```
 
-## 8) `@frontal/ontology`
+## 8) `@frontal-labs/ontology`
 
 ### What it does
 
@@ -348,7 +348,7 @@ Ontology/modeling SDK:
 ### Example: validate + generate
 
 ```ts
-import { createOntologyClient } from "@frontal/ontology";
+import { createOntologyClient } from "@frontal-labs/ontology";
 
 const ontology = createOntologyClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -366,7 +366,7 @@ const proposal = await ontology.generation.generate(
 );
 ```
 
-## 9) `@frontal/blob`
+## 9) `@frontal-labs/blob`
 
 ### What it does
 
@@ -386,7 +386,7 @@ Blob/object storage SDK:
 ### Example: upload + sign + metadata
 
 ```ts
-import { createBlobClient } from "@frontal/blob";
+import { createBlobClient } from "@frontal-labs/blob";
 
 const blob = createBlobClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -409,7 +409,7 @@ const url = await blob.getSignedUrl("contracts", {
 const meta = await blob.getMetadata("contracts", "2026/q2/master.pdf");
 ```
 
-## 10) `@frontal/functions`
+## 10) `@frontal-labs/functions`
 
 ### What it does
 
@@ -429,7 +429,7 @@ Function runtime SDK:
 ### Example: deploy + invoke
 
 ```ts
-import { createFunctionsClient } from "@frontal/functions";
+import { createFunctionsClient } from "@frontal-labs/functions";
 
 const functions = createFunctionsClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -448,7 +448,7 @@ const fn = await functions.deploy({
 const result = await functions.invoke(fn.id, { payload: { leadId: "l_123" } });
 ```
 
-## 11) `@frontal/testing`
+## 11) `@frontal-labs/testing`
 
 ### What it does
 
@@ -468,8 +468,8 @@ Testing toolkit for SDK consumers and package maintainers:
 ### Example
 
 ```ts
-import { createTestHttpClient, mockPageResponse } from "@frontal/testing";
-import { WorkflowsService } from "@frontal/workflows/src/service";
+import { createTestHttpClient, mockPageResponse } from "@frontal-labs/testing";
+import { WorkflowsService } from "@frontal-labs/workflows/src/service";
 
 const { http, mock } = createTestHttpClient([
   { method: "GET", path: "/v1/workflows", body: mockPageResponse([]) }
@@ -485,19 +485,19 @@ mock.expectCalled("GET", "/v1/workflows");
 
 A common high-value orchestration flow:
 
-1. Ingest files with `@frontal/blob`
-2. Extract with `@frontal/ai`
-3. Normalize through `@frontal/pipelines`
-4. Persist graph relationships via `@frontal/graph`
-5. Enforce taxonomy changes via `@frontal/ontology`
-6. Coordinate approvals with `@frontal/workflows`
-7. Delegate targeted actions with `@frontal/agents`
-8. Execute specialized logic in `@frontal/functions`
+1. Ingest files with `@frontal-labs/blob`
+2. Extract with `@frontal-labs/ai`
+3. Normalize through `@frontal-labs/pipelines`
+4. Persist graph relationships via `@frontal-labs/graph`
+5. Enforce taxonomy changes via `@frontal-labs/ontology`
+6. Coordinate approvals with `@frontal-labs/workflows`
+7. Delegate targeted actions with `@frontal-labs/agents`
+8. Execute specialized logic in `@frontal-labs/functions`
 
 ## 13) Error Handling Pattern
 
 ```ts
-import { FrontalError } from "@frontal/core";
+import { FrontalError } from "@frontal-labs/core";
 
 try {
   // any SDK call
@@ -516,5 +516,5 @@ try {
 - Keep API keys scoped and rotated.
 - Use streaming APIs for user-facing latency-sensitive generation.
 - Use idempotency/request IDs where available for retried mutations.
-- Keep tests pinned to SDK route/payload contracts (`@frontal/testing`).
+- Keep tests pinned to SDK route/payload contracts (`@frontal-labs/testing`).
 

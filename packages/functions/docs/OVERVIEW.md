@@ -1,4 +1,4 @@
-# @frontal/functions
+# @frontal-labs/functions
 
 The **Frontal Functions SDK** provides a powerful and scalable way to deploy and manage serverless functions at the edge. It offers a simple, type-safe interface for deploying, invoking, and monitoring functions with support for multiple runtimes and trigger types.
 
@@ -14,7 +14,7 @@ The **Frontal Functions SDK** provides a powerful and scalable way to deploy and
 ## Installation
 
 ```bash
-bun add @frontal/functions
+bun add @frontal-labs/functions
 ```
 
 ## Quick Start
@@ -22,7 +22,7 @@ bun add @frontal/functions
 ### Deploy a Simple HTTP Function
 
 ```typescript
-import { deploy } from "@frontal/functions";
+import { deploy } from "@frontal-labs/functions";
 
 const functionConfig = {
   name: "hello-world",
@@ -42,7 +42,7 @@ console.log(`Function deployed: ${result.data?.url}`);
 ### Invoke a Function
 
 ```typescript
-import { invoke } from "@frontal/functions";
+import { invoke } from "@frontal-labs/functions";
 
 const response = await invoke("hello-world", {
   payload: { name: "Alice" },
@@ -55,7 +55,7 @@ console.log(response);
 ### List All Functions
 
 ```typescript
-import { list } from "@frontal/functions";
+import { list } from "@frontal-labs/functions";
 
 const functions = await list();
 console.log("Deployed functions:", functions.data);
@@ -111,7 +111,7 @@ FRONTAL_BASE_URL=https://api.frontal.dev
 Or configure programmatically:
 
 ```typescript
-import { configure } from "@frontal/functions";
+import { configure } from "@frontal-labs/functions";
 
 configure({
   apiKey: "your_api_key",

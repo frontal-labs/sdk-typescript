@@ -13,13 +13,13 @@ This repository is a monorepo containing various packages designed to simplify t
 
 | Package | Description |
 | :--- | :--- |
-| `@frontal/core` | Shared transport, auth, retries, pagination, and typed errors used by all SDKs. |
-| `@frontal/ai` | AI integration and utilities. |
-| `@frontal/agents` | AI agent integrations and workflows with LangChain, LangGraph, and Vercel AI SDK. |
-| `@frontal/functions` | Serverless functions orchestration. |
-| `@frontal/graph` | Graph database operations and semantic search. |
-| `@frontal/ontology` | Model deployment and management. |
-| `@frontal/pipelines` | Data pipeline orchestration. |
-| `@frontal/blob` | Scalable storage interactions. |
-| `@frontal/workflows` | Workflow automation and management. |
-| `@frontal/testing` | Test utilities, mock transport, and fixtures for package-level SDK tests. |
+| `@frontal-labs/core` | Shared transport, auth, retries, pagination, and typed errors used by all SDKs. |
+| `@frontal-labs/ai` | AI integration and utilities. |
+| `@frontal-labs/agents` | AI agent integrations and workflows with LangChain, LangGraph, and Vercel AI SDK. |
+| `@frontal-labs/functions` | Serverless functions orchestration. |
+| `@frontal-labs/graph` | Graph database operations and semantic search. |
+| `@frontal-labs/ontology` | Model deployment and management. |
+| `@frontal-labs/pipelines` | Data pipeline orchestration. |
+| `@frontal-labs/blob` | Scalable storage interactions. |
+| `@frontal-labs/workflows` | Workflow automation and management. |
+| `@frontal-labs/testing` | Test utilities, mock transport, and fixtures for package-level SDK tests. |

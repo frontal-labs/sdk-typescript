@@ -27,16 +27,16 @@ Welcome to the Frontal SDK documentation. This section provides comprehensive gu
 
 Each package in the monorepo contains its own documentation:
 
-- **[@frontal/ai](../packages/ai/)** - AI integration and utilities
-- **[@frontal/agents](../packages/agents/)** - AI agent integrations and workflows
-- **[@frontal/core](../packages/core/)** - Shared client transport, retries, errors, and pagination
-- **[@frontal/functions](../packages/functions/)** - Serverless functions orchestration
-- **[@frontal/graph](../packages/graph/)** - Graph database operations
-- **[@frontal/ontology](../packages/ontology/)** - Model deployment and management
-- **[@frontal/pipelines](../packages/pipelines/)** - Data pipeline orchestration
-- **[@frontal/blob](../packages/blob/)** - Scalable storage interactions
-- **[@frontal/workflows](../packages/workflows/)** - Workflow automation and management
-- **[@frontal/testing](../packages/testing/)** - Shared SDK testing helpers and fixtures
+- **[@frontal-labs/ai](../packages/ai/)** - AI integration and utilities
+- **[@frontal-labs/agents](../packages/agents/)** - AI agent integrations and workflows
+- **[@frontal-labs/core](../packages/core/)** - Shared client transport, retries, errors, and pagination
+- **[@frontal-labs/functions](../packages/functions/)** - Serverless functions orchestration
+- **[@frontal-labs/graph](../packages/graph/)** - Graph database operations
+- **[@frontal-labs/ontology](../packages/ontology/)** - Model deployment and management
+- **[@frontal-labs/pipelines](../packages/pipelines/)** - Data pipeline orchestration
+- **[@frontal-labs/blob](../packages/blob/)** - Scalable storage interactions
+- **[@frontal-labs/workflows](../packages/workflows/)** - Workflow automation and management
+- **[@frontal-labs/testing](../packages/testing/)** - Shared SDK testing helpers and fixtures
 
 ## Getting Help
 

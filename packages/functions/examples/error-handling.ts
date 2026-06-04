@@ -9,7 +9,7 @@
  * - Graceful degradation
  */
 
-import { type FunctionConfig, Functions } from "@frontal/functions";
+import { type FunctionConfig, Functions } from "@frontal-labs/functions";
 
 const functions = new Functions();
 

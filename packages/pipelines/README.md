@@ -1,32 +1,84 @@
-# @frontal/pipelines
+# @frontal-labs/pipelines
 
-Declarative pipeline SDK for ingest, transform, and execution workflows.
+Declarative data pipeline SDK — ingest, transform, enrich, validate, and
+orchestrate with substrate awareness.
 
 ## Installation
 
 ```bash
-bun add @frontal/pipelines @frontal/core
+npm install @frontal-labs/pipelines
 ```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts
+import { pipelines } from "@frontal-labs/pipelines";
+
+const list = await pipelines.list({ limit: 10 });
+```
+
+The `pipelines` singleton reads `FRONTAL_API_KEY` and
+`FRONTAL_PIPELINES_API_URL` from the environment.
 
 ## Usage
 
+### Explicit config
+
 ```ts
-import { FrontalClient } from "@frontal/core";
-import { createPipelinesClient } from "@frontal/pipelines";
+import { createPipelinesClient } from "@frontal-labs/pipelines";
+
+const pipelines = createPipelinesClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const run = await pipelines.use("ppl_123").trigger({ source: "manual" });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createPipelinesClient } from "@frontal-labs/pipelines";
 
 const client = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY!,
-  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1",
+  baseUrl: "https://api.frontal.dev/v1",
 });
 
 const pipelines = createPipelinesClient(client);
+```
 
-const page = await pipelines.list({ limit: 10 });
-const run = await pipelines.use("ppl_123").trigger({ source: "manual" });
+### Builder API
+
+```ts
+const pipeline = await pipelines
+  .define("crm-sync")
+  .fromSchedule("0 * * * *")
+  .collect("fetch-crm", { source: "salesforce" })
+  .transform("normalize", { mapping: { company_name: "companyName" } })
+  .write("upsert-graph", { target: "graph" })
+  .create();
+
+await pipelines.use(pipeline.id).trigger({ dryRun: false });
+```
+
+### Backfills and lineage
+
+```ts
+const backfill = await pipelines.use("ppl_123").backfill({
+  from: "2026-01-01",
+  to: "2026-06-01",
+});
+
+const health = await pipelines.use("ppl_123").health();
 ```
 
 ## Configuration
 
-- `FRONTAL_API_KEY`
-- `FRONTAL_PIPELINES_API_URL` (optional)
-- `FRONTAL_API_URL` (fallback)
+| Variable | Default |
+|:---|:---|
+| `FRONTAL_API_KEY` | — |
+| `FRONTAL_PIPELINES_API_URL` | `https://api.frontal.dev/v1` |

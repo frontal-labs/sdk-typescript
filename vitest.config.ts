@@ -80,17 +80,17 @@ export default defineConfig({
   resolve: {
     alias: {
       // Package aliases for easier imports
-      '@frontal/ai': resolve(__dirname, 'packages/ai/src'),
-      '@frontal/functions': resolve(__dirname, 'packages/functions/src'),
-      '@frontal/blob': resolve(__dirname, 'packages/blob/src'),
-      '@frontal/agents': resolve(__dirname, 'packages/agents/src'),
-      '@frontal/core': resolve(__dirname, 'packages/core/src'),
-      '@frontal/graph': resolve(__dirname, 'packages/graph/src'),
-      '@frontal/ontology': resolve(__dirname, 'packages/ontology/src'),
-      '@frontal/pipelines': resolve(__dirname, 'packages/pipelines/src'),
-      '@frontal/workflows': resolve(__dirname, 'packages/workflows/src'),
-      '@frontal/testing': resolve(__dirname, 'packages/testing/src'),
-      '@frontal/types': resolve(__dirname, 'types'),
+      '@frontal-labs/ai': resolve(__dirname, 'packages/ai/src'),
+      '@frontal-labs/functions': resolve(__dirname, 'packages/functions/src'),
+      '@frontal-labs/blob': resolve(__dirname, 'packages/blob/src'),
+      '@frontal-labs/agents': resolve(__dirname, 'packages/agents/src'),
+      '@frontal-labs/core': resolve(__dirname, 'packages/core/src'),
+      '@frontal-labs/graph': resolve(__dirname, 'packages/graph/src'),
+      '@frontal-labs/ontology': resolve(__dirname, 'packages/ontology/src'),
+      '@frontal-labs/pipelines': resolve(__dirname, 'packages/pipelines/src'),
+      '@frontal-labs/workflows': resolve(__dirname, 'packages/workflows/src'),
+      '@frontal-labs/testing': resolve(__dirname, 'packages/testing/src'),
+      '@frontal-labs/types': resolve(__dirname, 'types'),
     },
   },
 

@@ -6,7 +6,7 @@ This release includes the following changes across our packages.
 
 - [General change or improvement]
 
-## `@frontal/ai`
+## `@frontal-labs/ai`
 
 ### ✨ New Features
 -
@@ -17,7 +17,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/core`
+## `@frontal-labs/core`
 
 ### ✨ New Features
 -
@@ -28,7 +28,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/functions`
+## `@frontal-labs/functions`
 
 ### ✨ New Features
 -
@@ -39,7 +39,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/graph`
+## `@frontal-labs/graph`
 
 ### ✨ New Features
 -
@@ -50,7 +50,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/agents`
+## `@frontal-labs/agents`
 
 ### ✨ New Features
 -
@@ -61,7 +61,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/ontology`
+## `@frontal-labs/ontology`
 
 ### ✨ New Features
 -
@@ -72,7 +72,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/pipelines`
+## `@frontal-labs/pipelines`
 
 ### ✨ New Features
 -
@@ -83,7 +83,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/blob`
+## `@frontal-labs/blob`
 
 ### ✨ New Features
 -
@@ -94,7 +94,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/testing`
+## `@frontal-labs/testing`
 
 ### ✨ New Features
 -
@@ -105,7 +105,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal/workflows`
+## `@frontal-labs/workflows`
 
 ### ✨ New Features
 -

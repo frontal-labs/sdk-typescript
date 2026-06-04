@@ -1,8 +1,8 @@
-# @frontal/core Overview
+# @frontal-labs/core Overview
 
 ## Architecture Overview
 
-The `@frontal/core` package is built around a modular architecture that provides a solid foundation for interacting with the Frontal platform APIs.
+The `@frontal-labs/core` package is built around a modular architecture that provides a solid foundation for interacting with the Frontal platform APIs.
 
 ### Core Components
 
@@ -11,7 +11,7 @@ The `@frontal/core` package is built around a modular architecture that provides
 The main entry point for SDK usage. Provides a high-level interface for making API requests with built-in error handling, retries, and type safety.
 
 ```typescript
-import { FrontalClient } from '@frontal/core'
+import { FrontalClient } from '@frontal-labs/core'
 
 const client = new FrontalClient({
   apiKey: 'frt_1234567890abcdef',
@@ -33,7 +33,7 @@ Low-level HTTP client that handles the actual request/response cycle, including:
 Type-safe configuration using Zod schemas ensures that all required fields are present and properly validated:
 
 ```typescript
-import { clientConfigSchema, type ClientConfigInput } from '@frontal/core'
+import { clientConfigSchema, type ClientConfigInput } from '@frontal-labs/core'
 
 const config: ClientConfigInput = {
   apiKey: 'frt_1234567890abcdef',
@@ -51,7 +51,7 @@ All API schemas are defined using Zod, providing runtime validation and TypeScri
 
 ```typescript
 import { z } from 'zod'
-import { HttpClient } from '@frontal/core'
+import { HttpClient } from '@frontal-labs/core'
 
 const userSchema = z.object({
   id: z.string(),
@@ -93,7 +93,7 @@ try {
 Built-in utilities for handling paginated responses:
 
 ```typescript
-import { createPageResult, type PageResult } from '@frontal/core'
+import { createPageResult, type PageResult } from '@frontal-labs/core'
 
 const users = await client.get('/users', pageResultSchema)
 // users is a PageResult<User> with:
@@ -137,7 +137,7 @@ for await (const event of client.stream('/events')) {
 Secure handling of sensitive configuration:
 
 ```typescript
-import { keys } from '@frontal/core'
+import { keys } from '@frontal-labs/core'
 
 // Automatically loads from environment variables
 // with proper validation and type safety
@@ -235,7 +235,7 @@ const bulkClient = new FrontalClient({
 Never hardcode API keys or other sensitive configuration:
 
 ```typescript
-import { keys } from '@frontal/core'
+import { keys } from '@frontal-labs/core'
 
 const config = keys.client.parse(process.env)
 const client = new FrontalClient(config)

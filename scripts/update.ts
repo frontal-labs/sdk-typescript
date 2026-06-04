@@ -107,7 +107,7 @@ const selectVersion = async (
 const selectPackage = async (packages: string[]) => {
   const pkg = await select({
     message: "Select a package to update:",
-    options: packages.map((p) => ({ value: p, label: `@frontal/${p}` })),
+    options: packages.map((p) => ({ value: p, label: `@frontal-labs/${p}` })),
     initialValue: packages[0],
   });
 
@@ -153,12 +153,12 @@ const getDiff = async (
 const updateDependencies = async (packageName?: string) => {
   if (packageName) {
     // Update specific package
-    console.log(`Updating dependencies for @frontal/${packageName}...`);
-    await exec(`bun update @frontal/${packageName}`);
+    console.log(`Updating dependencies for @frontal-labs/${packageName}...`);
+    await exec(`bun update @frontal-labs/${packageName}`);
   } else {
     // Update all SDK packages
     console.log("Updating all Frontal SDK packages...");
-    await exec("bun update @frontal/core @frontal/ai @frontal/compute @frontal/functions @frontal/blob @frontal/flags @frontal/logging @frontal/notifications");
+    await exec("bun update @frontal-labs/core @frontal-labs/ai @frontal-labs/compute @frontal-labs/functions @frontal-labs/blob @frontal-labs/flags @frontal-labs/logging @frontal-labs/notifications");
   }
 };
 
@@ -237,7 +237,7 @@ export const update = async (options: {
 
     const s = spinner();
 
-    s.start(`Preparing to update @frontal/${targetPackage} from ${from} to ${to}...`);
+    s.start(`Preparing to update @frontal-labs/${targetPackage} from ${from} to ${to}...`);
 
     s.message("Creating temporary directory...");
     await createTemporaryDirectory(tempDirName);
@@ -280,7 +280,7 @@ export const update = async (options: {
     s.message("Cleaning up...");
     await deleteTemporaryDirectory();
 
-    s.stop(`Successfully updated @frontal/${targetPackage} from ${from} to ${to}!`);
+    s.stop(`Successfully updated @frontal-labs/${targetPackage} from ${from} to ${to}!`);
 
     outro("Please review and test the changes carefully.");
   } catch (error) {

@@ -7,7 +7,7 @@
 		"declaration": true,
 		"declarationMap": true,
 		"module": "ESNext",
-		"outDir": "dist/main",
+		"outDir": "dist",
 		"rootDir": "src",
 		"sourceMap": true,
 		"target": "ES6",

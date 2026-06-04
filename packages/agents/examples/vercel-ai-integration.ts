@@ -7,8 +7,8 @@
 
 // Vercel AI SDK imports (peer dependencies)
 import { openai } from "@ai-sdk/openai";
-import type { AgentHandler } from "@frontal/agents";
-import { createAgentsClient } from "@frontal/agents";
+import type { AgentHandler } from "@frontal-labs/agents";
+import { createAgentsClient } from "@frontal-labs/agents";
 import { generateObject, generateText, streamText } from "ai";
 import { z } from "zod";
 

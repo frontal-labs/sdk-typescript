@@ -1,4 +1,4 @@
-import type { HttpClient } from "@frontal/core";
+import type { HttpClient } from "@frontal-labs/core";
 import {
   type FunctionConfig,
   type FunctionEntry,
@@ -16,8 +16,8 @@ import {
  *
  * @example
  * ```typescript
- * import { createFunctionsClient } from '@frontal/functions'
- * import { FrontalClient } from '@frontal/core'
+ * import { createFunctionsClient } from '@frontal-labs/functions'
+ * import { FrontalClient } from '@frontal-labs/core'
  *
  * const client = new FrontalClient({ apiKey: 'frt_...' })
  * const functions = createFunctionsClient(client)

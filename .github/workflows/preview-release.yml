@@ -12,7 +12,7 @@ on:
       - 'package.json'
       - 'bun.lock'
       - 'tsconfig.base.json'
-      - 'scripts/**'
+      - 'turbo.json'
       - '.github/workflows/preview-release.yml'
 
 jobs:

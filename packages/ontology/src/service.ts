@@ -3,7 +3,7 @@ import {
   type HttpClient,
   type PageResult,
   type PaginationMeta,
-} from "@frontal/core";
+} from "@frontal-labs/core";
 import type { z } from "zod";
 import * as S from "./schemas";
 

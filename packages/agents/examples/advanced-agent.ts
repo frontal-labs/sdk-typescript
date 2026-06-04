@@ -5,8 +5,8 @@
  * multi-step workflows, escalation handling, and experiment management.
  */
 
-import type { AgentHandler } from "@frontal/agents";
-import { createAgentsClient } from "@frontal/agents";
+import type { AgentHandler } from "@frontal-labs/agents";
+import { createAgentsClient } from "@frontal-labs/agents";
 
 const agents = createAgentsClient({
 	apiKey: process.env.FRONTAL_API_KEY ?? "",

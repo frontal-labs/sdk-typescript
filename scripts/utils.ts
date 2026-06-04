@@ -70,7 +70,7 @@ export const validateVersion = (version: string): boolean => {
 };
 
 export const formatPackageName = (name: string): string => {
-  return `@frontal/${name}`;
+  return `@frontal-labs/${name}`;
 };
 
 export const getSdkPackageInfo = (packageName: string) => {

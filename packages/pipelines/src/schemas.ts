@@ -2,7 +2,7 @@ import {
   filterConditionsSchema,
   retryConfigSchema,
   timestampSchema,
-} from "@frontal/core";
+} from "@frontal-labs/core";
 import { z } from "zod";
 
 export const PipelineStatusSchema = z.enum([

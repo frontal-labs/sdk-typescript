@@ -14,13 +14,13 @@ This package includes:
 ## Installation
 
 ```bash
-npm install @frontal/agents
+npm install @frontal-labs/agents
 ```
 
 ## Quick Start
 
 ```typescript
-import { AgentService } from '@frontal/agents';
+import { AgentService } from '@frontal-labs/agents';
 
 const agent = new AgentService({
   apiKey: 'your-api-key',

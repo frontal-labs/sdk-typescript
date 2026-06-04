@@ -5,7 +5,7 @@
  * and real-time data processing without loading entire files into memory.
  */
 
-import { Storage } from "@frontal/blob";
+import { Storage } from "@frontal-labs/blob";
 
 const storage = new Storage();
 

@@ -1,4 +1,4 @@
-# @frontal/blob
+# @frontal-labs/blob
 
 The **Frontal Storage SDK** provides a simple, scalable, and fully compatible object storage solution for Frontal. It implements standard Blob and S3-compatible patterns, making it easy to migrate existing applications and integrate with popular tools.
 
@@ -17,7 +17,7 @@ The **Frontal Storage SDK** provides a simple, scalable, and fully compatible ob
 ## Installation
 
 ```bash
-bun add @frontal/blob
+bun add @frontal-labs/blob
 ```
 
 ## Quick Start
@@ -25,7 +25,7 @@ bun add @frontal/blob
 ### Basic Upload and Download
 
 ```typescript
-import { storage, upload, download } from "@frontal/blob";
+import { storage, upload, download } from "@frontal-labs/blob";
 
 // Upload a file
 const file = new File(["Hello, World!"], "greeting.txt", { 
@@ -52,7 +52,7 @@ if (downloadResult.error) {
 ### Using Functional API
 
 ```typescript
-import { upload, download, list, getSignedUrl } from "@frontal/blob";
+import { upload, download, list, getSignedUrl } from "@frontal-labs/blob";
 
 // Upload with functional API
 await upload("my-bucket", "data/file.json", JSON.stringify({ message: "Hello" }), {
@@ -80,7 +80,7 @@ if (urlResult.data) {
 ### Advanced Usage with Custom Configuration
 
 ```typescript
-import { Storage } from "@frontal/blob";
+import { Storage } from "@frontal-labs/blob";
 
 // Create storage client with custom configuration
 const storage = new Storage({
@@ -209,7 +209,7 @@ FRONTAL_BASE_URL=https://api.frontal.dev
 Or configure programmatically:
 
 ```typescript
-import { Storage, configure } from "@frontal/blob";
+import { Storage, configure } from "@frontal-labs/blob";
 
 // Configure global instance
 configure({

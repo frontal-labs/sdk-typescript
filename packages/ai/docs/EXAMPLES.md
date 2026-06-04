@@ -17,7 +17,7 @@ This page contains practical examples and tutorials for using the Frontal AI SDK
 ### Simple Text Generation
 
 ```typescript
-import { generateText } from '@frontal/ai';
+import { generateText } from '@frontal-labs/ai';
 
 const response = await generateText({
   model: 'frontal-ai-fast',
@@ -32,7 +32,7 @@ console.log(response.data?.text);
 ### Using the AI Class
 
 ```typescript
-import { AI } from '@frontal/ai';
+import { AI } from '@frontal-labs/ai';
 
 const ai = new AI({
   apiKey: 'your-api-key',
@@ -51,7 +51,7 @@ const result = await ai.generateText({
 ### Conversation Handling
 
 ```typescript
-import { generateText } from '@frontal/ai';
+import { generateText } from '@frontal-labs/ai';
 
 const messages = [
   { role: 'system', content: 'You are a helpful assistant.' },
@@ -90,7 +90,7 @@ const factual = await generateText({
 ### Token Management
 
 ```typescript
-import { ai } from '@frontal/ai';
+import { ai } from '@frontal-labs/ai';
 
 // Estimate tokens before generation
 const prompt = 'Your long prompt here...';
@@ -113,7 +113,7 @@ console.log(`Actual usage: ${result.data?.usage.totalTokens}`);
 ### Basic Streaming
 
 ```typescript
-import { streamText } from '@frontal/ai';
+import { streamText } from '@frontal-labs/ai';
 
 const stream = streamText({
   model: 'frontal-ai-fast',
@@ -134,7 +134,7 @@ console.log(`\nTotal tokens: ${usage.totalTokens}`);
 ### Streaming with UI Updates
 
 ```typescript
-import { streamText } from '@frontal/ai';
+import { streamText } from '@frontal-labs/ai';
 
 class ChatUI {
   private outputElement: HTMLElement;
@@ -168,7 +168,7 @@ class ChatUI {
 ### Streaming with Error Handling
 
 ```typescript
-import { streamText } from '@frontal/ai';
+import { streamText } from '@frontal-labs/ai';
 
 async function safeStream(prompt: string) {
   try {
@@ -200,7 +200,7 @@ async function safeStream(prompt: string) {
 ### Single Text Embedding
 
 ```typescript
-import { embed } from '@frontal/ai';
+import { embed } from '@frontal-labs/ai';
 
 const result = await embed({
   model: 'text-embedding-ada-002',
@@ -284,7 +284,7 @@ class SemanticSearch {
 
 ```typescript
 import { z } from 'zod';
-import { ai } from '@frontal/ai';
+import { ai } from '@frontal-labs/ai';
 
 const personSchema = z.object({
   name: z.string(),
@@ -373,7 +373,7 @@ async function generateWithRetry<T>(
 ### Speech Synthesis
 
 ```typescript
-import { ai } from '@frontal/ai';
+import { ai } from '@frontal-labs/ai';
 
 const audioBuffer = await ai.generateSpeech({
   text: 'Hello, this is a test of the speech synthesis system.',
@@ -424,7 +424,7 @@ if (imageResult.data) {
 ### Audio Transcription
 
 ```typescript
-import { ai } from '@frontal/ai';
+import { ai } from '@frontal-labs/ai';
 
 // Transcribe from file
 const fileInput = document.getElementById('audio-file') as HTMLInputElement;
@@ -474,7 +474,7 @@ if (isFlagged) {
 ### Tool System
 
 ```typescript
-import { ai, z } from '@frontal/ai';
+import { ai, z } from '@frontal-labs/ai';
 
 // Define a tool
 const weatherTool = ai.defineTool({
@@ -507,7 +507,7 @@ const result = await ai.generateText({
 ### Prompt Management
 
 ```typescript
-import { ai } from '@frontal/ai';
+import { ai } from '@frontal-labs/ai';
 
 // Create a prompt template
 const storyPrompt = ai.createPrompt({

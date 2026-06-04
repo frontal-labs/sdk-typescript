@@ -17,7 +17,7 @@ Creates a new Functions client instance.
 
 **Example:**
 ```typescript
-import { Functions } from "@frontal/functions";
+import { Functions } from "@frontal-labs/functions";
 
 const functions = new Functions({
   apiKey: "your-api-key",
@@ -190,7 +190,7 @@ Configures the global Functions client.
 
 **Example:**
 ```typescript
-import { configure } from "@frontal/functions";
+import { configure } from "@frontal-labs/functions";
 
 configure({
   apiKey: "your-api-key",

@@ -1,14 +1,18 @@
 /**
- * @frontal/blob
+ * @frontal-labs/blob
  *
  * Simple, scalable object storage for Frontal.
  * Fully compatible with Blob and S3 standard patterns.
  */
 
-import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
+import {
+  FrontalClient,
+  getDefaultClient,
+  HttpClient,
+} from "@frontal-labs/core";
 import { BlobService } from "./client";
 
-/** Config for standalone usage without @frontal/core */
+/** Config for standalone usage without @frontal-labs/core */
 export interface BlobClientConfig {
   apiKey: string;
   baseUrl?: string;

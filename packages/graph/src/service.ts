@@ -4,7 +4,7 @@ import {
   type PageResult,
   type PaginationMeta,
   type QueryBuilder,
-} from "@frontal/core";
+} from "@frontal-labs/core";
 import * as S from "./schemas";
 
 const asPagePayload = <T>(
@@ -186,7 +186,7 @@ class GraphQueryBuilder implements QueryBuilder<S.Entity> {
     private readonly http: HttpClient
   ) {}
 
-  where(conditions: Record<string, unknown>): this {
+  where(conditions: NonNullable<S.GraphQuery["conditions"]>): this {
     this._query.conditions = conditions;
     return this;
   }

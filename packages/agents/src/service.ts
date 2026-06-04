@@ -4,7 +4,7 @@ import {
   type PageResult,
   type PollOptions,
   pollUntil,
-} from "@frontal/core";
+} from "@frontal-labs/core";
 import type { z } from "zod";
 import type { AgentHandler } from "./context";
 import * as S from "./schemas";

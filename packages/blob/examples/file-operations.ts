@@ -7,7 +7,7 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { Storage } from "@frontal/blob";
+import { Storage } from "@frontal-labs/blob";
 
 const storage = new Storage();
 

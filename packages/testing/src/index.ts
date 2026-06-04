@@ -3,7 +3,7 @@
  * Shared testing utilities for all Frontal Core packages
  */
 
-import { FrontalClient, HttpClient } from "@frontal/core";
+import { FrontalClient, HttpClient } from "@frontal-labs/core";
 import { vi } from "vitest";
 
 // ============================================================================

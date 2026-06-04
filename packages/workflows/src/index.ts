@@ -1,7 +1,11 @@
-import { FrontalClient, getDefaultClient, HttpClient } from "@frontal/core";
+import {
+  FrontalClient,
+  getDefaultClient,
+  HttpClient,
+} from "@frontal-labs/core";
 import { WorkflowsService } from "./service";
 
-/** Config for standalone usage without @frontal/core */
+/** Config for standalone usage without @frontal-labs/core */
 export interface WorkflowsClientConfig {
   apiKey: string;
   baseUrl?: string;

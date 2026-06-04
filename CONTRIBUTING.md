@@ -20,7 +20,7 @@ Thank you for your interest in contributing to the Frontal SDK! We want to make 
 4. **Make your changes** following our code style guidelines
 5. **Ensure tests pass**: `bun run test`
 6. **Type check**: `bun run type-check`
-7. **Lint and format**: `bun run lint:ts` and `bun run format`
+7. **Lint and format**: `bun run lint` and `bun run format`
 8. **Add a changeset**: `bun run changeset` if your changes should trigger a version bump
 9. **Submit a Pull Request** with detailed description
 
@@ -75,7 +75,7 @@ bun run format:check
 
 ```bash
 # Lint TypeScript files
-bun run lint:ts
+bun run lint
 
 # Auto-fix linting issues
 bun run lint:fix
@@ -95,7 +95,7 @@ bun run lint:fix
 import { z } from 'zod';
 
 // Internal imports
-import { CoreClient } from '@frontal/core';
+import { CoreClient } from '@frontal-labs/core';
 
 // Relative imports
 import { helper } from './utils';

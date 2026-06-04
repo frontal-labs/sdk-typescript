@@ -1,6 +1,6 @@
 # AI SDK Architecture
 
-The `@frontal/ai` SDK is designed as a modular, type-safe client that interacts with the Frontal AI Gateway (powered by Helicone). It abstracts the complexities of different AI models and providers behind a unified, OpenAI-compatible interface.
+The `@frontal-labs/ai` SDK is designed as a modular, type-safe client that interacts with the Frontal AI Gateway (powered by Helicone). It abstracts the complexities of different AI models and providers behind a unified, OpenAI-compatible interface.
 
 ## Core Components
 

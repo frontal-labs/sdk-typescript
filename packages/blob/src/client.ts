@@ -1,4 +1,4 @@
-import type { HttpClient } from "@frontal/core";
+import type { HttpClient } from "@frontal-labs/core";
 import {
   type BlobObject,
   blobObjectSchema,
@@ -14,8 +14,8 @@ import {
  *
  * @example
  * ```typescript
- * import { createBlobClient } from '@frontal/blob'
- * import { FrontalClient } from '@frontal/core'
+ * import { createBlobClient } from '@frontal-labs/blob'
+ * import { FrontalClient } from '@frontal-labs/core'
  *
  * const client = new FrontalClient({ apiKey: 'frt_...' })
  * const blob = createBlobClient(client)

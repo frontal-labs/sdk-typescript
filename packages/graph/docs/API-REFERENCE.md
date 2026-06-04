@@ -13,12 +13,12 @@ new GraphService(http: HttpClient)
 Creates a new GraphService instance with an HTTP client.
 
 **Parameters:**
-- `http`: HTTP client instance from `@frontal/core`
+- `http`: HTTP client instance from `@frontal-labs/core`
 
 **Example:**
 ```typescript
-import { GraphService } from "@frontal/graph";
-import { getDefaultClient } from "@frontal/core";
+import { GraphService } from "@frontal-labs/graph";
+import { getDefaultClient } from "@frontal-labs/core";
 
 const graph = new GraphService(getDefaultClient()._http);
 ```
@@ -660,8 +660,8 @@ Creates a GraphService instance with a custom FrontalClient.
 
 **Example:**
 ```typescript
-import { createGraphClient } from "@frontal/graph";
-import { FrontalClient } from "@frontal/core";
+import { createGraphClient } from "@frontal-labs/graph";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",
@@ -676,7 +676,7 @@ const graph = createGraphClient(client);
 The package also exports a default graph instance configured with environment variables:
 
 ```typescript
-import { graph } from "@frontal/graph";
+import { graph } from "@frontal-labs/graph";
 
 // Use the default instance
 const users = await graph.entities("user").list();
