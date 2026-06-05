@@ -375,3 +375,10 @@ export const fixtures = {
     ...overrides,
   }),
 };
+
+export {
+  createIntegrationHarness,
+  integrationPage,
+  dataEnvelope,
+} from "./integration";
+export type { IntegrationHarness } from "./integration";
