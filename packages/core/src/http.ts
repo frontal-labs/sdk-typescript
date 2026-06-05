@@ -262,6 +262,20 @@ export class HttpClient {
     return payload as T;
   }
 
+  private parseRateLimit(res: Response) {
+    const limit = res.headers.get("X-RateLimit-Limit");
+    const remaining = res.headers.get("X-RateLimit-Remaining");
+    const reset = res.headers.get("X-RateLimit-Reset");
+    if (limit && remaining && reset) {
+      return {
+        limit: Number.parseInt(limit, 10),
+        remaining: Number.parseInt(remaining, 10),
+        reset: Number.parseInt(reset, 10),
+      };
+    }
+    return undefined;
+  }
+
   private async throwError(res: Response): Promise<never> {
     let body: unknown;
     try {
@@ -270,7 +284,8 @@ export class HttpClient {
       body = {};
     }
     const retryAfter = res.headers.get("Retry-After") ?? undefined;
-    throw parseFrontalError(body, res.status, retryAfter);
+    const rateLimit = this.parseRateLimit(res);
+    throw parseFrontalError(body, res.status, retryAfter, rateLimit);
   }
 
   private buildUrl(path: string, params?: Record<string, unknown>): string {

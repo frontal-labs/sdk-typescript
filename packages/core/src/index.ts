@@ -27,6 +27,7 @@ export {
   UnauthorizedError,
   ValidationError,
 } from "./errors";
+export type { RateLimitInfo } from "./errors";
 // HTTP client for API requests
 export { HttpClient } from "./http";
 // Environment variable management
@@ -38,6 +39,10 @@ export type { PollOptions } from "./polling";
 export { pollUntil, withTimeout } from "./polling";
 // Retry logic
 export { calculateDelay } from "./retry";
+
+// Circuit breaker
+export { CircuitBreaker, CircuitBreakerOpenError } from "./circuit-breaker";
+export type { CircuitBreakerConfig, CircuitState } from "./circuit-breaker";
 
 export type {
   ErrorField,
@@ -65,3 +70,6 @@ export type {
   PageResult,
   QueryBuilder,
 } from "./types";
+
+export { getTracer, initTracing, createHttpSpan, finishSpan } from "./tracing";
+export type { TracerLike, SpanLike } from "./tracing";
