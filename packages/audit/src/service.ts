@@ -16,15 +16,25 @@ const asPagePayload = <T>(
 ): { data: T[]; pagination: PaginationMeta; meta?: unknown } =>
   raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
+export class EventsNamespace {
+  constructor(private readonly http: HttpClient) {}
+
+  async get(eventId: string): Promise<AuditEvent> {
+    return this.http.get(`/v1/audit/events/${eventId}`);
+  }
+}
+
 export class AuditService {
-  readonly trails: AuditTrailsNamespace;
+  readonly trails: TrailsNamespace;
   readonly reports: ReportsNamespace;
   readonly compliance: ComplianceNamespace;
+  readonly events: EventsNamespace;
 
   constructor(private readonly http: HttpClient) {
-    this.trails = new AuditTrailsNamespace(http);
+    this.trails = new TrailsNamespace(http);
     this.reports = new ReportsNamespace(http);
     this.compliance = new ComplianceNamespace(http);
+    this.events = new EventsNamespace(http);
   }
 
   async log(event: AuditEventInput): Promise<AuditEvent> {
@@ -38,25 +48,26 @@ export class AuditService {
     );
   }
 
+  /** @deprecated Use `events.get()` instead */
   async getEvent(eventId: string): Promise<AuditEvent> {
-    return this.http.get(`/v1/audit/events/${eventId}`);
+    return this.events.get(eventId);
   }
 
   async export(
     input: AuditQuery & { format: "csv" | "json" }
-  ): Promise<{ download_url: string }> {
+  ): Promise<{ downloadUrl: string }> {
     return this.http.post("/v1/audit/events/export", input);
   }
 }
 
-export class AuditTrailsNamespace {
+export class TrailsNamespace {
   constructor(private readonly http: HttpClient) {}
   async list(opts: { limit?: number; cursor?: string } = {}): Promise<
     PageResult<{
       id: string;
       name: string;
       filter: unknown;
-      created_at: string;
+      createdAt: string;
     }>
   > {
     const raw = await this.http.get("/v1/audit/trails", opts);
@@ -96,7 +107,7 @@ export class ReportsNamespace {
   async get(id: string): Promise<AuditReport> {
     return this.http.get(`/v1/audit/reports/${id}`);
   }
-  async download(id: string): Promise<{ download_url: string }> {
+  async download(id: string): Promise<{ downloadUrl: string }> {
     return this.http.get(`/v1/audit/reports/${id}/download`);
   }
 }
@@ -104,7 +115,7 @@ export class ReportsNamespace {
 export class ComplianceNamespace {
   constructor(private readonly http: HttpClient) {}
   async runCheck(input: {
-    check_id: string;
+    checkId: string;
     scope?: Record<string, unknown>;
   }): Promise<{ passed: boolean; findings: unknown[] }> {
     return this.http.post("/v1/audit/compliance/check", input);

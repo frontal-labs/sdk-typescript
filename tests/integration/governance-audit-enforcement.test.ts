@@ -48,7 +48,7 @@ describe("Governance → Audit enforcement", () => {
 
     // Step 1: Evaluate policy — should deny
     const evalResult = await gov.evaluatePolicy("pol_1", {
-      user_id: "usr_1",
+      userId: "usr_1",
       resource: { type: "dataset", id: "ds_1" },
     });
     expect(evalResult.passed).toBe(false);
@@ -66,6 +66,6 @@ describe("Governance → Audit enforcement", () => {
     // Step 3: Query audit trail confirms the denial
     const results = await audit.query({ action: "dataset.export.denied" });
     expect(results.data.length).toBeGreaterThan(0);
-    expect(results.data[0].metadata?.policy_id).toBe("pol_1");
+    expect(results.data[0].metadata?.policyId).toBe("pol_1");
   });
 });

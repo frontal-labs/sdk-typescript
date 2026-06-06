@@ -12,14 +12,14 @@ const mockFlag: Flag = {
   key: "test-flag",
   name: "Test Flag",
   type: "boolean",
-  default_value: false,
+  defaultValue: false,
   status: "active",
-  created_at: "",
-  updated_at: "",
+  createdAt: "",
+  updatedAt: "",
 };
 
 const context: EvaluationContext = {
-  user_id: "usr_1",
+  userId: "usr_1",
   attributes: { region: "us-east", beta: true, plan: "enterprise" },
 };
 
@@ -43,7 +43,7 @@ describe("matchesRule", () => {
   it("matches eq operator", () => {
     const rule: TargetingRule = {
       id: "r1",
-      flag_id: "f1",
+      flagId: "f1",
       attribute: "region",
       operator: "eq",
       value: "us-east",
@@ -55,7 +55,7 @@ describe("matchesRule", () => {
   it("rejects ne operator on match", () => {
     const rule: TargetingRule = {
       id: "r1",
-      flag_id: "f1",
+      flagId: "f1",
       attribute: "region",
       operator: "ne",
       value: "us-west",
@@ -67,7 +67,7 @@ describe("matchesRule", () => {
   it("matches in operator", () => {
     const rule: TargetingRule = {
       id: "r1",
-      flag_id: "f1",
+      flagId: "f1",
       attribute: "plan",
       operator: "in",
       value: ["enterprise", "pro"],
@@ -79,7 +79,7 @@ describe("matchesRule", () => {
   it("matches starts_with operator", () => {
     const rule: TargetingRule = {
       id: "r1",
-      flag_id: "f1",
+      flagId: "f1",
       attribute: "region",
       operator: "starts_with",
       value: "us-",
@@ -91,7 +91,7 @@ describe("matchesRule", () => {
   it("rejects missing attribute", () => {
     const rule: TargetingRule = {
       id: "r1",
-      flag_id: "f1",
+      flagId: "f1",
       attribute: "nonexistent",
       operator: "eq",
       value: "x",
@@ -112,7 +112,7 @@ describe("evaluateFlag", () => {
     const rules: TargetingRule[] = [
       {
         id: "r1",
-        flag_id: "f1",
+        flagId: "f1",
         attribute: "region",
         operator: "eq",
         value: "us-east",
@@ -120,7 +120,7 @@ describe("evaluateFlag", () => {
       },
       {
         id: "r2",
-        flag_id: "f1",
+        flagId: "f1",
         attribute: "plan",
         operator: "eq",
         value: "enterprise",
@@ -145,7 +145,7 @@ describe("evaluateFlagWithRollout", () => {
     const rules: TargetingRule[] = [
       {
         id: "r1",
-        flag_id: "f1",
+        flagId: "f1",
         attribute: "region",
         operator: "eq",
         value: "us-east",

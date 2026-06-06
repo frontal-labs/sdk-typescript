@@ -58,7 +58,7 @@ describe("AI → Vectors integration pipeline", () => {
     expect(index.dimensions).toBe(8);
 
     // Step 3: Upsert the embedding
-    const upserted = await vectors.vectors.upsert(index.id, [{
+    const upserted = await vectors.upsert(index.id, [{
       id: "v1",
       values: embedResult.embeddings[0],
       metadata: { text: "red shoes" },
@@ -68,9 +68,9 @@ describe("AI → Vectors integration pipeline", () => {
     // Step 4: Search with the same embedding
     const results = await vectors.search.search(index.id, {
       vector: embedResult.embeddings[0],
-      top_k: 1,
+      topK: 1,
     });
     expect(results.results.length).toBeGreaterThan(0);
-    expect(results.results[0].vector_id).toBe("v1");
+    expect(results.results[0].vectorId).toBe("v1");
   });
 });

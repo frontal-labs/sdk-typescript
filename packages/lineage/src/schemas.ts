@@ -6,17 +6,17 @@ export const LineageNodeSchema = z
     type: z.enum(["dataset", "pipeline", "model", "table"]),
     name: z.string(),
     metadata: z.record(z.string(), z.unknown()).optional(),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const LineageEdgeSchema = z
   .object({
     id: z.string(),
-    source_id: z.string(),
-    target_id: z.string(),
+    sourceId: z.string(),
+    targetId: z.string(),
     type: z.enum(["derived_from", "consumes", "produces", "depends_on"]),
     metadata: z.record(z.string(), z.unknown()).optional(),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const LineageGraphSchema = z

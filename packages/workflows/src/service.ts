@@ -23,7 +23,15 @@ const asPagePayload = <T>(
   };
 
 export class WorkflowsService {
-  constructor(private readonly http: HttpClient) {}
+  readonly approvals: ApprovalsNamespace;
+  readonly steps: StepsNamespace;
+  readonly templates: TemplatesNamespace;
+
+  constructor(private readonly http: HttpClient) {
+    this.approvals = new ApprovalsNamespace(http);
+    this.steps = new StepsNamespace(http);
+    this.templates = new TemplatesNamespace(http);
+  }
 
   define(name: string): WorkflowBuilder {
     return new WorkflowBuilder(name, this.http);
@@ -46,10 +54,6 @@ export class WorkflowsService {
     const body = S.WorkflowDefinitionSchema.parse(definition);
     return this.http.post("/workflows", body);
   }
-
-  readonly approvals = new ApprovalsNamespace(this.http);
-  readonly steps = new StepsNamespace(this.http);
-  readonly templates = new TemplatesNamespace(this.http);
 }
 
 export class WorkflowBuilder {

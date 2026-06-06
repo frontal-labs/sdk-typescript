@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   return { service: new AuditService(http), mock };
@@ -20,7 +20,7 @@ function createService(
 
 const mockEvent = {
   id: "evt_1",
-  actor: { user_id: "usr_1" },
+  actor: { userId: "usr_1" },
   action: "user.created",
   resource: { type: "user", id: "usr_2" },
   status: "success",
@@ -66,7 +66,7 @@ describe("AuditService", () => {
       },
     ]);
     const result = await service.export({ format: "csv" });
-    expect(result.download_url).toBeDefined();
+    expect(result.downloadUrl).toBeDefined();
   });
   it("lists audit trails (paginated)", async () => {
     const { service } = createService([
@@ -89,7 +89,7 @@ describe("AuditService", () => {
         body: { passed: true, findings: [] },
       },
     ]);
-    const result = await service.compliance.runCheck({ check_id: "chk_1" });
+    const result = await service.compliance.runCheck({ checkId: "chk_1" });
     expect(result.passed).toBe(true);
   });
 });

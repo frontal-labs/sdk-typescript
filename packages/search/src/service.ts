@@ -13,22 +13,22 @@ export class SearchService {
 
   async search(input: {
     query: string;
-    modes?: Array<"vector" | "semantic" | "structured">;
-    top_k?: number;
+    modes?: ("vector" | "semantic" | "structured")[];
+    topK?: number;
     filters?: {
-      index_ids?: string[];
-      entity_types?: string[];
-      dataset_ids?: string[];
+      indexIds?: string[];
+      entityTypes?: string[];
+      datasetIds?: string[];
     };
   }): Promise<UnifiedSearchResponse> {
     return this.http.post("/v1/search", input);
   }
 
   async vectorSearch(input: {
-    index_id: string;
+    indexId: string;
     vector?: number[];
     text?: string;
-    top_k?: number;
+    topK?: number;
     filter?: Record<string, unknown>;
   }): Promise<{ results: SearchResult[]; total: number }> {
     return this.http.post("/v1/search/vector", input);
@@ -36,7 +36,7 @@ export class SearchService {
 
   async semanticSearch(input: {
     query: string;
-    entity_types?: string[];
+    entityTypes?: string[];
     limit?: number;
     at?: string;
   }): Promise<{ results: SearchResult[]; total: number }> {
@@ -44,7 +44,7 @@ export class SearchService {
   }
 
   async structuredSearch(input: {
-    dataset_id: string;
+    datasetId: string;
     where?: Record<string, unknown>;
     limit?: number;
     offset?: number;
@@ -54,33 +54,33 @@ export class SearchService {
 
   async hybridSearch(input: {
     query: string;
-    index_id?: string;
-    entity_types?: string[];
-    top_k?: number;
+    indexId?: string;
+    entityTypes?: string[];
+    topK?: number;
   }): Promise<UnifiedSearchResponse> {
     return this.http.post("/v1/search/hybrid", input);
   }
 
   async listIndexedSources(): Promise<{
-    indexes: Array<{ id: string; name: string; type: string }>;
-    entity_types: Array<{ name: string; count: number }>;
-    datasets: Array<{ id: string; name: string }>;
+    indexes: { id: string; name: string; type: string }[];
+    entityTypes: { name: string; count: number }[];
+    datasets: { id: string; name: string }[];
   }> {
     return this.http.get("/v1/search/sources");
   }
 }
 
-export class SearchStatsNamespace {
+export class StatsNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async getPopularQueries(
     opts: { from?: string; to?: string; limit?: number } = {}
-  ): Promise<{ queries: Array<{ query: string; count: number }> }> {
+  ): Promise<{ queries: { query: string; count: number }[] }> {
     return this.http.get("/v1/search/stats/popular", opts);
   }
 
   async getIndexingStatus(): Promise<{
-    indexes: Array<{ id: string; status: string; vector_count: number }>;
+    indexes: { id: string; status: string; vectorCount: number }[];
   }> {
     return this.http.get("/v1/search/stats/indexing");
   }

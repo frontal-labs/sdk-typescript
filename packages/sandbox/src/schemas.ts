@@ -4,27 +4,27 @@ export const SandboxSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    template_id: z.string(),
+    templateId: z.string(),
     status: z.enum(["creating", "running", "stopped", "deleted"]),
-    cpu_limit: z.string(),
-    memory_limit: z.string(),
-    timeout_seconds: z.number().int(),
-    network_policy: z.enum(["none", "egress", "full"]),
-    created_at: z.string(),
-    updated_at: z.string(),
+    cpuLimit: z.string(),
+    memoryLimit: z.string(),
+    timeoutSeconds: z.number().int(),
+    networkPolicy: z.enum(["none", "egress", "full"]),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 export const SandboxExecutionSchema = z
   .object({
     id: z.string(),
-    sandbox_id: z.string(),
+    sandboxId: z.string(),
     code: z.string(),
     language: z.enum(["javascript", "python", "typescript"]),
     status: z.enum(["queued", "running", "completed", "error", "timeout"]),
     result: z.unknown().optional(),
     error: z.string().optional(),
-    duration_ms: z.number().optional(),
-    created_at: z.string(),
+    durationMs: z.number().optional(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const SandboxTemplateSchema = z
@@ -34,7 +34,7 @@ export const SandboxTemplateSchema = z
     image: z.string(),
     packages: z.array(z.string()).optional(),
     env: z.record(z.string(), z.string()).optional(),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const sandboxConfigSchema = z.object({

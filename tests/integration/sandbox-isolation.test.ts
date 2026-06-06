@@ -48,13 +48,13 @@ describe("Sandbox isolation lifecycle", () => {
     expect(templates.data.length).toBe(1);
 
     // Step 2: Create sandbox
-    const sbx = await sandbox.sandboxes.create({
+    const sbx = await sandbox.create({
       name: "test-sandbox", template_id: "tmpl_1",
     });
     expect(sbx.id).toBe("sbx_1");
 
     // Step 3: Start
-    const started = await sandbox.sandboxes.start(sbx.id);
+    const started = await sandbox.start(sbx.id);
     expect(started.status).toBe("running");
 
     // Step 4: Execute code
@@ -66,14 +66,14 @@ describe("Sandbox isolation lifecycle", () => {
     expect(exec.result).toBe("hello");
 
     // Step 5: Snapshot
-    const snap = await sandbox.sandboxes.snapshot(sbx.id);
+    const snap = await sandbox.snapshot(sbx.id);
     expect(snap.id).toBe("sbx_1");
 
     // Step 6: Stop and delete
-    const stopped = await sandbox.sandboxes.stop(sbx.id);
+    const stopped = await sandbox.stop(sbx.id);
     expect(stopped.status).toBe("stopped");
 
-    await sandbox.sandboxes.delete(sbx.id);
+    await sandbox.delete(sbx.id);
     harness.expectCalled("DELETE", "/v1/sandbox/sandboxes/sbx_1");
   });
 });

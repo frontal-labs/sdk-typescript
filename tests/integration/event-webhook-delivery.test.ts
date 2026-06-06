@@ -65,9 +65,9 @@ describe("Events → Webhooks integration delivery", () => {
 
     // Step 3: Verify delivery was recorded
     const deliveries = await webhooks.deliveries.list({
-      webhook_id: "wh_1",
+      webhookId: "wh_1",
     });
     expect(deliveries.data.length).toBeGreaterThan(0);
-    expect(deliveries.data[0].webhook_id).toBe("wh_1");
+    expect(deliveries.data[0].webhookId).toBe("wh_1");
   });
 });

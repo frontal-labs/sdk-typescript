@@ -9,12 +9,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   const service = new FlagsService(http);
@@ -33,33 +33,33 @@ const mockFlag: Record<string, unknown> = {
   key: "new-dashboard",
   name: "New Dashboard",
   type: "boolean",
-  default_value: false,
+  defaultValue: false,
   status: "active",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 const mockRollout: Record<string, unknown> = {
   id: "roll_1",
-  flag_id: "flag_1",
+  flagId: "flag_1",
   percentage: 50,
   value: true,
   status: "active",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 const mockExperiment: Record<string, unknown> = {
   id: "exp_1",
-  flag_id: "flag_1",
+  flagId: "flag_1",
   name: "Dashboard A/B Test",
   variants: [
     { name: "control", value: false, percentage: 50 },
     { name: "treatment", value: true, percentage: 50 },
   ],
   status: "draft",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 describe("FlagsService", () => {
@@ -73,7 +73,7 @@ describe("FlagsService", () => {
         },
       ]);
       const result = await service.evaluate("new-dashboard", {
-        user_id: "usr_1",
+        userId: "usr_1",
       });
       expect(result.value).toBe(true);
     });
@@ -94,7 +94,7 @@ describe("FlagsService", () => {
         },
       ]);
       const result = await service.evaluateBulk(["new-dashboard"], {
-        user_id: "usr_1",
+        userId: "usr_1",
       });
       expect(result["new-dashboard"].value).toBe(true);
     });
@@ -109,7 +109,7 @@ describe("FlagsService", () => {
           body: pageWrap([mockFlag]),
         },
       ]);
-      const result = await service.flags.list();
+      const result = await service.list();
       expect(result.data).toHaveLength(1);
     });
 
@@ -121,11 +121,11 @@ describe("FlagsService", () => {
           body: mockFlag,
         },
       ]);
-      const result = await service.flags.create({
+      const result = await service.create({
         key: "new-dashboard",
         name: "New Dashboard",
         type: "boolean",
-        default_value: false,
+        defaultValue: false,
       });
       expect(result.key).toBe("new-dashboard");
     });
@@ -139,7 +139,7 @@ describe("FlagsService", () => {
           body: disabled,
         },
       ]);
-      const result = await service.flags.toggle("flag_1", false);
+      const result = await service.toggle("flag_1", false);
       expect(result.status).toBe("inactive");
     });
   });

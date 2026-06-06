@@ -142,7 +142,7 @@ export const createMockFetch = (responses: unknown[] = []) => {
 
 // Mock server for SSE
 export const createMockSSEStream = (
-  events: Array<{ type: string; data: unknown }> = []
+  events: { type: string; data: unknown }[] = []
 ) => {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

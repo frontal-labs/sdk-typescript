@@ -1,8 +1,7 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FunctionsService } from "../src/client";
-import { Functions } from "../src/compat";
-import { functionConfigSchema, invokeOptionsSchema } from "../src/types";
+import { FunctionsService } from "../src/service";
+import { functionConfigSchema, invokeOptionsSchema } from "../src/schemas";
 
 function createService(routes: MockRoute[] = []) {
   const { http, mock } = createTestHttpClient(routes);
@@ -210,46 +209,5 @@ describe("Schema validation", () => {
     expect(() =>
       invokeOptionsSchema.parse({ payload: { key: "value" } })
     ).not.toThrow();
-  });
-});
-
-describe("Functions (deprecated compat)", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it("returns APIResponse with data on success", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify([functionEntry]), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      })
-    );
-    vi.stubGlobal("fetch", mockFetch);
-
-    const fns = new Functions({
-      apiKey: "frt_test-api-key-1234567890",
-      baseUrl: "https://api.test.frontal.dev/v1",
-    });
-    const result = await fns.list();
-
-    expect(result.data).toBeDefined();
-    expect(result.error).toBeNull();
-  });
-
-  it("returns APIResponse with error on validation failure", async () => {
-    const mockFetch = vi.fn();
-    vi.stubGlobal("fetch", mockFetch);
-
-    const fns = new Functions({
-      apiKey: "frt_test-api-key-1234567890",
-      baseUrl: "https://api.test.frontal.dev/v1",
-    });
-    const result = await fns.deploy(
-      {} as unknown as Parameters<typeof fns.deploy>[0]
-    );
-
-    expect(result.data).toBeNull();
-    expect(result.error).toBeDefined();
   });
 });

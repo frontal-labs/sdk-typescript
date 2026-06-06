@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   return { service: new WebhooksService(http), mock };
@@ -23,8 +23,8 @@ const mockWebhook = {
   url: "https://hooks.example.com",
   events: ["order.created"],
   status: "active",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 function pageWrap<T>(items: T[]) {
@@ -87,8 +87,8 @@ describe("WebhooksService", () => {
         },
       },
     ]);
-    const result = await service.stats.getStats();
-    expect(result.success_rate).toBe(0.98);
+    const result = await service.stats.get();
+    expect(result.successRate).toBe(0.98);
   });
 });
 

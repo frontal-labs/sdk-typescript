@@ -21,7 +21,17 @@ const asPagePayload = <T>(
   };
 
 export class OntologyService {
-  constructor(private readonly http: HttpClient) {}
+  readonly migrations: MigrationsNamespace;
+  readonly rules: RulesNamespace;
+  readonly mixins: MixinsNamespace;
+  readonly generation: GenerationNamespace;
+
+  constructor(private readonly http: HttpClient) {
+    this.migrations = new MigrationsNamespace(http);
+    this.rules = new RulesNamespace(http);
+    this.mixins = new MixinsNamespace(http);
+    this.generation = new GenerationNamespace(http);
+  }
 
   use(name: string): ModelAccessor {
     return new ModelAccessor(name, this.http);
@@ -56,11 +66,6 @@ export class OntologyService {
   async checkIntegrity(): Promise<{ valid: boolean; violations?: unknown[] }> {
     return this.http.get("/ontology/engine/health");
   }
-
-  readonly migrations = new MigrationsNamespace(this.http);
-  readonly rules = new RulesNamespace(this.http);
-  readonly mixins = new MixinsNamespace(this.http);
-  readonly generation = new GenerationNamespace(this.http);
 }
 
 export class ModelAccessor {

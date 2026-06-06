@@ -25,13 +25,13 @@ export const OrganizationSchema = z
     id: z.string(),
     name: z.string(),
     slug: z.string(),
-    avatar_url: z.string().url().optional(),
+    avatarUrl: z.string().url().optional(),
     plan: PlanSchema,
     status: OrganizationStatusSchema,
-    billing_email: z.string().email().optional(),
+    billingEmail: z.string().email().optional(),
     settings: z.record(z.string(), z.unknown()).optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
@@ -40,13 +40,13 @@ export const OrganizationSchema = z
 export const TenantSchema = z
   .object({
     id: z.string(),
-    organization_id: z.string(),
+    organizationId: z.string(),
     name: z.string(),
     slug: z.string(),
     description: z.string().optional(),
     settings: z.record(z.string(), z.unknown()).optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
@@ -55,12 +55,12 @@ export const TenantSchema = z
 export const TeamSchema = z
   .object({
     id: z.string(),
-    organization_id: z.string(),
-    tenant_id: z.string().optional(),
+    organizationId: z.string(),
+    tenantId: z.string().optional(),
     name: z.string(),
     description: z.string().optional(),
-    member_count: z.number().int(),
-    created_at: z.string(),
+    memberCount: z.number().int(),
+    createdAt: z.string(),
   })
   .passthrough();
 
@@ -71,13 +71,13 @@ export const MemberStatusSchema = z.enum(["active", "invited", "deactivated"]);
 export const MemberSchema = z
   .object({
     id: z.string(),
-    organization_id: z.string(),
-    user_id: z.string(),
+    organizationId: z.string(),
+    userId: z.string(),
     email: z.string().email(),
     name: z.string(),
     role: z.string(),
     status: MemberStatusSchema,
-    joined_at: z.string(),
+    joinedAt: z.string(),
   })
   .passthrough();
 
@@ -86,12 +86,12 @@ export const MemberSchema = z
 export const RoleSchema = z
   .object({
     id: z.string(),
-    organization_id: z.string(),
+    organizationId: z.string(),
     name: z.string(),
     description: z.string().optional(),
     permissions: z.array(PermissionSchema),
-    is_system: z.boolean(),
-    created_at: z.string(),
+    isSystem: z.boolean(),
+    createdAt: z.string(),
   })
   .passthrough();
 
@@ -107,13 +107,13 @@ export const InvitationStatusSchema = z.enum([
 export const InvitationSchema = z
   .object({
     id: z.string(),
-    organization_id: z.string(),
+    organizationId: z.string(),
     email: z.string().email(),
     role: z.string(),
-    invited_by: z.string(),
+    invitedBy: z.string(),
     status: InvitationStatusSchema,
-    expires_at: z.string(),
-    created_at: z.string(),
+    expiresAt: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 
@@ -122,12 +122,12 @@ export const InvitationSchema = z
 export const MemberSessionSchema = z
   .object({
     id: z.string(),
-    member_id: z.string(),
-    session_id: z.string(),
-    ip_address: z.string().optional(),
-    user_agent: z.string().optional(),
-    last_activity_at: z.string(),
-    created_at: z.string(),
+    memberId: z.string(),
+    sessionId: z.string(),
+    ipAddress: z.string().optional(),
+    userAgent: z.string().optional(),
+    lastActivityAt: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 

@@ -57,7 +57,7 @@ export class DeliveriesNamespace {
   constructor(private readonly http: HttpClient) {}
   async list(
     opts: {
-      webhook_id?: string;
+      webhookId?: string;
       status?: string;
       limit?: number;
       cursor?: string;
@@ -78,8 +78,14 @@ export class DeliveriesNamespace {
 
 export class StatsNamespace {
   constructor(private readonly http: HttpClient) {}
+  /** @deprecated Use {@link get} instead. */
   async getStats(
-    opts: { webhook_id?: string; from?: string; to?: string } = {}
+    opts: { webhookId?: string; from?: string; to?: string } = {}
+  ): Promise<WebhookStats> {
+    return this.get(opts);
+  }
+  async get(
+    opts: { webhookId?: string; from?: string; to?: string } = {}
   ): Promise<WebhookStats> {
     return this.http.get("/v1/webhooks/stats", opts);
   }

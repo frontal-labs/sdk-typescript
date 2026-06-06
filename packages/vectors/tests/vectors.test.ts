@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   return { service: new VectorsService(http), mock };
@@ -23,10 +23,10 @@ const mockIndex = {
   name: "products",
   dimensions: 1536,
   metric: "cosine",
-  vector_count: 5000,
+  vectorCount: 5000,
   status: "active",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 function pageWrap<T>(items: T[]) {
   return {
@@ -66,7 +66,7 @@ describe("VectorsService", () => {
         body: { inserted: 3 },
       },
     ]);
-    const result = await service.vectors.upsert("idx_1", [
+    const result = await service.upsert("idx_1", [
       {
         id: "v1",
         values: Array.from(

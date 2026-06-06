@@ -24,17 +24,17 @@ export const PolicySchema = z
     ),
     enabled: z.boolean(),
     priority: z.number().int(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
 export const PolicyEvaluationResultSchema = z.object({
-  policy_id: z.string(),
+  policyId: z.string(),
   passed: z.boolean(),
-  rule_results: z.array(
+  ruleResults: z.array(
     z.object({
-      rule_id: z.string(),
+      ruleId: z.string(),
       passed: z.boolean(),
       reason: z.string().optional(),
     })
@@ -44,11 +44,11 @@ export const PolicyEvaluationResultSchema = z.object({
 export const RbacBindingSchema = z
   .object({
     id: z.string(),
-    user_id: z.string().optional(),
-    member_id: z.string().optional(),
+    userId: z.string().optional(),
+    memberId: z.string().optional(),
     role: z.string(),
     resource: z.string(),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 

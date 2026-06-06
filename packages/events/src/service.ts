@@ -150,7 +150,7 @@ export class EventSchemasNamespace {
     data: Record<string, unknown>
   ): Promise<{
     valid: boolean;
-    errors?: Array<{ field: string; message: string }>;
+    errors?: { field: string; message: string }[];
   }> {
     return this.http.post(`/v1/events/schemas/${schemaId}/validate`, { data });
   }

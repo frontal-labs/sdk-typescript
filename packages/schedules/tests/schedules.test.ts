@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   return { service: new SchedulesService(http), mock };
@@ -25,8 +25,8 @@ const mockSchedule = {
   timezone: "UTC",
   target: { type: "pipeline", id: "ppl_1" },
   status: "active",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 function pageWrap<T>(items: T[]) {
@@ -41,14 +41,14 @@ describe("SchedulesService", () => {
     const { service } = createService([
       { method: "GET", path: "/v1/schedules", body: pageWrap([mockSchedule]) },
     ]);
-    const result = await service.schedules.list();
+    const result = await service.list();
     expect(result.data).toHaveLength(1);
   });
   it("creates a schedule", async () => {
     const { service } = createService([
       { method: "POST", path: "/v1/schedules", body: mockSchedule },
     ]);
-    const result = await service.schedules.create({
+    const result = await service.create({
       name: "Daily Report",
       cron: "0 9 * * *",
       target: { type: "pipeline", id: "ppl_1" },
@@ -63,7 +63,7 @@ describe("SchedulesService", () => {
         body: { ...mockSchedule, status: "paused" },
       },
     ]);
-    const result = await service.schedules.pause("sch_1");
+    const result = await service.pause("sch_1");
     expect(result.status).toBe("paused");
   });
   it("triggers a schedule", async () => {
@@ -80,7 +80,7 @@ describe("SchedulesService", () => {
         },
       },
     ]);
-    const result = await service.schedules.trigger("sch_1");
+    const result = await service.trigger("sch_1");
     expect(result.id).toBe("run_1");
   });
   it("validates cron expression", async () => {

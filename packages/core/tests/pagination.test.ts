@@ -104,7 +104,7 @@ describe("Pagination", () => {
     });
 
     it("should handle empty data array", () => {
-      const data: Array<{ id: number; name: string }> = [];
+      const data: { id: number; name: string }[] = [];
       const pagination = createMockPaginationMeta({ hasMore: true });
       const fetchNextPage = vi.fn().mockResolvedValue(null);
 
@@ -248,7 +248,7 @@ describe("Pagination", () => {
     });
 
     it("should handle empty first page", async () => {
-      const data: Array<{ id: number; name: string }> = [];
+      const data: { id: number; name: string }[] = [];
       const pagination = createMockPaginationMeta({ hasMore: true });
       const nextPageData = [{ id: 1, name: "Item 1" }];
       const nextPagePagination = createMockPaginationMeta({ hasMore: false });
@@ -339,9 +339,9 @@ describe("Pagination", () => {
     });
 
     it("should handle empty pages during iteration", async () => {
-      const page1Data: Array<{ id: number; name: string }> = [];
+      const page1Data: { id: number; name: string }[] = [];
       const page2Data = [{ id: 1, name: "Item 1" }];
-      const page3Data: Array<{ id: number; name: string }> = [];
+      const page3Data: { id: number; name: string }[] = [];
       const page4Data = [{ id: 2, name: "Item 2" }];
 
       const page1Pagination = createMockPaginationMeta({ hasMore: true });

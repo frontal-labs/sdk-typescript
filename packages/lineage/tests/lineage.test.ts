@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   return { service: new LineageService(http), mock };
@@ -22,14 +22,14 @@ const mockNode = {
   id: "node_1",
   type: "dataset",
   name: "users",
-  created_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
 };
 const mockEdge = {
   id: "edge_1",
-  source_id: "node_1",
-  target_id: "node_2",
+  sourceId: "node_1",
+  targetId: "node_2",
   type: "produces",
-  created_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
 };
 const mockGraph = { nodes: [mockNode], edges: [mockEdge] };
 function pageWrap<T>(items: T[]) {
@@ -88,7 +88,7 @@ describe("LineageService", () => {
     const result = await service.impact.analyzeChange("node_1", {
       type: "update",
     });
-    expect(result.affected_resources).toHaveLength(1);
+    expect(result.affectedResources).toHaveLength(1);
   });
 });
 

@@ -14,12 +14,12 @@ export const UnifiedSearchRequestSchema = z.object({
   modes: z
     .array(z.enum(["vector", "semantic", "structured"]))
     .default(["vector", "semantic"]),
-  top_k: z.number().int().positive().default(10),
+  topK: z.number().int().positive().default(10),
   filters: z
     .object({
-      index_ids: z.array(z.string()).optional(),
-      entity_types: z.array(z.string()).optional(),
-      dataset_ids: z.array(z.string()).optional(),
+      indexIds: z.array(z.string()).optional(),
+      entityTypes: z.array(z.string()).optional(),
+      datasetIds: z.array(z.string()).optional(),
     })
     .optional(),
 });
@@ -31,7 +31,7 @@ export const UnifiedSearchResponseSchema = z.object({
     semantic: z.number(),
     structured: z.number(),
   }),
-  query_time_ms: z.number(),
+  queryTimeMs: z.number(),
 });
 
 export const searchConfigSchema = z.object({

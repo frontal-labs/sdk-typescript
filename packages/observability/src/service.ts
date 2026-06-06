@@ -33,8 +33,8 @@ export class LogsNamespace {
 
   async query(input: {
     query: string;
-    time_from: string;
-    time_to: string;
+    timeFrom: string;
+    timeTo: string;
     level?: string;
     limit?: number;
     order?: string;
@@ -47,15 +47,13 @@ export class LogsNamespace {
 
   async *stream(input: {
     query: string;
-    time_from: string;
-    time_to: string;
+    timeFrom: string;
+    timeTo: string;
   }): AsyncIterable<{ type: string; data: unknown; id?: string }> {
     yield* this.http.stream("/v1/observability/logs/stream", input);
   }
 
-  async ingest(
-    entries: Array<Omit<LogEntry, "id">>
-  ): Promise<{ ingested: number }> {
+  async ingest(entries: Omit<LogEntry, "id">[]): Promise<{ ingested: number }> {
     return this.http.post("/v1/observability/logs/ingest", { entries });
   }
 }
@@ -94,12 +92,12 @@ export class MetricsNamespace {
   }
 
   async ingest(
-    points: Array<{
+    points: {
       metric: string;
       value: number;
       timestamp: string;
       tags?: Record<string, string>;
-    }>
+    }[]
   ): Promise<{ ingested: number }> {
     return this.http.post("/v1/observability/metrics/ingest", { points });
   }
@@ -130,8 +128,8 @@ export class TracesNamespace {
 
   async query(filter: {
     service?: string;
-    min_duration?: number;
-    max_duration?: number;
+    minDuration?: number;
+    maxDuration?: number;
     from?: string;
     to?: string;
   }): Promise<PageResult<Trace>> {
@@ -154,7 +152,7 @@ export class AlertsNamespace {
   }
 
   async create(
-    rule: Omit<AlertRule, "id" | "created_at" | "last_fired_at">
+    rule: Omit<AlertRule, "id" | "createdAt" | "lastFiredAt">
   ): Promise<AlertRule> {
     return this.http.post("/v1/observability/alerts", rule);
   }
@@ -199,7 +197,7 @@ export class DashboardsNamespace {
   }
 
   async create(
-    dashboard: Omit<Dashboard, "id" | "created_at" | "updated_at">
+    dashboard: Omit<Dashboard, "id" | "createdAt" | "updatedAt">
   ): Promise<Dashboard> {
     return this.http.post("/v1/observability/dashboards", dashboard);
   }
@@ -214,8 +212,8 @@ export class DashboardsNamespace {
 
   async share(
     id: string,
-    opts: { expires_in?: string; public?: boolean } = {}
-  ): Promise<{ share_url: string }> {
+    opts: { expiresIn?: string; public?: boolean } = {}
+  ): Promise<{ shareUrl: string }> {
     return this.http.post(`/v1/observability/dashboards/${id}/share`, opts);
   }
 }

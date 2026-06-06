@@ -9,52 +9,52 @@ export const PlanSchema = z
     currency: z.string(),
     interval: z.enum(["monthly", "annual"]),
     features: z.array(z.string()),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const SubscriptionSchema = z
   .object({
     id: z.string(),
-    organization_id: z.string(),
-    tenant_id: z.string().optional(),
-    plan_id: z.string(),
+    organizationId: z.string(),
+    tenantId: z.string().optional(),
+    planId: z.string(),
     status: z.enum(["active", "past_due", "canceled", "trialing"]),
-    current_period_start: z.string(),
-    current_period_end: z.string(),
-    cancel_at_period_end: z.boolean(),
-    created_at: z.string(),
+    currentPeriodStart: z.string(),
+    currentPeriodEnd: z.string(),
+    cancelAtPeriodEnd: z.boolean(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const InvoiceSchema = z
   .object({
     id: z.string(),
-    subscription_id: z.string(),
+    subscriptionId: z.string(),
     amount: z.number(),
     currency: z.string(),
     status: z.enum(["draft", "open", "paid", "void", "uncollectible"]),
-    period_start: z.string(),
-    period_end: z.string(),
-    paid_at: z.string().optional(),
-    created_at: z.string(),
+    periodStart: z.string(),
+    periodEnd: z.string(),
+    paidAt: z.string().optional(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const PaymentMethodSchema = z
   .object({
     id: z.string(),
     type: z.enum(["card", "bank_transfer", "crypto"]),
-    last_four: z.string().optional(),
+    lastFour: z.string().optional(),
     brand: z.string().optional(),
-    is_default: z.boolean(),
-    created_at: z.string(),
+    isDefault: z.boolean(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const UsageRecordSchema = z
   .object({
     id: z.string(),
-    subscription_id: z.string(),
+    subscriptionId: z.string(),
     metric: z.string(),
     quantity: z.number(),
-    recorded_at: z.string(),
+    recordedAt: z.string(),
   })
   .passthrough();
 export const billingConfigSchema = z.object({

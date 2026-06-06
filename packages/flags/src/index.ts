@@ -52,7 +52,6 @@ export { FlagCache } from "./cache";
 export type { FlagCacheConfig } from "./cache";
 export { FlagsService } from "./service";
 export {
-  FlagsNamespace,
   TargetingNamespace,
   RolloutsNamespace,
   ExperimentsNamespace,

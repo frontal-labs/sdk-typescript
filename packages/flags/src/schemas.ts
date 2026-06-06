@@ -11,11 +11,11 @@ export const FlagSchema = z
     name: z.string(),
     description: z.string().optional(),
     type: FlagTypeSchema,
-    default_value: z.union([z.boolean(), z.string(), z.number()]),
+    defaultValue: z.union([z.boolean(), z.string(), z.number()]),
     status: z.enum(["active", "inactive", "archived"]),
     tags: z.array(z.string()).optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
@@ -24,7 +24,7 @@ export const CreateFlagSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   type: FlagTypeSchema,
-  default_value: z.union([z.boolean(), z.string(), z.number()]),
+  defaultValue: z.union([z.boolean(), z.string(), z.number()]),
 });
 
 // ── Targeting ──────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ export const CreateFlagSchema = z.object({
 export const TargetingRuleSchema = z
   .object({
     id: z.string(),
-    flag_id: z.string(),
+    flagId: z.string(),
     attribute: z.string(),
     operator: z.enum([
       "eq",
@@ -53,12 +53,12 @@ export const TargetingRuleSchema = z
 export const RolloutSchema = z
   .object({
     id: z.string(),
-    flag_id: z.string(),
+    flagId: z.string(),
     percentage: z.number().min(0).max(100),
     value: z.union([z.boolean(), z.string(), z.number()]),
     status: z.enum(["active", "paused", "completed"]),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
@@ -73,29 +73,29 @@ export const ExperimentVariantSchema = z.object({
 export const ExperimentSchema = z
   .object({
     id: z.string(),
-    flag_id: z.string(),
+    flagId: z.string(),
     name: z.string(),
     description: z.string().optional(),
     variants: z.array(ExperimentVariantSchema),
     status: z.enum(["draft", "running", "stopped", "completed"]),
-    started_at: z.string().optional(),
-    ended_at: z.string().optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    startedAt: z.string().optional(),
+    endedAt: z.string().optional(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
 // ── Evaluation ─────────────────────────────────────────────────────
 
 export const EvaluationContextSchema = z.object({
-  user_id: z.string().optional(),
-  organization_id: z.string().optional(),
-  tenant_id: z.string().optional(),
+  userId: z.string().optional(),
+  organizationId: z.string().optional(),
+  tenantId: z.string().optional(),
   attributes: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const FlagEvaluationSchema = z.object({
-  flag_key: z.string(),
+  flagKey: z.string(),
   value: z.union([z.boolean(), z.string(), z.number()]),
   reason: z.string(),
   source: z.enum(["default", "targeting", "rollout", "experiment"]),

@@ -13,48 +13,14 @@ const asPagePayload = <T>(
 
 export class VectorsService {
   readonly indexes: IndexesNamespace;
-  readonly vectors: VectorsNamespace;
   readonly search: SearchNamespace;
+
+  private dimensionCache = new Map<string, number>();
 
   constructor(private readonly http: HttpClient) {
     this.indexes = new IndexesNamespace(http);
-    this.vectors = new VectorsNamespace(http);
     this.search = new SearchNamespace(http);
   }
-}
-
-export class IndexesNamespace {
-  constructor(private readonly http: HttpClient) {}
-  async list(
-    opts: { limit?: number; cursor?: string } = {}
-  ): Promise<PageResult<VectorIndex>> {
-    const raw = await this.http.get("/v1/vectors/indexes", opts);
-    return createPageResult(asPagePayload<VectorIndex>(raw), (cursor) =>
-      this.list({ ...opts, cursor })
-    );
-  }
-  async create(input: {
-    name: string;
-    dimensions: number;
-    metric?: string;
-  }): Promise<VectorIndex> {
-    return this.http.post("/v1/vectors/indexes", input);
-  }
-  async get(id: string): Promise<VectorIndex> {
-    return this.http.get(`/v1/vectors/indexes/${id}`);
-  }
-  async update(id: string, input: { name?: string }): Promise<VectorIndex> {
-    return this.http.put(`/v1/vectors/indexes/${id}`, input);
-  }
-  async delete(id: string): Promise<void> {
-    return this.http.delete(`/v1/vectors/indexes/${id}`);
-  }
-}
-
-export class VectorsNamespace {
-  private dimensionCache = new Map<string, number>();
-
-  constructor(private readonly http: HttpClient) {}
 
   private async getDimension(indexId: string): Promise<number> {
     const cached = this.dimensionCache.get(indexId);
@@ -67,11 +33,11 @@ export class VectorsNamespace {
 
   async upsert(
     indexId: string,
-    vectors: Array<{
+    vectors: {
       id: string;
       values: number[];
       metadata?: Record<string, unknown>;
-    }>
+    }[]
   ): Promise<{ inserted: number }> {
     const dims = await this.getDimension(indexId);
     for (let i = 0; i < vectors.length; i++) {
@@ -88,12 +54,12 @@ export class VectorsNamespace {
 
   async batchUpsert(
     indexId: string,
-    vectors: Array<{
+    vectors: {
       id: string;
       values: number[];
       metadata?: Record<string, unknown>;
-    }>,
-    batchSize: number = 100
+    }[],
+    batchSize = 100
   ): Promise<{ inserted: number }> {
     const dims = await this.getDimension(indexId);
     for (let i = 0; i < vectors.length; i++) {
@@ -137,13 +103,41 @@ export class VectorsNamespace {
   }
 }
 
+export class IndexesNamespace {
+  constructor(private readonly http: HttpClient) {}
+  async list(
+    opts: { limit?: number; cursor?: string } = {}
+  ): Promise<PageResult<VectorIndex>> {
+    const raw = await this.http.get("/v1/vectors/indexes", opts);
+    return createPageResult(asPagePayload<VectorIndex>(raw), (cursor) =>
+      this.list({ ...opts, cursor })
+    );
+  }
+  async create(input: {
+    name: string;
+    dimensions: number;
+    metric?: string;
+  }): Promise<VectorIndex> {
+    return this.http.post("/v1/vectors/indexes", input);
+  }
+  async get(id: string): Promise<VectorIndex> {
+    return this.http.get(`/v1/vectors/indexes/${id}`);
+  }
+  async update(id: string, input: { name?: string }): Promise<VectorIndex> {
+    return this.http.put(`/v1/vectors/indexes/${id}`, input);
+  }
+  async delete(id: string): Promise<void> {
+    return this.http.delete(`/v1/vectors/indexes/${id}`);
+  }
+}
+
 export class SearchNamespace {
   constructor(private readonly http: HttpClient) {}
   async search(
     indexId: string,
     input: {
       vector: number[];
-      top_k?: number;
+      topK?: number;
       filter?: Record<string, unknown>;
     }
   ): Promise<{ results: VectorSearchResult[] }> {
@@ -151,7 +145,7 @@ export class SearchNamespace {
   }
   async hybridSearch(
     indexId: string,
-    input: { vector: number[]; text?: string; top_k?: number }
+    input: { vector: number[]; text?: string; topK?: number }
   ): Promise<{ results: VectorSearchResult[] }> {
     return this.http.post(
       `/v1/vectors/indexes/${indexId}/hybrid-search`,

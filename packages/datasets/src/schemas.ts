@@ -6,30 +6,30 @@ export const DatasetSchema = z
     name: z.string(),
     description: z.string().optional(),
     schema: z.record(z.string(), z.unknown()).optional(),
-    row_count: z.number().int(),
-    storage_size_bytes: z.number().int(),
-    version_count: z.number().int(),
+    rowCount: z.number().int(),
+    storageSizeBytes: z.number().int(),
+    versionCount: z.number().int(),
     status: z.enum(["active", "archived"]),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 export const DatasetVersionSchema = z
   .object({
     id: z.string(),
-    dataset_id: z.string(),
+    datasetId: z.string(),
     version: z.number().int(),
     schema: z.record(z.string(), z.unknown()),
-    row_count: z.number().int(),
-    created_at: z.string(),
+    rowCount: z.number().int(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const DatasetStatsSchema = z
   .object({
-    row_count: z.number().int(),
-    storage_size_bytes: z.number().int(),
-    column_count: z.number().int(),
-    last_updated: z.string(),
+    rowCount: z.number().int(),
+    storageSizeBytes: z.number().int(),
+    columnCount: z.number().int(),
+    lastUpdated: z.string(),
   })
   .passthrough();
 export const datasetsConfigSchema = z.object({

@@ -42,4 +42,4 @@ export const audit = new AuditService(getDefaultClient()._http);
 
 export { DEFAULT_AUDIT_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";
-export { AuditService } from "./service";
+export { AuditService, EventsNamespace } from "./service";

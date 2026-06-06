@@ -42,4 +42,11 @@ export const auth = new AuthService(getDefaultClient()._http);
 
 export { DEFAULT_AUTH_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";
-export { AuthAdminService, AuthService, MfaNamespace } from "./service";
+export {
+  AuthAdminService,
+  AuthService,
+  InviteNamespace,
+  MfaNamespace,
+  SessionNamespace,
+  UsersNamespace,
+} from "./service";

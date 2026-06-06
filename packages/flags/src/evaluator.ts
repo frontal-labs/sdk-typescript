@@ -16,7 +16,7 @@ function fnv1a(str: string): number {
 }
 
 export function hashContext(key: string, context: EvaluationContext): number {
-  const seed = `${key}:${context.user_id ?? ""}:${context.organization_id ?? ""}`;
+  const seed = `${key}:${context.userId ?? ""}:${context.organizationId ?? ""}`;
   return fnv1a(seed) % 100;
 }
 
@@ -66,7 +66,7 @@ export function evaluateFlag(
   for (const rule of sorted) {
     if (matchesRule(rule, context)) {
       return {
-        flag_key: flag.key,
+        flagKey: flag.key,
         value: rule.value as boolean | string | number,
         reason: `matched_rule:${rule.id}`,
         source: "targeting",
@@ -75,8 +75,8 @@ export function evaluateFlag(
   }
 
   return {
-    flag_key: flag.key,
-    value: flag.default_value,
+    flagKey: flag.key,
+    value: flag.defaultValue,
     reason: "default",
     source: "default",
   };
@@ -94,7 +94,7 @@ export function evaluateFlagWithRollout(
   if (rolloutPercent !== undefined && rolloutPercent > 0) {
     if (bucket < rolloutPercent) {
       return {
-        flag_key: flag.key,
+        flagKey: flag.key,
         value: rolloutValue ?? true,
         reason: `rollout:${rolloutPercent}%`,
         source: "rollout",

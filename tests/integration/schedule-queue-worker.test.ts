@@ -54,7 +54,7 @@ describe("Schedule → Queue worker integration", () => {
     const queues = new QueuesService(queuesHttp);
 
     // Step 1: Create schedule targeting a queue
-    const schedule = await schedules.schedules.create({
+    const schedule = await schedules.create({
       name: "Nightly Export",
       cron: "0 2 * * *",
       target: { type: "queue", id: "q_1" },
@@ -62,11 +62,11 @@ describe("Schedule → Queue worker integration", () => {
     expect(schedule.target.type).toBe("queue");
 
     // Step 2: Create the queue
-    const queue = await queues.queues.create({ name: "exports" });
+    const queue = await queues.create({ name: "exports" });
     expect(queue.id).toBe("q_1");
 
     // Step 3: Trigger schedule
-    const run = await schedules.schedules.trigger(schedule.id);
+    const run = await schedules.trigger(schedule.id);
     expect(run.status).toBe("completed");
 
     // Step 4: Enqueue job and verify

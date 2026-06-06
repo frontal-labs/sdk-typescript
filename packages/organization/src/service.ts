@@ -49,7 +49,7 @@ export class OrganizationService {
     name?: string;
     slug?: string;
     settings?: Record<string, unknown>;
-    billing_email?: string;
+    billingEmail?: string;
   }): Promise<Organization> {
     return this.http.put("/v1/organization", input);
   }
@@ -103,7 +103,7 @@ export class TeamsNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async list(
-    opts: { tenant_id?: string; limit?: number; cursor?: string } = {}
+    opts: { tenantId?: string; limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Team>> {
     const raw = await this.http.get("/v1/organization/teams", opts);
     return createPageResult(asPagePayload<Team>(raw), (cursor) =>
@@ -114,7 +114,7 @@ export class TeamsNamespace {
   async create(input: {
     name: string;
     description?: string;
-    tenant_id?: string;
+    tenantId?: string;
   }): Promise<Team> {
     return this.http.post("/v1/organization/teams", input);
   }
@@ -136,11 +136,15 @@ export class TeamsNamespace {
 
   async addMember(teamId: string, memberId: string): Promise<void> {
     return this.http.post(`/v1/organization/teams/${teamId}/members`, {
-      member_id: memberId,
+      memberId,
     });
   }
 
+  /** @deprecated Use {@link deleteMember} instead. */
   async removeMember(teamId: string, memberId: string): Promise<void> {
+    return this.deleteMember(teamId, memberId);
+  }
+  async deleteMember(teamId: string, memberId: string): Promise<void> {
     return this.http.delete(
       `/v1/organization/teams/${teamId}/members/${memberId}`
     );
@@ -178,7 +182,11 @@ export class MembersNamespace {
     return this.http.post("/v1/organization/members/invite", input);
   }
 
+  /** @deprecated Use {@link delete} instead. */
   async remove(memberId: string): Promise<void> {
+    return this.delete(memberId);
+  }
+  async delete(memberId: string): Promise<void> {
     return this.http.delete(`/v1/organization/members/${memberId}`);
   }
 
@@ -199,11 +207,11 @@ export class RolesNamespace {
   async create(input: {
     name: string;
     description?: string;
-    permissions: Array<{
+    permissions: {
       resource: string;
       action: string;
       conditions?: Record<string, unknown>;
-    }>;
+    }[];
   }): Promise<Role> {
     return this.http.post("/v1/organization/roles", input);
   }
@@ -217,11 +225,11 @@ export class RolesNamespace {
     input: {
       name?: string;
       description?: string;
-      permissions?: Array<{
+      permissions?: {
         resource: string;
         action: string;
         conditions?: Record<string, unknown>;
-      }>;
+      }[];
     }
   ): Promise<Role> {
     return this.http.put(`/v1/organization/roles/${id}`, input);

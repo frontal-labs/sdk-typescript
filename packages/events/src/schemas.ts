@@ -10,13 +10,13 @@ export const EventSchema = z
     version: z.string().default("1.0"),
     data: z.record(z.string(), z.unknown()),
     metadata: z.object({
-      correlation_id: z.string().optional(),
-      causation_id: z.string().optional(),
+      correlationId: z.string().optional(),
+      causationId: z.string().optional(),
       timestamp: z.string(),
-      user_id: z.string().optional(),
-      organization_id: z.string().optional(),
+      userId: z.string().optional(),
+      organizationId: z.string().optional(),
       subject: z.string().optional(),
-      subject_type: z.string().optional(),
+      subjectType: z.string().optional(),
     }),
     specversion: z.string().default("1.0"),
     datacontenttype: z.literal("application/json").default("application/json"),
@@ -29,11 +29,11 @@ export const PublishEventSchema = z.object({
   data: z.record(z.string(), z.unknown()),
   metadata: z
     .object({
-      correlation_id: z.string().optional(),
-      user_id: z.string().optional(),
-      organization_id: z.string().optional(),
+      correlationId: z.string().optional(),
+      userId: z.string().optional(),
+      organizationId: z.string().optional(),
       subject: z.string().optional(),
-      subject_type: z.string().optional(),
+      subjectType: z.string().optional(),
     })
     .optional(),
 });
@@ -45,10 +45,10 @@ export const TopicSchema = z
     id: z.string(),
     name: z.string(),
     description: z.string().optional(),
-    schema_id: z.string().optional(),
-    event_count: z.number().int(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    schemaId: z.string().optional(),
+    eventCount: z.number().int(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
@@ -57,19 +57,19 @@ export const TopicSchema = z
 export const SubscriptionSchema = z
   .object({
     id: z.string(),
-    topic_id: z.string(),
+    topicId: z.string(),
     name: z.string(),
     endpoint: z.string(),
     filter: z.string().optional(),
     status: z.enum(["active", "paused", "error"]),
-    retry_policy: z
+    retryPolicy: z
       .object({
-        max_retries: z.number().int(),
+        maxRetries: z.number().int(),
         backoff: z.enum(["exponential", "linear", "constant"]),
       })
       .optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
@@ -79,11 +79,11 @@ export const DeadLetterEventSchema = z
   .object({
     id: z.string(),
     event: EventSchema,
-    subscription_id: z.string(),
+    subscriptionId: z.string(),
     error: z.string(),
     attempts: z.number().int(),
-    last_attempt_at: z.string(),
-    created_at: z.string(),
+    lastAttemptAt: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 
@@ -96,7 +96,7 @@ export const EventTypeSchema = z
     version: z.string(),
     schema: z.record(z.string(), z.unknown()),
     description: z.string().optional(),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 

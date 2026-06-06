@@ -42,4 +42,4 @@ export const search = new SearchService(getDefaultClient()._http);
 
 export { DEFAULT_SEARCH_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";
-export { SearchService, SearchStatsNamespace } from "./service";
+export { SearchService, StatsNamespace } from "./service";

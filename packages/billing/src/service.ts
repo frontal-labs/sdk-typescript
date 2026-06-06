@@ -49,14 +49,14 @@ export class SubscriptionsNamespace {
     return this.http.get("/v1/billing/subscription");
   }
   async create(input: {
-    plan_id: string;
-    tenant_id?: string;
+    planId: string;
+    tenantId?: string;
   }): Promise<Subscription> {
     return this.http.post("/v1/billing/subscription", input);
   }
   async update(input: {
-    plan_id?: string;
-    cancel_at_period_end?: boolean;
+    planId?: string;
+    cancelAtPeriodEnd?: boolean;
   }): Promise<Subscription> {
     return this.http.put("/v1/billing/subscription", input);
   }
@@ -86,7 +86,7 @@ export class InvoicesNamespace {
 export class UsageNamespace {
   constructor(private readonly http: HttpClient) {}
   async report(
-    records: Array<{ metric: string; quantity: number }>
+    records: { metric: string; quantity: number }[]
   ): Promise<{ ingested: number }> {
     return this.http.post("/v1/billing/usage", { records });
   }
@@ -105,10 +105,18 @@ export class PaymentMethodsNamespace {
   async list(): Promise<{ data: PaymentMethod[] }> {
     return this.http.get("/v1/billing/payment-methods");
   }
+  /** @deprecated Use {@link create} instead. */
   async add(input: { type: string; token: string }): Promise<PaymentMethod> {
+    return this.create(input);
+  }
+  async create(input: { type: string; token: string }): Promise<PaymentMethod> {
     return this.http.post("/v1/billing/payment-methods", input);
   }
+  /** @deprecated Use {@link delete} instead. */
   async remove(id: string): Promise<void> {
+    return this.delete(id);
+  }
+  async delete(id: string): Promise<void> {
     return this.http.delete(`/v1/billing/payment-methods/${id}`);
   }
   async setDefault(id: string): Promise<PaymentMethod> {

@@ -10,12 +10,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   const service = new ObservabilityService(http);
@@ -39,14 +39,14 @@ const mockLog: Record<string, unknown> = {
 
 const mockTrace: Record<string, unknown> = {
   id: "trace_1",
-  trace_id: "trace_abc",
+  traceId: "trace_abc",
   name: "test span",
   service: "api",
   duration: 150,
   status: "ok",
   spans: [],
-  start_time: "2025-01-01T00:00:00Z",
-  end_time: "2025-01-01T00:00:01Z",
+  startTime: "2025-01-01T00:00:00Z",
+  endTime: "2025-01-01T00:00:01Z",
 };
 
 const mockAlert: Record<string, unknown> = {
@@ -59,15 +59,15 @@ const mockAlert: Record<string, unknown> = {
   duration: "5m",
   channels: ["email"],
   enabled: true,
-  created_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
 };
 
 const mockDashboard: Record<string, unknown> = {
   id: "dash_1",
   name: "Overview",
   widgets: [],
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 describe("ObservabilityService", () => {
@@ -82,8 +82,8 @@ describe("ObservabilityService", () => {
       ]);
       const result = await service.logs.query({
         query: "*",
-        time_from: "2025-01-01T00:00:00Z",
-        time_to: "2025-01-02T00:00:00Z",
+        timeFrom: "2025-01-01T00:00:00Z",
+        timeTo: "2025-01-02T00:00:00Z",
       });
       expect(result.data).toHaveLength(1);
     });
@@ -206,7 +206,7 @@ describe("ObservabilityService", () => {
         },
       ]);
       const result = await service.dashboards.share("dash_1");
-      expect(result.share_url).toBeDefined();
+      expect(result.shareUrl).toBeDefined();
     });
   });
 });

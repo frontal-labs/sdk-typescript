@@ -3,15 +3,15 @@ import { z } from "zod";
 export const AuditEventSchema = z
   .object({
     id: z.string(),
-    actor: z.object({ user_id: z.string(), member_id: z.string().optional() }),
+    actor: z.object({ userId: z.string(), memberId: z.string().optional() }),
     action: z.string(),
     resource: z.object({ type: z.string(), id: z.string() }),
     metadata: z.record(z.string(), z.unknown()).optional(),
     status: z.enum(["success", "failure", "denied"]),
-    ip_address: z.string().optional(),
-    user_agent: z.string().optional(),
-    organization_id: z.string().optional(),
-    tenant_id: z.string().optional(),
+    ipAddress: z.string().optional(),
+    userAgent: z.string().optional(),
+    organizationId: z.string().optional(),
+    tenantId: z.string().optional(),
     timestamp: z.string(),
   })
   .passthrough();
@@ -24,12 +24,12 @@ export const AuditEventInputSchema = z.object({
 });
 
 export const AuditQuerySchema = z.object({
-  actor_user_id: z.string().optional(),
+  actorUserId: z.string().optional(),
   action: z.string().optional(),
-  resource_type: z.string().optional(),
+  resourceType: z.string().optional(),
   status: z.string().optional(),
-  time_from: z.string().optional(),
-  time_to: z.string().optional(),
+  timeFrom: z.string().optional(),
+  timeTo: z.string().optional(),
 });
 
 export const AuditReportSchema = z
@@ -39,8 +39,8 @@ export const AuditReportSchema = z
     query: AuditQuerySchema,
     format: z.enum(["csv", "json"]),
     status: z.enum(["pending", "running", "completed", "failed"]),
-    download_url: z.string().optional(),
-    created_at: z.string(),
+    downloadUrl: z.string().optional(),
+    createdAt: z.string(),
   })
   .passthrough();
 

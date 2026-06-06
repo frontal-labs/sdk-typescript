@@ -3,12 +3,12 @@ import { createTestHttpClient } from "@frontal-labs/testing";
 import { BillingService, createBillingClient, PlanSchema } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http } = createTestHttpClient(routes);
   return { service: new BillingService(http) };
@@ -21,7 +21,7 @@ const mockPlan = {
   currency: "USD",
   interval: "monthly",
   features: ["unlimited"],
-  created_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
 };
 const mockSub = {
   id: "sub_1",
@@ -112,7 +112,7 @@ describe("BillingService", () => {
         },
       },
     ]);
-    const result = await service.paymentMethods.add({
+    const result = await service.paymentMethods.create({
       type: "card",
       token: "tok_xxx",
     });

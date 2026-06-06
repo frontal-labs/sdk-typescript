@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   const service = new SearchService(http);
@@ -52,7 +52,7 @@ describe("SearchService", () => {
       },
     ]);
     const result = await service.vectorSearch({
-      index_id: "idx_1",
+      indexId: "idx_1",
       text: "red shoes",
     });
     expect(result.results).toHaveLength(1);
@@ -81,7 +81,7 @@ describe("SearchService", () => {
       },
     ]);
     const result = await service.structuredSearch({
-      dataset_id: "ds_1",
+      datasetId: "ds_1",
       where: { status: "active" },
     });
     expect(result.results).toHaveLength(1);

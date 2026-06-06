@@ -6,26 +6,26 @@ export const VectorIndexSchema = z
     name: z.string(),
     dimensions: z.number().int(),
     metric: z.enum(["cosine", "euclidean", "dot_product"]),
-    vector_count: z.number().int(),
+    vectorCount: z.number().int(),
     status: z.enum(["active", "building", "deleted"]),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 export const VectorSchema = z
   .object({
     id: z.string(),
-    index_id: z.string(),
+    indexId: z.string(),
     values: z.array(z.number()),
     metadata: z.record(z.string(), z.unknown()).optional(),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const VectorSearchResultSchema = z
   .object({
     id: z.string(),
     score: z.number(),
-    vector_id: z.string(),
+    vectorId: z.string(),
     metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();

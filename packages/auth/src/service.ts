@@ -45,29 +45,25 @@ import {
   VerifyOtpParamsSchema,
 } from "./schemas";
 
-export class AuthAdminService {
-  readonly mfa: AdminMfaNamespace;
+export class UsersNamespace {
+  constructor(private readonly http: HttpClient) {}
 
-  constructor(private readonly http: HttpClient) {
-    this.mfa = new AdminMfaNamespace(http);
-  }
-
-  async createUser(attributes: AdminUserAttributes): Promise<UserResponse> {
-    const body = AdminUserAttributesSchema.parse(attributes);
-    return this.http.post("/admin/users", body);
-  }
-
-  async listUsers(
+  async list(
     params?: PageParams
   ): Promise<{ data: { users: unknown[]; aud: string }; error: null }> {
     return this.http.get("/admin/users", params ?? {});
   }
 
-  async getUserById(uid: string): Promise<UserResponse> {
+  async get(uid: string): Promise<UserResponse> {
     return this.http.get(`/admin/users/${uid}`);
   }
 
-  async updateUserById(
+  async create(attributes: AdminUserAttributes): Promise<UserResponse> {
+    const body = AdminUserAttributesSchema.parse(attributes);
+    return this.http.post("/admin/users", body);
+  }
+
+  async update(
     uid: string,
     attributes: AdminUserAttributes
   ): Promise<UserResponse> {
@@ -75,27 +71,32 @@ export class AuthAdminService {
     return this.http.put(`/admin/users/${uid}`, body);
   }
 
-  async deleteUser(
-    id: string,
-    shouldSoftDelete?: boolean
-  ): Promise<UserResponse> {
+  async delete(id: string, shouldSoftDelete?: boolean): Promise<UserResponse> {
     return this.http.delete(`/admin/users/${id}`, {
-      should_soft_delete: shouldSoftDelete,
+      shouldSoftDelete,
     });
   }
 
-  async inviteUserByEmail(
+  async invite(
     email: string,
     options?: { data?: Record<string, unknown>; redirectTo?: string }
   ): Promise<UserResponse> {
     return this.http.post("/invite", { email, ...options });
   }
+}
+
+export class InviteNamespace {
+  constructor(private readonly http: HttpClient) {}
 
   async generateLink(
     params: GenerateLinkParams
   ): Promise<GenerateLinkResponse> {
     return this.http.post("/admin/generate_link", params);
   }
+}
+
+export class SessionNamespace {
+  constructor(private readonly http: HttpClient) {}
 
   async signOut(
     jwt: string,
@@ -105,6 +106,79 @@ export class AuthAdminService {
     error: { message: string; status: number } | null;
   }> {
     return this.http.post("/admin/logout", { jwt, scope });
+  }
+}
+
+export class AuthAdminService {
+  readonly mfa: AdminMfaNamespace;
+  readonly users: UsersNamespace;
+  readonly invite: InviteNamespace;
+  readonly session: SessionNamespace;
+
+  constructor(private readonly http: HttpClient) {
+    this.mfa = new AdminMfaNamespace(http);
+    this.users = new UsersNamespace(http);
+    this.invite = new InviteNamespace(http);
+    this.session = new SessionNamespace(http);
+  }
+
+  /** @deprecated Use `users.create()` instead */
+  async createUser(attributes: AdminUserAttributes): Promise<UserResponse> {
+    return this.users.create(attributes);
+  }
+
+  /** @deprecated Use `users.list()` instead */
+  async listUsers(
+    params?: PageParams
+  ): Promise<{ data: { users: unknown[]; aud: string }; error: null }> {
+    return this.users.list(params);
+  }
+
+  /** @deprecated Use `users.get()` instead */
+  async getUserById(uid: string): Promise<UserResponse> {
+    return this.users.get(uid);
+  }
+
+  /** @deprecated Use `users.update()` instead */
+  async updateUserById(
+    uid: string,
+    attributes: AdminUserAttributes
+  ): Promise<UserResponse> {
+    return this.users.update(uid, attributes);
+  }
+
+  /** @deprecated Use `users.delete()` instead */
+  async deleteUser(
+    id: string,
+    shouldSoftDelete?: boolean
+  ): Promise<UserResponse> {
+    return this.users.delete(id, shouldSoftDelete);
+  }
+
+  /** @deprecated Use `users.invite()` instead */
+  async inviteUserByEmail(
+    email: string,
+    options?: { data?: Record<string, unknown>; redirectTo?: string }
+  ): Promise<UserResponse> {
+    return this.users.invite(email, options);
+  }
+
+  /** @deprecated Use `invite.generateLink()` instead */
+  async generateLink(
+    params: GenerateLinkParams
+  ): Promise<GenerateLinkResponse> {
+    return this.invite.generateLink(params);
+  }
+
+  /** @deprecated Use `session.signOut()` instead */
+  async signOut(
+    jwt: string,
+    scope?: "global" | "local" | "others"
+  ): Promise<{
+    data: null;
+    error: { message: string; status: number } | null;
+  }> {
+    return this.session.signOut(jwt, scope);
   }
 }
 
@@ -237,7 +311,7 @@ export class AuthService {
 
   async exchangeCodeForSession(authCode: string): Promise<AuthTokenResponse> {
     return this.http.post("/auth/token?grant_type=pkce", {
-      auth_code: authCode,
+      authCode,
     });
   }
 
@@ -265,14 +339,14 @@ export class AuthService {
   }
 
   async setSession(currentSession: {
-    access_token: string;
-    refresh_token: string;
+    accessToken: string;
+    refreshToken: string;
   }): Promise<AuthResponse> {
     return this.http.post("/auth/session", currentSession);
   }
 
   async refreshSession(currentSession?: {
-    refresh_token: string;
+    refreshToken: string;
   }): Promise<AuthResponse> {
     return this.http.post(
       "/auth/token?grant_type=refresh_token",
@@ -331,7 +405,7 @@ export class AuthService {
     | { data: Record<string, never>; error: null }
     | { data: null; error: { message: string; status: number } }
   > {
-    return this.http.delete(`/auth/user/identities/${identity.identity_id}`);
+    return this.http.delete(`/auth/user/identities/${identity.identityId}`);
   }
 
   // ── Auth State / Events ──────────────────────────────────────────

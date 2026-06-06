@@ -5,16 +5,16 @@ export const QueueSchema = z
     id: z.string(),
     name: z.string(),
     status: z.enum(["active", "paused"]),
-    max_concurrency: z.number().int(),
-    retention_days: z.number().int(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    maxConcurrency: z.number().int(),
+    retentionDays: z.number().int(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 export const JobSchema = z
   .object({
     id: z.string(),
-    queue_id: z.string(),
+    queueId: z.string(),
     payload: z.record(z.string(), z.unknown()),
     status: z.enum([
       "pending",
@@ -24,11 +24,11 @@ export const JobSchema = z
       "canceled",
     ]),
     attempts: z.number().int(),
-    max_attempts: z.number().int(),
+    maxAttempts: z.number().int(),
     error: z.string().optional(),
-    scheduled_at: z.string().optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    scheduledAt: z.string().optional(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 export const queuesConfigSchema = z.object({

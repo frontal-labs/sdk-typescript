@@ -12,21 +12,21 @@ export const ScheduleSchema = z
     }),
     payload: z.record(z.string(), z.unknown()).optional(),
     status: z.enum(["active", "paused"]),
-    last_run_at: z.string().optional(),
-    next_run_at: z.string().optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    lastRunAt: z.string().optional(),
+    nextRunAt: z.string().optional(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 export const ScheduleRunSchema = z
   .object({
     id: z.string(),
-    schedule_id: z.string(),
+    scheduleId: z.string(),
     status: z.enum(["running", "completed", "failed", "canceled"]),
-    started_at: z.string(),
-    completed_at: z.string().optional(),
+    startedAt: z.string(),
+    completedAt: z.string().optional(),
     error: z.string().optional(),
-    created_at: z.string(),
+    createdAt: z.string(),
   })
   .passthrough();
 export const schedulesConfigSchema = z.object({

@@ -72,7 +72,7 @@ describe("Auth → Organization integration flow", () => {
     const tenant = await org.tenants.create({
       name: "Engineering", slug: "engineering",
     });
-    expect(tenant.organization_id).toBe("org_123");
+    expect(tenant.organizationId).toBe("org_123");
   });
 
   it("invites member with GoTrue user ID reference", async () => {
@@ -90,12 +90,12 @@ describe("Auth → Organization integration flow", () => {
 
     // List members — verify user_id references GoTrue User.id
     const members = await org.members.list();
-    expect(members.data[0].user_id).toBe("usr_abc123");
+    expect(members.data[0].userId).toBe("usr_abc123");
 
     // Invite — references GoTrue user as inviter
     const invite = await org.invitations.create({
       email: "new@test.com", role: "member",
     });
-    expect(invite.invited_by).toBe("usr_abc123");
+    expect(invite.invitedBy).toBe("usr_abc123");
   });
 });

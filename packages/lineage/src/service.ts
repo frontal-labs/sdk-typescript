@@ -32,7 +32,7 @@ export class GraphNamespace {
     opts?: { depth?: number }
   ): Promise<LineageGraph> {
     return this.http.get("/v1/lineage/graph", {
-      resource_id: resourceId,
+      resourceId,
       ...opts,
     });
   }
@@ -60,8 +60,8 @@ export class EdgesNamespace {
   constructor(private readonly http: HttpClient) {}
   async list(
     opts: {
-      source_id?: string;
-      target_id?: string;
+      sourceId?: string;
+      targetId?: string;
       limit?: number;
       cursor?: string;
     } = {}
@@ -82,15 +82,15 @@ export class ImpactNamespace {
     resourceId: string,
     change: { field?: string; type: "update" | "delete" }
   ): Promise<{
-    affected_resources: Array<{
+    affectedResources: {
       id: string;
       type: string;
       name: string;
       impact: string;
-    }>;
+    }[];
   }> {
     return this.http.post("/v1/lineage/impact", {
-      resource_id: resourceId,
+      resourceId,
       change,
     });
   }

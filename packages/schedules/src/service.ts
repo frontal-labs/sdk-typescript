@@ -12,19 +12,14 @@ const asPagePayload = <T>(
   raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class SchedulesService {
-  readonly schedules: SchedulesNamespace;
   readonly runs: RunsNamespace;
   readonly cron: CronNamespace;
 
   constructor(private readonly http: HttpClient) {
-    this.schedules = new SchedulesNamespace(http);
     this.runs = new RunsNamespace(http);
     this.cron = new CronNamespace(http);
   }
-}
 
-export class SchedulesNamespace {
-  constructor(private readonly http: HttpClient) {}
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Schedule>> {
@@ -33,6 +28,7 @@ export class SchedulesNamespace {
       this.list({ ...opts, cursor })
     );
   }
+
   async create(input: {
     name: string;
     cron: string;
@@ -42,21 +38,27 @@ export class SchedulesNamespace {
   }): Promise<Schedule> {
     return this.http.post("/v1/schedules", input);
   }
+
   async get(id: string): Promise<Schedule> {
     return this.http.get(`/v1/schedules/${id}`);
   }
+
   async update(id: string, input: Partial<Schedule>): Promise<Schedule> {
     return this.http.put(`/v1/schedules/${id}`, input);
   }
+
   async delete(id: string): Promise<void> {
     return this.http.delete(`/v1/schedules/${id}`);
   }
+
   async pause(id: string): Promise<Schedule> {
     return this.http.post(`/v1/schedules/${id}/pause`, {});
   }
+
   async resume(id: string): Promise<Schedule> {
     return this.http.post(`/v1/schedules/${id}/resume`, {});
   }
+
   async trigger(id: string): Promise<ScheduleRun> {
     return this.http.post(`/v1/schedules/${id}/trigger`, {});
   }

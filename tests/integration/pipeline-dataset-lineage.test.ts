@@ -64,7 +64,7 @@ describe("Pipeline → Dataset → Lineage integration", () => {
     const lineage = new LineageService(lineageHttp);
 
     // Step 1: Create dataset
-    const ds = await datasets.datasets.create({ name: "users" });
+    const ds = await datasets.create({ name: "users" });
     expect(ds.id).toBe("ds_1");
 
     // Step 2: Insert data into dataset

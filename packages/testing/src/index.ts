@@ -3,7 +3,11 @@
  * Shared testing utilities for all Frontal Core packages
  */
 
-import { FrontalClient, HttpClient } from "@frontal-labs/core";
+import {
+  FrontalClient,
+  HttpClient,
+  deepSnakeToCamel,
+} from "@frontal-labs/core";
 import { vi } from "vitest";
 
 // ============================================================================
@@ -85,7 +89,11 @@ export function createMockFetch(routes: MockRoute[] = []) {
       let reqBody: unknown;
       if (init?.body && typeof init.body === "string") {
         try {
-          reqBody = JSON.parse(init.body);
+          const parsed = JSON.parse(init.body);
+          reqBody =
+            typeof parsed === "object" && parsed !== null
+              ? deepSnakeToCamel(parsed)
+              : parsed;
         } catch {
           reqBody = init.body;
         }

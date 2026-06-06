@@ -52,8 +52,8 @@ describe("Observability end-to-end", () => {
     // Step 2: Query logs
     const logs = await obs.logs.query({
       query: "level:error",
-      time_from: "2025-01-01T00:00:00Z",
-      time_to: "2025-01-02T00:00:00Z",
+      timeFrom: "2025-01-01T00:00:00Z",
+      timeTo: "2025-01-02T00:00:00Z",
     });
     expect(logs.data.length).toBeGreaterThan(0);
     expect(logs.data[0].level).toBe("error");
@@ -70,6 +70,6 @@ describe("Observability end-to-end", () => {
 
     // Step 4: Share dashboard
     const shared = await obs.dashboards.share(dash.id);
-    expect(shared.share_url).toContain("share");
+    expect(shared.shareUrl).toContain("share");
   });
 });

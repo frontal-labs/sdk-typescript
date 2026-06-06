@@ -27,10 +27,16 @@ const asPagePayload = <T>(
     meta?: unknown;
   };
 
-// ── Flags ──────────────────────────────────────────────────────────
+export class FlagsService {
+  readonly targeting: TargetingNamespace;
+  readonly rollouts: RolloutsNamespace;
+  readonly experiments: ExperimentsNamespace;
 
-export class FlagsNamespace {
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+    this.targeting = new TargetingNamespace(http);
+    this.rollouts = new RolloutsNamespace(http);
+    this.experiments = new ExperimentsNamespace(http);
+  }
 
   async list(
     opts: { status?: string; limit?: number; cursor?: string } = {}
@@ -74,18 +80,54 @@ export class FlagsNamespace {
   async archive(id: string): Promise<Flag> {
     return this.http.post(`/v1/flags/${id}/archive`, {});
   }
-}
 
-// ── Targeting ──────────────────────────────────────────────────────
+  async evaluate(
+    flagKey: string,
+    context: EvaluationContext
+  ): Promise<{ value: boolean | string | number; reason: string }> {
+    const body = EvaluationContextSchema.parse(context);
+    return this.http.post("/v1/flags/evaluate", {
+      flag_key: flagKey,
+      context: body,
+    });
+  }
+
+  async evaluateBulk(
+    flags: string[],
+    context: EvaluationContext
+  ): Promise<Record<string, FlagEvaluation>> {
+    const body = EvaluationContextSchema.parse(context);
+    return this.http.post("/v1/flags/evaluate/bulk", {
+      flags,
+      context: body,
+    });
+  }
+}
 
 export class TargetingNamespace {
   constructor(private readonly http: HttpClient) {}
 
+  /** @deprecated Use {@link list} instead. */
   async listRules(flagId: string): Promise<{ data: TargetingRule[] }> {
+    return this.list(flagId);
+  }
+  async list(flagId: string): Promise<{ data: TargetingRule[] }> {
     return this.http.get(`/v1/flags/${flagId}/targeting`);
   }
 
+  /** @deprecated Use {@link create} instead. */
   async createRule(
+    flagId: string,
+    input: {
+      attribute: string;
+      operator: string;
+      value: unknown;
+      priority: number;
+    }
+  ): Promise<TargetingRule> {
+    return this.create(flagId, input);
+  }
+  async create(
     flagId: string,
     input: {
       attribute: string;
@@ -97,7 +139,15 @@ export class TargetingNamespace {
     return this.http.post(`/v1/flags/${flagId}/targeting`, input);
   }
 
+  /** @deprecated Use {@link update} instead. */
   async updateRule(
+    flagId: string,
+    ruleId: string,
+    input: Partial<TargetingRule>
+  ): Promise<TargetingRule> {
+    return this.update(flagId, ruleId, input);
+  }
+  async update(
     flagId: string,
     ruleId: string,
     input: Partial<TargetingRule>
@@ -105,12 +155,14 @@ export class TargetingNamespace {
     return this.http.put(`/v1/flags/${flagId}/targeting/${ruleId}`, input);
   }
 
+  /** @deprecated Use {@link delete} instead. */
   async deleteRule(flagId: string, ruleId: string): Promise<void> {
+    return this.delete(flagId, ruleId);
+  }
+  async delete(flagId: string, ruleId: string): Promise<void> {
     return this.http.delete(`/v1/flags/${flagId}/targeting/${ruleId}`);
   }
 }
-
-// ── Rollouts ───────────────────────────────────────────────────────
 
 export class RolloutsNamespace {
   constructor(private readonly http: HttpClient) {}
@@ -153,8 +205,6 @@ export class RolloutsNamespace {
   }
 }
 
-// ── Experiments ────────────────────────────────────────────────────
-
 export class ExperimentsNamespace {
   constructor(private readonly http: HttpClient) {}
 
@@ -168,11 +218,11 @@ export class ExperimentsNamespace {
     flag_id: string;
     name: string;
     description?: string;
-    variants: Array<{
+    variants: {
       name: string;
       value: unknown;
       percentage: number;
-    }>;
+    }[];
   }): Promise<Experiment> {
     return this.http.post("/v1/flags/experiments", input);
   }
@@ -190,52 +240,14 @@ export class ExperimentsNamespace {
   }
 
   async results(id: string): Promise<{
-    variants: Array<{
+    variants: {
       name: string;
       value: unknown;
       sample_size: number;
       conversion_rate: number;
-    }>;
+    }[];
     confidence: number;
   }> {
     return this.http.get(`/v1/flags/experiments/${id}/results`);
-  }
-}
-
-// ── Service ────────────────────────────────────────────────────────
-
-export class FlagsService {
-  readonly flags: FlagsNamespace;
-  readonly targeting: TargetingNamespace;
-  readonly rollouts: RolloutsNamespace;
-  readonly experiments: ExperimentsNamespace;
-
-  constructor(private readonly http: HttpClient) {
-    this.flags = new FlagsNamespace(http);
-    this.targeting = new TargetingNamespace(http);
-    this.rollouts = new RolloutsNamespace(http);
-    this.experiments = new ExperimentsNamespace(http);
-  }
-
-  async evaluate(
-    flagKey: string,
-    context: EvaluationContext
-  ): Promise<{ value: boolean | string | number; reason: string }> {
-    const body = EvaluationContextSchema.parse(context);
-    return this.http.post("/v1/flags/evaluate", {
-      flag_key: flagKey,
-      context: body,
-    });
-  }
-
-  async evaluateBulk(
-    flags: string[],
-    context: EvaluationContext
-  ): Promise<Record<string, FlagEvaluation>> {
-    const body = EvaluationContextSchema.parse(context);
-    return this.http.post("/v1/flags/evaluate/bulk", {
-      flags,
-      context: body,
-    });
   }
 }

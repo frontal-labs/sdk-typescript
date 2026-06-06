@@ -1,4 +1,4 @@
-import type { VectorsService, VectorsNamespace } from "./service";
+import type { VectorsService } from "./service";
 import type { VectorIndex, VectorSearchResult } from "./schemas";
 
 interface EmbedClient {
@@ -10,18 +10,18 @@ interface EmbedClient {
 
 export async function embedAndUpsert(
   ai: EmbedClient,
-  vectors: VectorsNamespace,
+  vectors: VectorsService,
   indexId: string,
   texts: string[],
   model: string,
   metadataFn?: (text: string, index: number) => Record<string, unknown>
 ): Promise<{ embedded: number; upserted: number }> {
   const result = await ai.embed({ model, input: texts });
-  const vectors_: Array<{
+  const vectors_: {
     id: string;
     values: number[];
     metadata?: Record<string, unknown>;
-  }> = result.embeddings.map((values, i) => ({
+  }[] = result.embeddings.map((values, i) => ({
     id: `vec_${Date.now()}_${i}`,
     values,
     metadata: metadataFn ? metadataFn(texts[i], i) : { text: texts[i] },
@@ -45,7 +45,7 @@ export async function embedAndSearch(
 
   const searchResult = await vectors.search.search(indexId, {
     vector: queryVector,
-    top_k: topK,
+    topK,
   });
   return searchResult.results;
 }

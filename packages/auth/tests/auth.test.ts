@@ -13,13 +13,13 @@ import {
 } from "../src/schemas";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
     headers?: Record<string, string>;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   const service = new AuthService(http);
@@ -31,20 +31,20 @@ const mockUser = {
   aud: "authenticated",
   email: "test@frontal.dev",
   role: "authenticated",
-  app_metadata: {},
-  user_metadata: { name: "Test User" },
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
-  confirmed_at: "2025-01-01T00:00:00Z",
-  last_sign_in_at: "2025-01-01T00:00:00Z",
+  appMetadata: {},
+  userMetadata: { name: "Test User" },
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
+  confirmedAt: "2025-01-01T00:00:00Z",
+  lastSignInAt: "2025-01-01T00:00:00Z",
 };
 
 const mockSession = {
-  access_token: "eyJhbGciOiJIUzI1NiJ9.xxx",
-  refresh_token: "ref_xxx",
-  expires_in: 3600,
-  expires_at: 1735689600,
-  token_type: "bearer" as const,
+  accessToken: "eyJhbGciOiJIUzI1NiJ9.xxx",
+  refreshToken: "ref_xxx",
+  expiresIn: 3600,
+  expiresAt: 1735689600,
+  tokenType: "bearer" as const,
   user: mockUser,
 };
 
@@ -267,7 +267,7 @@ describe("AuthAdminService — admin operations", () => {
         body: data({ user: mockUser }),
       },
     ]);
-    const result = await service.admin.createUser({
+    const result = await service.admin.users.create({
       email: "new@frontal.dev",
       password: "secure123!",
     });
@@ -289,7 +289,7 @@ describe("AuthAdminService — admin operations", () => {
         }),
       },
     ]);
-    const result = await service.admin.listUsers({ page: 1, perPage: 10 });
+    const result = await service.admin.users.list({ page: 1, perPage: 10 });
     expect(result.data.users).toHaveLength(1);
     mock.expectCalled("GET", "/admin/users");
   });
@@ -302,7 +302,7 @@ describe("AuthAdminService — admin operations", () => {
         body: data({ user: mockUser }),
       },
     ]);
-    const result = await service.admin.getUserById("usr_abc123");
+    const result = await service.admin.users.get("usr_abc123");
     expect(result.data.user.id).toBe("usr_abc123");
   });
 
@@ -315,7 +315,7 @@ describe("AuthAdminService — admin operations", () => {
         body: data({ user: updated }),
       },
     ]);
-    const result = await service.admin.updateUserById("usr_abc123", {
+    const result = await service.admin.users.update("usr_abc123", {
       email: "updated@frontal.dev",
     });
     expect(result.data.user.email).toBe("updated@frontal.dev");
@@ -329,7 +329,7 @@ describe("AuthAdminService — admin operations", () => {
         body: data({ user: mockUser }),
       },
     ]);
-    const result = await service.admin.deleteUser("usr_abc123");
+    const result = await service.admin.users.delete("usr_abc123");
     expect(result.data.user).toBeDefined();
   });
 
@@ -341,7 +341,7 @@ describe("AuthAdminService — admin operations", () => {
         body: data({ user: mockUser }),
       },
     ]);
-    const result = await service.admin.inviteUserByEmail("new@frontal.dev");
+    const result = await service.admin.users.invite("new@frontal.dev");
     expect(result.data.user).toBeDefined();
     mock.expectCalled("POST", "/invite");
   });

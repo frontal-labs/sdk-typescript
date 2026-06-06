@@ -21,7 +21,7 @@ export function validateCronLocal(expression: string): {
     };
   }
 
-  const ranges: Array<[number, number]> = [
+  const ranges: [number, number][] = [
     [0, 59], // minute
     [0, 23], // hour
     [1, 31], // day of month

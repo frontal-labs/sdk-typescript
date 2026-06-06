@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   return { service: new DatasetsService(http), mock };
@@ -21,12 +21,12 @@ function createService(
 const mockDs = {
   id: "ds_1",
   name: "users",
-  row_count: 1000,
-  storage_size_bytes: 512000,
-  version_count: 3,
+  rowCount: 1000,
+  storageSizeBytes: 512000,
+  versionCount: 3,
   status: "active",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 function pageWrap<T>(items: T[]) {
   return {
@@ -40,14 +40,14 @@ describe("DatasetsService", () => {
     const { service } = createService([
       { method: "GET", path: "/v1/datasets", body: pageWrap([mockDs]) },
     ]);
-    const result = await service.datasets.list();
+    const result = await service.list();
     expect(result.data).toHaveLength(1);
   });
   it("creates a dataset", async () => {
     const { service } = createService([
       { method: "POST", path: "/v1/datasets", body: mockDs },
     ]);
-    const result = await service.datasets.create({ name: "users" });
+    const result = await service.create({ name: "users" });
     expect(result.id).toBe("ds_1");
   });
   it("queries data", async () => {
@@ -82,7 +82,7 @@ describe("DatasetsService", () => {
       },
     ]);
     const result = await service.stats.get("ds_1");
-    expect(result.row_count).toBe(1000);
+    expect(result.rowCount).toBe(1000);
   });
   it("compares versions", async () => {
     const { service } = createService([

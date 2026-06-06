@@ -23,8 +23,11 @@ const asPagePayload = <T>(
   };
 
 export class PipelinesService {
-  readonly lineage = new LineageNamespace(this.http);
-  constructor(private readonly http: HttpClient) {}
+  readonly lineage: LineageNamespace;
+
+  constructor(private readonly http: HttpClient) {
+    this.lineage = new LineageNamespace(http);
+  }
 
   private command(operation: string, payload: Record<string, unknown> = {}) {
     return { operation, ...payload };

@@ -19,15 +19,15 @@ export const LogEntrySchema = z
     message: z.string(),
     resource: z.object({ type: z.string(), id: z.string() }).optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),
-    trace_id: z.string().optional(),
-    span_id: z.string().optional(),
+    traceId: z.string().optional(),
+    spanId: z.string().optional(),
   })
   .passthrough();
 
 export const LogQuerySchema = z.object({
   query: z.string(),
-  time_from: z.string(),
-  time_to: z.string(),
+  timeFrom: z.string(),
+  timeTo: z.string(),
   level: LogLevelSchema.optional(),
   limit: z.number().int().positive().default(100),
   order: z.enum(["asc", "desc"]).default("desc"),
@@ -55,10 +55,10 @@ export const MetricSeriesSchema = z
 
 export const TraceSpanSchema = z
   .object({
-    span_id: z.string(),
-    parent_span_id: z.string().optional(),
+    spanId: z.string(),
+    parentSpanId: z.string().optional(),
     name: z.string(),
-    start_time: z.string(),
+    startTime: z.string(),
     duration: z.number(),
     status: z.enum(["ok", "error"]),
     attributes: z.record(z.string(), z.unknown()).optional(),
@@ -68,14 +68,14 @@ export const TraceSpanSchema = z
 export const TraceSchema = z
   .object({
     id: z.string(),
-    trace_id: z.string(),
+    traceId: z.string(),
     name: z.string(),
     service: z.string(),
     duration: z.number(),
     status: z.enum(["ok", "error", "unknown"]),
     spans: z.array(TraceSpanSchema),
-    start_time: z.string(),
-    end_time: z.string(),
+    startTime: z.string(),
+    endTime: z.string(),
     attributes: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();
@@ -96,8 +96,8 @@ export const AlertRuleSchema = z
     duration: z.string(),
     channels: z.array(z.string()),
     enabled: z.boolean(),
-    last_fired_at: z.string().optional(),
-    created_at: z.string(),
+    lastFiredAt: z.string().optional(),
+    createdAt: z.string(),
   })
   .passthrough();
 
@@ -110,11 +110,11 @@ export const IncidentStatusSchema = z.enum([
 export const IncidentSchema = z
   .object({
     id: z.string(),
-    alert_rule_id: z.string(),
+    alertRuleId: z.string(),
     status: IncidentStatusSchema,
-    started_at: z.string(),
-    resolved_at: z.string().optional(),
-    metric_value: z.number(),
+    startedAt: z.string(),
+    resolvedAt: z.string().optional(),
+    metricValue: z.number(),
     threshold: z.number(),
   })
   .passthrough();
@@ -148,8 +148,8 @@ export const DashboardSchema = z
     name: z.string(),
     description: z.string().optional(),
     widgets: z.array(DashboardWidgetSchema),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 

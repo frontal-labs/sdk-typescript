@@ -21,7 +21,11 @@ const asPagePayload = <T>(
   };
 
 export class GraphService {
-  constructor(private readonly http: HttpClient) {}
+  readonly history: HistoryNamespace;
+
+  constructor(private readonly http: HttpClient) {
+    this.history = new HistoryNamespace(http);
+  }
 
   use(entityType: string): EntityAccessor {
     return new EntityAccessor(entityType, this.http);
@@ -46,7 +50,7 @@ export class GraphService {
   }
 
   async semanticSearch(options: S.SemanticSearchOptions): Promise<{
-    results: Array<{ entity: S.Entity; score: number }>;
+    results: { entity: S.Entity; score: number }[];
     query: string;
   }> {
     const body = S.SemanticSearchOptionsSchema.parse(options);
@@ -54,7 +58,7 @@ export class GraphService {
   }
 
   async traverse(request: S.TraversalRequest): Promise<{
-    paths: Array<Array<{ entity: S.Entity; edge: S.Edge }>>;
+    paths: { entity: S.Entity; edge: S.Edge }[][];
     totalFound: number;
   }> {
     const body = S.TraversalRequestSchema.parse(request);
@@ -62,26 +66,24 @@ export class GraphService {
   }
 
   async findPath(request: S.PathRequest): Promise<{
-    paths: Array<Array<{ entity: S.Entity; edge: S.Edge }>>;
-    shortestPath?: Array<{ entity: S.Entity; edge: S.Edge }>;
+    paths: { entity: S.Entity; edge: S.Edge }[][];
+    shortestPath?: { entity: S.Entity; edge: S.Edge }[];
   }> {
     const body = S.PathRequestSchema.parse(request);
     return this.http.post("/ontology/graph/graph/path", body);
   }
 
   async batch(
-    operations: Array<{
+    operations: {
       type: "create" | "update" | "delete";
       entityType: string;
       entity?: S.Entity;
       id?: string;
       fields?: Record<string, unknown>;
-    }>
+    }[]
   ): Promise<S.BatchResult> {
     return this.http.post("/ontology/graph/graph/build", { operations });
   }
-
-  readonly history = new HistoryNamespace(this.http);
 }
 
 export class EntityAccessor {
@@ -179,12 +181,14 @@ export class HistoryNamespace {
 }
 
 class GraphQueryBuilder implements QueryBuilder<S.Entity> {
-  private _query: Partial<S.GraphQuery> = { entityType: this.entityType };
+  private _query: Partial<S.GraphQuery>;
 
   constructor(
     private readonly entityType: string,
     private readonly http: HttpClient
-  ) {}
+  ) {
+    this._query = { entityType };
+  }
 
   where(conditions: NonNullable<S.GraphQuery["conditions"]>): this {
     this._query.conditions = conditions;

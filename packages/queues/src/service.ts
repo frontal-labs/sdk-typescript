@@ -12,17 +12,12 @@ const asPagePayload = <T>(
   raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class QueuesService {
-  readonly queues: QueuesNamespace;
   readonly jobs: JobsNamespace;
 
   constructor(private readonly http: HttpClient) {
-    this.queues = new QueuesNamespace(http);
     this.jobs = new JobsNamespace(http);
   }
-}
 
-export class QueuesNamespace {
-  constructor(private readonly http: HttpClient) {}
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Queue>> {
@@ -31,24 +26,30 @@ export class QueuesNamespace {
       this.list({ ...opts, cursor })
     );
   }
+
   async create(input: {
     name: string;
-    max_concurrency?: number;
+    maxConcurrency?: number;
   }): Promise<Queue> {
     return this.http.post("/v1/queues", input);
   }
+
   async get(id: string): Promise<Queue> {
     return this.http.get(`/v1/queues/${id}`);
   }
+
   async update(id: string, input: Partial<Queue>): Promise<Queue> {
     return this.http.put(`/v1/queues/${id}`, input);
   }
+
   async delete(id: string): Promise<void> {
     return this.http.delete(`/v1/queues/${id}`);
   }
+
   async pause(id: string): Promise<Queue> {
     return this.http.post(`/v1/queues/${id}/pause`, {});
   }
+
   async resume(id: string): Promise<Queue> {
     return this.http.post(`/v1/queues/${id}/resume`, {});
   }
@@ -59,7 +60,7 @@ export class JobsNamespace {
   async enqueue(
     queueId: string,
     payload: Record<string, unknown>,
-    opts?: { scheduled_at?: string }
+    opts?: { scheduledAt?: string }
   ): Promise<Job> {
     return this.http.post(`/v1/queues/${queueId}/jobs`, { payload, ...opts });
   }

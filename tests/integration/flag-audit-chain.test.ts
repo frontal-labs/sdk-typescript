@@ -41,7 +41,7 @@ describe("Flags → Audit integration chain", () => {
     const audit = new AuditService(auditHttp);
 
     // Step 1: Toggle flag
-    const result = await flags.flags.toggle("flag_1", false);
+    const result = await flags.toggle("flag_1", false);
     expect(result.status).toBe("inactive");
 
     // Step 2: Log audit event for the toggle

@@ -13,7 +13,7 @@ async function userManagement() {
   console.log("👥 Admin user management...");
 
   // Create a user
-  const created = await auth.admin.createUser({
+  const created = await auth.admin.users.create({
     email: "new-dev@example.com",
     password: "temp-password-123",
     email_confirm: true,
@@ -26,25 +26,25 @@ async function userManagement() {
   }
 
   // List users (paginated)
-  const list = await auth.admin.listUsers({ page: 1, perPage: 20 });
+  const list = await auth.admin.users.list({ page: 1, perPage: 20 });
   if (list.data) {
     console.log(`✅ Listed ${list.data.users.length} users`);
   }
 
   // Get user by ID
   if (created.data?.user) {
-    const user = await auth.admin.getUserById(created.data.user.id);
+    const user = await auth.admin.users.get(created.data.user.id);
     console.log("✅ User details:", user.data.user?.email);
   }
 
   // Invite user by email
-  const invite = await auth.admin.inviteUserByEmail("colleague@example.com", {
+  const invite = await auth.admin.users.invite("colleague@example.com", {
     redirectTo: "https://myapp.com/welcome",
   });
   console.log("✅ Invitation sent:", invite.data.user?.email);
 
   // Generate a magic link
-  const link = await auth.admin.generateLink({
+  const link = await auth.admin.invite.generateLink({
     type: "magiclink",
     email: "colleague@example.com",
   });

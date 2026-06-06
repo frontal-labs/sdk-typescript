@@ -7,28 +7,28 @@ export const WebhookSchema = z
     events: z.array(z.string()),
     secret: z.string().optional(),
     status: z.enum(["active", "disabled"]),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 export const DeliveryAttemptSchema = z
   .object({
     id: z.string(),
-    webhook_id: z.string(),
-    event_id: z.string(),
+    webhookId: z.string(),
+    eventId: z.string(),
     status: z.enum(["success", "failed", "pending"]),
-    status_code: z.number().optional(),
-    response_body: z.string().optional(),
-    duration_ms: z.number().optional(),
-    attempted_at: z.string(),
+    statusCode: z.number().optional(),
+    responseBody: z.string().optional(),
+    durationMs: z.number().optional(),
+    attemptedAt: z.string(),
   })
   .passthrough();
 export const WebhookStatsSchema = z
   .object({
-    total_deliveries: z.number(),
-    success_rate: z.number(),
-    avg_latency_ms: z.number(),
-    error_rate: z.number(),
+    totalDeliveries: z.number(),
+    successRate: z.number(),
+    avgLatencyMs: z.number(),
+    errorRate: z.number(),
   })
   .passthrough();
 export const webhooksConfigSchema = z.object({

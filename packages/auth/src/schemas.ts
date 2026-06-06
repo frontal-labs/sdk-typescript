@@ -5,24 +5,24 @@ import { z } from "zod";
 export const UserIdentitySchema = z
   .object({
     id: z.string(),
-    user_id: z.string(),
-    identity_id: z.string(),
+    userId: z.string(),
+    identityId: z.string(),
     provider: z.string(),
-    identity_data: z.record(z.string(), z.unknown()).optional(),
-    created_at: z.string().optional(),
-    last_sign_in_at: z.string().optional(),
-    updated_at: z.string().optional(),
+    identityData: z.record(z.string(), z.unknown()).optional(),
+    createdAt: z.string().optional(),
+    lastSignInAt: z.string().optional(),
+    updatedAt: z.string().optional(),
   })
   .passthrough();
 
 export const FactorSchema = z
   .object({
     id: z.string(),
-    friendly_name: z.string().optional(),
-    factor_type: z.enum(["totp", "phone", "webauthn"]),
+    friendlyName: z.string().optional(),
+    factorType: z.enum(["totp", "phone", "webauthn"]),
     status: z.enum(["verified", "unverified"]),
-    created_at: z.string(),
-    updated_at: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
   })
   .passthrough();
 
@@ -33,26 +33,26 @@ export const UserSchema = z
     role: z.string().optional(),
     email: z.string().optional(),
     phone: z.string().optional(),
-    app_metadata: z.record(z.string(), z.unknown()).default({}),
-    user_metadata: z.record(z.string(), z.unknown()).default({}),
+    appMetadata: z.record(z.string(), z.unknown()).default({}),
+    userMetadata: z.record(z.string(), z.unknown()).default({}),
     identities: z.array(UserIdentitySchema).optional(),
     factors: z.array(FactorSchema).optional(),
-    is_anonymous: z.boolean().optional(),
-    is_sso_user: z.boolean().optional(),
-    created_at: z.string(),
-    updated_at: z.string().optional(),
-    confirmed_at: z.string().optional(),
-    email_confirmed_at: z.string().optional(),
-    phone_confirmed_at: z.string().optional(),
-    last_sign_in_at: z.string().optional(),
-    invited_at: z.string().optional(),
-    action_link: z.string().optional(),
-    confirmation_sent_at: z.string().optional(),
-    recovery_sent_at: z.string().optional(),
-    email_change_sent_at: z.string().optional(),
-    new_email: z.string().optional(),
-    new_phone: z.string().optional(),
-    deleted_at: z.string().optional(),
+    isAnonymous: z.boolean().optional(),
+    isSsoUser: z.boolean().optional(),
+    createdAt: z.string(),
+    updatedAt: z.string().optional(),
+    confirmedAt: z.string().optional(),
+    emailConfirmedAt: z.string().optional(),
+    phoneConfirmedAt: z.string().optional(),
+    lastSignInAt: z.string().optional(),
+    invitedAt: z.string().optional(),
+    actionLink: z.string().optional(),
+    confirmationSentAt: z.string().optional(),
+    recoverySentAt: z.string().optional(),
+    emailChangeSentAt: z.string().optional(),
+    newEmail: z.string().optional(),
+    newPhone: z.string().optional(),
+    deletedAt: z.string().optional(),
   })
   .passthrough();
 
@@ -60,14 +60,14 @@ export const UserSchema = z
 
 export const SessionSchema = z
   .object({
-    access_token: z.string(),
-    refresh_token: z.string(),
-    expires_in: z.number(),
-    expires_at: z.number().optional(),
-    token_type: z.literal("bearer"),
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresIn: z.number(),
+    expiresAt: z.number().optional(),
+    tokenType: z.literal("bearer"),
     user: UserSchema,
-    provider_token: z.string().nullable().optional(),
-    provider_refresh_token: z.string().nullable().optional(),
+    providerToken: z.string().nullable().optional(),
+    providerRefreshToken: z.string().nullable().optional(),
   })
   .passthrough();
 
@@ -160,7 +160,7 @@ export const SignInWithOAuthCredentialsSchema = z.object({
 export const SignInWithIdTokenCredentialsSchema = z.object({
   provider: z.string(),
   token: z.string(),
-  access_token: z.string().optional(),
+  accessToken: z.string().optional(),
   nonce: z.string().optional(),
   options: z.object({ captchaToken: z.string().optional() }).optional(),
 });
@@ -231,7 +231,7 @@ export const VerifyOtpParamsSchema = z.union([
       })
       .optional(),
   }),
-  z.object({ token_hash: z.string(), type: EmailOtpTypeSchema }),
+  z.object({ tokenHash: z.string(), type: EmailOtpTypeSchema }),
 ]);
 
 // ── User Attributes ────────────────────────────────────────────────
@@ -249,13 +249,13 @@ export const AdminUserAttributesSchema = z.object({
   phone: z.string().optional(),
   password: z.string().optional(),
   nonce: z.string().optional(),
-  user_metadata: z.record(z.string(), z.unknown()).optional(),
-  app_metadata: z.record(z.string(), z.unknown()).optional(),
-  email_confirm: z.boolean().optional(),
-  phone_confirm: z.boolean().optional(),
-  ban_duration: z.string().optional(),
+  userMetadata: z.record(z.string(), z.unknown()).optional(),
+  appMetadata: z.record(z.string(), z.unknown()).optional(),
+  emailConfirm: z.boolean().optional(),
+  phoneConfirm: z.boolean().optional(),
+  banDuration: z.string().optional(),
   role: z.string().optional(),
-  password_hash: z.string().optional(),
+  passwordHash: z.string().optional(),
   id: z.string().optional(),
 });
 
@@ -296,9 +296,9 @@ export const MfaUnenrollParamsSchema = z.object({ factorId: z.string() });
 export const MfaEnrollResponseSchema = z.object({
   id: z.string(),
   type: z.enum(["totp", "phone", "webauthn"]),
-  friendly_name: z.string().optional(),
+  friendlyName: z.string().optional(),
   totp: z
-    .object({ qr_code: z.string(), secret: z.string(), uri: z.string() })
+    .object({ qrCode: z.string(), secret: z.string(), uri: z.string() })
     .optional(),
   phone: z.string().optional(),
 });
@@ -306,14 +306,14 @@ export const MfaEnrollResponseSchema = z.object({
 export const MfaChallengeResponseSchema = z.object({
   id: z.string(),
   type: z.enum(["totp", "phone", "webauthn"]),
-  expires_at: z.number(),
+  expiresAt: z.number(),
 });
 
 export const MfaVerifyResponseSchema = z.object({
-  access_token: z.string(),
-  token_type: z.literal("bearer"),
-  expires_in: z.number(),
-  refresh_token: z.string(),
+  accessToken: z.string(),
+  tokenType: z.literal("bearer"),
+  expiresIn: z.number(),
+  refreshToken: z.string(),
   user: UserSchema,
 });
 
@@ -468,11 +468,11 @@ export type GenerateLinkResponse =
   | {
       data: {
         properties: {
-          action_link: string;
-          email_otp: string;
-          hashed_token: string;
-          redirect_to: string;
-          verification_type: string;
+          actionLink: string;
+          emailOtp: string;
+          hashedToken: string;
+          redirectTo: string;
+          verificationType: string;
         };
         user: User;
       };

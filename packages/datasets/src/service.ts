@@ -12,21 +12,16 @@ const asPagePayload = <T>(
   raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class DatasetsService {
-  readonly datasets: DatasetsNamespace;
   readonly versions: VersionsNamespace;
   readonly data: DataNamespace;
   readonly stats: StatsNamespace;
 
   constructor(private readonly http: HttpClient) {
-    this.datasets = new DatasetsNamespace(http);
     this.versions = new VersionsNamespace(http);
     this.data = new DataNamespace(http);
     this.stats = new StatsNamespace(http);
   }
-}
 
-export class DatasetsNamespace {
-  constructor(private readonly http: HttpClient) {}
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Dataset>> {
@@ -35,21 +30,25 @@ export class DatasetsNamespace {
       this.list({ ...opts, cursor })
     );
   }
+
   async create(input: {
     name: string;
     description?: string;
   }): Promise<Dataset> {
     return this.http.post("/v1/datasets", input);
   }
+
   async get(id: string): Promise<Dataset> {
     return this.http.get(`/v1/datasets/${id}`);
   }
+
   async update(
     id: string,
     input: { name?: string; description?: string }
   ): Promise<Dataset> {
     return this.http.put(`/v1/datasets/${id}`, input);
   }
+
   async delete(id: string): Promise<void> {
     return this.http.delete(`/v1/datasets/${id}`);
   }

@@ -12,21 +12,16 @@ const asPagePayload = <T>(
   raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class SandboxService {
-  readonly sandboxes: SandboxesNamespace;
   readonly executions: ExecutionsNamespace;
   readonly templates: TemplatesNamespace;
   readonly files: FilesNamespace;
 
   constructor(private readonly http: HttpClient) {
-    this.sandboxes = new SandboxesNamespace(http);
     this.executions = new ExecutionsNamespace(http);
     this.templates = new TemplatesNamespace(http);
     this.files = new FilesNamespace(http);
   }
-}
 
-export class SandboxesNamespace {
-  constructor(private readonly http: HttpClient) {}
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Sandbox>> {
@@ -35,27 +30,33 @@ export class SandboxesNamespace {
       this.list({ ...opts, cursor })
     );
   }
+
   async create(input: {
     name: string;
-    template_id: string;
-    cpu_limit?: string;
-    memory_limit?: string;
-    timeout_seconds?: number;
+    templateId: string;
+    cpuLimit?: string;
+    memoryLimit?: string;
+    timeoutSeconds?: number;
   }): Promise<Sandbox> {
     return this.http.post("/v1/sandbox/sandboxes", input);
   }
+
   async get(id: string): Promise<Sandbox> {
     return this.http.get(`/v1/sandbox/sandboxes/${id}`);
   }
+
   async start(id: string): Promise<Sandbox> {
     return this.http.post(`/v1/sandbox/sandboxes/${id}/start`, {});
   }
+
   async stop(id: string): Promise<Sandbox> {
     return this.http.post(`/v1/sandbox/sandboxes/${id}/stop`, {});
   }
+
   async delete(id: string): Promise<void> {
     return this.http.delete(`/v1/sandbox/sandboxes/${id}`);
   }
+
   async snapshot(id: string): Promise<Sandbox> {
     return this.http.post(`/v1/sandbox/sandboxes/${id}/snapshot`, {});
   }
@@ -109,7 +110,7 @@ export class TemplatesNamespace {
     return this.http.get("/v1/sandbox/templates");
   }
   async create(
-    input: Omit<SandboxTemplate, "id" | "created_at">
+    input: Omit<SandboxTemplate, "id" | "createdAt">
   ): Promise<SandboxTemplate> {
     return this.http.post("/v1/sandbox/templates", input);
   }
@@ -130,7 +131,7 @@ export class TemplatesNamespace {
 export class FilesNamespace {
   constructor(private readonly http: HttpClient) {}
   async list(sandboxId: string): Promise<{
-    data: Array<{ name: string; size: number; modified_at: string }>;
+    data: { name: string; size: number; modifiedAt: string }[];
   }> {
     return this.http.get(`/v1/sandbox/sandboxes/${sandboxId}/files`);
   }

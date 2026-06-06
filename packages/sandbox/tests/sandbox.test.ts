@@ -7,12 +7,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   return { service: new SandboxService(http), mock };
@@ -21,14 +21,14 @@ function createService(
 const mockSandbox = {
   id: "sbx_1",
   name: "test-sandbox",
-  template_id: "tmpl_1",
+  templateId: "tmpl_1",
   status: "running",
-  cpu_limit: "1",
-  memory_limit: "512Mi",
-  timeout_seconds: 300,
-  network_policy: "none",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  cpuLimit: "1",
+  memoryLimit: "512Mi",
+  timeoutSeconds: 300,
+  networkPolicy: "none",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 const mockExecution = {
   id: "exec_1",
@@ -57,16 +57,16 @@ describe("SandboxService", () => {
         body: pageWrap([mockSandbox]),
       },
     ]);
-    const result = await service.sandboxes.list();
+    const result = await service.list();
     expect(result.data).toHaveLength(1);
   });
   it("creates a sandbox", async () => {
     const { service } = createService([
       { method: "POST", path: "/v1/sandbox/sandboxes", body: mockSandbox },
     ]);
-    const result = await service.sandboxes.create({
+    const result = await service.create({
       name: "test-sandbox",
-      template_id: "tmpl_1",
+      templateId: "tmpl_1",
     });
     expect(result.id).toBe("sbx_1");
   });
@@ -78,7 +78,7 @@ describe("SandboxService", () => {
         body: mockSandbox,
       },
     ]);
-    const result = await service.sandboxes.start("sbx_1");
+    const result = await service.start("sbx_1");
     expect(result.status).toBe("running");
   });
   it("stops a sandbox", async () => {
@@ -89,7 +89,7 @@ describe("SandboxService", () => {
         body: { ...mockSandbox, status: "stopped" },
       },
     ]);
-    const result = await service.sandboxes.stop("sbx_1");
+    const result = await service.stop("sbx_1");
     expect(result.status).toBe("stopped");
   });
   it("executes code", async () => {

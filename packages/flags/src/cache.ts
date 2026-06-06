@@ -34,7 +34,7 @@ export class FlagCache {
     this.store.set(flag.key, { flag, rules, fetchedAt: Date.now() });
   }
 
-  setAll(entries: Array<{ flag: Flag; rules: TargetingRule[] }>): void {
+  setAll(entries: { flag: Flag; rules: TargetingRule[] }[]): void {
     for (const { flag, rules } of entries) {
       this.set(flag, rules);
     }

@@ -46,7 +46,7 @@ export class PoliciesNamespace {
     );
   }
   async create(
-    input: Omit<Policy, "id" | "created_at" | "updated_at">
+    input: Omit<Policy, "id" | "createdAt" | "updatedAt">
   ): Promise<Policy> {
     return this.http.post("/v1/governance/policies", input);
   }
@@ -69,22 +69,38 @@ export class PoliciesNamespace {
 
 export class RbacNamespace {
   constructor(private readonly http: HttpClient) {}
+  /** @deprecated Use {@link list} instead. */
   async listBindings(
-    opts: { user_id?: string; member_id?: string } = {}
+    opts: { userId?: string; memberId?: string } = {}
+  ): Promise<{ data: RbacBinding[] }> {
+    return this.list(opts);
+  }
+  async list(
+    opts: { userId?: string; memberId?: string } = {}
   ): Promise<{ data: RbacBinding[] }> {
     return this.http.get("/v1/governance/rbac/bindings", opts);
   }
+  /** @deprecated Use {@link create} instead. */
   async createBinding(
-    input: Omit<RbacBinding, "id" | "created_at">
+    input: Omit<RbacBinding, "id" | "createdAt">
+  ): Promise<RbacBinding> {
+    return this.create(input);
+  }
+  async create(
+    input: Omit<RbacBinding, "id" | "createdAt">
   ): Promise<RbacBinding> {
     return this.http.post("/v1/governance/rbac/bindings", input);
   }
+  /** @deprecated Use {@link delete} instead. */
   async deleteBinding(id: string): Promise<void> {
+    return this.delete(id);
+  }
+  async delete(id: string): Promise<void> {
     return this.http.delete(`/v1/governance/rbac/bindings/${id}`);
   }
   async checkAccess(input: {
-    user_id?: string;
-    member_id?: string;
+    userId?: string;
+    memberId?: string;
     resource: string;
     action: string;
   }): Promise<{ allowed: boolean; reason?: string }> {

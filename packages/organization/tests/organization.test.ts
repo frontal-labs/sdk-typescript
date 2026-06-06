@@ -12,12 +12,12 @@ import {
 } from "../src/index";
 
 function createService(
-  routes: Array<{
+  routes: {
     method: string;
     path: string | RegExp;
     status?: number;
     body?: unknown;
-  }> = []
+  }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
   const service = new OrganizationService(http);
@@ -30,57 +30,57 @@ const mockOrg = {
   slug: "test-labs",
   plan: "pro",
   status: "active",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 const mockTenant = {
   id: "tnt_xyz456",
-  organization_id: "org_abc123",
+  organizationId: "org_abc123",
   name: "Engineering",
   slug: "engineering",
-  created_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
+  updatedAt: "2025-01-01T00:00:00Z",
 };
 
 const mockTeam = {
   id: "tm_def789",
-  organization_id: "org_abc123",
+  organizationId: "org_abc123",
   name: "Platform Team",
-  member_count: 3,
-  created_at: "2025-01-01T00:00:00Z",
+  memberCount: 3,
+  createdAt: "2025-01-01T00:00:00Z",
 };
 
 const mockMember = {
   id: "mbr_ghi012",
-  organization_id: "org_abc123",
-  user_id: "usr_abc123",
+  organizationId: "org_abc123",
+  userId: "usr_abc123",
   email: "test@frontal.dev",
   name: "Test User",
   role: "admin",
   status: "active",
-  joined_at: "2025-01-01T00:00:00Z",
+  joinedAt: "2025-01-01T00:00:00Z",
 };
 
 const mockRole = {
   id: "rol_jkl345",
-  organization_id: "org_abc123",
+  organizationId: "org_abc123",
   name: "Viewer",
   description: "Read-only access",
   permissions: [{ resource: "*", action: "read" }],
-  is_system: false,
-  created_at: "2025-01-01T00:00:00Z",
+  isSystem: false,
+  createdAt: "2025-01-01T00:00:00Z",
 };
 
 const mockInvitation = {
   id: "inv_mno678",
-  organization_id: "org_abc123",
+  organizationId: "org_abc123",
   email: "invited@frontal.dev",
   role: "member",
-  invited_by: "usr_abc123",
+  invitedBy: "usr_abc123",
   status: "pending",
-  expires_at: "2025-02-01T00:00:00Z",
-  created_at: "2025-01-01T00:00:00Z",
+  expiresAt: "2025-02-01T00:00:00Z",
+  createdAt: "2025-01-01T00:00:00Z",
 };
 
 function pageWrap<T>(items: T[]) {
