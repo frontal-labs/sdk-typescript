@@ -33,7 +33,7 @@ import {
   type TranscriptionResult,
   transcriptionOptionsSchema,
   type VariableDefinition,
-} from "./types";
+} from "./schemas";
 
 /**
  * Service for interacting with Frontal AI.
@@ -69,11 +69,11 @@ export class AIService {
       model: options.model,
       messages,
       temperature: options.temperature,
-      top_p: options.topP,
-      frequency_penalty: options.frequencyPenalty,
-      presence_penalty: options.presencePenalty,
+      topP: options.topP,
+      frequencyPenalty: options.frequencyPenalty,
+      presencePenalty: options.presencePenalty,
       stop: options.stopSequences,
-      max_tokens: options.maxTokens,
+      maxTokens: options.maxTokens,
     };
 
     const response = await this.http.post<ChatCompletionResponse>(
@@ -86,11 +86,11 @@ export class AIService {
     return {
       text: choice.message.content || "",
       finishReason:
-        (choice.finish_reason as GenerateTextResult["finishReason"]) || "other",
+        (choice.finishReason as GenerateTextResult["finishReason"]) || "other",
       usage: {
-        promptTokens: response.usage?.prompt_tokens || 0,
-        completionTokens: response.usage?.completion_tokens || 0,
-        totalTokens: response.usage?.total_tokens || 0,
+        promptTokens: response.usage?.promptTokens || 0,
+        completionTokens: response.usage?.completionTokens || 0,
+        totalTokens: response.usage?.totalTokens || 0,
       },
     };
   }
@@ -110,11 +110,11 @@ export class AIService {
       model: options.model,
       messages,
       temperature: options.temperature,
-      top_p: options.topP,
-      frequency_penalty: options.frequencyPenalty,
-      presence_penalty: options.presencePenalty,
+      topP: options.topP,
+      frequencyPenalty: options.frequencyPenalty,
+      presencePenalty: options.presencePenalty,
       stop: options.stopSequences,
-      max_tokens: options.maxTokens,
+      maxTokens: options.maxTokens,
       stream: true,
     };
 
@@ -147,10 +147,10 @@ export class AIService {
             if (!data) continue;
 
             const choices = data.choices as
-              | Array<{
+              | {
                   delta: { content?: string | null };
-                  finish_reason?: string | null;
-                }>
+                  finishReason?: string | null;
+                }[]
               | undefined;
             const content = choices?.[0]?.delta?.content;
             if (content) {
@@ -158,19 +158,18 @@ export class AIService {
               controller.enqueue(content);
             }
 
-            // Check for usage in the final chunk (some providers include it)
             const usage = data.usage as
               | {
-                  prompt_tokens?: number;
-                  completion_tokens?: number;
-                  total_tokens?: number;
+                  promptTokens?: number;
+                  completionTokens?: number;
+                  totalTokens?: number;
                 }
               | undefined;
             if (usage) {
               usageResolve({
-                promptTokens: usage.prompt_tokens || 0,
-                completionTokens: usage.completion_tokens || 0,
-                totalTokens: usage.total_tokens || 0,
+                promptTokens: usage.promptTokens || 0,
+                completionTokens: usage.completionTokens || 0,
+                totalTokens: usage.totalTokens || 0,
               });
             }
           }
@@ -179,7 +178,6 @@ export class AIService {
             error instanceof Error ? error : new Error(String(error))
           );
         } finally {
-          // Resolve usage with zeros if it was never set by the stream
           usageResolve({
             promptTokens: 0,
             completionTokens: 0,
@@ -217,7 +215,7 @@ export class AIService {
     return {
       embeddings: response.data.map((d) => d.embedding),
       usage: {
-        totalTokens: response.usage.total_tokens,
+        totalTokens: response.usage.totalTokens,
       },
     };
   }
@@ -249,7 +247,7 @@ export class AIService {
       model,
       messages,
       temperature,
-      response_format: { type: "json_object" },
+      responseFormat: { type: "json_object" },
     };
 
     for (let attempt = 0; attempt < attempts; attempt++) {
@@ -283,13 +281,12 @@ export class AIService {
         return {
           object,
           usage: {
-            promptTokens: response.usage?.prompt_tokens || 0,
-            completionTokens: response.usage?.completion_tokens || 0,
-            totalTokens: response.usage?.total_tokens || 0,
+            promptTokens: response.usage?.promptTokens || 0,
+            completionTokens: response.usage?.completionTokens || 0,
+            totalTokens: response.usage?.totalTokens || 0,
           },
         };
       } catch (err) {
-        // On FrontalError, only retry if transient (5xx or 429)
         if (err instanceof FrontalError) {
           const retryable = err.statusCode >= 500 || err.statusCode === 429;
           if (!retryable) {
@@ -302,7 +299,6 @@ export class AIService {
       }
     }
 
-    // Retries exhausted — throw the last error
     throw lastError ?? new Error("generateObject failed after retries");
   }
 
@@ -322,7 +318,7 @@ export class AIService {
       input: validated.text,
       voice: validated.voice,
       speed: validated.speed,
-      response_format: validated.format,
+      responseFormat: validated.format,
     };
 
     const response = await this.http.postRaw("/internal/predictions", body);
@@ -349,17 +345,17 @@ export class AIService {
       size: validated.size || "1024x1024",
       quality: validated.quality,
       style: validated.style,
-      response_format: "url",
+      responseFormat: "url",
     };
 
     const response = await this.http.post<{
-      data: Array<{ url?: string; b64_json?: string }>;
+      data: { url?: string; b64Json?: string }[];
     }>("/internal/predictions", requestBody);
 
     return {
       images: response.data.map((img) => ({
         url: img.url,
-        b64_json: img.b64_json,
+        b64Json: img.b64Json,
       })),
     };
   }
@@ -400,8 +396,8 @@ export class AIService {
     formData.append("model", validated.model);
     if (validated.language) formData.append("language", validated.language);
     if (validated.prompt) formData.append("prompt", validated.prompt);
-    if (validated.response_format)
-      formData.append("response_format", validated.response_format);
+    if (validated.responseFormat)
+      formData.append("response_format", validated.responseFormat);
     if (validated.temperature)
       formData.append("temperature", String(validated.temperature));
 
@@ -441,23 +437,21 @@ export class AIService {
   async listModels(): Promise<string[]> {
     const response = await this.http.get<unknown>("/internal/models");
 
-    // Handle OpenAI format { object: "list", data: [{ id: "..." }] }
     if (
       response &&
       typeof response === "object" &&
       "data" in response &&
       Array.isArray((response as Record<string, unknown>).data)
     ) {
-      const data = (response as Record<string, unknown>).data as Array<
-        Record<string, unknown>
-      >;
-      // Check if items have an id field (OpenAI format)
+      const data = (response as Record<string, unknown>).data as Record<
+        string,
+        unknown
+      >[];
       if (data.length > 0 && typeof data[0].id === "string") {
         return data.map((m) => m.id as string);
       }
     }
 
-    // Fallback for simple arrays
     if (Array.isArray(response)) {
       return response as string[];
     }

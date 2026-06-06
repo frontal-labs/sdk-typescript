@@ -5,10 +5,9 @@
  * to generate videos from text prompts using video generation models.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
 
 async function videoGenerationExample() {
 	console.log("🚀 Starting Video Generation Example\n");

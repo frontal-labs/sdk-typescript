@@ -5,9 +5,9 @@
  * retrieving, analyzing, and utilizing storage object metadata.
  */
 
-import { Storage } from "@frontal-labs/blob";
+import { blob } from "@frontal-labs/blob";
 
-const storage = new Storage();
+// Use the default blob singleton
 
 // Basic metadata retrieval
 async function basicMetadataRetrieval() {
@@ -19,7 +19,7 @@ async function basicMetadataRetrieval() {
 	// Upload a file with specific content
 	console.log("📤 Uploading test file...");
 	const content = "This is a sample PDF content for metadata testing.";
-	const uploadResult = await storage.upload(
+	const uploadResult = await blob.upload(
 		bucketName,
 		objectKey,
 		content,
@@ -34,7 +34,7 @@ async function basicMetadataRetrieval() {
 
 	// Retrieve metadata
 	console.log("\n📊 Retrieving object metadata...");
-	const metadataResult = await storage.getMetadata(bucketName, objectKey);
+	const metadataResult = await blob.getMetadata(bucketName, objectKey);
 
 	if (metadataResult.error) {
 		console.error(
@@ -65,7 +65,7 @@ async function basicMetadataRetrieval() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, objectKey);
+	await blob.delete(bucketName, objectKey);
 }
 
 // Metadata analysis and comparison
@@ -102,7 +102,7 @@ async function metadataAnalysis() {
 	// Upload all test files
 	console.log("📤 Uploading test files...");
 	for (const file of files) {
-		await storage.upload(bucketName, file.key, file.content, file.type);
+		await blob.upload(bucketName, file.key, file.content, file.type);
 	}
 	console.log(`✅ ${files.length} files uploaded`);
 
@@ -111,7 +111,7 @@ async function metadataAnalysis() {
 	const metadataList = [];
 
 	for (const file of files) {
-		const result = await storage.getMetadata(bucketName, file.key);
+		const result = await blob.getMetadata(bucketName, file.key);
 		if (!result.error) {
 			metadataList.push(result.data!);
 		}
@@ -170,7 +170,7 @@ async function metadataAnalysis() {
 
 	// Clean up
 	for (const file of files) {
-		await storage.delete(bucketName, file.key);
+		await blob.delete(bucketName, file.key);
 	}
 }
 
@@ -213,7 +213,7 @@ async function metadataBasedManagement() {
 	// Upload files
 	console.log("📤 Uploading managed files...");
 	for (const file of managedFiles) {
-		await storage.upload(bucketName, file.key, file.content, file.type);
+		await blob.upload(bucketName, file.key, file.content, file.type);
 	}
 	console.log(`✅ ${managedFiles.length} files uploaded`);
 
@@ -222,7 +222,7 @@ async function metadataBasedManagement() {
 	const allMetadata = [];
 
 	for (const file of managedFiles) {
-		const result = await storage.getMetadata(bucketName, file.key);
+		const result = await blob.getMetadata(bucketName, file.key);
 		if (!result.error) {
 			allMetadata.push(result.data!);
 		}
@@ -277,7 +277,7 @@ async function metadataBasedManagement() {
 
 	// Clean up
 	for (const file of managedFiles) {
-		await storage.delete(bucketName, file.key);
+		await blob.delete(bucketName, file.key);
 	}
 }
 
@@ -290,11 +290,11 @@ async function metadataValidation() {
 
 	// Upload a test file
 	const content = "This is test content for validation.";
-	await storage.upload(bucketName, objectKey, content, "text/plain");
+	await blob.upload(bucketName, objectKey, content, "text/plain");
 	console.log("✅ Test file uploaded");
 
 	// Retrieve metadata
-	const metadataResult = await storage.getMetadata(bucketName, objectKey);
+	const metadataResult = await blob.getMetadata(bucketName, objectKey);
 
 	if (metadataResult.error) {
 		console.error(
@@ -351,7 +351,7 @@ async function metadataValidation() {
 
 	// Cross-validate with actual content
 	console.log("\n🔄 Cross-validating with actual content...");
-	const downloadResult = await storage.download(bucketName, objectKey);
+	const downloadResult = await blob.download(bucketName, objectKey);
 
 	if (!downloadResult.error) {
 		const actualSize = downloadResult.data?.size;
@@ -374,7 +374,7 @@ async function metadataValidation() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, objectKey);
+	await blob.delete(bucketName, objectKey);
 }
 
 // Metadata caching strategy
@@ -394,7 +394,7 @@ async function metadataCaching() {
 	];
 
 	for (const file of testFiles) {
-		await storage.upload(bucketName, file.key, file.content, file.type);
+		await blob.upload(bucketName, file.key, file.content, file.type);
 	}
 	console.log("✅ Test files uploaded");
 
@@ -411,7 +411,7 @@ async function metadataCaching() {
 
 		// Fetch from storage
 		console.log(`🌐 Cache MISS for ${key} - fetching from storage`);
-		const result = await storage.getMetadata(bucket, key);
+		const result = await blob.getMetadata(bucket, key);
 
 		if (!result.error) {
 			// Store in cache
@@ -452,7 +452,7 @@ async function metadataCaching() {
 
 	// Clean up
 	for (const file of testFiles) {
-		await storage.delete(bucketName, file.key);
+		await blob.delete(bucketName, file.key);
 	}
 }
 

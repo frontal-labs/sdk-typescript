@@ -5,11 +5,10 @@
  * for simple text generation using large language models.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
 // It will automatically use environment variables for configuration
-const ai = new AI();
 
 async function basicTextGeneration() {
 	console.log("[START] Starting Basic Text Generation Example\n");

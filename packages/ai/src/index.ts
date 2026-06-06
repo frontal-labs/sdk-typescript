@@ -10,7 +10,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { AIService } from "./client";
+import { AIService } from "./service";
 import { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
 
 /** Config for standalone usage without @frontal-labs/core */
@@ -55,10 +55,7 @@ export function createAIClient(
 export const ai = createAIClient(getDefaultClient());
 
 // New Pattern B exports
-export { AIService } from "./client";
-
-// Deprecated Pattern A compat
-export { AI } from "./compat";
+export { AIService } from "./service";
 
 export { DEFAULT_AI_BASE_URL, VERSION };
 export type {
@@ -71,4 +68,4 @@ export type {
   GenerateTextResult,
   Message,
   StreamTextOptions,
-} from "./types";
+} from "./schemas";

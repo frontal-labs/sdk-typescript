@@ -6,10 +6,9 @@
  */
 
 import { writeFileSync } from "node:fs";
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
 
 async function speechGeneration() {
 	console.log("🚀 Starting Speech Generation Example\n");

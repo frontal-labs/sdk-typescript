@@ -1,22 +1,7 @@
 import { z } from "zod";
 
-/**
- * Standard error response structure.
- */
-export interface ErrorResponse {
-  message: string;
-  statusCode: number;
-  name: string;
-}
-
-/**
- * Standard API response structure.
- */
-export interface APIResponse<T> {
-  data: T | null;
-  error: ErrorResponse | null;
-  headers: Record<string, string> | null;
-}
+import type { ErrorResponse, APIResponse } from "@frontal-labs/core";
+export type { ErrorResponse, APIResponse } from "@frontal-labs/core";
 
 /**
  * Zod schema for bucket configuration.
@@ -104,63 +89,66 @@ export interface IBlobClient {
   /**
    * Uploads data to a bucket.
    */
-  upload(
-    bucket: string,
-    key: string,
-    data: BodyInit,
-    contentType?: string
-  ): Promise<APIResponse<void>>;
+  upload(params: {
+    bucket: string;
+    key: string;
+    data: BodyInit;
+    contentType?: string;
+  }): Promise<APIResponse<void>>;
   /**
    * Downloads data from a bucket as a Blob.
    */
-  download(bucket: string, key: string): Promise<APIResponse<Blob>>;
+  download(params: { bucket: string; key: string }): Promise<APIResponse<Blob>>;
   /**
    * Downloads data from a bucket as a stream.
    */
-  downloadStream(
-    bucket: string,
-    key: string
-  ): Promise<APIResponse<ReadableStream<Uint8Array>>>;
+  downloadStream(params: {
+    bucket: string;
+    key: string;
+  }): Promise<APIResponse<ReadableStream<Uint8Array>>>;
   /**
    * Deletes an object from a bucket.
    */
-  delete(bucket: string, key: string): Promise<APIResponse<void>>;
+  delete(params: { bucket: string; key: string }): Promise<APIResponse<void>>;
   /**
    * Lists objects in a bucket with optional prefix.
    */
-  list(
-    bucket: string,
-    prefix?: string
-  ): Promise<APIResponse<ListObjectsResult>>;
+  list(params: {
+    bucket: string;
+    prefix?: string;
+  }): Promise<APIResponse<ListObjectsResult>>;
   /**
    * Generates a signed URL for temporary access.
    */
-  getSignedUrl(
-    bucket: string,
-    options: SignedUrlOptions
-  ): Promise<APIResponse<string>>;
+  getSignedUrl(params: {
+    bucket: string;
+    options: SignedUrlOptions;
+  }): Promise<APIResponse<string>>;
   /**
    * Copies an object within or across buckets.
    */
-  copyObject(
-    sourceBucket: string,
-    sourceKey: string,
-    destBucket: string,
-    destKey: string
-  ): Promise<APIResponse<void>>;
+  copyObject(params: {
+    sourceBucket: string;
+    sourceKey: string;
+    destBucket: string;
+    destKey: string;
+  }): Promise<APIResponse<void>>;
   /**
    * Moves (renames) an object.
    */
-  moveObject(
-    sourceBucket: string,
-    sourceKey: string,
-    destBucket: string,
-    destKey: string
-  ): Promise<APIResponse<void>>;
+  moveObject(params: {
+    sourceBucket: string;
+    sourceKey: string;
+    destBucket: string;
+    destKey: string;
+  }): Promise<APIResponse<void>>;
   /**
    * Retrieves metadata for a specific object.
    */
-  getMetadata(bucket: string, key: string): Promise<APIResponse<BlobObject>>;
+  getMetadata(params: {
+    bucket: string;
+    key: string;
+  }): Promise<APIResponse<BlobObject>>;
 }
 
 // Backward compatibility exports

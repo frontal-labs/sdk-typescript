@@ -1,22 +1,7 @@
 import { z } from "zod";
 
-/**
- * Standard error response structure.
- */
-export interface ErrorResponse {
-  message: string;
-  statusCode: number;
-  name: string;
-}
-
-/**
- * Standard API response structure.
- */
-export interface APIResponse<T> {
-  data: T | null;
-  error: ErrorResponse | null;
-  headers: Record<string, string> | null;
-}
+import type { ErrorResponse, APIResponse } from "@frontal-labs/core";
+export type { ErrorResponse, APIResponse } from "@frontal-labs/core";
 
 /**
  * Zod schema for a message in a conversation.
@@ -37,7 +22,7 @@ export type Message = z.infer<typeof messageSchema>;
 export const generateTextOptionsSchema = z.object({
   model: z.string(),
   prompt: z.union([z.string(), z.array(messageSchema)]),
-  messages: z.array(messageSchema).optional(), // Keep for backward compatibility if needed, or remove. User asked for prompt.
+  messages: z.array(messageSchema).optional(),
   maxTokens: z.number().optional(),
   temperature: z.number().min(0).max(2).optional(),
   topP: z.number().min(0).max(1).optional(),
@@ -163,7 +148,7 @@ export interface IAIClient {
   /**
    * Streams text based on the provided options.
    */
-  streamText(options: StreamTextOptions): StreamTextResult; // StreamTextResult is special, handled differently
+  streamText(options: StreamTextOptions): StreamTextResult;
   /**
    * Generates embeddings for the provided input.
    */
@@ -222,7 +207,7 @@ export interface IAIClient {
 export const generateObjectOptionsSchema = z.object({
   model: z.string(),
   prompt: z.string(),
-  schema: z.any(), // ZodSchema or JSONSchema, handled as any in types for flexibility
+  schema: z.any(),
   temperature: z.number().min(0).max(2).optional(),
   maxRetries: z.number().optional(),
 });
@@ -235,7 +220,7 @@ export type GenerateObjectOptions<T> = Omit<
 };
 
 export interface GenerateObjectResult<T> {
-  object: T; // Using 'object' field to match conventional AI SDKs (like Vercel AI SDK)
+  object: T;
   usage: {
     promptTokens: number;
     completionTokens: number;
@@ -271,10 +256,10 @@ export const generateImageOptionsSchema = z.object({
 export type GenerateImageOptions = z.infer<typeof generateImageOptionsSchema>;
 
 export interface GenerateImageResult {
-  images: Array<{
+  images: {
     url?: string;
-    b64_json?: string;
-  }>;
+    b64Json?: string;
+  }[];
 }
 
 /**
@@ -329,7 +314,7 @@ export const chatMessageSchema = z.object({
   role: z.enum(["system", "user", "assistant", "function", "tool"]),
   content: z.union([z.string(), z.null()]).optional(),
   name: z.string().optional(),
-  tool_calls: z.array(z.any()).optional(), // Simplified for brevity
+  toolCalls: z.array(z.any()).optional(),
 });
 
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
@@ -338,21 +323,21 @@ export const chatCompletionRequestSchema = z.object({
   model: z.string(),
   messages: z.array(chatMessageSchema),
   temperature: z.number().optional(),
-  top_p: z.number().optional(),
+  topP: z.number().optional(),
   n: z.number().optional(),
   stream: z.boolean().optional(),
   stop: z.union([z.string(), z.array(z.string())]).optional(),
-  max_tokens: z.number().optional(),
-  presence_penalty: z.number().optional(),
-  frequency_penalty: z.number().optional(),
-  logit_bias: z.record(z.string(), z.number()).optional(),
+  maxTokens: z.number().optional(),
+  presencePenalty: z.number().optional(),
+  frequencyPenalty: z.number().optional(),
+  logitBias: z.record(z.string(), z.number()).optional(),
   user: z.string().optional(),
-  response_format: z
+  responseFormat: z
     .object({ type: z.enum(["text", "json_object"]) })
     .optional(),
   seed: z.number().optional(),
   tools: z.array(z.any()).optional(),
-  tool_choice: z
+  toolChoice: z
     .union([
       z.string(),
       z.object({ type: z.string(), function: z.object({ name: z.string() }) }),
@@ -371,17 +356,17 @@ export const chatCompletionResponseSchema = z.object({
     z.object({
       index: z.number(),
       message: chatMessageSchema,
-      finish_reason: z.string().nullable(),
+      finishReason: z.string().nullable(),
     })
   ),
   usage: z
     .object({
-      prompt_tokens: z.number(),
-      completion_tokens: z.number(),
-      total_tokens: z.number(),
+      promptTokens: z.number(),
+      completionTokens: z.number(),
+      totalTokens: z.number(),
     })
     .optional(),
-  system_fingerprint: z.string().optional(),
+  systemFingerprint: z.string().optional(),
 });
 
 export type ChatCompletionResponse = z.infer<
@@ -399,9 +384,9 @@ export const chatCompletionChunkSchema = z.object({
       delta: z.object({
         role: z.enum(["system", "user", "assistant", "tool"]).optional(),
         content: z.string().nullable().optional(),
-        tool_calls: z.array(z.any()).optional(),
+        toolCalls: z.array(z.any()).optional(),
       }),
-      finish_reason: z.string().nullable(),
+      finishReason: z.string().nullable(),
     })
   ),
 });
@@ -411,7 +396,7 @@ export type ChatCompletionChunk = z.infer<typeof chatCompletionChunkSchema>;
 export const embeddingsRequestSchema = z.object({
   input: z.union([z.string(), z.array(z.string())]),
   model: z.string(),
-  encoding_format: z.enum(["float", "base64"]).optional(),
+  encodingFormat: z.enum(["float", "base64"]).optional(),
   dimensions: z.number().optional(),
   user: z.string().optional(),
 });
@@ -429,19 +414,19 @@ export const embeddingsResponseSchema = z.object({
   ),
   model: z.string(),
   usage: z.object({
-    prompt_tokens: z.number(),
-    total_tokens: z.number(),
+    promptTokens: z.number(),
+    totalTokens: z.number(),
   }),
 });
 
 export type EmbeddingsResponse = z.infer<typeof embeddingsResponseSchema>;
 
 export const transcriptionOptionsSchema = z.object({
-  file: z.any(), // File or Blob, hard to type strictly in Node/Bun environment without specific types, keeping any or generic
+  file: z.any(),
   model: z.string(),
   language: z.string().optional(),
   prompt: z.string().optional(),
-  response_format: z
+  responseFormat: z
     .enum(["json", "text", "srt", "verbose_json", "vtt"])
     .optional(),
   temperature: z.number().optional(),
@@ -463,9 +448,9 @@ export type ModerationOptions = z.infer<typeof moderationOptionsSchema>;
 export interface ModerationResult {
   id: string;
   model: string;
-  results: Array<{
+  results: {
     flagged: boolean;
     categories: Record<string, boolean>;
-    category_scores: Record<string, number>;
-  }>;
+    categoryScores: Record<string, number>;
+  }[];
 }

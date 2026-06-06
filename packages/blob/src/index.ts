@@ -10,7 +10,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { BlobService } from "./client";
+import { BlobService } from "./service";
 
 /** Config for standalone usage without @frontal-labs/core */
 export interface BlobClientConfig {
@@ -51,25 +51,12 @@ export function createBlobClient(
 export const blob = createBlobClient(getDefaultClient());
 
 // New Pattern B exports
-export { BlobService } from "./client";
+export { BlobService } from "./service";
 
-// Deprecated Pattern A compat
-export { Storage } from "./compat";
-
-// Backward compatibility
-export const storage = blob;
-
-export {
-  DEFAULT_BLOB_BASE_URL as DEFAULT_STORAGE_BASE_URL,
-  VERSION,
-} from "./constants";
+export { VERSION } from "./constants";
 export type {
-  APIResponse,
   BlobObject,
   BucketConfig,
-  ErrorResponse,
   ListObjectsResult,
   SignedUrlOptions,
-  StorageConfig,
-  StorageObject,
-} from "./types";
+} from "./schemas";

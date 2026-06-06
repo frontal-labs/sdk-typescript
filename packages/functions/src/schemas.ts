@@ -1,22 +1,7 @@
 import { z } from "zod";
 
-/**
- * Standard error response structure.
- */
-export interface ErrorResponse {
-  message: string;
-  statusCode: number;
-  name: string;
-}
-
-/**
- * Standard API response structure.
- */
-export interface APIResponse<T> {
-  data: T | null;
-  error: ErrorResponse | null;
-  headers: Record<string, string> | null;
-}
+import type { ErrorResponse, APIResponse } from "@frontal-labs/core";
+export type { ErrorResponse, APIResponse } from "@frontal-labs/core";
 
 /**
  * Zod schema for function configuration.

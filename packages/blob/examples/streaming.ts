@@ -5,9 +5,9 @@
  * and real-time data processing without loading entire files into memory.
  */
 
-import { Storage } from "@frontal-labs/blob";
+import { blob } from "@frontal-labs/blob";
 
-const storage = new Storage();
+// Use the default blob singleton
 
 // Basic stream download example
 async function basicStreamDownload() {
@@ -26,7 +26,7 @@ async function basicStreamDownload() {
 	}
 	const logContent = logLines.join("\n");
 
-	const uploadResult = await storage.upload(
+	const uploadResult = await blob.upload(
 		bucketName,
 		objectKey,
 		logContent,
@@ -40,7 +40,7 @@ async function basicStreamDownload() {
 
 	// Download as stream
 	console.log("\n📥 Downloading as stream...");
-	const streamResult = await storage.downloadStream(bucketName, objectKey);
+	const streamResult = await blob.downloadStream(bucketName, objectKey);
 
 	if (streamResult.error) {
 		console.error("❌ Stream download failed:", streamResult.error.message);
@@ -84,7 +84,7 @@ async function basicStreamDownload() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, objectKey);
+	await blob.delete(bucketName, objectKey);
 }
 
 // Stream processing with backpressure handling
@@ -112,7 +112,7 @@ async function streamWithBackpressure() {
 	}
 
 	const jsonContent = JSON.stringify(records, null, 2);
-	const uploadResult = await storage.upload(
+	const uploadResult = await blob.upload(
 		bucketName,
 		objectKey,
 		jsonContent,
@@ -127,7 +127,7 @@ async function streamWithBackpressure() {
 
 	// Stream with controlled processing
 	console.log("\n🔄 Streaming with controlled processing...");
-	const streamResult = await storage.downloadStream(bucketName, objectKey);
+	const streamResult = await blob.downloadStream(bucketName, objectKey);
 
 	if (streamResult.error) {
 		console.error("❌ Stream download failed:", streamResult.error.message);
@@ -190,7 +190,7 @@ async function streamWithBackpressure() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, objectKey);
+	await blob.delete(bucketName, objectKey);
 }
 
 // Real-time log streaming example
@@ -213,12 +213,12 @@ async function realTimeLogStreaming() {
 	}
 
 	const logContent = logEntries.join("\n");
-	await storage.upload(bucketName, logKey, logContent, "text/plain");
+	await blob.upload(bucketName, logKey, logContent, "text/plain");
 	console.log("✅ Log file created");
 
 	// Stream and filter logs in real-time
 	console.log("\n🔍 Streaming and filtering logs (ERROR level only)...");
-	const streamResult = await storage.downloadStream(bucketName, logKey);
+	const streamResult = await blob.downloadStream(bucketName, logKey);
 
 	if (streamResult.error) {
 		console.error("❌ Stream download failed:", streamResult.error.message);
@@ -267,7 +267,7 @@ async function realTimeLogStreaming() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, logKey);
+	await blob.delete(bucketName, logKey);
 }
 
 // Stream to file transformation
@@ -289,12 +289,12 @@ async function streamTransformation() {
 		"5,Charlie Wilson,charlie@example.com,32",
 	].join("\n");
 
-	await storage.upload(bucketName, sourceKey, csvData, "text/csv");
+	await blob.upload(bucketName, sourceKey, csvData, "text/csv");
 	console.log("✅ CSV source data uploaded");
 
 	// Stream CSV and transform to JSON
 	console.log("\n🔄 Streaming CSV and transforming to JSON...");
-	const streamResult = await storage.downloadStream(bucketName, sourceKey);
+	const streamResult = await blob.downloadStream(bucketName, sourceKey);
 
 	if (streamResult.error) {
 		console.error("❌ Stream download failed:", streamResult.error.message);
@@ -356,7 +356,7 @@ async function streamTransformation() {
 
 		// Upload transformed JSON
 		const jsonData = JSON.stringify(records, null, 2);
-		const uploadResult = await storage.upload(
+		const uploadResult = await blob.upload(
 			bucketName,
 			targetKey,
 			jsonData,
@@ -372,7 +372,7 @@ async function streamTransformation() {
 			console.log("✅ Transformed JSON data uploaded");
 
 			// Verify transformation
-			const verifyResult = await storage.download(bucketName, targetKey);
+			const verifyResult = await blob.download(bucketName, targetKey);
 			if (!verifyResult.error) {
 				const verifyContent = await verifyResult.data?.text();
 				const verifyData = JSON.parse(verifyContent);
@@ -384,8 +384,8 @@ async function streamTransformation() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, sourceKey);
-	await storage.delete(bucketName, targetKey);
+	await blob.delete(bucketName, sourceKey);
+	await blob.delete(bucketName, targetKey);
 }
 
 // Stream performance monitoring
@@ -415,7 +415,7 @@ async function streamPerformanceMonitoring() {
 		largeFile.set(chunks[i], i * chunkSize);
 	}
 
-	await storage.upload(
+	await blob.upload(
 		bucketName,
 		objectKey,
 		largeFile,
@@ -426,7 +426,7 @@ async function streamPerformanceMonitoring() {
 	// Stream with performance monitoring
 	console.log("\n📊 Streaming with performance monitoring...");
 	const startTime = Date.now();
-	const streamResult = await storage.downloadStream(bucketName, objectKey);
+	const streamResult = await blob.downloadStream(bucketName, objectKey);
 
 	if (streamResult.error) {
 		console.error("❌ Stream download failed:", streamResult.error.message);
@@ -494,7 +494,7 @@ async function streamPerformanceMonitoring() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, objectKey);
+	await blob.delete(bucketName, objectKey);
 }
 
 // Run all streaming examples

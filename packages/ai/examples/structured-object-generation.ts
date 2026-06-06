@@ -7,10 +7,9 @@
  */
 
 import { z } from "zod";
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
 
 // Define some example schemas
 const PersonSchema = z.object({

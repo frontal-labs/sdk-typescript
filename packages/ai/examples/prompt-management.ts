@@ -5,10 +5,9 @@
  * to create, manage, and chain prompts for consistent AI interactions.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
 
 async function promptManagementExample() {
 	console.log("🚀 Starting Prompt Management Example\n");

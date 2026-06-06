@@ -1,8 +1,7 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BlobService } from "../src/client";
-import { Storage } from "../src/compat";
-import { signedUrlOptionsSchema } from "../src/types";
+import { BlobService } from "../src/service";
+import { signedUrlOptionsSchema } from "../src/schemas";
 
 function createService(routes: MockRoute[] = []) {
   const { http, mock } = createTestHttpClient(routes);
@@ -47,7 +46,11 @@ describe("BlobService", () => {
       ]);
 
       await expect(
-        service.upload("my-bucket", "file.txt", Buffer.from("data"))
+        service.upload({
+          bucket: "my-bucket",
+          key: "file.txt",
+          data: Buffer.from("data"),
+        })
       ).rejects.toThrow();
     });
   });
@@ -74,7 +77,10 @@ describe("BlobService", () => {
         });
 
       const service = new BlobService(http);
-      const result = await service.download("my-bucket", "file.txt");
+      const result = await service.download({
+        bucket: "my-bucket",
+        key: "file.txt",
+      });
 
       expect(result).toBeInstanceOf(Blob);
       getRawSpy.mockRestore();
@@ -84,7 +90,7 @@ describe("BlobService", () => {
       const { service } = createService([]);
       // No route = 404 from mock fetch, getRaw will throw
       await expect(
-        service.download("my-bucket", "missing.txt")
+        service.download({ bucket: "my-bucket", key: "missing.txt" })
       ).rejects.toThrow();
     });
   });
@@ -103,7 +109,10 @@ describe("BlobService", () => {
       });
 
       const service = new BlobService(http);
-      const result = await service.downloadStream("my-bucket", "file.bin");
+      const result = await service.downloadStream({
+        bucket: "my-bucket",
+        key: "file.bin",
+      });
 
       expect(result).toBe(stream);
     });
@@ -121,7 +130,7 @@ describe("BlobService", () => {
 
       const service = new BlobService(http);
       await expect(
-        service.downloadStream("my-bucket", "file.bin")
+        service.downloadStream({ bucket: "my-bucket", key: "file.bin" })
       ).rejects.toThrow("Response has no body stream");
     });
   });
@@ -137,7 +146,7 @@ describe("BlobService", () => {
       ]);
 
       await expect(
-        service.delete("my-bucket", "file.txt")
+        service.delete({ bucket: "my-bucket", key: "file.txt" })
       ).resolves.not.toThrow();
       mock.expectCalled(
         "POST",
@@ -174,7 +183,7 @@ describe("BlobService", () => {
         },
       ]);
 
-      const result = await service.list("my-bucket");
+      const result = await service.list({ bucket: "my-bucket" });
 
       expect(result.objects).toHaveLength(2);
     });
@@ -188,7 +197,7 @@ describe("BlobService", () => {
         },
       ]);
 
-      await service.list("my-bucket", "docs/");
+      await service.list({ bucket: "my-bucket", prefix: "docs/" });
 
       const req = mock.requests[0];
       expect(req.url).toContain("prefix=docs%2F");
@@ -205,10 +214,13 @@ describe("BlobService", () => {
         },
       ]);
 
-      const result = await service.getSignedUrl("my-bucket", {
-        key: "file.txt",
-        operation: "read",
-        expiresIn: 3600,
+      const result = await service.getSignedUrl({
+        bucket: "my-bucket",
+        options: {
+          key: "file.txt",
+          operation: "read",
+          expiresIn: 3600,
+        },
       });
 
       expect(result).toContain("https://signed.example.com");
@@ -218,10 +230,13 @@ describe("BlobService", () => {
       const { service } = createService([]);
 
       await expect(
-        service.getSignedUrl("my-bucket", {
-          key: "file.txt",
-          operation: "read",
-          expiresIn: -100,
+        service.getSignedUrl({
+          bucket: "my-bucket",
+          options: {
+            key: "file.txt",
+            operation: "read",
+            expiresIn: -100,
+          },
         })
       ).rejects.toThrow();
     });
@@ -238,12 +253,12 @@ describe("BlobService", () => {
         },
       ]);
 
-      await service.copyObject(
-        "source-bucket",
-        "file.txt",
-        "dest-bucket",
-        "copy.txt"
-      );
+      await service.copyObject({
+        sourceBucket: "source-bucket",
+        sourceKey: "file.txt",
+        destBucket: "dest-bucket",
+        destKey: "copy.txt",
+      });
 
       mock.expectCalledWith(
         "POST",
@@ -267,12 +282,12 @@ describe("BlobService", () => {
         },
       ]);
 
-      await service.moveObject(
-        "source-bucket",
-        "file.txt",
-        "dest-bucket",
-        "moved.txt"
-      );
+      await service.moveObject({
+        sourceBucket: "source-bucket",
+        sourceKey: "file.txt",
+        destBucket: "dest-bucket",
+        destKey: "moved.txt",
+      });
 
       mock.expectCalledWith(
         "POST",
@@ -302,7 +317,10 @@ describe("BlobService", () => {
         },
       ]);
 
-      const result = await service.getMetadata("my-bucket", "file.txt");
+      const result = await service.getMetadata({
+        bucket: "my-bucket",
+        key: "file.txt",
+      });
 
       expect(result.key).toBe("file.txt");
       expect(result.size).toBe(1024);
@@ -339,47 +357,5 @@ describe("Schema validation", () => {
         expiresIn: 3600,
       });
     }).not.toThrow();
-  });
-});
-
-describe("Storage (deprecated compat)", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it("returns APIResponse with error on upload failure", async () => {
-    const mockFetch = vi.fn().mockRejectedValue(new Error("Network error"));
-    vi.stubGlobal("fetch", mockFetch);
-
-    const storage = new Storage({
-      apiKey: "frt_test-api-key-1234567890",
-      baseUrl: "https://api.test.frontal.dev/v1",
-    });
-
-    const result = await storage.upload(
-      "my-bucket",
-      "file.txt",
-      Buffer.from("data")
-    );
-
-    expect(result.error).toBeDefined();
-    expect(result.error?.name).toBe("upload_error");
-  });
-
-  it("returns APIResponse with error on download failure", async () => {
-    const mockFetch = vi
-      .fn()
-      .mockRejectedValue(new Error("Connection refused"));
-    vi.stubGlobal("fetch", mockFetch);
-
-    const storage = new Storage({
-      apiKey: "frt_test-api-key-1234567890",
-      baseUrl: "https://api.test.frontal.dev/v1",
-    });
-
-    const result = await storage.download("my-bucket", "file.txt");
-
-    expect(result.data).toBeNull();
-    expect(result.error?.name).toBe("download_error");
   });
 });

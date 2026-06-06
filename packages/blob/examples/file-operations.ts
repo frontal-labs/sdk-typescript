@@ -7,9 +7,9 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { Storage } from "@frontal-labs/blob";
+import { blob } from "@frontal-labs/blob";
 
-const storage = new Storage();
+// Use the default blob singleton
 
 // Upload different types of data
 async function uploadDifferentDataTypes() {
@@ -19,7 +19,7 @@ async function uploadDifferentDataTypes() {
 
 	// 1. Upload string content
 	console.log("📝 Uploading string content...");
-	const stringResult = await storage.upload(
+	const stringResult = await blob.upload(
 		bucketName,
 		"text-files/sample.txt",
 		"Hello, World! This is a text file.",
@@ -44,7 +44,7 @@ async function uploadDifferentDataTypes() {
 		},
 	};
 
-	const jsonResult = await storage.upload(
+	const jsonResult = await blob.upload(
 		bucketName,
 		"data/users.json",
 		JSON.stringify(jsonData, null, 2),
@@ -92,7 +92,7 @@ async function uploadDifferentDataTypes() {
 		0x00, // Bit depth, color type, compression, filter, interlace
 	]);
 
-	const binaryResult = await storage.upload(
+	const binaryResult = await blob.upload(
 		bucketName,
 		"images/tiny.png",
 		imageHeader,
@@ -112,7 +112,7 @@ John Doe,john@example.com,30
 Jane Smith,jane@example.com,25
 Bob Johnson,bob@example.com,35`;
 
-	const csvResult = await storage.upload(
+	const csvResult = await blob.upload(
 		bucketName,
 		"data/users.csv",
 		csvData,
@@ -134,7 +134,7 @@ async function downloadAndProcessFiles(bucketName: string) {
 
 	// Download text file
 	console.log("📝 Downloading text file...");
-	const textResult = await storage.download(
+	const textResult = await blob.download(
 		bucketName,
 		"text-files/sample.txt",
 	);
@@ -150,7 +150,7 @@ async function downloadAndProcessFiles(bucketName: string) {
 
 	// Download JSON file
 	console.log("\n📋 Downloading JSON file...");
-	const jsonResult = await storage.download(bucketName, "data/users.json");
+	const jsonResult = await blob.download(bucketName, "data/users.json");
 
 	if (!jsonResult.error) {
 		const jsonContent = await jsonResult.data?.text();
@@ -163,7 +163,7 @@ async function downloadAndProcessFiles(bucketName: string) {
 
 	// Download binary file
 	console.log("\n🖼️ Downloading binary file...");
-	const binaryResult = await storage.download(bucketName, "images/tiny.png");
+	const binaryResult = await blob.download(bucketName, "images/tiny.png");
 
 	if (!binaryResult.error) {
 		const arrayBuffer = await binaryResult.data?.arrayBuffer();
@@ -182,7 +182,7 @@ async function downloadAndProcessFiles(bucketName: string) {
 
 	// Download CSV file
 	console.log("\n📊 Downloading CSV file...");
-	const csvResult = await storage.download(bucketName, "data/users.csv");
+	const csvResult = await blob.download(bucketName, "data/users.csv");
 
 	if (!csvResult.error) {
 		const csvContent = await csvResult.data?.text();
@@ -218,7 +218,7 @@ async function uploadFromLocalFile() {
 		const fileBuffer = readFileSync(filePath);
 		const bucketName = "file-operations-bucket";
 
-		const uploadResult = await storage.upload(
+		const uploadResult = await blob.upload(
 			bucketName,
 			`uploads/${fileName}`,
 			fileBuffer,
@@ -231,7 +231,7 @@ async function uploadFromLocalFile() {
 			console.log("✅ Local file uploaded successfully");
 
 			// Verify by downloading
-			const downloadResult = await storage.download(
+			const downloadResult = await blob.download(
 				bucketName,
 				`uploads/${fileName}`,
 			);
@@ -256,7 +256,7 @@ async function downloadToLocalFile() {
 	const sourceKey = "text-files/sample.txt";
 	const localPath = "/tmp/downloaded-file.txt";
 
-	const downloadResult = await storage.download(bucketName, sourceKey);
+	const downloadResult = await blob.download(bucketName, sourceKey);
 
 	if (downloadResult.error) {
 		console.error("❌ Download failed:", downloadResult.error.message);
@@ -307,7 +307,7 @@ async function batchOperations() {
 	// Batch upload
 	console.log("📤 Batch uploading files...");
 	const uploadPromises = files.map((file) =>
-		storage.upload(bucketName, file.key, file.content, file.type),
+		blob.upload(bucketName, file.key, file.content, file.type),
 	);
 
 	const uploadResults = await Promise.all(uploadPromises);
@@ -320,7 +320,7 @@ async function batchOperations() {
 
 	// List uploaded files
 	console.log("\n📋 Listing batch files...");
-	const listResult = await storage.list(bucketName, "batch/");
+	const listResult = await blob.list(bucketName, "batch/");
 
 	if (!listResult.error) {
 		console.log(
@@ -334,7 +334,7 @@ async function batchOperations() {
 	// Batch download
 	console.log("\n📥 Batch downloading files...");
 	const downloadPromises = files.map((file) =>
-		storage.download(bucketName, file.key),
+		blob.download(bucketName, file.key),
 	);
 
 	const downloadResults = await Promise.all(downloadPromises);
@@ -348,7 +348,7 @@ async function batchOperations() {
 	// Batch cleanup
 	console.log("\n🗑️ Batch cleaning up files...");
 	const deletePromises = files.map((file) =>
-		storage.delete(bucketName, file.key),
+		blob.delete(bucketName, file.key),
 	);
 
 	const deleteResults = await Promise.all(deletePromises);
@@ -373,7 +373,7 @@ async function cleanup(bucketName: string) {
 	];
 
 	const deletePromises = filesToDelete.map((file) =>
-		storage.delete(bucketName, file),
+		blob.delete(bucketName, file),
 	);
 
 	await Promise.all(deletePromises);

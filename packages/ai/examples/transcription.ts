@@ -5,7 +5,7 @@
  * to transcribe audio files to text using speech-to-text models.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
 const _ai = new AI();

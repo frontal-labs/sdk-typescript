@@ -5,10 +5,9 @@
  * to moderate content and detect potentially harmful or inappropriate material.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
 
 async function moderationExample() {
 	console.log("🚀 Starting Content Moderation Example\n");

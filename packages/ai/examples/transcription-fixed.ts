@@ -5,7 +5,7 @@
  * to transcribe audio files to text using speech-to-text models.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
 const _ai = new AI();
@@ -111,7 +111,7 @@ async function transcriptionExample() {
     const result4b = await ai.transcribe({
       file: audioFile,
       model: "whisper-1",
-      response_format: "srt",
+      responseFormat: "srt",
     });
 
     if (result4b.error) {

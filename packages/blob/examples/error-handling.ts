@@ -6,9 +6,9 @@
  * graceful degradation.
  */
 
-import { Storage } from "@frontal-labs/blob";
+import { blob } from "@frontal-labs/blob";
 
-const storage = new Storage();
+// Use the default blob singleton
 
 // Error classification and handling
 async function errorClassificationExample() {
@@ -19,7 +19,7 @@ async function errorClassificationExample() {
 
 	// Attempt to download non-existent file
 	console.log("📥 Attempting to download non-existent file...");
-	const downloadResult = await storage.download(bucketName, objectKey);
+	const downloadResult = await blob.download(bucketName, objectKey);
 
 	if (downloadResult.error) {
 		console.log("❌ Error occurred:");
@@ -50,7 +50,7 @@ async function errorClassificationExample() {
 
 	// Attempt to access non-existent bucket
 	console.log("\n📥 Attempting to access non-existent bucket...");
-	const listResult = await storage.list("non-existent-bucket");
+	const listResult = await blob.list("non-existent-bucket");
 
 	if (listResult.error) {
 		console.log("❌ Error occurred:");
@@ -129,7 +129,7 @@ async function retryWithBackoff() {
 	// Test successful upload with retry logic
 	console.log("🧪 Testing successful operation...");
 	const uploadOperation = () =>
-		storage.upload(bucketName, objectKey, content, "text/plain");
+		blob.upload(bucketName, objectKey, content, "text/plain");
 	const uploadResult = await uploadWithRetry(uploadOperation);
 
 	if (uploadResult.success) {
@@ -143,7 +143,7 @@ async function retryWithBackoff() {
 
 	// Clean up if successful
 	if (uploadResult.success) {
-		await storage.delete(bucketName, objectKey);
+		await blob.delete(bucketName, objectKey);
 	}
 }
 
@@ -268,7 +268,7 @@ async function gracefulDegradation() {
 	// Upload fallback data first
 	const fallbackContent =
 		"This is fallback content when primary is unavailable.";
-	await storage.upload(
+	await blob.upload(
 		bucketName,
 		fallbackObjectKey,
 		fallbackContent,
@@ -283,7 +283,7 @@ async function gracefulDegradation() {
 	}> {
 		// Try primary source first
 		console.log("📥 Attempting to fetch primary data...");
-		const primaryResult = await storage.download(bucketName, primaryObjectKey);
+		const primaryResult = await blob.download(bucketName, primaryObjectKey);
 
 		if (!primaryResult.error) {
 			const content = await primaryResult.data?.text();
@@ -295,7 +295,7 @@ async function gracefulDegradation() {
 		console.log("📥 Falling back to secondary data...");
 
 		// Try fallback source
-		const fallbackResult = await storage.download(
+		const fallbackResult = await blob.download(
 			bucketName,
 			fallbackObjectKey,
 		);
@@ -325,7 +325,7 @@ async function gracefulDegradation() {
 	console.log(`  Content: ${result.content}`);
 
 	// Clean up
-	await storage.delete(bucketName, fallbackObjectKey);
+	await blob.delete(bucketName, fallbackObjectKey);
 }
 
 // Error logging and monitoring
@@ -384,7 +384,7 @@ async function errorLoggingAndMonitoring() {
 
 	// Test successful operation
 	const successResult = await executeWithErrorLogging("upload-success", () =>
-		storage.upload(bucketName, "test.txt", "test content", "text/plain"),
+		blob.upload(bucketName, "test.txt", "test content", "text/plain"),
 	);
 	console.log(
 		`Upload operation: ${successResult.success ? "SUCCESS" : "FAILED"}`,
@@ -393,14 +393,14 @@ async function errorLoggingAndMonitoring() {
 	// Test failed operations
 	const failResult1 = await executeWithErrorLogging(
 		"download-nonexistent",
-		() => storage.download(bucketName, "nonexistent.txt"),
+		() => blob.download(bucketName, "nonexistent.txt"),
 	);
 	console.log(
 		`Download nonexistent: ${failResult1.success ? "SUCCESS" : "FAILED"}`,
 	);
 
 	const failResult2 = await executeWithErrorLogging("list-invalid-bucket", () =>
-		storage.list(""),
+		blob.list(""),
 	);
 	console.log(
 		`List invalid bucket: ${failResult2.success ? "SUCCESS" : "FAILED"}`,
@@ -427,7 +427,7 @@ async function errorLoggingAndMonitoring() {
 
 	// Clean up if successful upload
 	if (successResult.success) {
-		await storage.delete(bucketName, "test.txt");
+		await blob.delete(bucketName, "test.txt");
 	}
 }
 
@@ -450,7 +450,7 @@ class SafeStorageOperations {
 
 		try {
 			// Add timeout
-			const uploadPromise = this.storage.upload(bucket, key, data, contentType);
+			const uploadPromise = this.blob.upload(bucket, key, data, contentType);
 			const timeoutPromise = new Promise((_, reject) =>
 				setTimeout(() => reject(new Error("Operation timeout")), timeout),
 			);
@@ -464,7 +464,7 @@ class SafeStorageOperations {
 			// Try fallback if specified
 			if (fallbackKey) {
 				console.log("📥 Trying fallback key...");
-				const fallbackResult = await this.storage.upload(
+				const fallbackResult = await this.blob.upload(
 					bucket,
 					fallbackKey,
 					data,
@@ -497,7 +497,7 @@ class SafeStorageOperations {
 		const { fallbackKeys = [], defaultContent } = options;
 
 		// Try primary key
-		const result = await this.storage.download(bucket, key);
+		const result = await this.blob.download(bucket, key);
 		if (!result.error) {
 			const content = await result.data?.text();
 			return { success: true, content, source: key };
@@ -505,7 +505,7 @@ class SafeStorageOperations {
 
 		// Try fallback keys
 		for (const fallbackKey of fallbackKeys) {
-			const fallbackResult = await this.storage.download(bucket, fallbackKey);
+			const fallbackResult = await this.blob.download(bucket, fallbackKey);
 			if (!fallbackResult.error) {
 				const content = await fallbackResult.data?.text();
 				return { success: true, content, source: fallbackKey };
@@ -568,7 +568,7 @@ async function comprehensiveErrorHandling() {
 
 	// Clean up
 	if (uploadResult.key) {
-		await storage.delete(bucketName, uploadResult.key);
+		await blob.delete(bucketName, uploadResult.key);
 	}
 }
 

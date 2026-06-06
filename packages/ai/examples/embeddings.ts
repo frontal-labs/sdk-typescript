@@ -6,10 +6,9 @@
  * similarity comparison, and other vector operations.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
 
 async function embeddingsExample() {
 	console.log("[START] Starting Embeddings Example\n");

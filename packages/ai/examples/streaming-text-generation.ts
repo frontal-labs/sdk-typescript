@@ -6,10 +6,9 @@
  * text output as it's being generated.
  */
 
-import { AI } from "../src";
+import { ai } from "../src";
 
 // Initialize the AI client
-const ai = new AI();
 
 async function streamingTextGeneration() {
 	console.log("[START] Starting Streaming Text Generation Example\n");

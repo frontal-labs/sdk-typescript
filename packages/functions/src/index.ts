@@ -9,7 +9,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { FunctionsService } from "./client";
+import { FunctionsService } from "./service";
 
 /** Config for standalone usage without @frontal-labs/core */
 export interface FunctionsClientConfig {
@@ -52,10 +52,7 @@ export function createFunctionsClient(
 export const functions = createFunctionsClient(getDefaultClient());
 
 // New Pattern B exports
-export { FunctionsService } from "./client";
-
-// Deprecated Pattern A compat
-export { Functions } from "./compat";
+export { FunctionsService } from "./service";
 
 export { DEFAULT_FUNCTIONS_BASE_URL, VERSION } from "./constants";
 export type {
@@ -66,4 +63,4 @@ export type {
   FunctionsConfig,
   InvocationStats,
   InvokeOptions,
-} from "./types";
+} from "./schemas";

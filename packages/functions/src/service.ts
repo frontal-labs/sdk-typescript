@@ -8,7 +8,7 @@ import {
   type InvokeOptions,
   invocationStatsSchema,
   invokeOptionsSchema,
-} from "./types";
+} from "./schemas";
 
 /**
  * Service for interacting with Frontal Functions.

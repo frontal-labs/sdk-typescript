@@ -1,7 +1,6 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
-import { AIService } from "../src/client";
-import { AI } from "../src/compat";
+import { AIService } from "../src/service";
 
 function createService(routes: MockRoute[] = []) {
   const { http, mock } = createTestHttpClient(routes);
@@ -68,7 +67,7 @@ describe("AIService", () => {
       });
 
       const req = mock.requests[0];
-      const reqBody = req.body as { messages: Array<{ role: string }> };
+      const reqBody = req.body as { messages: { role: string }[] };
       expect(reqBody.messages[0]?.role).toBe("system");
     });
 
@@ -91,8 +90,8 @@ describe("AIService", () => {
 
       mock.expectCalledWith("POST", "/ai/chat/completions", {
         temperature: 0.5,
-        max_tokens: 100,
-        top_p: 0.9,
+        maxTokens: 100,
+        topP: 0.9,
       });
     });
 
@@ -465,28 +464,5 @@ describe("AIService", () => {
       service.resetSteps();
       expect(service.getCurrentStep()).toBe(0);
     });
-  });
-});
-
-describe("AI (deprecated compat)", () => {
-  it("wraps results in APIResponse format", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify(chatResponse("Hello")), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      })
-    );
-    vi.stubGlobal("fetch", mockFetch);
-
-    const ai = new AI({
-      apiKey: "frt_test-api-key-1234567890",
-      baseUrl: "https://ai.test.frontal.dev/v1",
-    });
-    const result = await ai.generateText({ model: "gpt-4", prompt: "test" });
-
-    expect(result.data?.text).toBe("Hello");
-    expect(result.error).toBeNull();
-
-    vi.unstubAllGlobals();
   });
 });

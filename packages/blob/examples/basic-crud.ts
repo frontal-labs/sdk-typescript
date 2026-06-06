@@ -5,10 +5,10 @@
  * operations using the Frontal Storage SDK.
  */
 
-import { Storage } from "@frontal-labs/blob";
+import { blob } from "@frontal-labs/blob";
 
 // Initialize the storage client
-const storage = new Storage();
+// Use the default blob singleton
 
 async function basicCrudExample() {
 	const bucketName = "my-app-bucket";
@@ -19,7 +19,7 @@ async function basicCrudExample() {
 
 	// CREATE: Upload a new object
 	console.log("📝 Creating object...");
-	const uploadResult = await storage.upload(
+	const uploadResult = await blob.upload(
 		bucketName,
 		objectKey,
 		content,
@@ -34,7 +34,7 @@ async function basicCrudExample() {
 
 	// READ: Download the object
 	console.log("\n📖 Reading object...");
-	const downloadResult = await storage.download(bucketName, objectKey);
+	const downloadResult = await blob.download(bucketName, objectKey);
 
 	if (downloadResult.error) {
 		console.error("❌ Download failed:", downloadResult.error.message);
@@ -48,7 +48,7 @@ async function basicCrudExample() {
 	// UPDATE: Upload new content to the same key
 	console.log("\n✏️ Updating object...");
 	const updatedContent = "This is the updated document content.";
-	const updateResult = await storage.upload(
+	const updateResult = await blob.upload(
 		bucketName,
 		objectKey,
 		updatedContent,
@@ -62,7 +62,7 @@ async function basicCrudExample() {
 	console.log("✅ Object updated successfully");
 
 	// Verify the update
-	const verifyResult = await storage.download(bucketName, objectKey);
+	const verifyResult = await blob.download(bucketName, objectKey);
 	if (!verifyResult.error) {
 		const verifyContent = await verifyResult.data?.text();
 		console.log("Updated content:", verifyContent);
@@ -70,7 +70,7 @@ async function basicCrudExample() {
 
 	// DELETE: Remove the object
 	console.log("\n🗑️ Deleting object...");
-	const deleteResult = await storage.delete(bucketName, objectKey);
+	const deleteResult = await blob.delete(bucketName, objectKey);
 
 	if (deleteResult.error) {
 		console.error("❌ Delete failed:", deleteResult.error.message);
@@ -79,7 +79,7 @@ async function basicCrudExample() {
 	console.log("✅ Object deleted successfully");
 
 	// Verify deletion
-	const verifyDeletion = await storage.download(bucketName, objectKey);
+	const verifyDeletion = await blob.download(bucketName, objectKey);
 	if (verifyDeletion.error) {
 		console.log("✅ Deletion verified - object no longer exists");
 	} else {
@@ -94,19 +94,19 @@ async function listObjectsExample() {
 	console.log("\n📋 Listing Objects Example");
 
 	// Upload some test objects first
-	await storage.upload(
+	await blob.upload(
 		bucketName,
 		"docs/README.md",
 		"# README",
 		"text/markdown",
 	);
-	await storage.upload(
+	await blob.upload(
 		bucketName,
 		"docs/config.json",
 		'{"version": "1.0"}',
 		"application/json",
 	);
-	await storage.upload(
+	await blob.upload(
 		bucketName,
 		"images/logo.png",
 		new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
@@ -115,7 +115,7 @@ async function listObjectsExample() {
 
 	// List all objects
 	console.log("\n📁 All objects in bucket:");
-	const listResult = await storage.list(bucketName);
+	const listResult = await blob.list(bucketName);
 
 	if (listResult.error) {
 		console.error("❌ List failed:", listResult.error.message);
@@ -130,7 +130,7 @@ async function listObjectsExample() {
 
 	// List objects with prefix
 	console.log("\n📁 Objects with 'docs/' prefix:");
-	const docsResult = await storage.list(bucketName, "docs/");
+	const docsResult = await blob.list(bucketName, "docs/");
 
 	if (!docsResult.error) {
 		docsResult.data?.objects.forEach((obj, index) => {
@@ -141,9 +141,9 @@ async function listObjectsExample() {
 	}
 
 	// Clean up
-	await storage.delete(bucketName, "docs/README.md");
-	await storage.delete(bucketName, "docs/config.json");
-	await storage.delete(bucketName, "images/logo.png");
+	await blob.delete(bucketName, "docs/README.md");
+	await blob.delete(bucketName, "docs/config.json");
+	await blob.delete(bucketName, "images/logo.png");
 }
 
 // Copy and move operations
@@ -156,11 +156,11 @@ async function copyMoveExample() {
 	console.log("\n🔄 Copy and Move Operations Example");
 
 	// Upload source file
-	await storage.upload(bucketName, sourceKey, "Original content", "text/plain");
+	await blob.upload(bucketName, sourceKey, "Original content", "text/plain");
 
 	// Copy operation
 	console.log("📋 Copying object...");
-	const copyResult = await storage.copyObject(
+	const copyResult = await blob.copyObject(
 		bucketName,
 		sourceKey,
 		bucketName,
@@ -175,7 +175,7 @@ async function copyMoveExample() {
 
 	// Move operation
 	console.log("➡️ Moving object...");
-	const moveResult = await storage.moveObject(
+	const moveResult = await blob.moveObject(
 		bucketName,
 		destKey,
 		bucketName,
@@ -204,8 +204,8 @@ async function copyMoveExample() {
 	console.log(`Moved "${movedKey}" exists: ${movedExists}`);
 
 	// Clean up
-	await storage.delete(bucketName, sourceKey);
-	await storage.delete(bucketName, movedKey);
+	await blob.delete(bucketName, sourceKey);
+	await blob.delete(bucketName, movedKey);
 }
 
 // Run all examples
