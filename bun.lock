@@ -24,7 +24,7 @@
     },
     "packages/agents": {
       "name": "@frontal-labs/agents",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-agents": "./dist/index.mjs",
       },
@@ -56,7 +56,7 @@
     },
     "packages/ai": {
       "name": "@frontal-labs/ai",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-ai": "./dist/index.mjs",
       },
@@ -73,9 +73,60 @@
         "tsup": "^8.5.1",
       },
     },
+    "packages/audit": {
+      "name": "@frontal-labs/audit",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/auth": {
+      "name": "@frontal-labs/auth",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/billing": {
+      "name": "@frontal-labs/billing",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/blob": {
       "name": "@frontal-labs/blob",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-blob": "./dist/index.mjs",
       },
@@ -92,9 +143,26 @@
         "tsup": "^8.5.1",
       },
     },
+    "packages/connectors": {
+      "name": "@frontal-labs/connectors",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/core": {
       "name": "@frontal-labs/core",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bin": {
         "frontal": "./dist/index.js",
       },
@@ -113,9 +181,60 @@
         "zod": "^4.3.6",
       },
     },
+    "packages/datasets": {
+      "name": "@frontal-labs/datasets",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/events": {
+      "name": "@frontal-labs/events",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/flags": {
+      "name": "@frontal-labs/flags",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/functions": {
       "name": "@frontal-labs/functions",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-functions": "./dist/index.mjs",
       },
@@ -132,9 +251,26 @@
         "tsup": "^8.5.1",
       },
     },
+    "packages/governance": {
+      "name": "@frontal-labs/governance",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/graph": {
       "name": "@frontal-labs/graph",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-graph": "./dist/index.mjs",
       },
@@ -150,9 +286,77 @@
         "tsup": "^8.5.1",
       },
     },
+    "packages/integrations": {
+      "name": "@frontal-labs/integrations",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/lineage": {
+      "name": "@frontal-labs/lineage",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/notifications": {
+      "name": "@frontal-labs/notifications",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/observability": {
+      "name": "@frontal-labs/observability",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/ontology": {
       "name": "@frontal-labs/ontology",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-ontology": "./dist/index.mjs",
       },
@@ -169,9 +373,26 @@
         "tsup": "^8.5.1",
       },
     },
+    "packages/organization": {
+      "name": "@frontal-labs/organization",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/pipelines": {
       "name": "@frontal-labs/pipelines",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-pipelines": "./dist/index.mjs",
       },
@@ -188,9 +409,77 @@
         "tsup": "^8.5.1",
       },
     },
+    "packages/queues": {
+      "name": "@frontal-labs/queues",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/sandbox": {
+      "name": "@frontal-labs/sandbox",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/schedules": {
+      "name": "@frontal-labs/schedules",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/search": {
+      "name": "@frontal-labs/search",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/testing": {
       "name": "@frontal-labs/testing",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bin": {
         "frontal-testing": "./dist/index.js",
       },
@@ -210,9 +499,43 @@
         "vitest": ">=1.0.0",
       },
     },
+    "packages/vectors": {
+      "name": "@frontal-labs/vectors",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
+    "packages/webhooks": {
+      "name": "@frontal-labs/webhooks",
+      "version": "0.0.1",
+      "dependencies": {
+        "@frontal-labs/core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@frontal-labs/testing": "workspace:*",
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.5.1",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.8",
+      },
+    },
     "packages/workflows": {
       "name": "@frontal-labs/workflows",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "bin": {
         "frontal-workflows": "./dist/index.mjs",
       },
@@ -393,19 +716,57 @@
 
     "@frontal-labs/ai": ["@frontal-labs/ai@workspace:packages/ai"],
 
+    "@frontal-labs/audit": ["@frontal-labs/audit@workspace:packages/audit"],
+
+    "@frontal-labs/auth": ["@frontal-labs/auth@workspace:packages/auth"],
+
+    "@frontal-labs/billing": ["@frontal-labs/billing@workspace:packages/billing"],
+
     "@frontal-labs/blob": ["@frontal-labs/blob@workspace:packages/blob"],
+
+    "@frontal-labs/connectors": ["@frontal-labs/connectors@workspace:packages/connectors"],
 
     "@frontal-labs/core": ["@frontal-labs/core@workspace:packages/core"],
 
+    "@frontal-labs/datasets": ["@frontal-labs/datasets@workspace:packages/datasets"],
+
+    "@frontal-labs/events": ["@frontal-labs/events@workspace:packages/events"],
+
+    "@frontal-labs/flags": ["@frontal-labs/flags@workspace:packages/flags"],
+
     "@frontal-labs/functions": ["@frontal-labs/functions@workspace:packages/functions"],
+
+    "@frontal-labs/governance": ["@frontal-labs/governance@workspace:packages/governance"],
 
     "@frontal-labs/graph": ["@frontal-labs/graph@workspace:packages/graph"],
 
+    "@frontal-labs/integrations": ["@frontal-labs/integrations@workspace:packages/integrations"],
+
+    "@frontal-labs/lineage": ["@frontal-labs/lineage@workspace:packages/lineage"],
+
+    "@frontal-labs/notifications": ["@frontal-labs/notifications@workspace:packages/notifications"],
+
+    "@frontal-labs/observability": ["@frontal-labs/observability@workspace:packages/observability"],
+
     "@frontal-labs/ontology": ["@frontal-labs/ontology@workspace:packages/ontology"],
+
+    "@frontal-labs/organization": ["@frontal-labs/organization@workspace:packages/organization"],
 
     "@frontal-labs/pipelines": ["@frontal-labs/pipelines@workspace:packages/pipelines"],
 
+    "@frontal-labs/queues": ["@frontal-labs/queues@workspace:packages/queues"],
+
+    "@frontal-labs/sandbox": ["@frontal-labs/sandbox@workspace:packages/sandbox"],
+
+    "@frontal-labs/schedules": ["@frontal-labs/schedules@workspace:packages/schedules"],
+
+    "@frontal-labs/search": ["@frontal-labs/search@workspace:packages/search"],
+
     "@frontal-labs/testing": ["@frontal-labs/testing@workspace:packages/testing"],
+
+    "@frontal-labs/vectors": ["@frontal-labs/vectors@workspace:packages/vectors"],
+
+    "@frontal-labs/webhooks": ["@frontal-labs/webhooks@workspace:packages/webhooks"],
 
     "@frontal-labs/workflows": ["@frontal-labs/workflows@workspace:packages/workflows"],
 
