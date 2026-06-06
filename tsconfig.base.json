@@ -1,18 +1,18 @@
 {
-	"compilerOptions": {
-		"composite": true,
-		"declaration": true,
-		"declarationMap": true,
-		"tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-		"importHelpers": true,
-		"isolatedModules": true,
-		"lib": ["es2022"],
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"noEmitOnError": true,
-		"noFallthroughCasesInSwitch": true,
-		"skipLibCheck": true,
-		"strict": true,
-		"target": "es2022"
-	}
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+    "importHelpers": true,
+    "isolatedModules": true,
+    "lib": ["es2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2022"
+  }
 }

@@ -1,11 +1,10 @@
 import { defineConfig } from "vitest/config";
+import { resolveAliases } from "../../vitest.preset";
 
 export default defineConfig({
   test: {
     environment: "node",
     include: [
-      "src/**/*.test.ts",
-      "src/**/*.spec.ts",
       "tests/**/*.test.ts",
       "tests/**/*.spec.ts",
     ],
@@ -35,8 +34,6 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      "@": "./src",
-    },
+    alias: resolveAliases,
   },
 });
