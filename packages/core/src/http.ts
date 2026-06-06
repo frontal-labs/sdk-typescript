@@ -2,6 +2,7 @@ import type { z } from "zod";
 import type { ClientConfigOutput } from "./config";
 import { NetworkError, parseFrontalError } from "./errors";
 import { calculateDelay } from "./retry";
+import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
 
 export class HttpClient {
   constructor(private readonly config: ClientConfigOutput) {}
@@ -59,7 +60,11 @@ export class HttpClient {
       body: body as ReadableStream | Buffer | string,
     });
     if (!res.ok) await this.throwError(res);
-    return res.status === 204 ? undefined : await res.json();
+    if (res.status === 204) return undefined;
+    const json = await res.json();
+    return typeof json === "object" && json !== null
+      ? deepSnakeToCamel(json)
+      : json;
   }
 
   async *stream(
@@ -119,7 +124,8 @@ export class HttpClient {
       body: formData,
     });
     if (!res.ok) await this.throwError(res);
-    return (await res.json()) as T;
+    const json = await res.json();
+    return deepSnakeToCamel(json) as T;
   }
 
   async getRaw(
@@ -167,7 +173,11 @@ export class HttpClient {
         } else if (line.startsWith("data:")) {
           const payload = line.slice(5).trim();
           try {
-            event.data = JSON.parse(payload);
+            const parsed = JSON.parse(payload);
+            event.data =
+              typeof parsed === "object" && parsed !== null
+                ? deepSnakeToCamel(parsed)
+                : parsed;
           } catch {
             event.data = payload;
           }
@@ -190,11 +200,14 @@ export class HttpClient {
     const url = this.buildUrl(path, params);
     const requestId = crypto.randomUUID();
 
+    const transformedBody =
+      body !== undefined && body !== null ? deepCamelToSnake(body) : body;
+
     const reqInit: RequestInit = {
       method,
       headers: this.buildHeaders({ "X-Request-Id": requestId }),
       ...(method !== "GET"
-        ? { body: JSON.stringify(body ?? {}) }
+        ? { body: JSON.stringify(transformedBody ?? {}) }
         : { body: undefined }),
     };
 
@@ -243,9 +256,14 @@ export class HttpClient {
       ? await res.json()
       : await res.text();
 
+    const transformedPayload =
+      typeof payload === "object" && payload !== null
+        ? deepSnakeToCamel(payload)
+        : payload;
+
     if (schema) {
       try {
-        const parsed = schema.safeParse(payload);
+        const parsed = schema.safeParse(transformedPayload);
         if (!parsed.success) {
           this.config.logger?.error?.(parsed.error);
           throw parsed.error;
@@ -253,13 +271,13 @@ export class HttpClient {
         return parsed.data;
       } catch (error) {
         if (error instanceof Error && error.message.includes("_zod")) {
-          return payload as T;
+          return transformedPayload as T;
         }
         throw error;
       }
     }
 
-    return payload as T;
+    return transformedPayload as T;
   }
 
   private parseRateLimit(res: Response) {
@@ -293,11 +311,15 @@ export class HttpClient {
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
     const url = `${base}${normalizedPath}`;
 
-    if (!params || Object.keys(params).length === 0) {
+    const transformedParams = params
+      ? (deepCamelToSnake(params) as Record<string, unknown>)
+      : params;
+
+    if (!transformedParams || Object.keys(transformedParams).length === 0) {
       return url;
     }
 
-    const query = Object.entries(params)
+    const query = Object.entries(transformedParams)
       .filter(([, value]) => value !== undefined && value !== null)
       .map(
         ([key, value]) =>

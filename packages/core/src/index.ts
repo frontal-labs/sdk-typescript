@@ -37,6 +37,13 @@ export { createPageResult, pageResultSchema } from "./pagination";
 export type { PollOptions } from "./polling";
 // Polling utilities
 export { pollUntil, withTimeout } from "./polling";
+// Key case transformation
+export {
+  camelToSnake,
+  deepCamelToSnake,
+  deepSnakeToCamel,
+  snakeToCamel,
+} from "./transform";
 // Retry logic
 export { calculateDelay } from "./retry";
 
