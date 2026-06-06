@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/queues",
-  "version": "0.0.1",
-  "description": "Frontal queues SDK",
+  "version": "0.0.2",
+  "description": "Frontal Queues SDK \u2014 job and message queues with scheduling, retry, and dead-letter handling",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -35,8 +35,7 @@
   "license": "MIT",
   "author": "Frontal Labs",
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "tsup && tsc --emitDeclarationOnly",

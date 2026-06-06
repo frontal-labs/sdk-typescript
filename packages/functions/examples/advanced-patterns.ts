@@ -9,9 +9,8 @@
  * - Function orchestration
  */
 
-import { Functions, type InvokeOptions } from "@frontal-labs/functions";
+import { type InvokeOptions, functions } from "@frontal-labs/functions";
 
-const functions = new Functions();
 
 // Example 1: Function composition - chaining multiple functions
 async function processPipeline(inputData: unknown) {

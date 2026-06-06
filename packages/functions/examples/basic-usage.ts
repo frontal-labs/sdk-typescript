@@ -8,11 +8,10 @@
  * - Managing function lifecycle
  */
 
-import { type FunctionConfig, Functions } from "@frontal-labs/functions";
+import { type FunctionConfig, functions } from "@frontal-labs/functions";
 
 // Initialize the functions client
 // Uses environment variables for authentication by default
-const functions = new Functions();
 
 // Example 1: Deploy a simple HTTP function
 async function deployHttpFunction() {

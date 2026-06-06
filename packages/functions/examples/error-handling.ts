@@ -9,9 +9,8 @@
  * - Graceful degradation
  */
 
-import { type FunctionConfig, Functions } from "@frontal-labs/functions";
+import { type FunctionConfig, functions } from "@frontal-labs/functions";
 
-const functions = new Functions();
 
 // Example 1: Basic error handling
 async function deployWithErrorHandling() {
