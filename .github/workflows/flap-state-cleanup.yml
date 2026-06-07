@@ -1,0 +1,98 @@
+name: Flap State Cleanup
+
+# Daily cleanup — trims history, verifies linked incidents still exist,
+# detects corrupted state, and resets stale alerting flags.
+
+on:
+  schedule:
+    - cron: '13 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: flap-state-cleanup
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    name: Clean Stale Flap State
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Restore flap state
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: flap-state.json
+          key: flap-state-sdk-${{ github.run_id }}
+          restore-keys: flap-state-sdk-
+
+      - name: Clean state
+        id: clean
+        run: |
+          if [[ ! -f flap-state.json ]]; then
+            echo "No flap state found — nothing to clean"
+            exit 0
+          fi
+
+          if ! jq -e '.' flap-state.json > /dev/null 2>&1; then
+            echo "Flap state is corrupt JSON — resetting to fresh state"
+            .github/scripts/flap-state.sh init
+            echo "reset=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "=== Before cleanup ==="
+          jq '{alerting, consecutive_failures, consecutive_successes, history_count: (.history | length)}' flap-state.json
+
+          HISTORY_COUNT="$(jq '.history | length' flap-state.json)"
+          if [[ "$HISTORY_COUNT" -gt 96 ]]; then
+            echo "Trimming history from $HISTORY_COUNT to 96 entries"
+            jq '.history |= .[0:96]' flap-state.json > flap-state.json.tmp
+            mv flap-state.json.tmp flap-state.json
+          fi
+
+          SP_ID="$(jq -r '.status_page_incident_id // ""' flap-state.json)"
+          if [[ -n "$SP_ID" && "$SP_ID" != "null" && -n "${INCIDENT_IO_API_KEY:-}" ]]; then
+            echo "Verifying status page incident $SP_ID still exists..."
+            HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' \
+              -H "Authorization: Bearer $INCIDENT_IO_API_KEY" \
+              "https://api.incident.io/v2/status_page_incidents/$SP_ID" 2>/dev/null || echo "000")"
+
+            if [[ "$HTTP_CODE" == "404" ]]; then
+              echo "Incident $SP_ID no longer exists — clearing from flap state"
+              jq '.status_page_incident_id = null | .alerting = false' \
+                flap-state.json > flap-state.json.tmp
+              mv flap-state.json.tmp flap-state.json
+              echo "reset=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "Incident $SP_ID still exists (HTTP $HTTP_CODE)"
+            fi
+          fi
+
+          ALERTING="$(jq -r '.alerting' flap-state.json)"
+          SP_ID="$(jq -r '.status_page_incident_id // ""' flap-state.json)"
+          if [[ "$ALERTING" == "true" && ( -z "$SP_ID" || "$SP_ID" == "null" ) ]]; then
+            echo "Alerting=true but no linked incident — resetting alerting flag"
+            jq '.alerting = false' flap-state.json > flap-state.json.tmp
+            mv flap-state.json.tmp flap-state.json
+            echo "reset=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "=== After cleanup ==="
+          jq '{alerting, consecutive_failures, consecutive_successes, history_count: (.history | length)}' flap-state.json
+
+      - name: Save cleaned state
+        uses: actions/cache/save@v4
+        with:
+          path: flap-state.json
+          key: flap-state-sdk-${{ github.run_id }}

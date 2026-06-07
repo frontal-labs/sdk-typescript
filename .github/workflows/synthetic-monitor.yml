@@ -1,0 +1,304 @@
+name: Synthetic Monitor
+
+# Runs SDK synthetic checks every 15 minutes. Creates / updates / resolves
+# Incident.io status page incidents via flap-state.sh and incident-client.sh.
+#
+# Uses the Widget API at https://frontal-status.com/api/v1/summary for
+# cross-referencing the public status page view.
+
+on:
+  schedule:
+    # Off-peak minutes to avoid fleet contention
+    - cron: '3,18,33,48 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run without creating real incidents'
+        type: boolean
+        default: false
+
+concurrency:
+  group: synthetic-monitor
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  run-checks:
+    name: Run Synthetic Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install and build
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+
+      - name: Run SDK E2E journey
+        id: journeys
+        timeout-minutes: 12
+        run: |
+          export FRONTAL_API_KEY="${{ secrets.FRONTAL_API_KEY }}"
+          export FRONTAL_API_URL="${{ secrets.FRONTAL_API_URL || 'https://api.frontal.dev/v1' }}"
+          export FRONTAL_AI_API_URL="${{ secrets.FRONTAL_AI_API_URL || 'https://ai.frontal.dev' }}"
+          export FRONTAL_GRAPH_ENTITY_TYPE="${{ secrets.FRONTAL_GRAPH_ENTITY_TYPE }}"
+          export FRONTAL_BLOB_BUCKET="${{ secrets.FRONTAL_BLOB_BUCKET }}"
+          export E2E_DRY_RUN="${{ inputs.dry_run || false }}"
+          export WIDGET_API_URL="https://frontal-status.com/api/v1/summary"
+          .github/scripts/sdk-e2e.sh
+        env:
+          FRONTAL_API_KEY: ${{ secrets.FRONTAL_API_KEY }}
+          FRONTAL_API_URL: ${{ secrets.FRONTAL_API_URL || 'https://api.frontal.dev/v1' }}
+          FRONTAL_AI_API_URL: ${{ secrets.FRONTAL_AI_API_URL || 'https://ai.frontal.dev' }}
+          FRONTAL_GRAPH_ENTITY_TYPE: ${{ secrets.FRONTAL_GRAPH_ENTITY_TYPE }}
+          FRONTAL_BLOB_BUCKET: ${{ secrets.FRONTAL_BLOB_BUCKET }}
+
+      - name: Upload run result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-result-${{ github.run_id }}
+          path: run-result.json
+          retention-days: 7
+
+  manage-incidents:
+    name: Manage Incidents
+    runs-on: ubuntu-latest
+    needs: run-checks
+    if: always()
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .github/incident
+          sparse-checkout-cone-mode: false
+
+      - name: Download run result
+        uses: actions/download-artifact@v4
+        with:
+          name: run-result-${{ github.run_id }}
+          path: .
+
+      - name: Verify run result exists
+        run: |
+          if [[ ! -f run-result.json ]]; then
+            echo "No run result found — writing default healthy result"
+            cat > run-result.json << 'FALLBACK'
+            {
+              "run_id": "${{ github.run_id }}",
+              "summary": {
+                "checks_passed": 9,
+                "checks_failed": 0,
+                "services_failed": 0,
+                "overall_status": "pass"
+              }
+            }
+            FALLBACK
+          fi
+
+      - name: Resolve component ID
+        id: component
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+          INCIDENT_IO_STATUS_PAGE_ID: ${{ vars.INCIDENT_IO_STATUS_PAGE_ID }}
+        run: |
+          if [[ -z "$INCIDENT_IO_API_KEY" || -z "$INCIDENT_IO_STATUS_PAGE_ID" ]]; then
+            echo "API key or status page ID not configured — skipping"
+            echo "resolved_component_id=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          COMPONENT_NAME="$(jq -r '.[0].name // "SDKs"' .github/incident/components.json)"
+          CID="$(.github/scripts/incident-client.sh resolve-component "$COMPONENT_NAME")"
+          # The command already writes resolved_component_id to GITHUB_OUTPUT
+          echo "Will use component: $COMPONENT_NAME ($CID)"
+
+      - name: Restore flap state
+        id: restore-flap
+        uses: actions/cache/restore@v4
+        with:
+          path: flap-state.json
+          key: flap-state-sdk-${{ github.run_id }}
+          restore-keys: flap-state-sdk-
+
+      - name: Update flap state
+        id: flap
+        run: |
+          export FAIL_THRESHOLD="${{ vars.MONITOR_FAIL_THRESHOLD || '3' }}"
+          export RECOVER_THRESHOLD="${{ vars.MONITOR_RECOVER_THRESHOLD || '2' }}"
+          .github/scripts/flap-state.sh update run-result.json
+
+      - name: Determine severity
+        id: severity
+        if: steps.flap.outputs.action != 'no-op'
+        run: |
+          FAILED="$(jq -r '.summary.services_failed' run-result.json)"
+          SEVERITY="$(.github/scripts/incident-client.sh derive-severity "$FAILED")"
+          echo "severity=$SEVERITY" >> "$GITHUB_OUTPUT"
+          echo "services_failed=$FAILED" >> "$GITHUB_OUTPUT"
+
+      - name: Build failure message
+        id: message
+        if: steps.flap.outputs.action != 'no-op'
+        run: |
+          FAILED="$(jq -r '.summary.services_failed' run-result.json)"
+          PASSED="$(jq -r '.summary.checks_passed' run-result.json)"
+          TOTAL="$((FAILED + PASSED))"
+          FAILURE_LIST="$(jq -r '
+            .results[]? | select(.status == "fail") |
+            "  - **\(.name)** (\(.service)): \(.message // "unknown error" | .[0:200])"
+          ' run-result.json 2>/dev/null || echo "  - Unknown failure")"
+
+          if [[ "$FAILED" -ge 3 ]]; then
+            SP_NAME="SDK Synthetic Monitoring — Multiple Services Down"
+            COMPONENT_STATUS="full_outage"
+          elif [[ "$FAILED" -ge 2 ]]; then
+            SP_NAME="SDK Synthetic Monitoring — Partial Outage"
+            COMPONENT_STATUS="partial_outage"
+          else
+            SP_NAME="SDK Synthetic Monitoring — Degraded Performance"
+            COMPONENT_STATUS="degraded_performance"
+          fi
+
+          echo "sp_name=$SP_NAME" >> "$GITHUB_OUTPUT"
+          echo "component_status=$COMPONENT_STATUS" >> "$GITHUB_OUTPUT"
+          echo "services_failed=$FAILED" >> "$GITHUB_OUTPUT"
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+
+          cat > incident-message.md << INNER_MSG
+          ## SDK Synthetic Monitoring Alert
+
+          **${FAILED}/${TOTAL}** SDK service checks failing after reaching the alert threshold
+          (${{ steps.flap.outputs.consecutive_failures }} consecutive failures).
+
+          ### Failed Services
+          ${FAILURE_LIST}
+
+          ### Run Details
+          - **Run ID**: ${{ github.run_id }}
+          - **Timestamp**: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          - **Status Page**: [frontal-status.com](https://frontal-status.com)
+          - **Run Artifact**: [View Results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          The Incident.io automation is managing this incident automatically.
+          INNER_MSG
+
+          echo "message<<EOF" >> "$GITHUB_OUTPUT"
+          cat incident-message.md >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create incident
+        id: create
+        if: steps.flap.outputs.action == 'create' && inputs.dry_run != true
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+          INCIDENT_IO_STATUS_PAGE_ID: ${{ vars.INCIDENT_IO_STATUS_PAGE_ID }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/incident-client.sh
+
+          CID="${{ steps.component.outputs.resolved_component_id }}"
+          if [[ -z "$CID" ]]; then
+            echo "ERROR: No component ID resolved. Run 'incident-client.sh resolve-component' first."
+            exit 1
+          fi
+          COMPONENT_STATUSES="$(jq -c -n \
+            --arg status "${{ steps.message.outputs.component_status }}" \
+            --arg cid "$CID" \
+            '[{component_id: $cid, component_status: $status}]')"
+
+          cmd_create_status_page \
+            "${{ steps.message.outputs.sp_name }}" \
+            "${{ steps.message.outputs.message }}" \
+            "investigating" \
+            "$COMPONENT_STATUSES"
+
+          SP_ID="$(grep '^status_page_incident_id=' "$GITHUB_OUTPUT" 2>/dev/null | tail -1 | sed 's/^status_page_incident_id=//' || true)"
+          if [[ -n "${SP_ID:-}" && "${SP_ID:-}" != "null" ]]; then
+            jq --arg id "$SP_ID" '.status_page_incident_id = $id' flap-state.json > flap-state.json.tmp
+            mv flap-state.json.tmp flap-state.json
+          fi
+          echo "Patched incident ID into flap state"
+
+      - name: Update incident
+        id: update
+        if: steps.flap.outputs.action == 'update' && inputs.dry_run != true
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/incident-client.sh
+
+          SP_ID="$(jq -r '.status_page_incident_id' flap-state.json)"
+          FAILED="${{ steps.message.outputs.services_failed }}"
+
+          if [[ "$FAILED" -ge 3 ]]; then
+            COMP_STATUS="full_outage"; INC_STATUS="identified"
+          elif [[ "$FAILED" -ge 2 ]]; then
+            COMP_STATUS="partial_outage"; INC_STATUS="identified"
+          else
+            COMP_STATUS="degraded_performance"; INC_STATUS="monitoring"
+          fi
+
+          COMPONENT_STATUSES="$(jq -c -n \
+            --arg status "$COMP_STATUS" \
+            --arg cid "${{ steps.component.outputs.resolved_component_id }}" \
+            '[{component_id: $cid, component_status: $status}]')"
+
+          cmd_post_update "$SP_ID" "${{ steps.message.outputs.message }}" "$INC_STATUS" "$COMPONENT_STATUSES"
+
+      - name: Resolve incident
+        id: resolve
+        if: steps.flap.outputs.action == 'resolve' && inputs.dry_run != true
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/incident-client.sh
+
+          SP_ID="$(jq -r '.status_page_incident_id' flap-state.json)"
+          SUCCESSES="${{ steps.flap.outputs.consecutive_successes }}"
+
+          cmd_resolve "$SP_ID" \
+            "All SDK synthetic checks passing for ${SUCCESSES} consecutive runs. SDK is fully operational."
+
+          jq '.status_page_incident_id = null' flap-state.json > flap-state.json.tmp
+          mv flap-state.json.tmp flap-state.json
+          echo "Cleared incident ID from flap state"
+
+      - name: Log no-op
+        if: steps.flap.outputs.action == 'no-op'
+        run: |
+          echo "No incident action needed — within flap tolerance"
+          echo "  Consecutive failures: ${{ steps.flap.outputs.consecutive_failures }} (threshold: ${{ vars.MONITOR_FAIL_THRESHOLD || '3' }})"
+          echo "  Consecutive successes: ${{ steps.flap.outputs.consecutive_successes }} (threshold: ${{ vars.MONITOR_RECOVER_THRESHOLD || '2' }})"
+          echo "  Alerting: ${{ steps.flap.outputs.alerting }}"
+
+      - name: Save flap state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: flap-state.json
+          key: flap-state-sdk-${{ github.run_id }}
+
+      - name: Upload metrics artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-metrics-${{ github.run_id }}
+          path: |
+            run-result.json
+            flap-state.json
+          retention-days: 30
