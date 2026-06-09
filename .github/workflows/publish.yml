@@ -24,7 +24,7 @@ jobs:
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     needs: ci-core
     if: github.ref == 'refs/heads/main'
     permissions:
@@ -68,7 +68,7 @@ jobs:
     name: Generate Documentation
     needs: release
     if: needs.release.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       actions: read
       contents: write
