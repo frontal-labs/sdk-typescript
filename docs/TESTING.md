@@ -65,9 +65,13 @@ import { createAIClient, AIService } from "../src";
 
 describe("AIService", () => {
   it("should send a generate text request", async () => {
-    const http = createTestHttpClient({
-      body: { text: "Hello from AI" },
-    });
+    const { http } = createTestHttpClient([
+      {
+        method: "POST",
+        path: "/ai/chat/completions",
+        body: { text: "Hello from AI" },
+      },
+    ]);
     const service = new AIService(http);
 
     const result = await service.generateText({
@@ -96,14 +100,22 @@ Use `@frontal-labs/testing` for mock HTTP transport and fixtures:
 import { createTestHttpClient, createMockFetch } from "@frontal-labs/testing";
 
 // Create a test HTTP client that returns canned responses
-const http = createTestHttpClient({
-  body: { data: "test response" },
-});
+const { http } = createTestHttpClient([
+  {
+    method: "GET",
+    path: "/api/endpoint",
+    body: { data: "test response" },
+  },
+]);
 
 // Or use mock fetch with route matching
-const mockFetch = createMockFetch({
-  "/api/items": { items: [] },
-});
+const { fetch: mockFetch } = createMockFetch([
+  {
+    method: "GET",
+    path: "/api/items",
+    body: { items: [] },
+  },
+]);
 ```
 
 ### 3. Async Testing
@@ -151,9 +163,13 @@ import { createTestHttpClient } from "@frontal-labs/testing";
 
 describe("Service", () => {
   it("should call the API", async () => {
-    const http = createTestHttpClient({
-      body: { id: "1", name: "Test" },
-    });
+    const { http } = createTestHttpClient([
+      {
+        method: "GET",
+        path: "/items/1",
+        body: { id: "1", name: "Test" },
+      },
+    ]);
     const service = new MyService(http);
 
     const result = await service.get("1");
@@ -212,9 +228,13 @@ const agent = fixtures.agent({ name: "test-agent" });
 const workflow = fixtures.workflow({ name: "test-workflow" });
 
 // Custom test HTTP client
-const http = createTestHttpClient({
-  body: { data: "response" },
-});
+const { http } = createTestHttpClient([
+  {
+    method: "GET",
+    path: "/api/endpoint",
+    body: { data: "response" },
+  },
+]);
 ```
 
 ## Common Pitfalls
