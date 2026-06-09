@@ -132,9 +132,9 @@ jobs:
 
 ## Timeline
 
-- **Q1 2026**: Complete evaluation phase
-- **Q2 2026**: Begin dual publishing experiment
-- **Q3 2026**: Full JSR integration (pending evaluation results)
+- **Q3 2026**: Complete evaluation phase
+- **Q4 2026**: Begin dual publishing experiment
+- **Q1 2027**: Full JSR integration (pending evaluation results)
 
 ## Getting Started with JSR
 

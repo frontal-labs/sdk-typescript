@@ -6,9 +6,9 @@ This guide covers testing strategies, tools, and best practices for the Frontal 
 
 We use a modern testing stack to ensure code quality and reliability:
 
-- **Vitest** - Fast unit test runner with TypeScript support
-- **Bun Test** - Built-in test runner for performance-critical tests
-- **Coverage** - Built-in coverage reporting with Vitest
+- **Bun Test** - Fast test runner built into Bun, compatible with Vitest APIs
+- **Vitest** - Test utilities (`describe`, `it`, `expect`, `vi`, `mock`, etc.)
+- **@frontal-labs/testing** - Shared mock clients, fixtures, and test harness utilities
 - **Biome** - Linting and formatting for consistent code style
 
 ## Test Structure
@@ -20,79 +20,62 @@ packages/
 ├── ai/
 │   ├── src/
 │   ├── tests/
-│   │   ├── unit/
-│   │   ├── integration/
-│   │   └── fixtures/
+│   │   ├── ai.test.ts
+│   │   └── ...
 │   └── package.json
 └── ...
 ```
 
 ### Test Types
 
-1. **Unit Tests** - Test individual functions and components in isolation
-2. **Integration Tests** - Test package interactions and external dependencies
-3. **E2E Tests** - Test complete workflows across multiple packages
+1. **Unit Tests** - Test individual functions and service methods in isolation,
+   using mock fetch from `@frontal-labs/testing`
+2. **Integration Tests** - Test interactions with a mocked HTTP transport layer
+3. **Live Compatibility Tests** - Smoke tests against live Frontal API backends
+   (`bun run test:live`)
 
 ## Running Tests
 
 ### Basic Commands
 
 ```bash
-# Run all tests
+# Run all tests at the root level (vitest)
 bun run test
 
-# Run tests in watch mode
-bun run test:watch
-
-# Generate coverage report
-bun run test:coverage
-
-# Run tests for specific package
-bun test packages/ai
-```
-
-### Package-Specific Testing
-
-Each package can be tested individually:
-
-```bash
-# Test specific package
+# Run tests for a specific package
 cd packages/ai
 bun test
 
-# Test with coverage
-bun test --coverage
+# Run live backend compatibility checks
+bun run test:live
 ```
 
 ## Writing Tests
 
 ### Test File Naming
 
-- Unit tests: `*.test.ts` or `*.spec.ts`
-- Integration tests: `*.integration.test.ts`
-- Fixtures: `fixtures/` directory
+- Tests: `*.test.ts` at the package level
 
 ### Test Structure Example
 
 ```typescript
-import { describe, it, expect, beforeEach } from 'vitest';
-import { AI } from '../src';
+import { describe, it, expect } from "vitest";
+import { createTestHttpClient } from "@frontal-labs/testing";
+import { createAIClient, AIService } from "../src";
 
-describe('AI Package', () => {
-  let ai: AI;
+describe("AIService", () => {
+  it("should send a generate text request", async () => {
+    const http = createTestHttpClient({
+      body: { text: "Hello from AI" },
+    });
+    const service = new AIService(http);
 
-  beforeEach(() => {
-    ai = new AI({ apiKey: 'test-key' });
-  });
+    const result = await service.generateText({
+      model: "claude-sonnet-4-6",
+      messages: [{ role: "user", content: "Hello" }],
+    });
 
-  it('should initialize with correct config', () => {
-    expect(ai).toBeDefined();
-    expect(ai.config.apiKey).toBe('test-key');
-  });
-
-  it('should handle inference requests', async () => {
-    const response = await ai.inference('test prompt');
-    expect(response).toBeDefined();
+    expect(result.text).toBe("Hello from AI");
   });
 });
 ```
@@ -107,35 +90,36 @@ describe('AI Package', () => {
 
 ### 2. Mocking and Fixtures
 
+Use `@frontal-labs/testing` for mock HTTP transport and fixtures:
+
 ```typescript
-import { vi } from 'vitest';
+import { createTestHttpClient, createMockFetch } from "@frontal-labs/testing";
 
-// Mock external dependencies
-vi.mock('@frontal-labs/core', () => ({
-  HttpClient: vi.fn(),
-}));
+// Create a test HTTP client that returns canned responses
+const http = createTestHttpClient({
+  body: { data: "test response" },
+});
 
-// Use fixtures for test data
-const testConfig = {
-  apiKey: 'test-key',
-  endpoint: 'https://api.test.com',
-};
+// Or use mock fetch with route matching
+const mockFetch = createMockFetch({
+  "/api/items": { items: [] },
+});
 ```
 
 ### 3. Async Testing
 
 ```typescript
-it('should handle async operations', async () => {
-  const result = await someAsyncFunction();
-  expect(result).resolves.toBeDefined();
+it("should handle async operations", async () => {
+  const result = await service.query();
+  expect(result).toBeDefined();
 });
 ```
 
 ### 4. Error Handling
 
 ```typescript
-it('should throw appropriate errors', () => {
-  expect(() => invalidOperation()).toThrow('Expected error message');
+it("should throw appropriate errors", () => {
+  expect(() => invalidOperation()).toThrow("Expected error message");
 });
 ```
 
@@ -147,36 +131,34 @@ We maintain high code quality with comprehensive coverage:
 - **Critical Paths**: 100% coverage required
 - **New Features**: Must include tests before merging
 
-### Coverage Reports
+### Running with Coverage
 
 ```bash
-# Generate detailed coverage report
-bun run test:coverage
-
-# View coverage in browser
-open coverage/index.html
+# Coverage in a package
+cd packages/<name>
+bun test --coverage
 ```
 
 ## Integration Testing
 
 ### External Service Testing
 
-For packages that interact with external services:
+For packages that interact with external services, use the test HTTP client
+from `@frontal-labs/testing` instead of making real network calls:
 
 ```typescript
-import { beforeAll, afterAll } from 'vitest';
+import { createTestHttpClient } from "@frontal-labs/testing";
 
-describe('External API Integration', () => {
-  beforeAll(async () => {
-    // Setup test environment
-  });
+describe("Service", () => {
+  it("should call the API", async () => {
+    const http = createTestHttpClient({
+      body: { id: "1", name: "Test" },
+    });
+    const service = new MyService(http);
 
-  afterAll(async () => {
-    // Cleanup test environment
-  });
+    const result = await service.get("1");
 
-  it('should communicate with real API', async () => {
-    // Integration test with actual service
+    expect(result.name).toBe("Test");
   });
 });
 ```
@@ -198,44 +180,17 @@ TEST_ENDPOINT=https://api.test.com
 Our CI pipeline runs tests automatically:
 
 - **Unit Tests** on every push and PR
-- **Integration Tests** on PR to main
-- **Coverage Checks** enforce minimum coverage
-- **Performance Tests** for critical packages
+- **Format and Lint checks** on every push and PR
+- **Build and Type Check** on every push to main branches
 
-### Test Matrix
+### Test Environment
 
-We test across multiple environments:
+We test across:
 
-- **Node.js**: v18, v20, v22
-- **Bun**: Latest stable
-- **OS**: Ubuntu, macOS, Windows
-
-## Performance Testing
-
-For performance-critical packages:
-
-```typescript
-import { bench } from 'vitest';
-
-bench('performance test', () => {
-  // Performance measurement
-}, { time: 1000 });
-```
+- **Runtime**: Node.js (v18, v20, v22), Bun (latest)
+- **OS**: Ubuntu, macOS
 
 ## Debugging Tests
-
-### VS Code Integration
-
-Use VS Code's testing extension for better debugging:
-
-```json
-// .vscode/settings.json
-{
-  "testing.automaticallyOpenPeekView": "failureInVisibleDocument"
-}
-```
-
-### Console Output
 
 Enable verbose output for debugging:
 
@@ -247,30 +202,19 @@ bun test --reporter=verbose
 
 ### Fixtures
 
-Store test data in organized fixtures:
+Use `@frontal-labs/testing` for shared fixtures:
 
 ```typescript
-// fixtures/ai-responses.ts
-export const mockInferenceResponse = {
-  id: 'test-id',
-  response: 'Test response',
-  timestamp: new Date().toISOString(),
-};
-```
+import { fixtures, createTestHttpClient } from "@frontal-labs/testing";
 
-### Test Utilities
+// Pre-built fixtures for entity types
+const agent = fixtures.agent({ name: "test-agent" });
+const workflow = fixtures.workflow({ name: "test-workflow" });
 
-Create reusable test utilities:
-
-```typescript
-// tests/utils/test-helpers.ts
-export function createMockClient(overrides = {}) {
-  return {
-    apiKey: 'test-key',
-    endpoint: 'https://test.com',
-    ...overrides,
-  };
-}
+// Custom test HTTP client
+const http = createTestHttpClient({
+  body: { data: "response" },
+});
 ```
 
 ## Common Pitfalls

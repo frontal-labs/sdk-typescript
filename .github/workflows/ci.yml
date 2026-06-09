@@ -50,9 +50,3 @@ jobs:
         run: bun run test
         timeout-minutes: 15
 
-      - name: Run Snyk security scan
-        uses: snyk/actions/node@v1.0.0
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high

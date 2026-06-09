@@ -9,44 +9,128 @@ This SDK is designed as a modular monorepo, allowing for clear separation of con
 Shared transport primitives and defaults used by all domain SDKs:
 - API key/base URL configuration
 - HTTP client, retries, and timeout behavior
-- typed error mapping
+- typed error mapping (NotFound, Unauthorized, Validation, Conflict, RateLimit,
+  ServiceError, NetworkError, TimeoutError)
 - pagination and polling utilities
+- circuit breaker and key-case transformers
 
-### 2. AI (`@frontal-labs/ai`)
+### 2. SDK (`@frontal-labs/sdk`)
 
-Handles interactions with AI models, including inference, prompt management, and streaming responses.
+Unified SDK client aggregating all Frontal services into a single `Sdk` class with
+lazy-loaded service accessors. Re-exports every individual service singleton.
 
-### 3. Agents (`@frontal-labs/agents`)
+### 3. Testing (`@frontal-labs/testing`)
 
-AI agent integrations and workflows with support for LangChain, LangGraph, and Vercel AI SDK.
+Reusable mock clients, fixtures, and helper utilities used by package test suites to
+enforce consistent behavior. Includes mock fetch with route matching, test client
+factories, integration harnesses, and entity fixtures.
 
-### 4. Functions (`@frontal-labs/functions`)
+### 4. AI (`@frontal-labs/ai`)
 
-A serverless functions orchestration layer, enabling developers to deploy and trigger functions easily.
+Unified type-safe access to LLMs, embeddings, and AI inference with support for
+streaming responses.
 
-### 5. Graph (`@frontal-labs/graph`)
+### 5. Agents (`@frontal-labs/agents`)
 
-Graph database operations, entity CRUD, traversal, time travel, and semantic search capabilities.
+Define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI SDK
+integration.
 
-### 6. Models (`@frontal-labs/ontology`)
+### 6. Audit (`@frontal-labs/audit`)
 
-Model deployment and management for machine learning models.
+Audit trails, event logging, compliance checks, and CSV/JSON export.
 
-### 7. Pipelines (`@frontal-labs/pipelines`)
+### 7. Auth (`@frontal-labs/auth`)
 
-Data pipeline orchestration for complex data processing workflows.
+GoTrue-compatible authentication with MFA, OAuth, SSO, and admin user management.
 
-### 8. Storage (`@frontal-labs/blob`)
+### 8. Billing (`@frontal-labs/billing`)
 
-An interface for interacting with various storage providers (S3, local, etc.) in a unified way.
+Plans, subscriptions, invoices, usage metering, and payment methods.
 
-### 9. Workflows (`@frontal-labs/workflows`)
+### 9. Blob (`@frontal-labs/blob`)
 
-Workflow automation and management for complex business processes.
+Simple, scalable object storage compatible with Blob and S3 standard patterns.
 
-### 10. Testing (`@frontal-labs/testing`)
+### 10. Connectors (`@frontal-labs/connectors`)
 
-Reusable mock clients, fixtures, and helper utilities used by package test suites to enforce consistent behavior.
+Data ingestion connectors for enterprise data sources.
+
+### 11. Datasets (`@frontal-labs/datasets`)
+
+Dataset CRUD with versioning, data operations, and import/export.
+
+### 12. Events (`@frontal-labs/events`)
+
+Pub/sub event bus with client-side buffering, dead-letter queues, and schema registry.
+
+### 13. Flags (`@frontal-labs/flags`)
+
+Feature flags with local evaluation, targeting rules, gradual rollouts, and A/B
+experiments.
+
+### 14. Functions (`@frontal-labs/functions`)
+
+Deploy and manage serverless functions on Frontal.
+
+### 15. Governance (`@frontal-labs/governance`)
+
+Policy management, RBAC (role-based access control), and data classification.
+
+### 16. Graph (`@frontal-labs/graph`)
+
+Business entity CRUD, traversal, time travel, and semantic search.
+
+### 17. Integrations (`@frontal-labs/integrations`)
+
+Execute actions in third-party applications.
+
+### 18. Lineage (`@frontal-labs/lineage`)
+
+Data lineage graphs, dependency tracing, and impact analysis.
+
+### 19. Observability (`@frontal-labs/observability`)
+
+Logs, metrics, traces, alerts, and dashboards with OTLP export.
+
+### 20. Ontology (`@frontal-labs/ontology`)
+
+Semantic model and schema management, migrations, and AI-powered inference.
+
+### 21. Organization (`@frontal-labs/organization`)
+
+Multi-tenancy with tenants, teams, members, roles, and invitations.
+
+### 22. Pipelines (`@frontal-labs/pipelines`)
+
+Declarative data pipelines with substrate orchestration and graph entity awareness.
+
+### 23. Queues (`@frontal-labs/queues`)
+
+Job and message queues with scheduling, retry, and dead-letter handling.
+
+### 24. Sandbox (`@frontal-labs/sandbox`)
+
+Isolated code execution with streaming, snapshots, and file management.
+
+### 25. Schedules (`@frontal-labs/schedules`)
+
+Cron-based scheduling with local validation, run history, and manual triggers.
+
+### 26. Search (`@frontal-labs/search`)
+
+Unified search across vectors, graph, and datasets with hybrid mode.
+
+### 27. Vectors (`@frontal-labs/vectors`)
+
+Embeddings store with similarity search, hybrid search, and AI bridge.
+
+### 28. Webhooks (`@frontal-labs/webhooks`)
+
+Endpoint management with HMAC signature verification, delivery tracking, and stats.
+
+### 29. Workflows (`@frontal-labs/workflows`)
+
+Workflow orchestration with approvals and steps.
 
 ## Build System
 

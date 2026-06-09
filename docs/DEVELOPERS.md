@@ -20,21 +20,40 @@ bun run setup
 ```
 sdk-ts/
 ├── packages/
-│   ├── core/         # Shared transport, auth, retries, pagination, errors
-│   ├── testing/      # Test harness: mock fetch, test client, fixtures
-│   ├── ai/           # AI inference, embeddings, streaming, structured output
-│   ├── agents/       # Agent lifecycle, deployment, executions, timelines
-│   ├── blob/         # Object storage: upload, download, signed URLs
-│   ├── functions/    # Serverless function deploy, invoke, streaming
-│   ├── graph/        # Entity CRUD, relationships, semantic search, history
-│   ├── ontology/     # Schema modeling, migrations, AI-powered inference
-│   ├── pipelines/    # Declarative data pipelines with substrate orchestration
-│   └── workflows/    # Workflow orchestration with approvals and steps
-├── docs/             # Project-level documentation
-├── examples/         # Cross-package guides and examples
-├── .changeset/       # Changesets configuration
+│   ├── core/          # Shared transport, auth, retries, pagination, errors
+│   ├── sdk/           # Unified SDK client for all Frontal services
+│   ├── testing/       # Test harness: mock fetch, test client, fixtures
+│   ├── ai/            # AI inference, embeddings, streaming, structured output
+│   ├── agents/        # Agent lifecycle, deployment, executions, timelines
+│   ├── audit/         # Audit trails, event logging, compliance checks
+│   ├── auth/          # Authentication with MFA, OAuth, SSO
+│   ├── billing/       # Plans, subscriptions, invoices, usage metering
+│   ├── blob/          # Object storage: upload, download, signed URLs
+│   ├── connectors/    # Data ingestion connectors for enterprise sources
+│   ├── datasets/      # Dataset CRUD with versioning
+│   ├── events/        # Pub/sub event bus with dead-letter queues
+│   ├── flags/         # Feature flags with A/B experiments
+│   ├── functions/     # Serverless function deploy, invoke, streaming
+│   ├── governance/    # Policy management and RBAC
+│   ├── graph/         # Entity CRUD, relationships, semantic search, history
+│   ├── integrations/  # Third-party application integrations
+│   ├── lineage/       # Data lineage graphs and impact analysis
+│   ├── observability/ # Logs, metrics, traces, alerts, dashboards
+│   ├── ontology/      # Schema modeling, migrations, AI-powered inference
+│   ├── organization/  # Multi-tenancy and team management
+│   ├── pipelines/     # Declarative data pipelines with substrate orchestration
+│   ├── queues/        # Job and message queues
+│   ├── sandbox/       # Isolated code execution
+│   ├── schedules/     # Cron-based scheduling
+│   ├── search/        # Unified cross-service search
+│   ├── vectors/       # Embeddings store and similarity search
+│   ├── webhooks/      # Endpoint management with signature verification
+│   └── workflows/     # Workflow orchestration with approvals and steps
+├── docs/              # Project-level documentation
+├── examples/          # Cross-package guides and examples
+├── .changeset/        # Changesets configuration
 ├── .github/workflows/ # CI/CD pipelines
-├── turbo.json        # Turborepo pipeline configuration
+├── turbo.json         # Turborepo pipeline configuration
 └── tsconfig.base.json # Shared TypeScript configuration
 ```
 
@@ -46,17 +65,12 @@ Each package follows a consistent structure:
 packages/<name>/
 ├── src/
 │   ├── index.ts      # Public API exports
-│   ├── client.ts     # Service client implementation
-│   ├── compat.ts     # Convenience class (optional)
+│   ├── service.ts    # Service client implementation
 │   ├── schemas.ts    # Zod validation schemas
 │   ├── constants.ts  # Package constants and defaults
-│   ├── keys.ts       # Environment key schema
-│   ├── types.ts      # TypeScript type definitions
-│   └── error.ts      # Error types and handling
+│   └── types.ts      # TypeScript type definitions (optional)
 ├── tests/
 │   └── <name>.test.ts
-├── docs/             # Package-specific documentation
-├── examples/         # Runnable examples
 ├── package.json
 ├── tsconfig.json
 ├── tsup.config.ts    # Build configuration
@@ -123,13 +137,19 @@ bun run type-check  # type-check just this package
 ### Dependency Graph
 
 ```
-core ─────┬──► ai, blob, functions, graph, ontology, pipelines, workflows
+core ─────┬──► ai, agents, audit, auth, billing, blob, connectors, datasets,
+          │    events, flags, functions, governance, graph, integrations,
+          │    lineage, observability, ontology, organization, pipelines,
+          │    queues, sandbox, schedules, search, vectors, webhooks, workflows
           │
-testing ──┘──► agents (devDependency on testing)
+testing ──┘──► all packages (devDependency on testing)
+          │
+sdk ──────┘──► all packages (aggregates every service)
 ```
 
-All packages depend on `@frontal-labs/core`. `@frontal-labs/testing` is a devDependency
-used for testing packages that integrate with the core client.
+All domain packages depend on `@frontal-labs/core`. `@frontal-labs/testing` is a
+devDependency used for testing. `@frontal-labs/sdk` aggregates every service package
+into a single unified client.
 
 ## Code Style
 

@@ -137,7 +137,6 @@ Our security team includes:
 ### Security Tools
 
 - **npm audit**: `npm audit` or `bun audit`
-- **Snyk**: [snyk.io](https://snyk.io/) for dependency scanning
 - **GitHub Dependabot**: Automated dependency updates
 - **CodeQL**: Static code analysis
 
