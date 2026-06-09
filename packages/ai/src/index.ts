@@ -11,7 +11,8 @@ import {
   HttpClient,
 } from "@frontal-labs/core";
 import { AIService } from "./service";
-import { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_AI_BASE_URL } from "./constants";
+export { VERSION } from "./constants";
 
 /** Config for standalone usage without @frontal-labs/core */
 export interface AIClientConfig {
@@ -22,9 +23,9 @@ export interface AIClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createAIClient(client: FrontalClient): AIService;
-/** Create standalone with just config */
-export function createAIClient(config: AIClientConfig): AIService;
+export function createAIClient(
+  clientOrConfig: FrontalClient | AIClientConfig
+): AIService;
 export function createAIClient(
   clientOrConfig: FrontalClient | AIClientConfig
 ): AIService {
@@ -40,7 +41,7 @@ export function createAIClient(
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
     baseUrl,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -66,7 +67,7 @@ export const ai = new Proxy<AIService>({} as AIService, {
 // New Pattern B exports
 export { AIService } from "./service";
 
-export { DEFAULT_AI_BASE_URL, VERSION };
+export { DEFAULT_AI_BASE_URL, type VERSION };
 export type {
   AIConfig,
   APIResponse,
