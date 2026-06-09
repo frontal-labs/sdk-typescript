@@ -1,11 +1,13 @@
 # Overview
 
-This repository is a monorepo containing various packages designed to simplify the development of distributed systems. It leverages modern tooling like Bun, Turborepo, and Changesets for a seamless developer experience.
+This repository is a monorepo containing various packages designed to simplify
+the development of distributed systems. It leverages modern tooling like Bun,
+Turborepo, and Changesets for a seamless developer experience.
 
 ## Features
 
 - **Modular Architecture**: Use only the packages you need.
-- **Fast Development**: Powered by Bun and Turborepo for ultra-fast builds and tests.
+- **Fast Development**: Powered by Bun and Turborepo for fast builds and tests.
 - **Type-Safe**: Written entirely in TypeScript with strict type checking.
 - **Automated Versioning**: Streamlined release process with Changesets.
 
@@ -13,13 +15,32 @@ This repository is a monorepo containing various packages designed to simplify t
 
 | Package | Description |
 | :--- | :--- |
-| `@frontal-labs/core` | Shared transport, auth, retries, pagination, and typed errors used by all SDKs. |
-| `@frontal-labs/ai` | AI integration and utilities. |
-| `@frontal-labs/agents` | AI agent integrations and workflows with LangChain, LangGraph, and Vercel AI SDK. |
-| `@frontal-labs/functions` | Serverless functions orchestration. |
-| `@frontal-labs/graph` | Graph database operations and semantic search. |
-| `@frontal-labs/ontology` | Model deployment and management. |
-| `@frontal-labs/pipelines` | Data pipeline orchestration. |
-| `@frontal-labs/blob` | Scalable storage interactions. |
-| `@frontal-labs/workflows` | Workflow automation and management. |
-| `@frontal-labs/testing` | Test utilities, mock transport, and fixtures for package-level SDK tests. |
+| `@frontal-labs/core` | Shared transport, auth, retries, and typed errors. |
+| `@frontal-labs/sdk` | Unified client for all Frontal services. |
+| `@frontal-labs/testing` | Test mocks, transport, and fixtures for SDK tests. |
+| `@frontal-labs/ai` | AI inference, embeddings, and streaming. |
+| `@frontal-labs/agents` | AI agent integrations with LangChain and Vercel AI. |
+| `@frontal-labs/audit` | Audit trails and compliance checks. |
+| `@frontal-labs/auth` | MFA, OAuth, SSO, and admin user management. |
+| `@frontal-labs/billing` | Plans, subscriptions, and usage metering. |
+| `@frontal-labs/blob` | Object storage compatible with Blob and S3. |
+| `@frontal-labs/connectors` | Data connectors. |
+| `@frontal-labs/datasets` | Dataset CRUD and versioning. |
+| `@frontal-labs/events` | Pub/sub event bus with DLQ support. |
+| `@frontal-labs/flags` | Feature flags and A/B experiments. |
+| `@frontal-labs/functions` | Serverless functions. |
+| `@frontal-labs/governance` | Policy management and RBAC. |
+| `@frontal-labs/graph` | Entity CRUD and semantic search. |
+| `@frontal-labs/integrations` | Third-party integrations. |
+| `@frontal-labs/lineage` | Data lineage and impact analysis. |
+| `@frontal-labs/observability` | Logs, metrics, and traces. |
+| `@frontal-labs/ontology` | Schema management and inference. |
+| `@frontal-labs/organization` | Tenants, teams, members, and roles. |
+| `@frontal-labs/pipelines` | Declarative data pipelines. |
+| `@frontal-labs/queues` | Job and message queues. |
+| `@frontal-labs/sandbox` | Isolated code execution. |
+| `@frontal-labs/schedules` | Cron-based scheduling. |
+| `@frontal-labs/search` | Unified cross-service search. |
+| `@frontal-labs/vectors` | Embeddings and similarity search. |
+| `@frontal-labs/webhooks` | Endpoint management. |
+| `@frontal-labs/workflows` | Workflow orchestration. |
