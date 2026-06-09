@@ -86,7 +86,7 @@ Changesets resolves the dependency graph and publishes in correct order:
 
 1. `@frontal-labs/core` (no internal dependencies)
 2. `@frontal-labs/testing` (depends on core)
-3. All domain SDKs (depend on core): `@frontal-labs/ai`, `@frontal-labs/agents`,
+3. All domain SDKs (depend on `core` at runtime and on `testing` as a devDependency): `@frontal-labs/ai`, `@frontal-labs/agents`,
    `@frontal-labs/audit`, `@frontal-labs/auth`, `@frontal-labs/billing`,
    `@frontal-labs/blob`, `@frontal-labs/connectors`, `@frontal-labs/datasets`,
    `@frontal-labs/events`, `@frontal-labs/flags`, `@frontal-labs/functions`,

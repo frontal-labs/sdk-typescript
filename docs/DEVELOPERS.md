@@ -137,19 +137,23 @@ bun run type-check  # type-check just this package
 ### Dependency Graph
 
 ```
-core ─────┬──► ai, agents, audit, auth, billing, blob, connectors, datasets,
-          │    events, flags, functions, governance, graph, integrations,
-          │    lineage, observability, ontology, organization, pipelines,
-          │    queues, sandbox, schedules, search, vectors, webhooks, workflows
-          │
-testing ──┘──► all packages (devDependency on testing)
-          │
-sdk ──────┘──► all packages (aggregates every service)
+core    ──► ai, agents, audit, auth, billing, blob, connectors, datasets,
+            events, flags, functions, governance, graph, integrations,
+            lineage, observability, ontology, organization, pipelines,
+            queues, sandbox, schedules, search, vectors, webhooks, workflows
+
+testing ──► all 26 domain packages (devDependency only)
+
+ai, agents, audit, auth, billing, blob, connectors, datasets, events,
+flags, functions, governance, graph, integrations, lineage,
+observability, ontology, organization, pipelines, queues, sandbox,
+schedules, search, vectors, webhooks, workflows ──► sdk
 ```
 
-All domain packages depend on `@frontal-labs/core`. `@frontal-labs/testing` is a
-devDependency used for testing. `@frontal-labs/sdk` aggregates every service package
-into a single unified client.
+Arrows read "is depended on by". All 26 domain packages depend on
+`@frontal-labs/core` at runtime and on `@frontal-labs/testing` as a
+devDependency. `@frontal-labs/sdk` depends on every domain package and
+re-exports them as a single unified client.
 
 ## Code Style
 
