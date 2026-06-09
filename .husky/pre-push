@@ -1,8 +1,14 @@
 echo "Running pre-push checks..."
 
-# Run Biome lint and format check across all files
+# Format check across all tracked files
 bun run format:check || {
   echo "Format check failed. Run 'bun run format' to fix."
+  exit 1
+}
+
+# Lint check across all source files
+bun biome lint packages/ || {
+  echo "Lint check failed. Run 'bun run lint:fix' to fix."
   exit 1
 }
 
