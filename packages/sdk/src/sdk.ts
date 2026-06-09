@@ -1,4 +1,4 @@
-import { FrontalClient } from "@frontal-labs/core";
+import type { FrontalClient } from "@frontal-labs/core";
 import { createAIClient } from "@frontal-labs/ai";
 import type { AIService } from "@frontal-labs/ai";
 import { createAgentsClient } from "@frontal-labs/agents";

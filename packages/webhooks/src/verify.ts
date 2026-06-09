@@ -11,9 +11,9 @@ export function verifyWebhookSignature(
   payload: string,
   signatureHeader: string,
   secret: string,
-  toleranceMs: number = 300_000
+  toleranceMs = 300_000
 ): { valid: boolean; error?: string } {
-  if (!payload || !signatureHeader || !secret) {
+  if (!(payload && signatureHeader && secret)) {
     return { valid: false, error: "Missing payload, signature, or secret" };
   }
 

@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_DATASETS_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_DATASETS_BASE_URL } from "./constants";
 import { DatasetsService } from "./service";
 
 export interface DatasetsClientConfig {
@@ -12,10 +12,8 @@ export interface DatasetsClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createDatasetsClient(client: FrontalClient): DatasetsService;
 export function createDatasetsClient(
-  config: DatasetsClientConfig
+  config: DatasetsClientConfig | FrontalClient
 ): DatasetsService;
 export function createDatasetsClient(
   clientOrConfig: FrontalClient | DatasetsClientConfig
@@ -30,7 +28,7 @@ export function createDatasetsClient(
       process.env.FRONTAL_DATASETS_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_DATASETS_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,9 +41,10 @@ export function createDatasetsClient(
 let _datasetsCache: DatasetsService | undefined;
 export const datasets = new Proxy<DatasetsService>({} as DatasetsService, {
   get(_t, prop) {
-    const inst = (_datasetsCache ??= new DatasetsService(
-      getDefaultClient().httpClient
-    ));
+    if (!_datasetsCache) {
+      _datasetsCache = new DatasetsService(getDefaultClient().httpClient);
+    }
+    const inst = _datasetsCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)

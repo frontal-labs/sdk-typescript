@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_SCHEDULES_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_SCHEDULES_BASE_URL } from "./constants";
 import { SchedulesService } from "./service";
 
 export interface SchedulesClientConfig {
@@ -12,10 +12,8 @@ export interface SchedulesClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createSchedulesClient(client: FrontalClient): SchedulesService;
 export function createSchedulesClient(
-  config: SchedulesClientConfig
+  config: SchedulesClientConfig | FrontalClient
 ): SchedulesService;
 export function createSchedulesClient(
   clientOrConfig: FrontalClient | SchedulesClientConfig
@@ -30,7 +28,7 @@ export function createSchedulesClient(
       process.env.FRONTAL_SCHEDULES_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_SCHEDULES_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,9 +41,10 @@ export function createSchedulesClient(
 let _schedulesCache: SchedulesService | undefined;
 export const schedules = new Proxy<SchedulesService>({} as SchedulesService, {
   get(_t, prop) {
-    const inst = (_schedulesCache ??= new SchedulesService(
-      getDefaultClient().httpClient
-    ));
+    if (!_schedulesCache) {
+      _schedulesCache = new SchedulesService(getDefaultClient().httpClient);
+    }
+    const inst = _schedulesCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)

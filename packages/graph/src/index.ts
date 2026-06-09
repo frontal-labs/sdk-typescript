@@ -14,9 +14,10 @@ export interface GraphClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createGraphClient(client: FrontalClient): GraphService;
 /** Create standalone with just config */
-export function createGraphClient(config: GraphClientConfig): GraphService;
+export function createGraphClient(
+  config: GraphClientConfig | FrontalClient
+): GraphService;
 export function createGraphClient(
   clientOrConfig: FrontalClient | GraphClientConfig
 ): GraphService {
@@ -30,7 +31,7 @@ export function createGraphClient(
       process.env.FRONTAL_GRAPH_API_URL ??
       process.env.FRONTAL_API_URL ??
       "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -44,9 +45,10 @@ export function createGraphClient(
 let _graphCache: GraphService | undefined;
 export const graph = new Proxy<GraphService>({} as GraphService, {
   get(_t, prop) {
-    const inst = (_graphCache ??= new GraphService(
-      getDefaultClient().httpClient
-    ));
+    if (!_graphCache) {
+      _graphCache = new GraphService(getDefaultClient().httpClient);
+    }
+    const inst = _graphCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)

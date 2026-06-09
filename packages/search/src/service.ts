@@ -1,9 +1,4 @@
-import {
-  createPageResult,
-  type HttpClient,
-  type PageResult,
-  type PaginationMeta,
-} from "@frontal-labs/core";
+import type { HttpClient } from "@frontal-labs/core";
 import type { SearchResult, UnifiedSearchResponse } from "./schemas";
 
 // SearchService delegates to backend unified search endpoint, which

@@ -258,7 +258,7 @@ export class HttpClient {
         const retryAfterValue = res.headers.get("Retry-After");
         const retryAfterSeconds = retryAfterValue
           ? Number.parseInt(retryAfterValue, 10)
-          : NaN;
+          : Number.NaN;
         const delay = Number.isFinite(retryAfterSeconds)
           ? retryAfterSeconds * 1000
           : calculateDelay(
@@ -343,9 +343,9 @@ export class HttpClient {
       normalizedPath.startsWith("/v1/")
     ) {
       console.warn(
-        `[SDK] Double /v1/ prefix detected. ` +
+        "[SDK] Double /v1/ prefix detected. " +
           `The base URL already includes "/v1" but the route also starts with "/v1/". ` +
-          `Update your SDK package to the latest version.`
+          "Update your SDK package to the latest version."
       );
     }
 

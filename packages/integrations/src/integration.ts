@@ -7,7 +7,6 @@ import {
 import type {
   ActionRun,
   ConnectionTest,
-  CreateActionRunInput,
   InstalledCapability,
   InstalledIntegration,
   IntegrationMetrics,
@@ -178,7 +177,7 @@ export class RunNamespace {
   ): Promise<ActionRun> {
     const run = await this.create(action, input, opts);
     return pollUntil(() => this.get(run.id), {
-      interval: opts?.interval ?? 2_000,
+      interval: opts?.interval ?? 2000,
       timeout: opts?.timeout ?? 300_000,
       until: (r) =>
         r.status === "succeeded" ||
@@ -241,7 +240,7 @@ export class TestNamespace {
   ): Promise<ConnectionTest> {
     const ct = await this.create(actorId);
     return pollUntil(() => this.get(ct.id), {
-      interval: opts?.interval ?? 2_000,
+      interval: opts?.interval ?? 2000,
       timeout: opts?.timeout ?? 60_000,
       until: (t) => t.status === "succeeded" || t.status === "failed",
     });

@@ -1,5 +1,5 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { FunctionsService } from "../src/service";
 import { functionConfigSchema, invokeOptionsSchema } from "../src/schemas";
 

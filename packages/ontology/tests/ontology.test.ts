@@ -137,19 +137,19 @@ describe("ModelAccessor", () => {
     it("fetches a model by name", async () => {
       const mdl = model({ name: modelName });
       const { service, mock } = createService([
-        { method: "GET", path: `/v1/ontology/engine/runs`, body: mdl },
+        { method: "GET", path: "/v1/ontology/engine/runs", body: mdl },
       ]);
 
       const result = await service.use(modelName).get();
 
       expect(result.name).toBe(modelName);
-      mock.expectCalled("GET", `/v1/ontology/engine/runs`);
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
 
     it("fetches a specific version", async () => {
       const mdl = model({ name: modelName, version: 2 });
       const { service } = createService([
-        { method: "GET", path: `/v1/ontology/engine/runs`, body: mdl },
+        { method: "GET", path: "/v1/ontology/engine/runs", body: mdl },
       ]);
 
       const result = await service.use(modelName).get(2);
@@ -161,24 +161,24 @@ describe("ModelAccessor", () => {
     it("updates a model definition", async () => {
       const mdl = model({ name: modelName });
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/ontology/engine/runs`, body: mdl },
+        { method: "POST", path: "/v1/ontology/engine/runs", body: mdl },
       ]);
 
       await service.use(modelName).update({ fields: { id: { type: "uuid" } } });
 
-      mock.expectCalled("POST", `/v1/ontology/engine/runs`);
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
   describe("delete()", () => {
     it("deletes a model", async () => {
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/ontology/engine/runs`, status: 204 },
+        { method: "POST", path: "/v1/ontology/engine/runs", status: 204 },
       ]);
 
       await service.use(modelName).delete();
 
-      mock.expectCalled("POST", `/v1/ontology/engine/runs`);
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -188,13 +188,13 @@ describe("ModelAccessor", () => {
         data: [{ id: "rel_1", type: "has_many", target: "order" }],
       };
       const { service, mock } = createService([
-        { method: "GET", path: `/v1/ontology/engine/runs`, body },
+        { method: "GET", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.use(modelName).relationships();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("GET", `/v1/ontology/engine/runs`);
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
   });
 
@@ -207,7 +207,7 @@ describe("ModelAccessor", () => {
         name: "orders",
       };
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/ontology/engine/runs`, body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.use(modelName).addRelationship({
@@ -216,7 +216,7 @@ describe("ModelAccessor", () => {
       });
 
       expect(result.type).toBe("has_many");
-      mock.expectCalled("POST", `/v1/ontology/engine/runs`);
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -225,14 +225,14 @@ describe("ModelAccessor", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: `/v1/ontology/engine/runs`,
+          path: "/v1/ontology/engine/runs",
           status: 204,
         },
       ]);
 
       await service.use(modelName).removeRelationship("rel_1");
 
-      mock.expectCalled("POST", `/v1/ontology/engine/runs`);
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -242,7 +242,7 @@ describe("ModelAccessor", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: `/v1/ontology/engine/ontologies/validate`,
+          path: "/v1/ontology/engine/ontologies/validate",
           body,
         },
       ]);
@@ -251,7 +251,7 @@ describe("ModelAccessor", () => {
 
       expect(result.totalChecked).toBe(100);
       expect(result.violations).toHaveLength(0);
-      mock.expectCalled("POST", `/v1/ontology/engine/ontologies/validate`);
+      mock.expectCalled("POST", "/v1/ontology/engine/ontologies/validate");
     });
   });
 
@@ -268,13 +268,13 @@ describe("ModelAccessor", () => {
         ],
       };
       const { service, mock } = createService([
-        { method: "GET", path: `/v1/ontology/engine/runs`, body },
+        { method: "GET", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.use(modelName).versions();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("GET", `/v1/ontology/engine/runs`);
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
   });
 });

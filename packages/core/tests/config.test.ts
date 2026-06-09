@@ -2,7 +2,7 @@
  * Comprehensive tests for configuration schemas and types
  */
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import {
   type ClientConfigInput,
@@ -32,7 +32,7 @@ describe("Configuration", () => {
         expect(result).toEqual({
           apiKey: "frt_1234567890abcdef",
           baseUrl: "https://api.frontal.dev/v1",
-          timeout: 30000,
+          timeout: 30_000,
           maxRetries: 3,
           retryDelay: 1000,
           headers: {},
@@ -47,7 +47,7 @@ describe("Configuration", () => {
         const input: ClientConfigInput = {
           apiKey: "frt_1234567890abcdef",
           baseUrl: "https://api.example.com/v2",
-          timeout: 60000,
+          timeout: 60_000,
           maxRetries: 5,
           retryDelay: 2000,
           headers: {
@@ -63,7 +63,7 @@ describe("Configuration", () => {
         expect(result).toEqual({
           apiKey: "frt_1234567890abcdef",
           baseUrl: "https://api.example.com/v2",
-          timeout: 60000,
+          timeout: 60_000,
           maxRetries: 5,
           retryDelay: 2000,
           headers: {
@@ -214,7 +214,7 @@ describe("Configuration", () => {
 
     describe("Timeout validation", () => {
       it("should accept valid timeout values", () => {
-        const validTimeouts = [1, 1000, 30000, 60000, 300000];
+        const validTimeouts = [1, 1000, 30_000, 60_000, 300_000];
 
         validTimeouts.forEach((timeout) => {
           const input = {
@@ -226,7 +226,14 @@ describe("Configuration", () => {
       });
 
       it("should reject invalid timeout values", () => {
-        const invalidTimeouts = [0, -1, -1000, 3.14, NaN, Infinity];
+        const invalidTimeouts = [
+          0,
+          -1,
+          -1000,
+          3.14,
+          Number.NaN,
+          Number.POSITIVE_INFINITY,
+        ];
 
         invalidTimeouts.forEach((timeout) => {
           const input = {
@@ -241,7 +248,7 @@ describe("Configuration", () => {
         const input = { apiKey: "frt_1234567890abcdef" } as ClientConfigInput;
         const result = clientConfigSchema.parse(input);
 
-        expect(result.timeout).toBe(30000);
+        expect(result.timeout).toBe(30_000);
       });
     });
 
@@ -259,7 +266,15 @@ describe("Configuration", () => {
       });
 
       it("should reject invalid max retry values", () => {
-        const invalidRetries = [-1, -5, 11, 20, 3.5, NaN, Infinity];
+        const invalidRetries = [
+          -1,
+          -5,
+          11,
+          20,
+          3.5,
+          Number.NaN,
+          Number.POSITIVE_INFINITY,
+        ];
 
         invalidRetries.forEach((maxRetries) => {
           const input = {
@@ -280,7 +295,7 @@ describe("Configuration", () => {
 
     describe("Retry Delay validation", () => {
       it("should accept valid retry delay values", () => {
-        const validDelays = [1, 100, 1000, 5000, 10000];
+        const validDelays = [1, 100, 1000, 5000, 10_000];
 
         validDelays.forEach((retryDelay) => {
           const input = {
@@ -292,7 +307,14 @@ describe("Configuration", () => {
       });
 
       it("should reject invalid retry delay values", () => {
-        const invalidDelays = [0, -1, -1000, 3.14, NaN, Infinity];
+        const invalidDelays = [
+          0,
+          -1,
+          -1000,
+          3.14,
+          Number.NaN,
+          Number.POSITIVE_INFINITY,
+        ];
 
         invalidDelays.forEach((retryDelay) => {
           const input = {
@@ -428,7 +450,7 @@ describe("Configuration", () => {
         const input: ClientConfigInput = {
           apiKey: "frt_1234567890abcdef",
           baseUrl: "https://api.example.com",
-          timeout: 60000,
+          timeout: 60_000,
           maxRetries: 5,
           retryDelay: 2000,
           headers: { "X-Test": "value" },
@@ -444,7 +466,7 @@ describe("Configuration", () => {
       it("should represent fully validated configuration", () => {
         const input: ClientConfigInput = {
           apiKey: "frt_1234567890abcdef",
-          timeout: 60000,
+          timeout: 60_000,
         };
 
         const output: ClientConfigOutput = clientConfigSchema.parse(input);
@@ -452,7 +474,7 @@ describe("Configuration", () => {
         // All fields should be present with defaults applied
         expect(output.apiKey).toBe("frt_1234567890abcdef");
         expect(output.baseUrl).toBe("https://api.frontal.dev/v1");
-        expect(output.timeout).toBe(60000); // Custom value
+        expect(output.timeout).toBe(60_000); // Custom value
         expect(output.maxRetries).toBe(3); // Default value
         expect(output.retryDelay).toBe(1000); // Default value
         expect(output.headers).toEqual({}); // Default value
@@ -468,14 +490,14 @@ describe("Configuration", () => {
     it("should work with safeParse", () => {
       const input: ClientConfigInput = {
         apiKey: "frt_1234567890abcdef",
-        timeout: 60000,
+        timeout: 60_000,
       };
 
       const result = clientConfigSchema.safeParse(input);
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.timeout).toBe(60000);
+        expect(result.data.timeout).toBe(60_000);
         expect(result.data.baseUrl).toBe("https://api.frontal.dev/v1");
       }
     });
@@ -529,7 +551,7 @@ describe("Configuration", () => {
       const productionConfig: ClientConfigInput = {
         apiKey: "frt_prod_1234567890abcdef",
         environment: "production",
-        timeout: 30000,
+        timeout: 30_000,
         maxRetries: 3,
         debug: false,
       };
@@ -538,7 +560,7 @@ describe("Configuration", () => {
 
       expect(result.environment).toBe("production");
       expect(result.debug).toBe(false);
-      expect(result.timeout).toBe(30000);
+      expect(result.timeout).toBe(30_000);
     });
 
     it("should handle development configuration", () => {
@@ -546,7 +568,7 @@ describe("Configuration", () => {
         apiKey: "frt_dev_1234567890abcdef",
         baseUrl: "http://localhost:3000/api/v1",
         environment: "development",
-        timeout: 10000,
+        timeout: 10_000,
         maxRetries: 1,
         debug: true,
         headers: {
@@ -586,7 +608,7 @@ describe("Configuration", () => {
     it("should handle high-throughput configuration", () => {
       const highThroughputConfig: ClientConfigInput = {
         apiKey: "frt_ht_1234567890abcdef",
-        timeout: 60000,
+        timeout: 60_000,
         maxRetries: 5,
         retryDelay: 5000,
         headers: {
@@ -597,7 +619,7 @@ describe("Configuration", () => {
 
       const result = clientConfigSchema.parse(highThroughputConfig);
 
-      expect(result.timeout).toBe(60000);
+      expect(result.timeout).toBe(60_000);
       expect(result.maxRetries).toBe(5);
       expect(result.retryDelay).toBe(5000);
       expect(result.headers).toEqual({

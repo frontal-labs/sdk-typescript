@@ -32,12 +32,12 @@ const createMockErrorResponse = (overrides = {}) => ({
   ...overrides,
 });
 
-type MockFetchResponse = {
+interface MockFetchResponse {
   ok: boolean;
   status: number;
   headers: Headers;
   json: () => Promise<unknown>;
-};
+}
 
 const createMockFetch = (responses: MockFetchResponse[] = []) => {
   let callCount = 0;

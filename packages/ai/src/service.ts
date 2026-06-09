@@ -479,8 +479,8 @@ export class AIService {
     outputTokens: number;
   }): number {
     const rates: Record<string, { input: number; output: number }> = {
-      "frontal-ai-fast": { input: 0.000001, output: 0.000002 },
-      default: { input: 0.00001, output: 0.00003 },
+      "frontal-ai-fast": { input: 0.000_001, output: 0.000_002 },
+      default: { input: 0.000_01, output: 0.000_03 },
     };
     const rate = rates[options.model] || rates.default;
     return (

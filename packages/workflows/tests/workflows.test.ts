@@ -175,13 +175,13 @@ describe("WorkflowAccessor", () => {
     it("fetches a workflow by id", async () => {
       const wf = workflow({ id: workflowId });
       const { service, mock } = createService([
-        { method: "GET", path: `/v1/workflows`, body: wf },
+        { method: "GET", path: "/v1/workflows", body: wf },
       ]);
 
       const result = await service.use(workflowId).get();
 
       expect(result.id).toBe(workflowId);
-      mock.expectCalled("GET", `/v1/workflows`);
+      mock.expectCalled("GET", "/v1/workflows");
     });
   });
 
@@ -189,24 +189,24 @@ describe("WorkflowAccessor", () => {
     it("updates a workflow", async () => {
       const wf = workflow({ id: workflowId, name: "updated" });
       const { service, mock } = createService([
-        { method: "PUT", path: `/v1/workflows`, body: wf },
+        { method: "PUT", path: "/v1/workflows", body: wf },
       ]);
 
       await service.use(workflowId).update({ name: "updated" });
 
-      mock.expectCalled("PUT", `/v1/workflows`);
+      mock.expectCalled("PUT", "/v1/workflows");
     });
   });
 
   describe("delete()", () => {
     it("deletes a workflow", async () => {
       const { service, mock } = createService([
-        { method: "DELETE", path: `/v1/workflows`, status: 204 },
+        { method: "DELETE", path: "/v1/workflows", status: 204 },
       ]);
 
       await service.use(workflowId).delete();
 
-      mock.expectCalled("DELETE", `/v1/workflows`);
+      mock.expectCalled("DELETE", "/v1/workflows");
     });
   });
 
@@ -214,13 +214,13 @@ describe("WorkflowAccessor", () => {
     it("activates a workflow", async () => {
       const wf = workflow({ id: workflowId, status: "active" });
       const { service, mock } = createService([
-        { method: "PATCH", path: `/v1/workflows`, body: wf },
+        { method: "PATCH", path: "/v1/workflows", body: wf },
       ]);
 
       const result = await service.use(workflowId).activate();
 
       expect(result.status).toBe("active");
-      mock.expectCalled("PATCH", `/v1/workflows`);
+      mock.expectCalled("PATCH", "/v1/workflows");
     });
   });
 
@@ -228,13 +228,13 @@ describe("WorkflowAccessor", () => {
     it("pauses a workflow", async () => {
       const wf = workflow({ id: workflowId, status: "paused" });
       const { service, mock } = createService([
-        { method: "PATCH", path: `/v1/workflows`, body: wf },
+        { method: "PATCH", path: "/v1/workflows", body: wf },
       ]);
 
       const result = await service.use(workflowId).pause();
 
       expect(result.status).toBe("paused");
-      mock.expectCalled("PATCH", `/v1/workflows`);
+      mock.expectCalled("PATCH", "/v1/workflows");
     });
   });
 
@@ -244,7 +244,7 @@ describe("WorkflowAccessor", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: `/v1/workflows/search`,
+          path: "/v1/workflows/search",
           body: mockPageResponse(items),
         },
       ]);
@@ -252,7 +252,7 @@ describe("WorkflowAccessor", () => {
       const result = await service.use(workflowId).executions();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("POST", `/v1/workflows/search`);
+      mock.expectCalled("POST", "/v1/workflows/search");
     });
   });
 
@@ -278,7 +278,7 @@ describe("WorkflowAccessor", () => {
     it("triggers a workflow execution", async () => {
       const body = { id: "exec_1", workflowId, status: "running" };
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body },
+        { method: "POST", path: "/v1/workflows/batch", body },
       ]);
 
       const result = await service
@@ -286,7 +286,7 @@ describe("WorkflowAccessor", () => {
         .trigger({ userId: "user_1" });
 
       expect(result.status).toBe("running");
-      mock.expectCalledWith("POST", `/v1/workflows/batch`, {
+      mock.expectCalledWith("POST", "/v1/workflows/batch", {
         userId: "user_1",
       });
     });

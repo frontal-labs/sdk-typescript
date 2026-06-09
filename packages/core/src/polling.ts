@@ -48,7 +48,7 @@ export async function pollUntil<T>(
   const retryConfig = {
     baseDelay: interval,
     strategy: backoff,
-    maxAttempts: Infinity,
+    maxAttempts: Number.POSITIVE_INFINITY,
     on: [] as number[],
     jitter: true,
   };

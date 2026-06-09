@@ -63,8 +63,7 @@ function isValidCronField(field: string, min: number, max: number): boolean {
     const start = Number.parseInt(rangeParts[0], 10);
     const end = Number.parseInt(rangeParts[1], 10);
     return (
-      !Number.isNaN(start) &&
-      !Number.isNaN(end) &&
+      !(Number.isNaN(start) || Number.isNaN(end)) &&
       start >= min &&
       end <= max &&
       start <= end
@@ -106,7 +105,7 @@ function describeCron(expression: string): string {
  */
 export function nextCronRunsLocal(
   expression: string,
-  count: number = 5,
+  count = 5,
   from: Date = new Date()
 ): Date[] {
   const validation = validateCronLocal(expression);

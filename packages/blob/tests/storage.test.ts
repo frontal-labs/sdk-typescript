@@ -1,5 +1,5 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { BlobService } from "../src/service";
 import { signedUrlOptionsSchema } from "../src/schemas";
 

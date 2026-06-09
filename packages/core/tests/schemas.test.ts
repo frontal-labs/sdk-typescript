@@ -50,7 +50,7 @@ describe("Schemas", () => {
     it("should reject invalid values", () => {
       const invalidValues = [
         "2023-01-01T00:00:00Z",
-        1234567890,
+        1_234_567_890,
         null,
         undefined,
         {},
@@ -154,7 +154,7 @@ describe("Schemas", () => {
     it("should reject invalid timestamps", () => {
       const invalidMetas = [
         { requestId: "req_123", timestamp: "2023-01-01" }, // String timestamp
-        { requestId: "req_123", timestamp: 1234567890 }, // Number timestamp
+        { requestId: "req_123", timestamp: 1_234_567_890 }, // Number timestamp
         { requestId: "req_123" }, // Missing timestamp
       ];
 
@@ -621,7 +621,14 @@ describe("Schemas", () => {
     });
 
     it("should accept number values", () => {
-      const validNumbers = [0, 42, -123, 3.14, Infinity, -Infinity];
+      const validNumbers = [
+        0,
+        42,
+        -123,
+        3.14,
+        Number.POSITIVE_INFINITY,
+        Number.NEGATIVE_INFINITY,
+      ];
 
       validNumbers.forEach((value) => {
         const result = filterValueSchema.parse(value);

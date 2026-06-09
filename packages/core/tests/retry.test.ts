@@ -55,7 +55,7 @@ describe("Retry Logic", () => {
           baseDelay * 1024
         ); // 2^11
         expect(calculateDelay(15, "exponential", baseDelay)).toBe(
-          baseDelay * 32768
+          baseDelay * 32_768
         ); // 2^16
       });
 
@@ -277,7 +277,7 @@ describe("Retry Logic", () => {
       });
 
       it("should handle very large base delays", () => {
-        const baseDelay = 100000; // 100 seconds
+        const baseDelay = 100_000; // 100 seconds
 
         expect(calculateDelay(0, "exponential", baseDelay)).toBe(baseDelay);
         expect(calculateDelay(1, "exponential", baseDelay)).toBe(baseDelay * 2);
@@ -350,7 +350,7 @@ describe("Retry Logic", () => {
     describe("Performance and consistency", () => {
       it("should be performant for large numbers of calculations", () => {
         const baseDelay = 1000;
-        const iterations = 10000;
+        const iterations = 10_000;
 
         const startTime = performance.now();
 
@@ -445,11 +445,11 @@ describe("Retry Logic", () => {
           calculateDelay(3, "exponential", baseDelay), // 40s
         ];
 
-        expect(networkRetryDelays).toEqual([5000, 10000, 20000, 40000]);
+        expect(networkRetryDelays).toEqual([5000, 10_000, 20_000, 40_000]);
       });
 
       it("should handle rate limiting scenarios", () => {
-        const baseDelay = 60000; // 1 minute for rate limiting
+        const baseDelay = 60_000; // 1 minute for rate limiting
 
         // Linear backoff for rate limiting
         const rateLimitDelays = [
@@ -459,7 +459,7 @@ describe("Retry Logic", () => {
           calculateDelay(3, "linear", baseDelay), // 4 minutes
         ];
 
-        expect(rateLimitDelays).toEqual([60000, 120000, 180000, 240000]);
+        expect(rateLimitDelays).toEqual([60_000, 120_000, 180_000, 240_000]);
       });
 
       it("should handle quick retry scenarios", () => {

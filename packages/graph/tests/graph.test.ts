@@ -171,7 +171,7 @@ describe("EntityAccessor", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: `/v1/ontology/graph/entities/ent_abc`,
+          path: "/v1/ontology/graph/entities/ent_abc",
           body: ent,
         },
       ]);
@@ -179,7 +179,7 @@ describe("EntityAccessor", () => {
       const result = await service.use(entityType).get("ent_abc");
 
       expect(result.id).toBe("ent_abc");
-      mock.expectCalled("GET", `/v1/ontology/graph/entities/ent_abc`);
+      mock.expectCalled("GET", "/v1/ontology/graph/entities/ent_abc");
     });
 
     it("passes version parameter", async () => {
@@ -187,7 +187,7 @@ describe("EntityAccessor", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: `/v1/ontology/graph/entities/ent_abc`,
+          path: "/v1/ontology/graph/entities/ent_abc",
           body: ent,
         },
       ]);
@@ -203,7 +203,7 @@ describe("EntityAccessor", () => {
     it("creates an entity with fields", async () => {
       const ent = entity({ type: entityType });
       const { service, mock } = createService([
-        { method: "POST", path: `/ontology/graph/entities`, body: ent },
+        { method: "POST", path: "/ontology/graph/entities", body: ent },
       ]);
 
       const result = await service
@@ -211,7 +211,7 @@ describe("EntityAccessor", () => {
         .create({ name: "Alice", email: "alice@test.com" });
 
       expect(result.type).toBe(entityType);
-      mock.expectCalledWith("POST", `/ontology/graph/entities`, {
+      mock.expectCalledWith("POST", "/ontology/graph/entities", {
         fields: { name: "Alice", email: "alice@test.com" },
       });
     });
@@ -223,7 +223,7 @@ describe("EntityAccessor", () => {
       const { service, mock } = createService([
         {
           method: "PUT",
-          path: `/v1/ontology/graph/entities/ent_abc`,
+          path: "/v1/ontology/graph/entities/ent_abc",
           body: ent,
         },
       ]);
@@ -233,7 +233,7 @@ describe("EntityAccessor", () => {
         .update("ent_abc", { name: "Alice Updated" });
 
       expect(result.id).toBe("ent_abc");
-      mock.expectCalled("PUT", `/v1/ontology/graph/entities/ent_abc`);
+      mock.expectCalled("PUT", "/v1/ontology/graph/entities/ent_abc");
     });
   });
 
@@ -242,14 +242,14 @@ describe("EntityAccessor", () => {
       const { service, mock } = createService([
         {
           method: "DELETE",
-          path: `/ontology/graph/entities/ent_abc`,
+          path: "/ontology/graph/entities/ent_abc",
           status: 204,
         },
       ]);
 
       await service.use(entityType).delete("ent_abc");
 
-      mock.expectCalled("DELETE", `/ontology/graph/entities/ent_abc`);
+      mock.expectCalled("DELETE", "/ontology/graph/entities/ent_abc");
     });
   });
 
@@ -259,7 +259,7 @@ describe("EntityAccessor", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: `/ontology/graph/entities`,
+          path: "/ontology/graph/entities",
           body: mockPageResponse(items),
         },
       ]);
@@ -267,7 +267,7 @@ describe("EntityAccessor", () => {
       const result = await service.use(entityType).list({ limit: 10 });
 
       expect(result.data).toHaveLength(3);
-      mock.expectCalled("GET", `/ontology/graph/entities`);
+      mock.expectCalled("GET", "/ontology/graph/entities");
     });
   });
 
@@ -279,7 +279,7 @@ describe("EntityAccessor", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: `/v1/ontology/graph/entities/ent_abc/provenance`,
+          path: "/v1/ontology/graph/entities/ent_abc/provenance",
           body,
         },
       ]);
@@ -289,7 +289,7 @@ describe("EntityAccessor", () => {
       expect(result.data).toHaveLength(1);
       mock.expectCalled(
         "GET",
-        `/v1/ontology/graph/entities/ent_abc/provenance`
+        "/v1/ontology/graph/entities/ent_abc/provenance"
       );
     });
   });
@@ -300,7 +300,7 @@ describe("EntityAccessor", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: `/v1/ontology/graph/entities/ent_abc/provenance`,
+          path: "/v1/ontology/graph/entities/ent_abc/provenance",
           body,
         },
       ]);
@@ -312,7 +312,7 @@ describe("EntityAccessor", () => {
       expect(result.type).toBe("works_at");
       mock.expectCalledWith(
         "POST",
-        `/v1/ontology/graph/entities/ent_abc/provenance`,
+        "/v1/ontology/graph/entities/ent_abc/provenance",
         {
           targetEntityId: "ent_xyz",
           relationType: "works_at",
@@ -326,14 +326,14 @@ describe("EntityAccessor", () => {
       const { service, mock } = createService([
         {
           method: "DELETE",
-          path: `/v1/ontology/graph/relationships/rel_1`,
+          path: "/v1/ontology/graph/relationships/rel_1",
           status: 204,
         },
       ]);
 
       await service.use(entityType).removeRelationship("ent_abc", "rel_1");
 
-      mock.expectCalled("DELETE", `/v1/ontology/graph/relationships/rel_1`);
+      mock.expectCalled("DELETE", "/v1/ontology/graph/relationships/rel_1");
     });
   });
 });

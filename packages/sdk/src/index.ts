@@ -1,8 +1,4 @@
-import {
-  FrontalClient,
-  getDefaultClient,
-  HttpClient,
-} from "@frontal-labs/core";
+import { FrontalClient, getDefaultClient } from "@frontal-labs/core";
 import { Sdk } from "./sdk";
 
 /**
@@ -16,9 +12,8 @@ export interface SdkClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createSdkClient(client: FrontalClient): Sdk;
 /** Create standalone with config */
-export function createSdkClient(config: SdkClientConfig): Sdk;
+export function createSdkClient(config: SdkClientConfig | FrontalClient): Sdk;
 export function createSdkClient(
   clientOrConfig: FrontalClient | SdkClientConfig
 ): Sdk {
@@ -43,7 +38,10 @@ export function createSdkClient(
 let _sdkCache: Sdk | undefined;
 export const sdk = new Proxy<Sdk>({} as Sdk, {
   get(_t, prop) {
-    const inst = (_sdkCache ??= createSdkClient(getDefaultClient()));
+    if (!_sdkCache) {
+      _sdkCache = createSdkClient(getDefaultClient());
+    }
+    const inst = _sdkCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)

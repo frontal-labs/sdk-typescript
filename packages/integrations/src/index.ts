@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_INTEGRATIONS_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_INTEGRATIONS_BASE_URL } from "./constants";
 import { IntegrationsService } from "./service";
 
 export interface IntegrationsClientConfig {
@@ -41,9 +41,12 @@ export const integrations = new Proxy<IntegrationsService>(
   {} as IntegrationsService,
   {
     get(_t, prop) {
-      const inst = (_integrationsCache ??= new IntegrationsService(
-        getDefaultClient().httpClient
-      ));
+      if (!_integrationsCache) {
+        _integrationsCache = new IntegrationsService(
+          getDefaultClient().httpClient
+        );
+      }
+      const inst = _integrationsCache;
       const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
       return typeof val === "function"
         ? (val as (...args: unknown[]) => unknown).bind(inst)

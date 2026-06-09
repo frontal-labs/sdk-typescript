@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_AUTH_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_AUTH_BASE_URL } from "./constants";
 import { AuthService } from "./service";
 
 export interface AuthClientConfig {
@@ -12,9 +12,9 @@ export interface AuthClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createAuthClient(client: FrontalClient): AuthService;
-export function createAuthClient(config: AuthClientConfig): AuthService;
+export function createAuthClient(
+  config: AuthClientConfig | FrontalClient
+): AuthService;
 export function createAuthClient(
   clientOrConfig: FrontalClient | AuthClientConfig
 ): AuthService {
@@ -28,7 +28,7 @@ export function createAuthClient(
       process.env.FRONTAL_AUTH_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_AUTH_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -41,9 +41,10 @@ export function createAuthClient(
 let _authCache: AuthService | undefined;
 export const auth = new Proxy<AuthService>({} as AuthService, {
   get(_t, prop) {
-    const inst = (_authCache ??= new AuthService(
-      getDefaultClient().httpClient
-    ));
+    if (!_authCache) {
+      _authCache = new AuthService(getDefaultClient().httpClient);
+    }
+    const inst = _authCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)

@@ -3,12 +3,12 @@ import type { RetryConfig } from "./schemas";
 
 type BackoffStrategy = "exponential" | "linear" | "constant";
 
-type LegacyRetryConfig = {
+interface LegacyRetryConfig {
   retryDelay: number;
   backoff: BackoffStrategy;
   maxRetries?: number;
   retryOn?: number[];
-};
+}
 
 function computeBaseDelay(
   attempt: number,

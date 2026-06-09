@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_CONNECTORS_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_CONNECTORS_BASE_URL } from "./constants";
 import { ConnectorsService } from "./service";
 
 export interface ConnectorsClientConfig {
@@ -41,9 +41,10 @@ export const connectors = new Proxy<ConnectorsService>(
   {} as ConnectorsService,
   {
     get(_t, prop) {
-      const inst = (_connectorsCache ??= new ConnectorsService(
-        getDefaultClient().httpClient
-      ));
+      if (!_connectorsCache) {
+        _connectorsCache = new ConnectorsService(getDefaultClient().httpClient);
+      }
+      const inst = _connectorsCache;
       const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
       return typeof val === "function"
         ? (val as (...args: unknown[]) => unknown).bind(inst)

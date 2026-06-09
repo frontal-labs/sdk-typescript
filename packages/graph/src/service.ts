@@ -3,7 +3,6 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-  type PaginationMeta,
   type QueryBuilder,
 } from "@frontal-labs/core";
 import * as S from "./schemas";

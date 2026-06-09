@@ -357,7 +357,7 @@
         "noVar": "error",
         "noWith": "error",
         "useAdjacentOverloadSignatures": "error",
-        "useAwait": "error",
+        "useAwait": "off",
         "useBiomeIgnoreFolder": "error",
         "useDefaultSwitchClauseLast": "error",
         "useErrorMessage": "error",

@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_VECTORS_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_VECTORS_BASE_URL } from "./constants";
 import { VectorsService } from "./service";
 
 export interface VectorsClientConfig {
@@ -12,10 +12,8 @@ export interface VectorsClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createVectorsClient(client: FrontalClient): VectorsService;
 export function createVectorsClient(
-  config: VectorsClientConfig
+  config: VectorsClientConfig | FrontalClient
 ): VectorsService;
 export function createVectorsClient(
   clientOrConfig: FrontalClient | VectorsClientConfig
@@ -30,7 +28,7 @@ export function createVectorsClient(
       process.env.FRONTAL_VECTORS_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_VECTORS_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,9 +41,10 @@ export function createVectorsClient(
 let _vectorsCache: VectorsService | undefined;
 export const vectors = new Proxy<VectorsService>({} as VectorsService, {
   get(_t, prop) {
-    const inst = (_vectorsCache ??= new VectorsService(
-      getDefaultClient().httpClient
-    ));
+    if (!_vectorsCache) {
+      _vectorsCache = new VectorsService(getDefaultClient().httpClient);
+    }
+    const inst = _vectorsCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)

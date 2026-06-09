@@ -130,13 +130,13 @@ describe("AgentAccessor", () => {
     it("fetches an agent by id", async () => {
       const agt = agent({ id: agentId });
       const { service, mock } = createService([
-        { method: "GET", path: `/v1/workflows`, body: agt },
+        { method: "GET", path: "/v1/workflows", body: agt },
       ]);
 
       const result = await service.use(agentId).get();
 
       expect(result.id).toBe(agentId);
-      mock.expectCalled("GET", `/v1/workflows`);
+      mock.expectCalled("GET", "/v1/workflows");
     });
   });
 
@@ -144,7 +144,7 @@ describe("AgentAccessor", () => {
     it("updates an agent", async () => {
       const agt = agent({ id: agentId, name: "updated-agent" });
       const { service, mock } = createService([
-        { method: "PUT", path: `/v1/workflows`, body: agt },
+        { method: "PUT", path: "/v1/workflows", body: agt },
       ]);
 
       const result = await service
@@ -152,19 +152,19 @@ describe("AgentAccessor", () => {
         .update({ name: "updated-agent" });
 
       expect(result.name).toBe("updated-agent");
-      mock.expectCalled("PUT", `/v1/workflows`);
+      mock.expectCalled("PUT", "/v1/workflows");
     });
   });
 
   describe("delete()", () => {
     it("deletes an agent", async () => {
       const { service, mock } = createService([
-        { method: "DELETE", path: `/v1/workflows`, status: 204 },
+        { method: "DELETE", path: "/v1/workflows", status: 204 },
       ]);
 
       await service.use(agentId).delete();
 
-      mock.expectCalled("DELETE", `/v1/workflows`);
+      mock.expectCalled("DELETE", "/v1/workflows");
     });
   });
 
@@ -177,13 +177,13 @@ describe("AgentAccessor", () => {
         status: "deploying",
       };
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body },
+        { method: "POST", path: "/v1/workflows/batch", body },
       ]);
 
       const result = await service.use(agentId).deploy("production");
 
       expect(result.environment).toBe("production");
-      mock.expectCalled("POST", `/v1/workflows/batch`);
+      mock.expectCalled("POST", "/v1/workflows/batch");
     });
   });
 
@@ -191,7 +191,7 @@ describe("AgentAccessor", () => {
     it("pauses an agent", async () => {
       const agt = agent({ id: agentId, status: "paused" });
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body: agt },
+        { method: "POST", path: "/v1/workflows/batch", body: agt },
       ]);
 
       const result = await service
@@ -199,7 +199,7 @@ describe("AgentAccessor", () => {
         .pause({ reason: "maintenance" });
 
       expect(result.status).toBe("paused");
-      mock.expectCalledWith("POST", `/v1/workflows/batch`, {
+      mock.expectCalledWith("POST", "/v1/workflows/batch", {
         reason: "maintenance",
       });
     });
@@ -209,13 +209,13 @@ describe("AgentAccessor", () => {
     it("resumes a paused agent", async () => {
       const agt = agent({ id: agentId, status: "active" });
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body: agt },
+        { method: "POST", path: "/v1/workflows/batch", body: agt },
       ]);
 
       const result = await service.use(agentId).resume();
 
       expect(result.status).toBe("active");
-      mock.expectCalled("POST", `/v1/workflows/batch`);
+      mock.expectCalled("POST", "/v1/workflows/batch");
     });
   });
 
@@ -223,13 +223,13 @@ describe("AgentAccessor", () => {
     it("rolls back to a previous version", async () => {
       const agt = agent({ id: agentId, version: 1 });
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body: agt },
+        { method: "POST", path: "/v1/workflows/batch", body: agt },
       ]);
 
       const result = await service.use(agentId).rollback({ toVersion: 1 });
 
       expect(result.version).toBe(1);
-      mock.expectCalledWith("POST", `/v1/workflows/batch`, {
+      mock.expectCalledWith("POST", "/v1/workflows/batch", {
         toVersion: 1,
       });
     });
@@ -244,7 +244,7 @@ describe("AgentAccessor", () => {
         confidence: 0.85,
       };
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body },
+        { method: "POST", path: "/v1/workflows/batch", body },
       ]);
 
       const result = await service
@@ -252,7 +252,7 @@ describe("AgentAccessor", () => {
         .simulate("order.created", { orderId: "ord_1" });
 
       expect(result.confidence).toBe(0.85);
-      mock.expectCalledWith("POST", `/v1/workflows/batch`, {
+      mock.expectCalledWith("POST", "/v1/workflows/batch", {
         event: "order.created",
         payload: { orderId: "ord_1" },
       });
@@ -268,7 +268,7 @@ describe("AgentAccessor", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: `/v1/workflows/search`,
+          path: "/v1/workflows/search",
           body: mockPageResponse(items),
         },
       ]);
@@ -276,7 +276,7 @@ describe("AgentAccessor", () => {
       const result = await service.use(agentId).executions();
 
       expect(result.data).toHaveLength(2);
-      mock.expectCalled("POST", `/v1/workflows/search`);
+      mock.expectCalled("POST", "/v1/workflows/search");
     });
   });
 
@@ -305,7 +305,7 @@ describe("AgentAccessor", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: `/v1/workflows`,
+          path: "/v1/workflows",
           body: mockPageResponse(items),
         },
       ]);
@@ -313,7 +313,7 @@ describe("AgentAccessor", () => {
       const result = await service.use(agentId).escalations();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("GET", `/v1/workflows`);
+      mock.expectCalled("GET", "/v1/workflows");
     });
   });
 
@@ -326,14 +326,14 @@ describe("AgentAccessor", () => {
         successRate: 0.98,
       };
       const { service, mock } = createService([
-        { method: "GET", path: `/v1/workflows`, body },
+        { method: "GET", path: "/v1/workflows", body },
       ]);
 
       const result = await service.use(agentId).metrics("30d");
 
       expect(result.executionsToday).toBe(42);
       expect(result.successRate).toBe(0.98);
-      mock.expectCalled("GET", `/v1/workflows`);
+      mock.expectCalled("GET", "/v1/workflows");
     });
   });
 
@@ -345,7 +345,7 @@ describe("AgentAccessor", () => {
         status: "accepted",
       };
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body },
+        { method: "POST", path: "/v1/workflows/batch", body },
       ]);
 
       const result = await service
@@ -353,7 +353,7 @@ describe("AgentAccessor", () => {
         .message("user.query", { question: "what is my balance?" });
 
       expect(result.messageId).toBe("msg_1");
-      mock.expectCalledWith("POST", `/v1/workflows/batch`, {
+      mock.expectCalledWith("POST", "/v1/workflows/batch", {
         event: "user.query",
         payload: { question: "what is my balance?" },
       });
@@ -364,7 +364,7 @@ describe("AgentAccessor", () => {
     it("creates an experiment", async () => {
       const body = { id: "exp_1", name: "prompt-test", status: "running" };
       const { service, mock } = createService([
-        { method: "POST", path: `/v1/workflows/batch`, body },
+        { method: "POST", path: "/v1/workflows/batch", body },
       ]);
 
       const result = await service.use(agentId).experiments.create({
@@ -379,7 +379,7 @@ describe("AgentAccessor", () => {
       });
 
       expect(result.name).toBe("prompt-test");
-      mock.expectCalled("POST", `/v1/workflows/batch`);
+      mock.expectCalled("POST", "/v1/workflows/batch");
     });
 
     it("concludes an experiment", async () => {
@@ -392,7 +392,7 @@ describe("AgentAccessor", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: `/v1/workflows/batch`,
+          path: "/v1/workflows/batch",
           body,
         },
       ]);
@@ -403,7 +403,7 @@ describe("AgentAccessor", () => {
       });
 
       expect(result.winnerVariant).toBe("treatment");
-      mock.expectCalled("POST", `/v1/workflows/batch`);
+      mock.expectCalled("POST", "/v1/workflows/batch");
     });
   });
 

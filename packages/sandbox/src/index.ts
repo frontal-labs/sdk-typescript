@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_SANDBOX_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_SANDBOX_BASE_URL } from "./constants";
 import { SandboxService } from "./service";
 
 export interface SandboxClientConfig {
@@ -12,10 +12,8 @@ export interface SandboxClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createSandboxClient(client: FrontalClient): SandboxService;
 export function createSandboxClient(
-  config: SandboxClientConfig
+  config: SandboxClientConfig | FrontalClient
 ): SandboxService;
 export function createSandboxClient(
   clientOrConfig: FrontalClient | SandboxClientConfig
@@ -30,7 +28,7 @@ export function createSandboxClient(
       process.env.FRONTAL_SANDBOX_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_SANDBOX_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,9 +41,10 @@ export function createSandboxClient(
 let _sandboxCache: SandboxService | undefined;
 export const sandbox = new Proxy<SandboxService>({} as SandboxService, {
   get(_t, prop) {
-    const inst = (_sandboxCache ??= new SandboxService(
-      getDefaultClient().httpClient
-    ));
+    if (!_sandboxCache) {
+      _sandboxCache = new SandboxService(getDefaultClient().httpClient);
+    }
+    const inst = _sandboxCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)

@@ -411,7 +411,7 @@ export class AuthService {
   // ── Auth State / Events ──────────────────────────────────────────
 
   onAuthStateChange(
-    callback: (event: string, session: Session | null) => void
+    _callback: (event: string, session: Session | null) => void
   ): { data: { subscription: { id: string; unsubscribe: () => void } } } {
     const id = `sub_${Math.random().toString(36).slice(2)}`;
     // Client-side state change is a no-op in server SDK; the caller must

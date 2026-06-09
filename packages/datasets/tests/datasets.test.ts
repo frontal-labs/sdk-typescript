@@ -22,7 +22,7 @@ const mockDs = {
   id: "ds_1",
   name: "users",
   rowCount: 1000,
-  storageSizeBytes: 512000,
+  storageSizeBytes: 512_000,
   versionCount: 3,
   status: "active",
   createdAt: "2025-01-01T00:00:00Z",
@@ -75,7 +75,7 @@ describe("DatasetsService", () => {
         path: "/datasets/ds_1/stats",
         body: {
           row_count: 1000,
-          storage_size_bytes: 512000,
+          storage_size_bytes: 512_000,
           column_count: 8,
           last_updated: "2025-01-01T00:00:00Z",
         },

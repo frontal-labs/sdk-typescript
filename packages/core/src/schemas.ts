@@ -75,7 +75,7 @@ const retryStatusCodeSchema = z
 export const retryConfigSchema = z
   .object({
     maxAttempts: z.number().int().positive().default(3),
-    baseDelay: z.number().int().positive().default(1_000),
+    baseDelay: z.number().int().positive().default(1000),
     strategy: z.enum(BACKOFF_STRATEGIES).default("exponential"),
     on: z.array(retryStatusCodeSchema).default(DEFAULT_RETRY_ON),
     jitter: z.boolean().default(true),

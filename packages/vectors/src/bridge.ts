@@ -37,7 +37,7 @@ export async function embedAndSearch(
   indexId: string,
   query: string,
   model: string,
-  topK: number = 5
+  topK = 5
 ): Promise<VectorSearchResult[]> {
   const result = await ai.embed({ model, input: query });
   const queryVector = result.embeddings[0];
@@ -54,7 +54,7 @@ export async function createIndexFromModel(
   vectors: VectorsService,
   name: string,
   modelDimensions: number,
-  metric: string = "cosine"
+  metric = "cosine"
 ): Promise<VectorIndex> {
   return vectors.indexes.create({
     name,

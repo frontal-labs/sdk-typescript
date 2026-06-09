@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_BILLING_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_BILLING_BASE_URL } from "./constants";
 import { BillingService } from "./service";
 
 export interface BillingClientConfig {
@@ -12,10 +12,8 @@ export interface BillingClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createBillingClient(client: FrontalClient): BillingService;
 export function createBillingClient(
-  config: BillingClientConfig
+  config: BillingClientConfig | FrontalClient
 ): BillingService;
 export function createBillingClient(
   clientOrConfig: FrontalClient | BillingClientConfig
@@ -30,7 +28,7 @@ export function createBillingClient(
       process.env.FRONTAL_BILLING_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_BILLING_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,9 +41,10 @@ export function createBillingClient(
 let _billingCache: BillingService | undefined;
 export const billing = new Proxy<BillingService>({} as BillingService, {
   get(_t, prop) {
-    const inst = (_billingCache ??= new BillingService(
-      getDefaultClient().httpClient
-    ));
+    if (!_billingCache) {
+      _billingCache = new BillingService(getDefaultClient().httpClient);
+    }
+    const inst = _billingCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)
