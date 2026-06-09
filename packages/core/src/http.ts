@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 import { CircuitBreaker, CircuitBreakerOpenError } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { SDK_VERSION } from "./constants";
@@ -296,7 +296,7 @@ export class HttpClient {
         }
         return parsed.data;
       } catch (error) {
-        if (error instanceof z.ZodError) {
+        if (error instanceof Error && error.message.includes("_zod")) {
           return transformedPayload as T;
         }
         throw error;
