@@ -48,8 +48,19 @@ export function createFunctionsClient(
   return new FunctionsService(http);
 }
 
-// Default instance
-export const functions = createFunctionsClient(getDefaultClient());
+// Default instance that works automatically with environment variables
+let _functionsCache: FunctionsService | undefined;
+export const functions = new Proxy<FunctionsService>({} as FunctionsService, {
+  get(_t, prop) {
+    const inst = (_functionsCache ??= createFunctionsClient(
+      getDefaultClient()
+    ));
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 // New Pattern B exports
 export { FunctionsService } from "./service";

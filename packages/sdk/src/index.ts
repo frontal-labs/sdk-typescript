@@ -40,7 +40,16 @@ export function createSdkClient(
 }
 
 /** Default SDK instance (reads FRONTAL_API_KEY from env) */
-export const sdk = createSdkClient(getDefaultClient());
+let _sdkCache: Sdk | undefined;
+export const sdk = new Proxy<Sdk>({} as Sdk, {
+  get(_t, prop) {
+    const inst = (_sdkCache ??= createSdkClient(getDefaultClient()));
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { Sdk } from "./sdk";
 

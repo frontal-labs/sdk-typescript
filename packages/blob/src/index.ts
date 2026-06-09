@@ -47,8 +47,17 @@ export function createBlobClient(
   return new BlobService(http);
 }
 
-// Default instance
-export const blob = createBlobClient(getDefaultClient());
+// Default instance that works automatically with environment variables
+let _blobCache: BlobService | undefined;
+export const blob = new Proxy<BlobService>({} as BlobService, {
+  get(_t, prop) {
+    const inst = (_blobCache ??= createBlobClient(getDefaultClient()));
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 // New Pattern B exports
 export { BlobService } from "./service";
