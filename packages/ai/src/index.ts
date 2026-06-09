@@ -56,7 +56,10 @@ export function createAIClient(
 let _aiCache: AIService | undefined;
 export const ai = new Proxy<AIService>({} as AIService, {
   get(_t, prop) {
-    const inst = (_aiCache ??= createAIClient(getDefaultClient()));
+    if (!_aiCache) {
+      _aiCache = createAIClient(getDefaultClient());
+    }
+    const inst = _aiCache;
     const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)
@@ -67,7 +70,7 @@ export const ai = new Proxy<AIService>({} as AIService, {
 // New Pattern B exports
 export { AIService } from "./service";
 
-export { DEFAULT_AI_BASE_URL, type VERSION };
+export { DEFAULT_AI_BASE_URL };
 export type {
   AIConfig,
   APIResponse,
