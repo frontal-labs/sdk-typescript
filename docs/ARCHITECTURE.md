@@ -21,9 +21,9 @@ lazy-loaded service accessors. Re-exports every individual service singleton.
 
 ### 3. Testing (`@frontal-labs/testing`)
 
-Reusable mock clients, fixtures, and helper utilities used by package test suites to
-enforce consistent behavior. Includes mock fetch with route matching, test client
-factories, integration harnesses, and entity fixtures.
+Reusable mock clients, fixtures, and helper utilities used by test suites
+to enforce consistent behavior. Includes mock fetch with route matching,
+test client factories, integration harnesses, and entity fixtures.
 
 ### 4. AI (`@frontal-labs/ai`)
 
