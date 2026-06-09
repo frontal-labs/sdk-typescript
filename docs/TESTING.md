@@ -154,19 +154,14 @@ bun test --coverage
 ## Integration Testing
 
 ### External Service Testing
-
-For packages that interact with external services, use the test HTTP client
-from `@frontal-labs/testing` instead of making real network calls:
-
-```typescript
-import { createTestHttpClient } from "@frontal-labs/testing";
+import { createTestHttpClient } from "`@frontal-labs/testing`";
 
 describe("Service", () => {
   it("should call the API", async () => {
     const { http } = createTestHttpClient([
       {
         method: "GET",
-        path: "/items/1",
+        path: "/api/resource/1",
         body: { id: "1", name: "Test" },
       },
     ]);
