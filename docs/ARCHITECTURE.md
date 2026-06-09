@@ -32,8 +32,8 @@ streaming responses.
 
 ### 5. Agents (`@frontal-labs/agents`)
 
-Define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI SDK
-integration.
+Define, deploy, and observe AI agents with LangChain, LangGraph, and
+Vercel AI SDK integration.
 
 ### 6. Audit (`@frontal-labs/audit`)
 
