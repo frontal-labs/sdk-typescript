@@ -118,7 +118,49 @@ packages automatically.
 
 ---
 
-## 6. Troubleshooting
+## 6. GitHub Packages Setup
+
+GitHub Packages serves as a secondary npm registry for `@frontal-labs` packages.
+Dual publishing runs automatically after every npm publish -- no additional
+secrets are needed; the workflow uses the built-in `GITHUB_TOKEN`.
+
+### Org-Level Configuration (One-Time)
+
+**Note: You must be a GitHub organization owner or have admin permissions to
+modify these settings.**
+
+1. Go to your GitHub organization **Settings** → **Packages** (under the
+   "GitHub Packages" heading in the sidebar).
+2. Under **"Package publishing"**, ensure the org allows publishing via
+   `GITHUB_TOKEN`. The default is usually fine if the org has not restricted it.
+3. Set package visibility to allow public packages (under **"Package
+   visibility"** or **"Default package visibility"**).
+4. Verify the `GITHUB_TOKEN` has `packages: write` permission (already set in
+   `publish.yml`).
+5. For more details, see GitHub's documentation:
+   [Configuring GitHub Packages for your organization](https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/configuring-a-packages-access-control).
+
+### How It Works
+
+- The `publish.yml` workflow has `packages: write` permission.
+- After `changesets/action@v1` publishes to npm, a post-publish step runs
+  `scripts/publish-github.ts`.
+- The script reads the `publishedPackages` output and runs `npm publish` for
+  each package targeting `https://npm.pkg.github.com/`.
+- Authentication uses the built-in `GITHUB_TOKEN` -- no `NPM_TOKEN` or PAT
+  needed.
+
+### Consuming from GitHub Packages
+
+```bash
+echo "@frontal-labs:registry=https://npm.pkg.github.com/" >> .npmrc
+echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> .npmrc
+npm install @frontal-labs/core
+```
+
+The token needs `read:packages` scope.
+
+## 7. Troubleshooting
 
 | Problem | Likely Cause | Fix |
 |:---|:---|:---|

@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/connectors",
   "version": "0.0.1",
-  "description": "Frontal Connectors SDK — data ingestion connectors for enterprise data sources",
+  "description": "Frontal Connectors SDK \u2014 data ingestion connectors for enterprise data sources",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -35,7 +35,8 @@
   "license": "MIT",
   "author": "Frontal Labs",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "tsup && tsc --emitDeclarationOnly",
@@ -55,8 +56,8 @@
     "@types/bun": "^1.3.8",
     "@types/node": "^25.2.1",
     "tsup": "^8.5.1",
-    "typescript": "^5.4.0",
-    "vitest": "^2.1.8"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   },
   "engines": {
     "bun": ">=1.3.8",
