@@ -343,7 +343,7 @@ export class HttpClient {
       normalizedPath.startsWith("/v1/")
     ) {
       console.warn(
-        `[SDK] Double /v1/ prefix detected: ${url}. ` +
+        `[SDK] Double /v1/ prefix detected. ` +
           `The base URL already includes "/v1" but the route also starts with "/v1/". ` +
           `Update your SDK package to the latest version.`
       );
