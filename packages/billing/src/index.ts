@@ -21,7 +21,7 @@ export function createBillingClient(
   clientOrConfig: FrontalClient | BillingClientConfig
 ): BillingService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new BillingService(clientOrConfig._http);
+    return new BillingService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -40,7 +40,18 @@ export function createBillingClient(
   return new BillingService(http);
 }
 
-export const billing = new BillingService(getDefaultClient()._http);
+let _billingCache: BillingService | undefined;
+export const billing = new Proxy<BillingService>({} as BillingService, {
+  get(_t, prop) {
+    const inst = (_billingCache ??= new BillingService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_BILLING_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

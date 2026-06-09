@@ -36,3 +36,8 @@ export const EXPONENTIAL_BASE = 2;
  * Helps prevent thundering herd problems.
  */
 export const JITTER_MAX = 200;
+
+/**
+ * SDK version string sent in the X-Frontal-Core header.
+ */
+export const SDK_VERSION = "1.0.1";

@@ -1,11 +1,22 @@
-import type { z } from "zod";
+import { z } from "zod";
+import { CircuitBreaker, CircuitBreakerOpenError } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
+import { SDK_VERSION } from "./constants";
 import { NetworkError, parseFrontalError } from "./errors";
 import { calculateDelay } from "./retry";
 import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
 
 export class HttpClient {
-  constructor(private readonly config: ClientConfigOutput) {}
+  private readonly breaker?: CircuitBreaker;
+
+  constructor(private readonly config: ClientConfigOutput) {
+    if (config.circuitBreaker) {
+      this.breaker = new CircuitBreaker({
+        failureThreshold: config.circuitBreaker.failureThreshold,
+        resetTimeoutMs: config.circuitBreaker.resetTimeoutMs,
+      });
+    }
+  }
 
   async get<T>(
     path: string,
@@ -213,12 +224,27 @@ export class HttpClient {
 
     this.config.logger?.request?.(method, url, reqInit);
 
+    const executeRequest = async (): Promise<Response> => {
+      try {
+        return await this.fetchWithTimeout(url, reqInit);
+      } catch (error) {
+        this.config.logger?.error?.(error);
+        throw new NetworkError(error);
+      }
+    };
+
     let res: Response;
     try {
-      res = await this.fetchWithTimeout(url, reqInit);
+      res = this.breaker
+        ? await this.breaker.execute(executeRequest)
+        : await executeRequest();
     } catch (error) {
-      this.config.logger?.error?.(error);
-      throw new NetworkError(error);
+      if (error instanceof CircuitBreakerOpenError) {
+        throw new Error(
+          `Circuit breaker is open. Retry after ${Math.ceil(error.retryAfterMs / 1000)}s.`
+        );
+      }
+      throw error;
     }
 
     this.config.logger?.response?.(res);
@@ -270,7 +296,7 @@ export class HttpClient {
         }
         return parsed.data;
       } catch (error) {
-        if (error instanceof Error && error.message.includes("_zod")) {
+        if (error instanceof z.ZodError) {
           return transformedPayload as T;
         }
         throw error;
@@ -311,6 +337,18 @@ export class HttpClient {
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
     const url = `${base}${normalizedPath}`;
 
+    if (
+      this.config.debug &&
+      base.endsWith("/v1") &&
+      normalizedPath.startsWith("/v1/")
+    ) {
+      console.warn(
+        `[SDK] Double /v1/ prefix detected: ${url}. ` +
+          `The base URL already includes "/v1" but the route also starts with "/v1/". ` +
+          `Update your SDK package to the latest version.`
+      );
+    }
+
     const transformedParams = params
       ? (deepCamelToSnake(params) as Record<string, unknown>)
       : params;
@@ -338,7 +376,7 @@ export class HttpClient {
       "Content-Type": "application/json",
       Accept: "application/json",
       "User-Agent": "@frontal-labs/core",
-      "X-Frontal-Core": "typescript@1.0.0",
+      "X-Frontal-Core": `typescript@${SDK_VERSION}`,
       "X-Frontal-Environment": this.config.environment,
       ...this.config.headers,
       ...extra,

@@ -147,7 +147,7 @@ export type FilterConditions = z.infer<typeof filterConditionsSchema>;
 
 export const pageResultSchema = z
   .object({
-    data: z.array(z.any()),
+    data: z.array(z.unknown()),
     meta: responseMetaSchema.optional(),
     pagination: paginationMetaSchema,
   })

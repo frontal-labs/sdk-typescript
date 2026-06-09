@@ -21,7 +21,7 @@ export function createWebhooksClient(
   clientOrConfig: FrontalClient | WebhooksClientConfig
 ): WebhooksService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new WebhooksService(clientOrConfig._http);
+    return new WebhooksService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -40,7 +40,18 @@ export function createWebhooksClient(
   return new WebhooksService(http);
 }
 
-export const webhooks = new WebhooksService(getDefaultClient()._http);
+let _webhooksCache: WebhooksService | undefined;
+export const webhooks = new Proxy<WebhooksService>({} as WebhooksService, {
+  get(_t, prop) {
+    const inst = (_webhooksCache ??= new WebhooksService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_WEBHOOKS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

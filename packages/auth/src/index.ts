@@ -19,7 +19,7 @@ export function createAuthClient(
   clientOrConfig: FrontalClient | AuthClientConfig
 ): AuthService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new AuthService(clientOrConfig._http);
+    return new AuthService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -38,7 +38,18 @@ export function createAuthClient(
   return new AuthService(http);
 }
 
-export const auth = new AuthService(getDefaultClient()._http);
+let _authCache: AuthService | undefined;
+export const auth = new Proxy<AuthService>({} as AuthService, {
+  get(_t, prop) {
+    const inst = (_authCache ??= new AuthService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_AUTH_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

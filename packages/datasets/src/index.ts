@@ -21,7 +21,7 @@ export function createDatasetsClient(
   clientOrConfig: FrontalClient | DatasetsClientConfig
 ): DatasetsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new DatasetsService(clientOrConfig._http);
+    return new DatasetsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -40,7 +40,18 @@ export function createDatasetsClient(
   return new DatasetsService(http);
 }
 
-export const datasets = new DatasetsService(getDefaultClient()._http);
+let _datasetsCache: DatasetsService | undefined;
+export const datasets = new Proxy<DatasetsService>({} as DatasetsService, {
+  get(_t, prop) {
+    const inst = (_datasetsCache ??= new DatasetsService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_DATASETS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

@@ -21,7 +21,7 @@ export function createGraphClient(
   clientOrConfig: FrontalClient | GraphClientConfig
 ): GraphService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new GraphService(clientOrConfig._http);
+    return new GraphService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -41,7 +41,18 @@ export function createGraphClient(
 }
 
 // Default instance that works automatically with environment variables
-export const graph = new GraphService(getDefaultClient()._http);
+let _graphCache: GraphService | undefined;
+export const graph = new Proxy<GraphService>({} as GraphService, {
+  get(_t, prop) {
+    const inst = (_graphCache ??= new GraphService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export * from "./schemas";
 export { GraphService } from "./service";

@@ -37,20 +37,20 @@ function pageWrap<T>(items: T[]) {
 describe("AuditService", () => {
   it("logs an event", async () => {
     const { service, mock } = createService([
-      { method: "POST", path: "/v1/audit/events", body: mockEvent },
+      { method: "POST", path: "/audit/events", body: mockEvent },
     ]);
     const result = await service.log({
       action: "user.created",
       resource: { type: "user", id: "usr_2" },
     });
     expect(result.id).toBe("evt_1");
-    mock.expectCalled("POST", "/v1/audit/events");
+    mock.expectCalled("POST", "/audit/events");
   });
   it("queries events (paginated)", async () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/audit/events/query",
+        path: "/audit/events/query",
         body: pageWrap([mockEvent]),
       },
     ]);
@@ -61,7 +61,7 @@ describe("AuditService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/audit/events/export",
+        path: "/audit/events/export",
         body: { download_url: "https://..." },
       },
     ]);
@@ -72,7 +72,7 @@ describe("AuditService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/audit/trails",
+        path: "/audit/trails",
         body: pageWrap([
           { id: "t1", name: "Test", filter: {}, created_at: "" },
         ]),
@@ -85,7 +85,7 @@ describe("AuditService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/audit/compliance/check",
+        path: "/audit/compliance/check",
         body: { passed: true, findings: [] },
       },
     ]);

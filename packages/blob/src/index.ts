@@ -28,7 +28,7 @@ export function createBlobClient(
   clientOrConfig: FrontalClient | BlobClientConfig
 ): BlobService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new BlobService(clientOrConfig._http);
+    return new BlobService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,

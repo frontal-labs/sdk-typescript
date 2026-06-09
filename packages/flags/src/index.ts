@@ -19,7 +19,7 @@ export function createFlagsClient(
   clientOrConfig: FrontalClient | FlagsClientConfig
 ): FlagsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new FlagsService(clientOrConfig._http);
+    return new FlagsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -38,7 +38,18 @@ export function createFlagsClient(
   return new FlagsService(http);
 }
 
-export const flags = new FlagsService(getDefaultClient()._http);
+let _flagsCache: FlagsService | undefined;
+export const flags = new Proxy<FlagsService>({} as FlagsService, {
+  get(_t, prop) {
+    const inst = (_flagsCache ??= new FlagsService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_FLAGS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

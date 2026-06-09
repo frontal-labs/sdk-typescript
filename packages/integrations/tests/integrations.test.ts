@@ -101,7 +101,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/providers",
+          path: "/providers",
           body: { providers: [mockProvider] },
         },
       ]);
@@ -112,7 +112,7 @@ describe("IntegrationsService", () => {
 
     it("get() returns a single provider", async () => {
       const { service } = createService([
-        { method: "GET", path: "/v1/providers/stripe", body: mockProvider },
+        { method: "GET", path: "/providers/stripe", body: mockProvider },
       ]);
       const result = await service.providers.get("stripe");
       expect(result.slug).toBe("stripe");
@@ -122,7 +122,7 @@ describe("IntegrationsService", () => {
   describe("create()", () => {
     it("returns an Integration handle", async () => {
       const { service } = createService([
-        { method: "POST", path: "/v1/integrations", body: mockIntegration },
+        { method: "POST", path: "/integrations", body: mockIntegration },
       ]);
       const inst = await service.create({
         provider: "stripe",
@@ -141,7 +141,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/integrations/int_1",
+          path: "/integrations/int_1",
           body: mockIntegration,
         },
       ]);
@@ -155,7 +155,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/integrations",
+          path: "/integrations",
           body: { integrations: [mockIntegration], total: 1 },
         },
       ]);
@@ -169,7 +169,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/action-runs/ar_1/replay",
+          path: "/action-runs/ar_1/replay",
           body: mockActionRun,
         },
       ]);
@@ -181,7 +181,7 @@ describe("IntegrationsService", () => {
   describe("actionRun()", () => {
     it("gets an action run globally", async () => {
       const { service } = createService([
-        { method: "GET", path: "/v1/action-runs/ar_1", body: mockActionRun },
+        { method: "GET", path: "/action-runs/ar_1", body: mockActionRun },
       ]);
       const result = await service.actionRun("ar_1");
       expect(result.id).toBe("ar_1");
@@ -193,7 +193,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/connection-tests/ct_1",
+          path: "/connection-tests/ct_1",
           body: mockConnectionTest,
         },
       ]);
@@ -207,7 +207,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/diagnostics",
+          path: "/diagnostics",
           body: { repository: "postgres" },
         },
       ]);
@@ -221,7 +221,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/governance/summary",
+          path: "/governance/summary",
           body: { activeIntegrations: 10 },
         },
       ]);
@@ -235,7 +235,7 @@ describe("IntegrationsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/policy/simulate",
+          path: "/policy/simulate",
           body: { allowed: true },
         },
       ]);
@@ -278,7 +278,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "PATCH",
-          path: "/v1/integrations/int_1",
+          path: "/integrations/int_1",
           body: { ...mockIntegration, displayName: "New" },
         },
       ]);
@@ -290,7 +290,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "DELETE",
-          path: "/v1/integrations/int_1",
+          path: "/integrations/int_1",
           body: { deleted: true },
         },
       ]);
@@ -302,7 +302,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/integrations/int_1",
+          path: "/integrations/int_1",
           body: { ...mockIntegration, status: "error" },
         },
       ]);
@@ -314,7 +314,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/integrations/int_1/validate-configuration",
+          path: "/integrations/int_1/validate-configuration",
           body: { valid: true, message: "ok", integration: mockIntegration },
         },
       ]);
@@ -326,7 +326,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/integrations/int_1/rotate-secret",
+          path: "/integrations/int_1/rotate-secret",
           body: mockIntegration,
         },
       ]);
@@ -338,7 +338,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/integrations/int_1/metrics",
+          path: "/integrations/int_1/metrics",
           body: {
             integrationId: "int_1",
             connectionTestsByStatus: {},
@@ -358,7 +358,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/integrations/int_1/action-runs",
+          path: "/integrations/int_1/action-runs",
           body: mockActionRun,
         },
       ]);
@@ -372,7 +372,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/integrations/int_1/action-runs",
+          path: "/integrations/int_1/action-runs",
           body: { actionRuns: [mockActionRun], total: 1 },
         },
       ]);
@@ -382,7 +382,7 @@ describe("Integration", () => {
 
     it("run.get()", async () => {
       const { inst } = createInst([
-        { method: "GET", path: "/v1/action-runs/ar_1", body: mockActionRun },
+        { method: "GET", path: "/action-runs/ar_1", body: mockActionRun },
       ]);
       const result = await inst.run.get("ar_1");
       expect(result.id).toBe("ar_1");
@@ -394,7 +394,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/integrations/int_1/connection-tests",
+          path: "/integrations/int_1/connection-tests",
           body: mockConnectionTest,
         },
       ]);
@@ -406,7 +406,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/integrations/int_1/connection-tests",
+          path: "/integrations/int_1/connection-tests",
           body: { connectionTests: [mockConnectionTest], total: 1 },
         },
       ]);
@@ -418,7 +418,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connection-tests/ct_1",
+          path: "/connection-tests/ct_1",
           body: mockConnectionTest,
         },
       ]);
@@ -432,7 +432,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/integrations/int_1/capabilities",
+          path: "/integrations/int_1/capabilities",
           body: { capabilities: [mockCapability], total: 1 },
         },
       ]);
@@ -444,7 +444,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "PUT",
-          path: "/v1/integrations/int_1/capabilities/stripe.create_payment",
+          path: "/integrations/int_1/capabilities/stripe.create_payment",
           body: mockCapability,
         },
       ]);
@@ -457,7 +457,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "PUT",
-          path: "/v1/integrations/int_1/capabilities/stripe.create_payment",
+          path: "/integrations/int_1/capabilities/stripe.create_payment",
           body: disabled,
         },
       ]);
@@ -469,7 +469,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "PUT",
-          path: "/v1/integrations/int_1/capabilities:bulk",
+          path: "/integrations/int_1/capabilities:bulk",
           body: { capabilities: [mockCapability], total: 1 },
         },
       ]);
@@ -485,7 +485,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/integrations/int_1/surfaces",
+          path: "/integrations/int_1/surfaces",
           body: { surfaces: [mockSurface] },
         },
       ]);
@@ -497,7 +497,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "PUT",
-          path: "/v1/integrations/int_1/surfaces/agents",
+          path: "/integrations/int_1/surfaces/agents",
           body: mockSurface,
         },
       ]);
@@ -510,7 +510,7 @@ describe("Integration", () => {
       const { inst } = createInst([
         {
           method: "PUT",
-          path: "/v1/integrations/int_1/surfaces/agents",
+          path: "/integrations/int_1/surfaces/agents",
           body: disabled_,
         },
       ]);

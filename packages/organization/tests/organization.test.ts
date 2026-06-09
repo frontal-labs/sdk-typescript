@@ -94,7 +94,7 @@ describe("OrganizationService", () => {
   describe("org CRUD", () => {
     it("gets the organization", async () => {
       const { service } = createService([
-        { method: "GET", path: "/v1/organization", body: mockOrg },
+        { method: "GET", path: "/organization", body: mockOrg },
       ]);
       const result = await service.get();
       expect(result.id).toBe("org_abc123");
@@ -103,7 +103,7 @@ describe("OrganizationService", () => {
     it("updates the organization", async () => {
       const updated = { ...mockOrg, name: "New Name" };
       const { service } = createService([
-        { method: "PUT", path: "/v1/organization", body: updated },
+        { method: "PUT", path: "/organization", body: updated },
       ]);
       const result = await service.update({ name: "New Name" });
       expect(result.name).toBe("New Name");
@@ -115,7 +115,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/organization/tenants",
+          path: "/organization/tenants",
           body: pageWrap([mockTenant]),
         },
       ]);
@@ -127,7 +127,7 @@ describe("OrganizationService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/organization/tenants",
+          path: "/organization/tenants",
           body: mockTenant,
         },
       ]);
@@ -136,14 +136,14 @@ describe("OrganizationService", () => {
         slug: "engineering",
       });
       expect(result.id).toBe("tnt_xyz456");
-      mock.expectCalled("POST", "/v1/organization/tenants");
+      mock.expectCalled("POST", "/organization/tenants");
     });
 
     it("gets a tenant", async () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/organization/tenants/tnt_xyz456",
+          path: "/organization/tenants/tnt_xyz456",
           body: mockTenant,
         },
       ]);
@@ -155,12 +155,12 @@ describe("OrganizationService", () => {
       const { service, mock } = createService([
         {
           method: "DELETE",
-          path: "/v1/organization/tenants/tnt_xyz456",
+          path: "/organization/tenants/tnt_xyz456",
           status: 204,
         },
       ]);
       await service.tenants.delete("tnt_xyz456");
-      mock.expectCalled("DELETE", "/v1/organization/tenants/tnt_xyz456");
+      mock.expectCalled("DELETE", "/organization/tenants/tnt_xyz456");
     });
   });
 
@@ -169,7 +169,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/organization/teams",
+          path: "/organization/teams",
           body: pageWrap([mockTeam]),
         },
       ]);
@@ -181,7 +181,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/organization/teams",
+          path: "/organization/teams",
           body: mockTeam,
         },
       ]);
@@ -195,12 +195,12 @@ describe("OrganizationService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/organization/teams/tm_def789/members",
+          path: "/organization/teams/tm_def789/members",
           status: 204,
         },
       ]);
       await service.teams.addMember("tm_def789", "mbr_ghi012");
-      mock.expectCalled("POST", "/v1/organization/teams/tm_def789/members");
+      mock.expectCalled("POST", "/organization/teams/tm_def789/members");
     });
   });
 
@@ -209,7 +209,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/organization/members",
+          path: "/organization/members",
           body: pageWrap([mockMember]),
         },
       ]);
@@ -221,7 +221,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/organization/members/invite",
+          path: "/organization/members/invite",
           body: mockInvitation,
         },
       ]);
@@ -237,7 +237,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "PUT",
-          path: "/v1/organization/members/mbr_ghi012/role",
+          path: "/organization/members/mbr_ghi012/role",
           body: updated,
         },
       ]);
@@ -251,7 +251,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/organization/roles",
+          path: "/organization/roles",
           body: { data: [mockRole] },
         },
       ]);
@@ -263,7 +263,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/organization/roles",
+          path: "/organization/roles",
           body: mockRole,
         },
       ]);
@@ -279,12 +279,12 @@ describe("OrganizationService", () => {
       const { service, mock } = createService([
         {
           method: "DELETE",
-          path: "/v1/organization/roles/rol_jkl345",
+          path: "/organization/roles/rol_jkl345",
           status: 204,
         },
       ]);
       await service.roles.delete("rol_jkl345");
-      mock.expectCalled("DELETE", "/v1/organization/roles/rol_jkl345");
+      mock.expectCalled("DELETE", "/organization/roles/rol_jkl345");
     });
   });
 
@@ -293,7 +293,7 @@ describe("OrganizationService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/organization/invitations",
+          path: "/organization/invitations",
           body: pageWrap([mockInvitation]),
         },
       ]);
@@ -305,15 +305,12 @@ describe("OrganizationService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/organization/invitations/inv_mno678/cancel",
+          path: "/organization/invitations/inv_mno678/cancel",
           status: 204,
         },
       ]);
       await service.invitations.cancel("inv_mno678");
-      mock.expectCalled(
-        "POST",
-        "/v1/organization/invitations/inv_mno678/cancel"
-      );
+      mock.expectCalled("POST", "/organization/invitations/inv_mno678/cancel");
     });
   });
 });

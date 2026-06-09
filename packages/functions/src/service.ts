@@ -27,10 +27,6 @@ import {
 export class FunctionsService {
   constructor(private readonly http: HttpClient) {}
 
-  private command(operation: string, payload: Record<string, unknown> = {}) {
-    return { operation, ...payload };
-  }
-
   /**
    * Deploys a new function.
    * @param config - The function configuration.
@@ -40,8 +36,8 @@ export class FunctionsService {
   async deploy(config: FunctionConfig): Promise<FunctionEntry> {
     const validated = functionConfigSchema.parse(config);
     return this.http.post<FunctionEntry>(
-      "/workflows/batch",
-      this.command("functions.deploy", { config: validated }),
+      "/functions",
+      validated,
       functionSchema
     );
   }
@@ -50,9 +46,7 @@ export class FunctionsService {
    * Lists all functions.
    */
   async list(): Promise<FunctionEntry[]> {
-    return this.http.get<FunctionEntry[]>("/workflows", {
-      operation: "functions.list",
-    });
+    return this.http.get<FunctionEntry[]>("/functions");
   }
 
   /**
@@ -61,8 +55,8 @@ export class FunctionsService {
    */
   async get(id: string): Promise<FunctionEntry> {
     return this.http.get<FunctionEntry>(
-      "/workflows",
-      { operation: "functions.get", functionId: id },
+      `/functions/${id}`,
+      undefined,
       functionSchema
     );
   }
@@ -72,10 +66,7 @@ export class FunctionsService {
    * @param id - The function ID.
    */
   async delete(id: string): Promise<void> {
-    return this.http.delete("/workflows", {
-      operation: "functions.delete",
-      functionId: id,
-    });
+    return this.http.delete(`/functions/${id}`);
   }
 
   /**
@@ -85,10 +76,7 @@ export class FunctionsService {
    */
   async invoke(id: string, options: InvokeOptions = {}): Promise<unknown> {
     const validated = invokeOptionsSchema.parse(options);
-    return this.http.post(
-      "/workflows/batch",
-      this.command("functions.invoke", { functionId: id, ...validated })
-    );
+    return this.http.post(`/functions/${id}/invoke`, validated);
   }
 
   /**
@@ -102,9 +90,7 @@ export class FunctionsService {
     options: InvokeOptions = {}
   ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
     const validated = invokeOptionsSchema.parse(options);
-    yield* this.http.postStream("/workflows/batch", {
-      operation: "functions.invoke.stream",
-      functionId: id,
+    yield* this.http.postStream(`/functions/${id}/invoke`, {
       ...validated,
       stream: true,
     });
@@ -116,8 +102,8 @@ export class FunctionsService {
    */
   async stats(id: string): Promise<InvocationStats> {
     return this.http.get<InvocationStats>(
-      "/workflows",
-      { operation: "functions.stats", functionId: id },
+      `/functions/${id}/stats`,
+      undefined,
       invocationStatsSchema
     );
   }
@@ -132,8 +118,8 @@ export class FunctionsService {
     trigger: FunctionConfig["trigger"]
   ): Promise<FunctionEntry> {
     return this.http.put<FunctionEntry>(
-      "/workflows",
-      this.command("functions.triggers.update", { functionId: id, trigger }),
+      `/functions/${id}/triggers`,
+      trigger,
       functionSchema
     );
   }

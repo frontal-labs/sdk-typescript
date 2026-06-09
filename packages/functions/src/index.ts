@@ -29,7 +29,7 @@ export function createFunctionsClient(
   clientOrConfig: FrontalClient | FunctionsClientConfig
 ): FunctionsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new FunctionsService(clientOrConfig._http);
+    return new FunctionsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,

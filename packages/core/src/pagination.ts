@@ -1,6 +1,19 @@
 import { type ZodType, z } from "zod";
+import type { PaginationMeta } from "./schemas";
 import { responseMetaSchema } from "./schemas";
 import type { PageResult } from "./types";
+
+/**
+ * Safe type assertion for paginated API response payloads.
+ * Casts raw unknown response to the paginated shape expected by createPageResult.
+ */
+export function asPagePayload<T>(raw: unknown): {
+  data: T[];
+  pagination: PaginationMeta;
+  meta?: unknown;
+} {
+  return raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
+}
 
 const paginationSchema = z
   .object({

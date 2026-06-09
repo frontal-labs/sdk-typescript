@@ -76,7 +76,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/observability/logs/query",
+          path: "/observability/logs/query",
           body: pageWrap([mockLog]),
         },
       ]);
@@ -92,7 +92,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/observability/logs/ingest",
+          path: "/observability/logs/ingest",
           body: { ingested: 5 },
         },
       ]);
@@ -108,7 +108,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/observability/metrics",
+          path: "/observability/metrics",
           body: { metric: "cpu", data: [] },
         },
       ]);
@@ -125,7 +125,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/observability/traces/trace_1",
+          path: "/observability/traces/trace_1",
           body: mockTrace,
         },
       ]);
@@ -137,7 +137,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/observability/traces",
+          path: "/observability/traces",
           body: pageWrap([mockTrace]),
         },
       ]);
@@ -151,7 +151,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/observability/alerts",
+          path: "/observability/alerts",
           body: mockAlert,
         },
       ]);
@@ -163,7 +163,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/observability/alerts/alert_1/enable",
+          path: "/observability/alerts/alert_1/enable",
           body: mockAlert,
         },
       ]);
@@ -175,7 +175,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/observability/alerts/alert_1/disable",
+          path: "/observability/alerts/alert_1/disable",
           body: mockAlert,
         },
       ]);
@@ -189,7 +189,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/observability/dashboards",
+          path: "/observability/dashboards",
           body: { data: [mockDashboard] },
         },
       ]);
@@ -201,7 +201,7 @@ describe("ObservabilityService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/observability/dashboards/dash_1/share",
+          path: "/observability/dashboards/dash_1/share",
           body: { share_url: "https://frontal.dev/dash/shared/dash_1" },
         },
       ]);

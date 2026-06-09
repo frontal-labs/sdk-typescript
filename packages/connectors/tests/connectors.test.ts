@@ -82,7 +82,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/connectors",
+          path: "/connectors",
           body: { connectors: [mockConnector] },
         },
       ]);
@@ -93,7 +93,7 @@ describe("ConnectorsService", () => {
 
     it("get() returns a single connector", async () => {
       const { service } = createService([
-        { method: "GET", path: "/v1/connectors/postgres", body: mockConnector },
+        { method: "GET", path: "/connectors/postgres", body: mockConnector },
       ]);
       const result = await service.get("postgres");
       expect(result.slug).toBe("postgres");
@@ -105,7 +105,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/connectors/installations",
+          path: "/connectors/installations",
           body: mockInstallation,
         },
       ]);
@@ -124,7 +124,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/connectors/installations/inst_1",
+          path: "/connectors/installations/inst_1",
           body: mockInstallation,
         },
       ]);
@@ -137,7 +137,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/connectors/installations",
+          path: "/connectors/installations",
           body: { installations: [mockInstallation] },
         },
       ]);
@@ -151,7 +151,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/sync-runs/sr_1/replay",
+          path: "/sync-runs/sr_1/replay",
           body: mockSyncRun,
         },
       ]);
@@ -165,7 +165,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/diagnostics",
+          path: "/diagnostics",
           body: { repository: "postgres" },
         },
       ]);
@@ -208,7 +208,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/connectors/installations/inst_1/pause",
+          path: "/connectors/installations/inst_1/pause",
           body: { ...mockInstallation, status: "paused" },
         },
       ]);
@@ -220,7 +220,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/connectors/installations/inst_1/resume",
+          path: "/connectors/installations/inst_1/resume",
           body: mockInstallation,
         },
       ]);
@@ -232,7 +232,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "PATCH",
-          path: "/v1/connectors/installations/inst_1",
+          path: "/connectors/installations/inst_1",
           body: { ...mockInstallation, displayName: "New" },
         },
       ]);
@@ -244,7 +244,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "DELETE",
-          path: "/v1/connectors/installations/inst_1",
+          path: "/connectors/installations/inst_1",
           body: { deleted: true },
         },
       ]);
@@ -256,7 +256,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connectors/installations/inst_1",
+          path: "/connectors/installations/inst_1",
           body: { ...mockInstallation, status: "error" },
         },
       ]);
@@ -270,7 +270,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/connectors/installations/inst_1/sync-runs",
+          path: "/connectors/installations/inst_1/sync-runs",
           body: mockSyncRun,
         },
       ]);
@@ -282,7 +282,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connectors/installations/inst_1/sync-runs",
+          path: "/connectors/installations/inst_1/sync-runs",
           body: { runs: [mockSyncRun] },
         },
       ]);
@@ -294,7 +294,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connectors/installations/inst_1/sync-runs/sr_1",
+          path: "/connectors/installations/inst_1/sync-runs/sr_1",
           body: mockSyncRun,
         },
       ]);
@@ -308,7 +308,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/connectors/installations/inst_1/connection-tests",
+          path: "/connectors/installations/inst_1/connection-tests",
           body: mockConnectionTest,
         },
       ]);
@@ -320,7 +320,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connectors/installations/inst_1/connection-tests",
+          path: "/connectors/installations/inst_1/connection-tests",
           body: { connectionTests: [mockConnectionTest] },
         },
       ]);
@@ -332,7 +332,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connectors/connection-tests/ct_1",
+          path: "/connectors/connection-tests/ct_1",
           body: mockConnectionTest,
         },
       ]);
@@ -346,7 +346,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connectors/installations/inst_1/checkpoint",
+          path: "/connectors/installations/inst_1/checkpoint",
           body: mockCheckpoint,
         },
       ]);
@@ -358,7 +358,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "GET",
-          path: "/v1/connectors/installations/inst_1/checkpoint",
+          path: "/connectors/installations/inst_1/checkpoint",
           status: 204,
         },
       ]);
@@ -370,7 +370,7 @@ describe("Installation", () => {
       const { inst } = createInst([
         {
           method: "POST",
-          path: "/v1/connectors/installations/inst_1/checkpoint/reset",
+          path: "/connectors/installations/inst_1/checkpoint/reset",
           body: mockCheckpoint,
         },
       ]);

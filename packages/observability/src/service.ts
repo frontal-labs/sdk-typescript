@@ -1,4 +1,5 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
@@ -13,19 +14,6 @@ import type {
   Trace,
 } from "./schemas";
 
-const asPagePayload = <T>(
-  raw: unknown
-): {
-  data: T[];
-  pagination: PaginationMeta;
-  meta?: unknown;
-} =>
-  raw as {
-    data: T[];
-    pagination: PaginationMeta;
-    meta?: unknown;
-  };
-
 // ── Logs ───────────────────────────────────────────────────────────
 
 export class LogsNamespace {
@@ -39,7 +27,7 @@ export class LogsNamespace {
     limit?: number;
     order?: string;
   }): Promise<PageResult<LogEntry>> {
-    const raw = await this.http.post("/v1/observability/logs/query", input);
+    const raw = await this.http.post("/observability/logs/query", input);
     return createPageResult(asPagePayload<LogEntry>(raw), (cursor) =>
       this.query({ ...input, cursor } as typeof input)
     );
@@ -50,11 +38,11 @@ export class LogsNamespace {
     timeFrom: string;
     timeTo: string;
   }): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-    yield* this.http.stream("/v1/observability/logs/stream", input);
+    yield* this.http.stream("/observability/logs/stream", input);
   }
 
   async ingest(entries: Omit<LogEntry, "id">[]): Promise<{ ingested: number }> {
-    return this.http.post("/v1/observability/logs/ingest", { entries });
+    return this.http.post("/observability/logs/ingest", { entries });
   }
 }
 
@@ -71,7 +59,7 @@ export class MetricsNamespace {
       granularity?: string;
     }
   ): Promise<MetricSeries> {
-    return this.http.get("/v1/observability/metrics", {
+    return this.http.get("/observability/metrics", {
       metric,
       ...timeRange,
     });
@@ -84,7 +72,7 @@ export class MetricsNamespace {
       description?: string;
     }>
   > {
-    const raw = await this.http.get("/v1/observability/metrics/list", opts);
+    const raw = await this.http.get("/observability/metrics/list", opts);
     return createPageResult(
       asPagePayload<{ name: string; unit?: string; description?: string }>(raw),
       (cursor) => this.listMetrics({ ...opts, cursor })
@@ -99,7 +87,7 @@ export class MetricsNamespace {
       tags?: Record<string, string>;
     }[]
   ): Promise<{ ingested: number }> {
-    return this.http.post("/v1/observability/metrics/ingest", { points });
+    return this.http.post("/observability/metrics/ingest", { points });
   }
 }
 
@@ -120,7 +108,7 @@ export class TracesNamespace {
       cursor?: string;
     } = {}
   ): Promise<PageResult<Trace>> {
-    const raw = await this.http.get("/v1/observability/traces", opts);
+    const raw = await this.http.get("/observability/traces", opts);
     return createPageResult(asPagePayload<Trace>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
@@ -133,7 +121,7 @@ export class TracesNamespace {
     from?: string;
     to?: string;
   }): Promise<PageResult<Trace>> {
-    const raw = await this.http.post("/v1/observability/traces/query", filter);
+    const raw = await this.http.post("/observability/traces/query", filter);
     return createPageResult(asPagePayload<Trace>(raw), (cursor) =>
       this.query({ ...filter, cursor } as typeof filter)
     );
@@ -148,13 +136,13 @@ export class AlertsNamespace {
   async list(
     opts: { enabled?: boolean; severity?: string } = {}
   ): Promise<{ data: AlertRule[] }> {
-    return this.http.get("/v1/observability/alerts", opts);
+    return this.http.get("/observability/alerts", opts);
   }
 
   async create(
     rule: Omit<AlertRule, "id" | "createdAt" | "lastFiredAt">
   ): Promise<AlertRule> {
-    return this.http.post("/v1/observability/alerts", rule);
+    return this.http.post("/observability/alerts", rule);
   }
 
   async update(id: string, rule: Partial<AlertRule>): Promise<AlertRule> {
@@ -176,7 +164,7 @@ export class AlertsNamespace {
   async listIncidents(
     opts: { status?: string; limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Incident>> {
-    const raw = await this.http.get("/v1/observability/alerts/incidents", opts);
+    const raw = await this.http.get("/observability/alerts/incidents", opts);
     return createPageResult(asPagePayload<Incident>(raw), (cursor) =>
       this.listIncidents({ ...opts, cursor })
     );
@@ -189,7 +177,7 @@ export class DashboardsNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async list(): Promise<{ data: Dashboard[] }> {
-    return this.http.get("/v1/observability/dashboards");
+    return this.http.get("/observability/dashboards");
   }
 
   async get(id: string): Promise<Dashboard> {
@@ -199,7 +187,7 @@ export class DashboardsNamespace {
   async create(
     dashboard: Omit<Dashboard, "id" | "createdAt" | "updatedAt">
   ): Promise<Dashboard> {
-    return this.http.post("/v1/observability/dashboards", dashboard);
+    return this.http.post("/observability/dashboards", dashboard);
   }
 
   async update(id: string, dashboard: Partial<Dashboard>): Promise<Dashboard> {

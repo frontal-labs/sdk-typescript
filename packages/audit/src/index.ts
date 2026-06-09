@@ -19,7 +19,7 @@ export function createAuditClient(
   clientOrConfig: FrontalClient | AuditClientConfig
 ): AuditService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new AuditService(clientOrConfig._http);
+    return new AuditService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -38,7 +38,18 @@ export function createAuditClient(
   return new AuditService(http);
 }
 
-export const audit = new AuditService(getDefaultClient()._http);
+let _auditCache: AuditService | undefined;
+export const audit = new Proxy<AuditService>({} as AuditService, {
+  get(_t, prop) {
+    const inst = (_auditCache ??= new AuditService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_AUDIT_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

@@ -17,7 +17,7 @@ export function createConnectorsClient(
   clientOrConfig: FrontalClient | ConnectorsClientConfig
 ): ConnectorsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new ConnectorsService(clientOrConfig._http);
+    return new ConnectorsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -36,7 +36,21 @@ export function createConnectorsClient(
   return new ConnectorsService(http);
 }
 
-export const connectors = new ConnectorsService(getDefaultClient()._http);
+let _connectorsCache: ConnectorsService | undefined;
+export const connectors = new Proxy<ConnectorsService>(
+  {} as ConnectorsService,
+  {
+    get(_t, prop) {
+      const inst = (_connectorsCache ??= new ConnectorsService(
+        getDefaultClient().httpClient
+      ));
+      const val = (inst as Record<string | symbol, unknown>)[prop];
+      return typeof val === "function"
+        ? (val as (...args: unknown[]) => unknown).bind(inst)
+        : val;
+    },
+  }
+);
 
 export { DEFAULT_CONNECTORS_BASE_URL, VERSION } from "./constants";
 export { Installation } from "./installation";

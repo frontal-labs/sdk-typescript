@@ -17,7 +17,7 @@ export function createIntegrationsClient(
   clientOrConfig: FrontalClient | IntegrationsClientConfig
 ): IntegrationsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new IntegrationsService(clientOrConfig._http);
+    return new IntegrationsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -36,7 +36,21 @@ export function createIntegrationsClient(
   return new IntegrationsService(http);
 }
 
-export const integrations = new IntegrationsService(getDefaultClient()._http);
+let _integrationsCache: IntegrationsService | undefined;
+export const integrations = new Proxy<IntegrationsService>(
+  {} as IntegrationsService,
+  {
+    get(_t, prop) {
+      const inst = (_integrationsCache ??= new IntegrationsService(
+        getDefaultClient().httpClient
+      ));
+      const val = (inst as Record<string | symbol, unknown>)[prop];
+      return typeof val === "function"
+        ? (val as (...args: unknown[]) => unknown).bind(inst)
+        : val;
+    },
+  }
+);
 
 export { DEFAULT_INTEGRATIONS_BASE_URL, VERSION } from "./constants";
 export { Integration } from "./integration";

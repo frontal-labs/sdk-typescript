@@ -1,15 +1,11 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
   type PaginationMeta,
 } from "@frontal-labs/core";
 import type { VectorIndex, VectorSearchResult } from "./schemas";
-
-const asPagePayload = <T>(
-  raw: unknown
-): { data: T[]; pagination: PaginationMeta; meta?: unknown } =>
-  raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class VectorsService {
   readonly indexes: IndexesNamespace;
@@ -108,7 +104,7 @@ export class IndexesNamespace {
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<VectorIndex>> {
-    const raw = await this.http.get("/v1/vectors/indexes", opts);
+    const raw = await this.http.get("/vectors/indexes", opts);
     return createPageResult(asPagePayload<VectorIndex>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
@@ -118,7 +114,7 @@ export class IndexesNamespace {
     dimensions: number;
     metric?: string;
   }): Promise<VectorIndex> {
-    return this.http.post("/v1/vectors/indexes", input);
+    return this.http.post("/vectors/indexes", input);
   }
   async get(id: string): Promise<VectorIndex> {
     return this.http.get(`/v1/vectors/indexes/${id}`);

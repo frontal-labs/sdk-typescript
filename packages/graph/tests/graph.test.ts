@@ -31,7 +31,7 @@ describe("GraphService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/ontology/graph/graph/query",
+          path: "/ontology/graph/graph/query",
           body: mockPageResponse(items),
         },
       ]);
@@ -39,7 +39,7 @@ describe("GraphService", () => {
       const result = await service.query({ entityType: "user" });
 
       expect(result.data).toHaveLength(2);
-      mock.expectCalled("POST", "/v1/ontology/graph/graph/query");
+      mock.expectCalled("POST", "/ontology/graph/graph/query");
     });
   });
 
@@ -51,14 +51,14 @@ describe("GraphService", () => {
         confidence: 0.92,
       };
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/ontology/graph/graph/analyze", body },
+        { method: "POST", path: "/ontology/graph/graph/analyze", body },
       ]);
 
       const result = await service.naturalLanguageQuery("find all users");
 
       expect(result.answer).toBe("Found 3 users");
       expect(result.confidence).toBe(0.92);
-      mock.expectCalledWith("POST", "/v1/ontology/graph/graph/analyze", {
+      mock.expectCalledWith("POST", "/ontology/graph/graph/analyze", {
         question: "find all users",
       });
     });
@@ -66,7 +66,7 @@ describe("GraphService", () => {
     it("passes optional entityType and limit", async () => {
       const body = { answer: "ok", entities: [], confidence: 0.8 };
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/ontology/graph/graph/analyze", body },
+        { method: "POST", path: "/ontology/graph/graph/analyze", body },
       ]);
 
       await service.naturalLanguageQuery("find admins", {
@@ -74,7 +74,7 @@ describe("GraphService", () => {
         limit: 5,
       });
 
-      mock.expectCalledWith("POST", "/v1/ontology/graph/graph/analyze", {
+      mock.expectCalledWith("POST", "/ontology/graph/graph/analyze", {
         entityType: "admin",
         limit: 5,
       });
@@ -88,7 +88,7 @@ describe("GraphService", () => {
         query: "test",
       };
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/ontology/graph/graph/neighborhood", body },
+        { method: "POST", path: "/ontology/graph/graph/neighborhood", body },
       ]);
 
       const result = await service.semanticSearch({
@@ -98,7 +98,7 @@ describe("GraphService", () => {
 
       expect(result.results).toHaveLength(1);
       expect(result.results[0].score).toBe(0.95);
-      mock.expectCalled("POST", "/v1/ontology/graph/graph/neighborhood");
+      mock.expectCalled("POST", "/ontology/graph/graph/neighborhood");
     });
   });
 
@@ -109,7 +109,7 @@ describe("GraphService", () => {
         totalFound: 1,
       };
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/ontology/graph/graph/neighborhood", body },
+        { method: "POST", path: "/ontology/graph/graph/neighborhood", body },
       ]);
 
       const result = await service.traverse({
@@ -120,7 +120,7 @@ describe("GraphService", () => {
 
       expect(result.totalFound).toBe(1);
       expect(result.paths).toHaveLength(1);
-      mock.expectCalled("POST", "/v1/ontology/graph/graph/neighborhood");
+      mock.expectCalled("POST", "/ontology/graph/graph/neighborhood");
     });
   });
 
@@ -131,7 +131,7 @@ describe("GraphService", () => {
         shortestPath: [{ entity: entity(), edge: { id: "e1", type: "knows" } }],
       };
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/ontology/graph/graph/path", body },
+        { method: "POST", path: "/ontology/graph/graph/path", body },
       ]);
 
       const result = await service.findPath({
@@ -140,7 +140,7 @@ describe("GraphService", () => {
       });
 
       expect(result.shortestPath).toHaveLength(1);
-      mock.expectCalled("POST", "/v1/ontology/graph/graph/path");
+      mock.expectCalled("POST", "/ontology/graph/graph/path");
     });
   });
 
@@ -148,7 +148,7 @@ describe("GraphService", () => {
     it("posts batch operations to /v1/ontology/graph/graph/build", async () => {
       const body = { succeeded: 2, failed: 0, results: [] };
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/ontology/graph/graph/build", body },
+        { method: "POST", path: "/ontology/graph/graph/build", body },
       ]);
 
       const result = await service.batch([
@@ -157,7 +157,7 @@ describe("GraphService", () => {
       ]);
 
       expect(result.succeeded).toBe(2);
-      mock.expectCalled("POST", "/v1/ontology/graph/graph/build");
+      mock.expectCalled("POST", "/ontology/graph/graph/build");
     });
   });
 });
@@ -349,7 +349,7 @@ describe("HistoryNamespace", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: "/v1/ontology/graph/entities/ent_abc/provenance",
+          path: "/ontology/graph/entities/ent_abc/provenance",
           body,
         },
       ]);
@@ -357,10 +357,7 @@ describe("HistoryNamespace", () => {
       const result = await service.history.get("ent_abc", "user");
 
       expect(result.entityId).toBe("ent_abc");
-      mock.expectCalled(
-        "GET",
-        "/v1/ontology/graph/entities/ent_abc/provenance"
-      );
+      mock.expectCalled("GET", "/ontology/graph/entities/ent_abc/provenance");
     });
   });
 
@@ -370,7 +367,7 @@ describe("HistoryNamespace", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/ontology/graph/runs",
+          path: "/ontology/graph/runs",
           body: ent,
         },
       ]);
@@ -378,7 +375,7 @@ describe("HistoryNamespace", () => {
       const result = await service.history.revert("ent_abc", "user", 1);
 
       expect(result.version).toBe(1);
-      mock.expectCalledWith("POST", "/v1/ontology/graph/runs", {
+      mock.expectCalledWith("POST", "/ontology/graph/runs", {
         toVersion: 1,
       });
     });

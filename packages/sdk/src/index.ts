@@ -44,7 +44,7 @@ export const sdk = createSdkClient(getDefaultClient());
 
 export { Sdk } from "./sdk";
 
-export const VERSION = "0.0.1";
+export const VERSION = "0.0.2";
 
 // ── Core primitives ────────────────────────────────────────────────────
 

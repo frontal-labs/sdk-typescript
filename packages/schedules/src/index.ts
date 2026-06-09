@@ -21,7 +21,7 @@ export function createSchedulesClient(
   clientOrConfig: FrontalClient | SchedulesClientConfig
 ): SchedulesService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new SchedulesService(clientOrConfig._http);
+    return new SchedulesService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -40,7 +40,18 @@ export function createSchedulesClient(
   return new SchedulesService(http);
 }
 
-export const schedules = new SchedulesService(getDefaultClient()._http);
+let _schedulesCache: SchedulesService | undefined;
+export const schedules = new Proxy<SchedulesService>({} as SchedulesService, {
+  get(_t, prop) {
+    const inst = (_schedulesCache ??= new SchedulesService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_SCHEDULES_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

@@ -19,7 +19,7 @@ export function createQueuesClient(
   clientOrConfig: FrontalClient | QueuesClientConfig
 ): QueuesService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new QueuesService(clientOrConfig._http);
+    return new QueuesService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -38,7 +38,18 @@ export function createQueuesClient(
   return new QueuesService(http);
 }
 
-export const queues = new QueuesService(getDefaultClient()._http);
+let _queuesCache: QueuesService | undefined;
+export const queues = new Proxy<QueuesService>({} as QueuesService, {
+  get(_t, prop) {
+    const inst = (_queuesCache ??= new QueuesService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_QUEUES_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

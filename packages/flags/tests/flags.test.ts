@@ -68,7 +68,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags/evaluate",
+          path: "/flags/evaluate",
           body: { value: true, reason: "targeting_match" },
         },
       ]);
@@ -82,7 +82,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags/evaluate/bulk",
+          path: "/flags/evaluate/bulk",
           body: {
             "new-dashboard": {
               flag_key: "new-dashboard",
@@ -105,7 +105,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/flags",
+          path: "/flags",
           body: pageWrap([mockFlag]),
         },
       ]);
@@ -117,7 +117,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags",
+          path: "/flags",
           body: mockFlag,
         },
       ]);
@@ -135,7 +135,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags/flag_1/toggle",
+          path: "/flags/flag_1/toggle",
           body: disabled,
         },
       ]);
@@ -149,7 +149,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags/flag_1/rollouts",
+          path: "/flags/flag_1/rollouts",
           body: mockRollout,
         },
       ]);
@@ -164,7 +164,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags/flag_1/rollouts/roll_1/pause",
+          path: "/flags/flag_1/rollouts/roll_1/pause",
           body: { ...mockRollout, status: "paused" },
         },
       ]);
@@ -178,7 +178,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags/experiments/exp_1/start",
+          path: "/flags/experiments/exp_1/start",
           body: { ...mockExperiment, status: "running" },
         },
       ]);
@@ -190,7 +190,7 @@ describe("FlagsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/flags/experiments/exp_1/stop",
+          path: "/flags/experiments/exp_1/stop",
           body: { ...mockExperiment, status: "stopped" },
         },
       ]);

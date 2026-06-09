@@ -40,7 +40,7 @@ describe("VectorsService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/vectors/indexes",
+        path: "/vectors/indexes",
         body: pageWrap([mockIndex]),
       },
     ]);
@@ -49,7 +49,7 @@ describe("VectorsService", () => {
   });
   it("creates an index", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/vectors/indexes", body: mockIndex },
+      { method: "POST", path: "/vectors/indexes", body: mockIndex },
     ]);
     const result = await service.indexes.create({
       name: "products",
@@ -59,10 +59,10 @@ describe("VectorsService", () => {
   });
   it("upserts vectors", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/vectors/indexes/idx_1", body: mockIndex },
+      { method: "GET", path: "/vectors/indexes/idx_1", body: mockIndex },
       {
         method: "POST",
-        path: "/v1/vectors/indexes/idx_1/vectors",
+        path: "/vectors/indexes/idx_1/vectors",
         body: { inserted: 3 },
       },
     ]);
@@ -81,7 +81,7 @@ describe("VectorsService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/vectors/indexes/idx_1/search",
+        path: "/vectors/indexes/idx_1/search",
         body: { results: [{ id: "r1", score: 0.95, vector_id: "v1" }] },
       },
     ]);
@@ -92,7 +92,7 @@ describe("VectorsService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/vectors/indexes/idx_1/hybrid-search",
+        path: "/vectors/indexes/idx_1/hybrid-search",
         body: { results: [{ id: "r1", score: 0.88, vector_id: "v1" }] },
       },
     ]);

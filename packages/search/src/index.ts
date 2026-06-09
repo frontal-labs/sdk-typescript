@@ -19,7 +19,7 @@ export function createSearchClient(
   clientOrConfig: FrontalClient | SearchClientConfig
 ): SearchService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new SearchService(clientOrConfig._http);
+    return new SearchService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -38,7 +38,18 @@ export function createSearchClient(
   return new SearchService(http);
 }
 
-export const search = new SearchService(getDefaultClient()._http);
+let _searchCache: SearchService | undefined;
+export const search = new Proxy<SearchService>({} as SearchService, {
+  get(_t, prop) {
+    const inst = (_searchCache ??= new SearchService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_SEARCH_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

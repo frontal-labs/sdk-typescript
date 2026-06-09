@@ -13,6 +13,7 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "target": "es2022"
   }
 }

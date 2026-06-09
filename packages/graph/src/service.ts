@@ -1,4 +1,5 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
@@ -6,19 +7,6 @@ import {
   type QueryBuilder,
 } from "@frontal-labs/core";
 import * as S from "./schemas";
-
-const asPagePayload = <T>(
-  raw: unknown
-): {
-  data: T[];
-  pagination: PaginationMeta;
-  meta?: unknown;
-} =>
-  raw as {
-    data: T[];
-    pagination: PaginationMeta;
-    meta?: unknown;
-  };
 
 export class GraphService {
   readonly history: HistoryNamespace;
@@ -101,7 +89,7 @@ export class EntityAccessor {
   }
 
   async create(fields: Record<string, unknown>): Promise<S.Entity> {
-    return this.http.post("/ontology/graph/runs", { fields });
+    return this.http.post("/ontology/graph/entities", { fields });
   }
 
   async update(
@@ -117,10 +105,7 @@ export class EntityAccessor {
   }
 
   async delete(id: string): Promise<void> {
-    return this.http.post("/ontology/graph/runs", {
-      action: "delete",
-      entityId: id,
-    });
+    return this.http.delete(`/ontology/graph/entities/${id}`);
   }
 
   async list(
@@ -130,7 +115,7 @@ export class EntityAccessor {
       cursor?: string;
     } = {}
   ): Promise<PageResult<S.Entity>> {
-    const raw = await this.http.get("/ontology/graph/runs", opts);
+    const raw = await this.http.get("/ontology/graph/entities", opts);
     return createPageResult(asPagePayload<S.Entity>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );

@@ -60,7 +60,7 @@ describe("EventsService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/events/topics/orders.created/publish",
+          path: "/events/topics/orders.created/publish",
           body: { published: 2, event_ids: ["evt_1", "evt_2"] },
         },
       ]);
@@ -68,14 +68,14 @@ describe("EventsService", () => {
         { source: "test", type: "test.event", data: {} },
       ]);
       expect(result.published).toBe(2);
-      mock.expectCalled("POST", "/v1/events/topics/orders.created/publish");
+      mock.expectCalled("POST", "/events/topics/orders.created/publish");
     });
 
     it("subscribes to topic", async () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/events/topics/orders.created/subscribe",
+          path: "/events/topics/orders.created/subscribe",
           body: mockSub,
         },
       ]);
@@ -89,12 +89,12 @@ describe("EventsService", () => {
       const { service, mock } = createService([
         {
           method: "DELETE",
-          path: "/v1/events/subscriptions/sub_1",
+          path: "/events/subscriptions/sub_1",
           status: 204,
         },
       ]);
       await service.unsubscribe("sub_1");
-      mock.expectCalled("DELETE", "/v1/events/subscriptions/sub_1");
+      mock.expectCalled("DELETE", "/events/subscriptions/sub_1");
     });
   });
 
@@ -103,7 +103,7 @@ describe("EventsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/events/topics",
+          path: "/events/topics",
           body: pageWrap([mockTopic]),
         },
       ]);
@@ -115,7 +115,7 @@ describe("EventsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/events/topics",
+          path: "/events/topics",
           body: mockTopic,
         },
       ]);
@@ -131,7 +131,7 @@ describe("EventsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/events/subscriptions/sub_1/pause",
+          path: "/events/subscriptions/sub_1/pause",
           body: { ...mockSub, status: "paused" },
         },
       ]);
@@ -143,7 +143,7 @@ describe("EventsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/events/subscriptions/sub_1/resume",
+          path: "/events/subscriptions/sub_1/resume",
           body: mockSub,
         },
       ]);
@@ -157,24 +157,24 @@ describe("EventsService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/events/dead-letter/evt_dlq_1/replay",
+          path: "/events/dead-letter/evt_dlq_1/replay",
           status: 204,
         },
       ]);
       await service.deadLetter.replay("evt_dlq_1");
-      mock.expectCalled("POST", "/v1/events/dead-letter/evt_dlq_1/replay");
+      mock.expectCalled("POST", "/events/dead-letter/evt_dlq_1/replay");
     });
 
     it("purges dead-letter queue", async () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/events/dead-letter/purge",
+          path: "/events/dead-letter/purge",
           status: 204,
         },
       ]);
       await service.deadLetter.purge();
-      mock.expectCalled("POST", "/v1/events/dead-letter/purge");
+      mock.expectCalled("POST", "/events/dead-letter/purge");
     });
   });
 });

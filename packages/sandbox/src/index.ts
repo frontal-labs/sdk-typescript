@@ -21,7 +21,7 @@ export function createSandboxClient(
   clientOrConfig: FrontalClient | SandboxClientConfig
 ): SandboxService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new SandboxService(clientOrConfig._http);
+    return new SandboxService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -40,7 +40,18 @@ export function createSandboxClient(
   return new SandboxService(http);
 }
 
-export const sandbox = new SandboxService(getDefaultClient()._http);
+let _sandboxCache: SandboxService | undefined;
+export const sandbox = new Proxy<SandboxService>({} as SandboxService, {
+  get(_t, prop) {
+    const inst = (_sandboxCache ??= new SandboxService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_SANDBOX_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

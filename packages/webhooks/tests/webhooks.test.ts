@@ -37,14 +37,14 @@ function pageWrap<T>(items: T[]) {
 describe("WebhooksService", () => {
   it("lists endpoints (paginated)", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/webhooks", body: pageWrap([mockWebhook]) },
+      { method: "GET", path: "/webhooks", body: pageWrap([mockWebhook]) },
     ]);
     const result = await service.endpoints.list();
     expect(result.data).toHaveLength(1);
   });
   it("creates an endpoint", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/webhooks", body: mockWebhook },
+      { method: "POST", path: "/webhooks", body: mockWebhook },
     ]);
     const result = await service.endpoints.create({
       url: "https://hooks.example.com",
@@ -56,7 +56,7 @@ describe("WebhooksService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/webhooks/wh_1/rotate-secret",
+        path: "/webhooks/wh_1/rotate-secret",
         body: { secret: "new_secret" },
       },
     ]);
@@ -67,7 +67,7 @@ describe("WebhooksService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/webhooks/deliveries/dlv_1/retry",
+        path: "/webhooks/deliveries/dlv_1/retry",
         body: { id: "dlv_1", status: "success" },
       },
     ]);
@@ -78,7 +78,7 @@ describe("WebhooksService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/webhooks/stats",
+        path: "/webhooks/stats",
         body: {
           total_deliveries: 100,
           success_rate: 0.98,

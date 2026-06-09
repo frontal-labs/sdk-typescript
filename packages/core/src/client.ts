@@ -24,11 +24,23 @@ export class FrontalClient {
       writable: false,
       enumerable: true,
     });
+    const http = new HttpClient(config);
     Object.defineProperty(this, "_http", {
-      value: new HttpClient(config),
+      value: http,
       writable: false,
       enumerable: true,
     });
+    Object.defineProperty(this, "httpClient", {
+      get() {
+        return http;
+      },
+      enumerable: true,
+    });
+  }
+
+  /** Public accessor for the underlying HttpClient. */
+  get httpClient(): HttpClient {
+    return this._http;
   }
 
   async get<T>(path: string, schema?: z.ZodType<T>): Promise<T> {
@@ -114,18 +126,21 @@ export class FrontalClient {
 
 export const getDefaultClient = (): FrontalClient => {
   const env = keys.client.safeParse(process.env);
-  const parsed = env.success
-    ? env.data
-    : { FRONTAL_API_KEY: "placeholder-key" };
+  if (!env.success) {
+    throw new Error(
+      "FRONTAL_API_KEY environment variable is required. " +
+        "Set it in your environment or pass apiKey explicitly to new FrontalClient()."
+    );
+  }
 
   return new FrontalClient({
-    apiKey: parsed.FRONTAL_API_KEY,
+    apiKey: env.data.FRONTAL_API_KEY,
     baseUrl: process.env.FRONTAL_API_URL || "https://api.frontal.dev/v1",
     timeout: 30_000,
     maxRetries: 3,
     retryDelay: 1000,
     headers: {},
-    environment: parsed.FRONTAL_ENVIRONMENT ?? "development",
-    debug: parsed.FRONTAL_DEBUG ?? false,
+    environment: env.data.FRONTAL_ENVIRONMENT ?? "development",
+    debug: env.data.FRONTAL_DEBUG ?? false,
   });
 };

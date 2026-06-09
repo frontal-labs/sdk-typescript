@@ -307,6 +307,27 @@ export const EscalateOptionsSchema = z.object({
   deadline: z.string().optional(),
 });
 
+// Shared interfaces
+export interface AgentMetrics {
+  executionsToday: number;
+  escalationRate: number;
+  avgExecutionMs: number;
+  successRate: number;
+}
+
+export interface Experiment {
+  id: string;
+  name: string;
+  status: string;
+  variants: unknown[];
+  metric: string;
+  metricDirection: string;
+  duration: string;
+  minSampleSize?: number;
+  winnerVariant?: string;
+  promoteToProduction?: boolean;
+}
+
 // Inferred types
 export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
 export type Agent = z.infer<typeof AgentSchema>;

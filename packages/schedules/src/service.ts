@@ -1,15 +1,11 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
   type PaginationMeta,
 } from "@frontal-labs/core";
 import type { Schedule, ScheduleRun } from "./schemas";
-
-const asPagePayload = <T>(
-  raw: unknown
-): { data: T[]; pagination: PaginationMeta; meta?: unknown } =>
-  raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class SchedulesService {
   readonly runs: RunsNamespace;
@@ -23,7 +19,7 @@ export class SchedulesService {
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Schedule>> {
-    const raw = await this.http.get("/v1/schedules", opts);
+    const raw = await this.http.get("/schedules", opts);
     return createPageResult(asPagePayload<Schedule>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
@@ -36,7 +32,7 @@ export class SchedulesService {
     target: { type: string; id: string };
     payload?: Record<string, unknown>;
   }): Promise<Schedule> {
-    return this.http.post("/v1/schedules", input);
+    return this.http.post("/schedules", input);
   }
 
   async get(id: string): Promise<Schedule> {
@@ -91,12 +87,12 @@ export class CronNamespace {
   async validate(
     expression: string
   ): Promise<{ valid: boolean; error?: string }> {
-    return this.http.post("/v1/schedules/cron/validate", { expression });
+    return this.http.post("/schedules/cron/validate", { expression });
   }
   async nextRuns(
     expression: string,
     count?: number
   ): Promise<{ runs: string[] }> {
-    return this.http.post("/v1/schedules/cron/next", { expression, count });
+    return this.http.post("/schedules/cron/next", { expression, count });
   }
 }

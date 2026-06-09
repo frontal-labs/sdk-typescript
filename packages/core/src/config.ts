@@ -61,6 +61,12 @@ export const clientConfigSchema = z
         error: loggerFnSchema.optional(),
       })
       .optional(),
+    circuitBreaker: z
+      .object({
+        failureThreshold: z.number().int().positive().default(5),
+        resetTimeoutMs: z.number().int().positive().default(30_000),
+      })
+      .optional(),
   })
   .strict();
 

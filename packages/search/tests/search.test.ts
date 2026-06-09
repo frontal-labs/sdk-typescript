@@ -36,7 +36,7 @@ const mockResponse = {
 describe("SearchService", () => {
   it("performs unified search", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/search", body: mockResponse },
+      { method: "POST", path: "/search", body: mockResponse },
     ]);
     const result = await service.search({ query: "red shoes" });
     expect(result.results).toHaveLength(1);
@@ -47,7 +47,7 @@ describe("SearchService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/search/vector",
+        path: "/search/vector",
         body: { results: [mockResult], total: 1 },
       },
     ]);
@@ -62,7 +62,7 @@ describe("SearchService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/search/semantic",
+        path: "/search/semantic",
         body: { results: [mockResult], total: 1 },
       },
     ]);
@@ -76,7 +76,7 @@ describe("SearchService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/search/structured",
+        path: "/search/structured",
         body: { results: [mockResult], total: 1 },
       },
     ]);
@@ -89,7 +89,7 @@ describe("SearchService", () => {
 
   it("performs hybrid search", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/search/hybrid", body: mockResponse },
+      { method: "POST", path: "/search/hybrid", body: mockResponse },
     ]);
     const result = await service.hybridSearch({ query: "red shoes" });
     expect(result.total.vector).toBe(1);
@@ -99,7 +99,7 @@ describe("SearchService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/search/sources",
+        path: "/search/sources",
         body: {
           indexes: [],
           entity_types: [],

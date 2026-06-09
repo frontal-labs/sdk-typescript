@@ -23,7 +23,7 @@ export function createPipelinesClient(
   clientOrConfig: FrontalClient | PipelinesClientConfig
 ): PipelinesService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new PipelinesService(clientOrConfig._http);
+    return new PipelinesService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -43,7 +43,18 @@ export function createPipelinesClient(
 }
 
 // Default instance that works automatically with environment variables
-export const pipelines = new PipelinesService(getDefaultClient()._http);
+let _pipelinesCache: PipelinesService | undefined;
+export const pipelines = new Proxy<PipelinesService>({} as PipelinesService, {
+  get(_t, prop) {
+    const inst = (_pipelinesCache ??= new PipelinesService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export * from "./schemas";
 export { PipelinesService } from "./service";

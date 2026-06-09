@@ -23,7 +23,7 @@ export function createWorkflowsClient(
   clientOrConfig: FrontalClient | WorkflowsClientConfig
 ): WorkflowsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new WorkflowsService(clientOrConfig._http);
+    return new WorkflowsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -43,7 +43,18 @@ export function createWorkflowsClient(
 }
 
 // Default instance that works automatically with environment variables
-export const workflows = new WorkflowsService(getDefaultClient()._http);
+let _workflowsCache: WorkflowsService | undefined;
+export const workflows = new Proxy<WorkflowsService>({} as WorkflowsService, {
+  get(_t, prop) {
+    const inst = (_workflowsCache ??= new WorkflowsService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export * from "./schemas";
 export { WorkflowsService } from "./service";

@@ -23,7 +23,7 @@ export function createObservabilityClient(
   clientOrConfig: FrontalClient | ObservabilityClientConfig
 ): ObservabilityService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new ObservabilityService(clientOrConfig._http);
+    return new ObservabilityService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -42,7 +42,21 @@ export function createObservabilityClient(
   return new ObservabilityService(http);
 }
 
-export const observability = new ObservabilityService(getDefaultClient()._http);
+let _observabilityCache: ObservabilityService | undefined;
+export const observability = new Proxy<ObservabilityService>(
+  {} as ObservabilityService,
+  {
+    get(_t, prop) {
+      const inst = (_observabilityCache ??= new ObservabilityService(
+        getDefaultClient().httpClient
+      ));
+      const val = (inst as Record<string | symbol, unknown>)[prop];
+      return typeof val === "function"
+        ? (val as (...args: unknown[]) => unknown).bind(inst)
+        : val;
+    },
+  }
+);
 
 export { DEFAULT_OBSERVABILITY_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

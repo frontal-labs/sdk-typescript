@@ -31,7 +31,7 @@ describe("PipelinesService", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: "/v1/data/pipelines/pipelines",
+          path: "/data/pipelines/pipelines",
           body: mockPageResponse(items),
         },
       ]);
@@ -39,7 +39,7 @@ describe("PipelinesService", () => {
       const result = await service.list();
 
       expect(result.data).toHaveLength(2);
-      mock.expectCalled("GET", "/v1/data/pipelines/pipelines");
+      mock.expectCalled("GET", "/data/pipelines/pipelines");
     });
   });
 
@@ -47,7 +47,7 @@ describe("PipelinesService", () => {
     it("creates a pipeline from definition", async () => {
       const ppl = pipeline({ name: "ingest-users" });
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/data/pipelines/pipelines", body: ppl },
+        { method: "POST", path: "/data/pipelines/pipelines", body: ppl },
       ]);
 
       const result = await service.create({
@@ -57,7 +57,7 @@ describe("PipelinesService", () => {
       });
 
       expect(result.name).toBe("ingest-users");
-      mock.expectCalled("POST", "/v1/data/pipelines/pipelines");
+      mock.expectCalled("POST", "/data/pipelines/pipelines");
     });
   });
 });
@@ -66,7 +66,7 @@ describe("PipelineBuilder", () => {
   it("builds a pipeline with fluent API", async () => {
     const ppl = pipeline({ name: "user-sync" });
     const { service, mock } = createService([
-      { method: "POST", path: "/v1/data/pipelines/pipelines", body: ppl },
+      { method: "POST", path: "/data/pipelines/pipelines", body: ppl },
     ]);
 
     await service
@@ -82,13 +82,13 @@ describe("PipelineBuilder", () => {
       .tags("sync", "users")
       .create();
 
-    mock.expectCalled("POST", "/v1/data/pipelines/pipelines");
+    mock.expectCalled("POST", "/data/pipelines/pipelines");
   });
 
   it("supports webhook source", async () => {
     const ppl = pipeline({ name: "webhook-ingest" });
     const { service, mock } = createService([
-      { method: "POST", path: "/v1/data/pipelines/pipelines", body: ppl },
+      { method: "POST", path: "/data/pipelines/pipelines", body: ppl },
     ]);
 
     await service
@@ -98,13 +98,13 @@ describe("PipelineBuilder", () => {
       .write("store", {})
       .create();
 
-    mock.expectCalled("POST", "/v1/data/pipelines/pipelines");
+    mock.expectCalled("POST", "/data/pipelines/pipelines");
   });
 
   it("supports schedule source", async () => {
     const ppl = pipeline({ name: "daily-sync" });
     const { service, mock } = createService([
-      { method: "POST", path: "/v1/data/pipelines/pipelines", body: ppl },
+      { method: "POST", path: "/data/pipelines/pipelines", body: ppl },
     ]);
 
     await service
@@ -117,27 +117,27 @@ describe("PipelineBuilder", () => {
       .collect("fetch", {})
       .create();
 
-    mock.expectCalled("POST", "/v1/data/pipelines/pipelines");
+    mock.expectCalled("POST", "/data/pipelines/pipelines");
   });
 
   it("supports manual source", async () => {
     const ppl = pipeline({ name: "ad-hoc" });
     const { service, mock } = createService([
-      { method: "POST", path: "/v1/data/pipelines/pipelines", body: ppl },
+      { method: "POST", path: "/data/pipelines/pipelines", body: ppl },
     ]);
 
     await service.define("ad-hoc").fromManual().collect("gather", {}).create();
 
-    mock.expectCalled("POST", "/v1/data/pipelines/pipelines");
+    mock.expectCalled("POST", "/data/pipelines/pipelines");
   });
 
   it("creates and activates in one call", async () => {
     const ppl = pipeline({ id: "ppl_1", name: "auto-activate" });
     const { service, mock } = createService([
-      { method: "POST", path: "/v1/data/pipelines/pipelines", body: ppl },
+      { method: "POST", path: "/data/pipelines/pipelines", body: ppl },
       {
         method: "POST",
-        path: "/v1/data/pipelines/runs",
+        path: "/data/pipelines/runs",
         body: { ...ppl, status: "active" },
       },
     ]);
@@ -148,8 +148,8 @@ describe("PipelineBuilder", () => {
       .collect("gather", {})
       .activate();
 
-    mock.expectCalled("POST", "/v1/data/pipelines/pipelines");
-    mock.expectCalled("POST", "/v1/data/pipelines/runs");
+    mock.expectCalled("POST", "/data/pipelines/pipelines");
+    mock.expectCalled("POST", "/data/pipelines/runs");
   });
 });
 
@@ -345,13 +345,13 @@ describe("LineageNamespace", () => {
     it("fetches lineage graph", async () => {
       const body = { nodes: [], edges: [] };
       const { service, mock } = createService([
-        { method: "GET", path: "/v1/data/pipelines/info", body },
+        { method: "GET", path: "/data/pipelines/info", body },
       ]);
 
       const result = await service.lineage.graph();
 
       expect(result.nodes).toEqual([]);
-      mock.expectCalled("GET", "/v1/data/pipelines/info");
+      mock.expectCalled("GET", "/data/pipelines/info");
     });
   });
 
@@ -359,13 +359,13 @@ describe("LineageNamespace", () => {
     it("fetches upstream lineage", async () => {
       const body = { pipelines: [pipeline()], entities: [] };
       const { service, mock } = createService([
-        { method: "GET", path: "/v1/data/pipelines/info", body },
+        { method: "GET", path: "/data/pipelines/info", body },
       ]);
 
       const result = await service.lineage.upstream("user", "ent_1");
 
       expect(result.pipelines).toHaveLength(1);
-      mock.expectCalled("GET", "/v1/data/pipelines/info");
+      mock.expectCalled("GET", "/data/pipelines/info");
     });
   });
 
@@ -378,7 +378,7 @@ describe("LineageNamespace", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: "/v1/data/pipelines/info",
+          path: "/data/pipelines/info",
           body,
         },
       ]);
@@ -386,7 +386,7 @@ describe("LineageNamespace", () => {
       const result = await service.lineage.downstream("user", "ent_1");
 
       expect(result.entities).toHaveLength(1);
-      mock.expectCalled("GET", "/v1/data/pipelines/info");
+      mock.expectCalled("GET", "/data/pipelines/info");
     });
   });
 });

@@ -1,15 +1,11 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
   type PaginationMeta,
 } from "@frontal-labs/core";
 import type { Webhook, DeliveryAttempt, WebhookStats } from "./schemas";
-
-const asPagePayload = <T>(
-  raw: unknown
-): { data: T[]; pagination: PaginationMeta; meta?: unknown } =>
-  raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class WebhooksService {
   readonly endpoints: EndpointsNamespace;
@@ -28,13 +24,13 @@ export class EndpointsNamespace {
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Webhook>> {
-    const raw = await this.http.get("/v1/webhooks", opts);
+    const raw = await this.http.get("/webhooks", opts);
     return createPageResult(asPagePayload<Webhook>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
   }
   async create(input: { url: string; events: string[] }): Promise<Webhook> {
-    return this.http.post("/v1/webhooks", input);
+    return this.http.post("/webhooks", input);
   }
   async get(id: string): Promise<Webhook> {
     return this.http.get(`/v1/webhooks/${id}`);
@@ -63,7 +59,7 @@ export class DeliveriesNamespace {
       cursor?: string;
     } = {}
   ): Promise<PageResult<DeliveryAttempt>> {
-    const raw = await this.http.get("/v1/webhooks/deliveries", opts);
+    const raw = await this.http.get("/webhooks/deliveries", opts);
     return createPageResult(asPagePayload<DeliveryAttempt>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
@@ -78,15 +74,9 @@ export class DeliveriesNamespace {
 
 export class StatsNamespace {
   constructor(private readonly http: HttpClient) {}
-  /** @deprecated Use {@link get} instead. */
-  async getStats(
-    opts: { webhookId?: string; from?: string; to?: string } = {}
-  ): Promise<WebhookStats> {
-    return this.get(opts);
-  }
   async get(
     opts: { webhookId?: string; from?: string; to?: string } = {}
   ): Promise<WebhookStats> {
-    return this.http.get("/v1/webhooks/stats", opts);
+    return this.http.get("/webhooks/stats", opts);
   }
 }

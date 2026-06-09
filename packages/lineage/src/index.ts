@@ -21,7 +21,7 @@ export function createLineageClient(
   clientOrConfig: FrontalClient | LineageClientConfig
 ): LineageService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new LineageService(clientOrConfig._http);
+    return new LineageService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -40,7 +40,18 @@ export function createLineageClient(
   return new LineageService(http);
 }
 
-export const lineage = new LineageService(getDefaultClient()._http);
+let _lineageCache: LineageService | undefined;
+export const lineage = new Proxy<LineageService>({} as LineageService, {
+  get(_t, prop) {
+    const inst = (_lineageCache ??= new LineageService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_LINEAGE_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

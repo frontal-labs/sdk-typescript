@@ -40,7 +40,7 @@ describe("GovernanceService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/governance/policies/pol_1/evaluate",
+        path: "/governance/policies/pol_1/evaluate",
         body: { policy_id: "pol_1", passed: true, rule_results: [] },
       },
     ]);
@@ -51,7 +51,7 @@ describe("GovernanceService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/governance/policies",
+        path: "/governance/policies",
         body: pageWrap([mockPolicy]),
       },
     ]);
@@ -62,7 +62,7 @@ describe("GovernanceService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/governance/policies/pol_1/enable",
+        path: "/governance/policies/pol_1/enable",
         body: mockPolicy,
       },
     ]);
@@ -73,7 +73,7 @@ describe("GovernanceService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/governance/policies/pol_1/disable",
+        path: "/governance/policies/pol_1/disable",
         body: mockPolicy,
       },
     ]);
@@ -84,7 +84,7 @@ describe("GovernanceService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/governance/rbac/check",
+        path: "/governance/rbac/check",
         body: { allowed: true },
       },
     ]);

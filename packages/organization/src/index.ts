@@ -23,7 +23,7 @@ export function createOrganizationClient(
   clientOrConfig: FrontalClient | OrganizationClientConfig
 ): OrganizationService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new OrganizationService(clientOrConfig._http);
+    return new OrganizationService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -42,7 +42,21 @@ export function createOrganizationClient(
   return new OrganizationService(http);
 }
 
-export const organization = new OrganizationService(getDefaultClient()._http);
+let _organizationCache: OrganizationService | undefined;
+export const organization = new Proxy<OrganizationService>(
+  {} as OrganizationService,
+  {
+    get(_t, prop) {
+      const inst = (_organizationCache ??= new OrganizationService(
+        getDefaultClient().httpClient
+      ));
+      const val = (inst as Record<string | symbol, unknown>)[prop];
+      return typeof val === "function"
+        ? (val as (...args: unknown[]) => unknown).bind(inst)
+        : val;
+    },
+  }
+);
 
 export { DEFAULT_ORG_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

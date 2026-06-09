@@ -21,7 +21,7 @@ export function createAgentsClient(
   clientOrConfig: FrontalClient | AgentsClientConfig
 ): AgentsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new AgentsService(clientOrConfig._http);
+    return new AgentsService(clientOrConfig.httpClient);
   }
 
   const baseUrl =
@@ -45,7 +45,18 @@ export function createAgentsClient(
 }
 
 // Default instance that works automatically with environment variables
-export const agents = new AgentsService(getDefaultClient()._http);
+let _agentsCache: AgentsService | undefined;
+export const agents = new Proxy<AgentsService>({} as AgentsService, {
+  get(_t, prop) {
+    const inst = (_agentsCache ??= new AgentsService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export type { AgentContext, AgentHandler } from "./context";
 export * from "./schemas";

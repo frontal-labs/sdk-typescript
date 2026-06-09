@@ -23,7 +23,7 @@ export function createOntologyClient(
   clientOrConfig: FrontalClient | OntologyClientConfig
 ): OntologyService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new OntologyService(clientOrConfig._http);
+    return new OntologyService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -43,7 +43,18 @@ export function createOntologyClient(
 }
 
 // Default instance that works automatically with environment variables
-export const ontology = new OntologyService(getDefaultClient()._http);
+let _ontologyCache: OntologyService | undefined;
+export const ontology = new Proxy<OntologyService>({} as OntologyService, {
+  get(_t, prop) {
+    const inst = (_ontologyCache ??= new OntologyService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export * from "./schemas";
 export { OntologyService } from "./service";

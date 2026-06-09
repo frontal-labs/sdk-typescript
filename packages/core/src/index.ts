@@ -33,7 +33,11 @@ export { HttpClient } from "./http";
 // Environment variable management
 export { keys } from "./keys";
 // Pagination utilities
-export { createPageResult, pageResultSchema } from "./pagination";
+export {
+  asPagePayload,
+  createPageResult,
+  pageResultSchema,
+} from "./pagination";
 export type { PollOptions } from "./polling";
 // Polling utilities
 export { pollUntil, withTimeout } from "./polling";
@@ -71,6 +75,9 @@ export {
   retryConfigSchema,
   timestampSchema,
 } from "./schemas";
+// Route builder utility
+export { route } from "./route-builder";
+
 // Core types and interfaces
 export type {
   APIResponse,

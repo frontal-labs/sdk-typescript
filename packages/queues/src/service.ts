@@ -1,15 +1,11 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
   type PaginationMeta,
 } from "@frontal-labs/core";
 import type { Queue, Job } from "./schemas";
-
-const asPagePayload = <T>(
-  raw: unknown
-): { data: T[]; pagination: PaginationMeta; meta?: unknown } =>
-  raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class QueuesService {
   readonly jobs: JobsNamespace;
@@ -21,7 +17,7 @@ export class QueuesService {
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Queue>> {
-    const raw = await this.http.get("/v1/queues", opts);
+    const raw = await this.http.get("/queues", opts);
     return createPageResult(asPagePayload<Queue>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
@@ -31,27 +27,27 @@ export class QueuesService {
     name: string;
     maxConcurrency?: number;
   }): Promise<Queue> {
-    return this.http.post("/v1/queues", input);
+    return this.http.post("/queues", input);
   }
 
   async get(id: string): Promise<Queue> {
-    return this.http.get(`/v1/queues/${id}`);
+    return this.http.get(`/queues/${id}`);
   }
 
   async update(id: string, input: Partial<Queue>): Promise<Queue> {
-    return this.http.put(`/v1/queues/${id}`, input);
+    return this.http.put(`/queues/${id}`, input);
   }
 
   async delete(id: string): Promise<void> {
-    return this.http.delete(`/v1/queues/${id}`);
+    return this.http.delete(`/queues/${id}`);
   }
 
   async pause(id: string): Promise<Queue> {
-    return this.http.post(`/v1/queues/${id}/pause`, {});
+    return this.http.post(`/queues/${id}/pause`, {});
   }
 
   async resume(id: string): Promise<Queue> {
-    return this.http.post(`/v1/queues/${id}/resume`, {});
+    return this.http.post(`/queues/${id}/resume`, {});
   }
 }
 
@@ -62,24 +58,24 @@ export class JobsNamespace {
     payload: Record<string, unknown>,
     opts?: { scheduledAt?: string }
   ): Promise<Job> {
-    return this.http.post(`/v1/queues/${queueId}/jobs`, { payload, ...opts });
+    return this.http.post(`/queues/${queueId}/jobs`, { payload, ...opts });
   }
   async get(queueId: string, jobId: string): Promise<Job> {
-    return this.http.get(`/v1/queues/${queueId}/jobs/${jobId}`);
+    return this.http.get(`/queues/${queueId}/jobs/${jobId}`);
   }
   async cancel(queueId: string, jobId: string): Promise<void> {
-    return this.http.delete(`/v1/queues/${queueId}/jobs/${jobId}`);
+    return this.http.delete(`/queues/${queueId}/jobs/${jobId}`);
   }
   async list(
     queueId: string,
     opts: { status?: string; limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Job>> {
-    const raw = await this.http.get(`/v1/queues/${queueId}/jobs`, opts);
+    const raw = await this.http.get(`/queues/${queueId}/jobs`, opts);
     return createPageResult(asPagePayload<Job>(raw), (cursor) =>
       this.list(queueId, { ...opts, cursor })
     );
   }
   async retry(queueId: string, jobId: string): Promise<Job> {
-    return this.http.post(`/v1/queues/${queueId}/jobs/${jobId}/retry`, {});
+    return this.http.post(`/queues/${queueId}/jobs/${jobId}/retry`, {});
   }
 }

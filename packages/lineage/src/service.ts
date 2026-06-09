@@ -1,15 +1,11 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
   type PaginationMeta,
 } from "@frontal-labs/core";
 import type { LineageNode, LineageEdge, LineageGraph } from "./schemas";
-
-const asPagePayload = <T>(
-  raw: unknown
-): { data: T[]; pagination: PaginationMeta; meta?: unknown } =>
-  raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 
 export class LineageService {
   readonly graph: GraphNamespace;
@@ -31,7 +27,7 @@ export class GraphNamespace {
     resourceId: string,
     opts?: { depth?: number }
   ): Promise<LineageGraph> {
-    return this.http.get("/v1/lineage/graph", {
+    return this.http.get("/lineage/graph", {
       resourceId,
       ...opts,
     });
@@ -43,16 +39,16 @@ export class NodesNamespace {
   async list(
     opts: { type?: string; limit?: number; cursor?: string } = {}
   ): Promise<PageResult<LineageNode>> {
-    const raw = await this.http.get("/v1/lineage/nodes", opts);
+    const raw = await this.http.get("/lineage/nodes", opts);
     return createPageResult(asPagePayload<LineageNode>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
   }
   async get(id: string): Promise<LineageNode> {
-    return this.http.get(`/v1/lineage/nodes/${id}`);
+    return this.http.get(`/lineage/nodes/${id}`);
   }
   async trace(id: string): Promise<LineageGraph> {
-    return this.http.get(`/v1/lineage/nodes/${id}/trace`);
+    return this.http.get(`/lineage/nodes/${id}/trace`);
   }
 }
 
@@ -66,13 +62,13 @@ export class EdgesNamespace {
       cursor?: string;
     } = {}
   ): Promise<PageResult<LineageEdge>> {
-    const raw = await this.http.get("/v1/lineage/edges", opts);
+    const raw = await this.http.get("/lineage/edges", opts);
     return createPageResult(asPagePayload<LineageEdge>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
   }
   async get(id: string): Promise<LineageEdge> {
-    return this.http.get(`/v1/lineage/edges/${id}`);
+    return this.http.get(`/lineage/edges/${id}`);
   }
 }
 
@@ -89,7 +85,7 @@ export class ImpactNamespace {
       impact: string;
     }[];
   }> {
-    return this.http.post("/v1/lineage/impact", {
+    return this.http.post("/lineage/impact", {
       resourceId,
       change,
     });

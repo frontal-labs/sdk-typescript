@@ -19,7 +19,7 @@ export function createEventsClient(
   clientOrConfig: FrontalClient | EventsClientConfig
 ): EventsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new EventsService(clientOrConfig._http);
+    return new EventsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -38,7 +38,18 @@ export function createEventsClient(
   return new EventsService(http);
 }
 
-export const events = new EventsService(getDefaultClient()._http);
+let _eventsCache: EventsService | undefined;
+export const events = new Proxy<EventsService>({} as EventsService, {
+  get(_t, prop) {
+    const inst = (_eventsCache ??= new EventsService(
+      getDefaultClient().httpClient
+    ));
+    const val = (inst as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_EVENTS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

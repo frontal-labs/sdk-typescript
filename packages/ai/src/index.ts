@@ -29,7 +29,7 @@ export function createAIClient(
   clientOrConfig: FrontalClient | AIClientConfig
 ): AIService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new AIService(clientOrConfig._http);
+    return new AIService(clientOrConfig.httpClient);
   }
 
   const baseUrl =
