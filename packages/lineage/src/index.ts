@@ -46,7 +46,7 @@ export const lineage = new Proxy<LineageService>({} as LineageService, {
     const inst = (_lineageCache ??= new LineageService(
       getDefaultClient().httpClient
     ));
-    const val = (inst as Record<string | symbol, unknown>)[prop];
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)
       : val;

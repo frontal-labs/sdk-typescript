@@ -46,7 +46,7 @@ export const sandbox = new Proxy<SandboxService>({} as SandboxService, {
     const inst = (_sandboxCache ??= new SandboxService(
       getDefaultClient().httpClient
     ));
-    const val = (inst as Record<string | symbol, unknown>)[prop];
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)
       : val;

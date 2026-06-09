@@ -51,7 +51,7 @@ export const agents = new Proxy<AgentsService>({} as AgentsService, {
     const inst = (_agentsCache ??= new AgentsService(
       getDefaultClient().httpClient
     ));
-    const val = (inst as Record<string | symbol, unknown>)[prop];
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)
       : val;

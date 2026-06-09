@@ -27,7 +27,7 @@ import {
  * ```
  */
 export class BlobService {
-  private static readonly BASE_PATH = BlobService.BASE_PATH;
+  private static readonly BASE_PATH = "/storage/lake/lake/tables";
 
   constructor(private readonly http: HttpClient) {}
 

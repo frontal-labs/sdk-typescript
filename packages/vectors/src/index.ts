@@ -46,7 +46,7 @@ export const vectors = new Proxy<VectorsService>({} as VectorsService, {
     const inst = (_vectorsCache ??= new VectorsService(
       getDefaultClient().httpClient
     ));
-    const val = (inst as Record<string | symbol, unknown>)[prop];
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
     return typeof val === "function"
       ? (val as (...args: unknown[]) => unknown).bind(inst)
       : val;
