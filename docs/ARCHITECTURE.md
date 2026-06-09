@@ -1,6 +1,7 @@
 # Architecture Overview
 
-This SDK is designed as a modular monorepo, allowing for clear separation of concerns and independent versioning of components.
+This SDK is designed as a modular monorepo, allowing for clear separation of
+concerns and independent versioning of components.
 
 ## Core Components
 
@@ -16,14 +17,15 @@ Shared transport primitives and defaults used by all domain SDKs:
 
 ### 2. SDK (`@frontal-labs/sdk`)
 
-Unified SDK client aggregating all Frontal services into a single `Sdk` class with
-lazy-loaded service accessors. Re-exports every individual service singleton.
+Unified SDK client aggregating all Frontal services into a single `Sdk` class
+with lazy-loaded service accessors. Re-exports every individual service
+singleton.
 
 ### 3. Testing (`@frontal-labs/testing`)
 
-Reusable mock clients, fixtures, and helper utilities used by test suites
-to enforce consistent behavior. Includes mock fetch with route matching,
-test client factories, integration harnesses, and entity fixtures.
+Reusable mock clients, fixtures, and helpers used by package test suites.
+Includes mock fetch with route matching, test client factories, integration
+harnesses, and entity fixtures.
 
 ### 4. AI (`@frontal-labs/ai`)
 
@@ -32,8 +34,8 @@ streaming responses.
 
 ### 5. Agents (`@frontal-labs/agents`)
 
-Define, deploy, and observe AI agents with LangChain, LangGraph, and
-Vercel AI SDK integration.
+Define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI
+SDK integration.
 
 ### 6. Audit (`@frontal-labs/audit`)
 
@@ -41,7 +43,8 @@ Audit trails, event logging, compliance checks, and CSV/JSON export.
 
 ### 7. Auth (`@frontal-labs/auth`)
 
-GoTrue-compatible authentication with MFA, OAuth, SSO, and admin user management.
+GoTrue-compatible authentication with MFA, OAuth, SSO, and admin user
+management.
 
 ### 8. Billing (`@frontal-labs/billing`)
 
@@ -61,8 +64,8 @@ Dataset CRUD with versioning, data operations, and import/export.
 
 ### 12. Events (`@frontal-labs/events`)
 
-Pub/sub event bus with client-side buffering, dead-letter queues, and
-schema registry.
+Pub/sub event bus with client-side buffering, dead-letter queues, and schema
+registry.
 
 ### 13. Flags (`@frontal-labs/flags`)
 
@@ -103,7 +106,8 @@ Multi-tenancy with tenants, teams, members, roles, and invitations.
 
 ### 22. Pipelines (`@frontal-labs/pipelines`)
 
-Declarative data pipelines with substrate orchestration and graph entity awareness.
+Declarative data pipelines with substrate orchestration and graph entity
+awareness.
 
 ### 23. Queues (`@frontal-labs/queues`)
 
@@ -127,7 +131,8 @@ Embeddings store with similarity search, hybrid search, and AI bridge.
 
 ### 28. Webhooks (`@frontal-labs/webhooks`)
 
-Endpoint management with HMAC signature verification, delivery tracking, and stats.
+Endpoint management with HMAC signature verification, delivery tracking, and
+stats.
 
 ### 29. Workflows (`@frontal-labs/workflows`)
 
@@ -137,7 +142,8 @@ Workflow orchestration with approvals and steps.
 
 We use **Turborepo** to manage our build pipeline. It provides:
 - **Remote Caching**: Speeds up CI/CD pipeline.
-- **Task Orchestration**: Runs tasks (build, lint, test) in the correct order based on dependency graphs.
+- **Task Orchestration**: Runs tasks (build, lint, test) in the correct order
+  based on dependency graphs.
 - **Parallel Execution**: Maximizes CPU usage during builds.
 
 ## Dependency Management
@@ -149,4 +155,6 @@ We use **Turborepo** to manage our build pipeline. It provides:
 
 ## Release Strategy
 
-We use **Changesets** to manage the versioning and publishing of our packages. This ensures that only changed packages are versioned and published, with automated changelog generation.
+We use **Changesets** to manage the versioning and publishing of our packages.
+This ensures that only changed packages are versioned and published, with
+automated changelog generation.

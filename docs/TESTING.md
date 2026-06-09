@@ -1,6 +1,7 @@
 # Testing Guide
 
-This guide covers testing strategies, tools, and best practices for the Frontal SDK monorepo.
+This guide covers testing strategies, tools, and best practices for the Frontal
+SDK monorepo.
 
 ## Testing Stack
 
@@ -8,7 +9,7 @@ We use a modern testing stack to ensure code quality and reliability:
 
 - **Bun Test** - Fast test runner built into Bun, compatible with Vitest APIs
 - **Vitest** - Test utilities (`describe`, `it`, `expect`, `vi`, `mock`, etc.)
-- **@frontal-labs/testing** - Shared mock clients, fixtures, and test harness utilities
+- **@frontal-labs/testing** - Shared mock clients, fixtures, and test harness
 - **Biome** - Linting and formatting for consistent code style
 
 ## Test Structure
@@ -61,16 +62,12 @@ bun run test:live
 ```typescript
 import { describe, it, expect } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import { createAIClient, AIService } from "../src";
+import { AIService } from "../src";
 
 describe("AIService", () => {
   it("should send a generate text request", async () => {
     const { http } = createTestHttpClient([
-      {
-        method: "POST",
-        path: "/ai/chat/completions",
-        body: { text: "Hello from AI" },
-      },
+      { method: "POST", path: "/v1/generate", body: { text: "Hello from AI" } },
     ]);
     const service = new AIService(http);
 
@@ -100,21 +97,13 @@ Use `@frontal-labs/testing` for mock HTTP transport and fixtures:
 import { createTestHttpClient, createMockFetch } from "@frontal-labs/testing";
 
 // Create a test HTTP client that returns canned responses
-const { http } = createTestHttpClient([
-  {
-    method: "GET",
-    path: "/api/endpoint",
-    body: { data: "test response" },
-  },
+const { http, mock } = createTestHttpClient([
+  { method: "GET", path: "/v1/data", body: { data: "test response" } },
 ]);
 
 // Or use mock fetch with route matching
-const { fetch: mockFetch } = createMockFetch([
-  {
-    method: "GET",
-    path: "/api/items",
-    body: { items: [] },
-  },
+const mockFetch = createMockFetch([
+  { method: "GET", path: "/api/items", body: { items: [] } },
 ]);
 ```
 
@@ -154,16 +143,17 @@ bun test --coverage
 ## Integration Testing
 
 ### External Service Testing
-import { createTestHttpClient } from "`@frontal-labs/testing`";
+
+For packages that interact with external services, use the test HTTP client
+from `@frontal-labs/testing` instead of making real network calls:
+
+```typescript
+import { createTestHttpClient } from "@frontal-labs/testing";
 
 describe("Service", () => {
   it("should call the API", async () => {
     const { http } = createTestHttpClient([
-      {
-        method: "GET",
-        path: "/api/resource/1",
-        body: { id: "1", name: "Test" },
-      },
+      { method: "GET", path: "/v1/items/1", body: { id: "1", name: "Test" } },
     ]);
     const service = new MyService(http);
 
@@ -224,11 +214,7 @@ const workflow = fixtures.workflow({ name: "test-workflow" });
 
 // Custom test HTTP client
 const { http } = createTestHttpClient([
-  {
-    method: "GET",
-    path: "/api/endpoint",
-    body: { data: "response" },
-  },
+  { method: "GET", path: "/v1/data", body: { data: "response" } },
 ]);
 ```
 
@@ -274,7 +260,9 @@ afterEach(() => {
 
 - [Vitest Documentation](https://vitest.dev/)
 - [Bun Testing](https://bun.sh/docs/test)
-- [Testing Best Practices](https://github.com/goldbergyoni/javascript-testing-best-practices)
+- [Testing Best Practices][tbp]
+
+[tbp]: https://github.com/goldbergyoni/javascript-testing-best-practices
 
 ## Contributing
 

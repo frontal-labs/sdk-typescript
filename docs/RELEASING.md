@@ -1,20 +1,25 @@
 # Releasing Packages
 
-We use [Changesets](https://github.com/changesets/changesets) to manage versioning and
-publishing to the [npm registry](https://www.npmjs.com/) under the `@frontal-labs` scope
-via [Trusted Publishing](https://docs.npmjs.com/using-private-packages-with-github-actions)
-(OIDC). No long-lived tokens are used — npm trusts GitHub Actions directly.
+We use [Changesets] to manage versioning and publishing to the [npm registry]
+under the `@frontal-labs` scope via [Trusted Publishing][tp] (OIDC). No
+long-lived tokens are used — npm trusts GitHub Actions directly.
 
-All packages are published with [npm provenance](https://docs.npmjs.com/generating-provenance-statements),
-which cryptographically links each published package to its source repository. See
-[NPM_SETUP.md](./NPM_SETUP.md) for the one-time registry and trust configuration.
+All packages are published with [npm provenance], which cryptographically links
+each published package to its source repository. See [NPM_SETUP.md] for the
+one-time registry and trust configuration.
+
+[Changesets]: https://github.com/changesets/changesets
+[npm registry]: https://www.npmjs.com/
+[tp]: https://docs.npmjs.com/using-private-packages-with-github-actions
+[npm provenance]: https://docs.npmjs.com/generating-provenance-statements
+[NPM_SETUP.md]: ./NPM_SETUP.md
 
 ## Release Workflow
 
 ### 1. Add a Changeset
 
-Every pull request that introduces a user-facing change (feature, fix, breaking change) must
-include a changeset file.
+Every pull request that introduces a user-facing change (feature, fix, breaking
+change) must include a changeset file.
 
 ```bash
 bun run changeset
@@ -28,14 +33,15 @@ Follow the prompts to:
 ### 2. CI Creates / Updates the Release PR
 
 When changesets are merged to `main`:
-1. The Changesets GitHub Action opens (or updates) a **"Version Packages"** pull request.
+1. The Changesets GitHub Action opens (or updates) a **"Version Packages"**
+   pull request.
 2. That PR contains the version bumps and generated `CHANGELOG.md` entries.
 3. CI runs the full build + type-check + test suite on the PR.
 
 ### 3. Merge the Release PR
 
-A maintainer reviews and merges the **"Version Packages"** PR into `main`. The merge triggers
-the publish workflow:
+A maintainer reviews and merges the **"Version Packages"** PR into `main`. The
+merge triggers the publish workflow:
 
 1. CI passes (build, type-check, test).
 2. Changesets publishes all updated packages to npm in dependency order.
@@ -46,7 +52,7 @@ the publish workflow:
 
 After publishing, confirm:
 - Packages appear on [npmjs.com](https://www.npmjs.com/) under `@frontal-labs`
-- Packages appear on [GitHub Packages](https://github.com/orgs/frontal-labs/packages?repo_name=sdk-typescript) with the same versions
+- Packages appear on [GitHub Packages] with the same versions
 - Provenance badges are visible on each npm package page
 - GitHub Releases are created with correct changelogs
 
@@ -67,18 +73,19 @@ bun run release
 
 | Step | Trigger | What Happens |
 |:---|:---|:---|
-| Preview publish | PR opened / updated | `pkg-pr-new` publishes preview packages for testing |
-| Release PR | Changesets merged to main | Changesets bot opens a Version Packages PR |
-| Publish | Version Packages PR merged | Packages published to npm with provenance |
-| GitHub Packages | After npm publish | Same versions published to GitHub Packages npm registry |
+| Preview publish | PR opened / updated | `pkg-pr-new` publishes previews |
+| Release PR | Changesets merged to main | Bot opens a Version Packages PR |
+| Publish | Version Packages PR merged | Published to npm with provenance |
+| GitHub Packages | After npm publish | Same versions to GitHub Packages |
 | Docs | After publish | API docs generated and deployed to GitHub Pages |
 
 ## Provenance
 
-Every package includes `"provenance": true` in its `publishConfig`. When published from
-GitHub Actions and Trusted Publishing (which exchanges the `id-token: write` OIDC token),
-npm automatically attaches a provenance statement. Consumers see a "Provenance" badge on
-the package page confirming the package was built from this repository.
+Every package includes `"provenance": true` in its `publishConfig`. When
+published from GitHub Actions and Trusted Publishing (which exchanges the
+`id-token: write` OIDC token), npm automatically attaches a provenance
+statement. Consumers see a "Provenance" badge on the package page confirming
+the package was built from this repository.
 
 ## Package Publishing Order
 
@@ -86,15 +93,19 @@ Changesets resolves the dependency graph and publishes in correct order:
 
 1. `@frontal-labs/core` (no internal dependencies)
 2. `@frontal-labs/testing` (depends on core)
-3. All domain SDKs (depend on `core` at runtime and on `testing` as a devDependency): `@frontal-labs/ai`, `@frontal-labs/agents`,
-   `@frontal-labs/audit`, `@frontal-labs/auth`, `@frontal-labs/billing`,
-   `@frontal-labs/blob`, `@frontal-labs/connectors`, `@frontal-labs/datasets`,
-   `@frontal-labs/events`, `@frontal-labs/flags`, `@frontal-labs/functions`,
-   `@frontal-labs/governance`, `@frontal-labs/graph`, `@frontal-labs/integrations`,
-   `@frontal-labs/lineage`, `@frontal-labs/observability`, `@frontal-labs/ontology`,
-   `@frontal-labs/organization`, `@frontal-labs/pipelines`, `@frontal-labs/queues`,
+3. All domain SDKs (depend on core):
+   `@frontal-labs/ai`, `@frontal-labs/agents`, `@frontal-labs/audit`,
+   `@frontal-labs/auth`, `@frontal-labs/billing`, `@frontal-labs/blob`,
+   `@frontal-labs/connectors`, `@frontal-labs/datasets`,
+   `@frontal-labs/events`, `@frontal-labs/flags`,
+   `@frontal-labs/functions`, `@frontal-labs/governance`,
+   `@frontal-labs/graph`, `@frontal-labs/integrations`,
+   `@frontal-labs/lineage`, `@frontal-labs/observability`,
+   `@frontal-labs/ontology`, `@frontal-labs/organization`,
+   `@frontal-labs/pipelines`, `@frontal-labs/queues`,
    `@frontal-labs/sandbox`, `@frontal-labs/schedules`, `@frontal-labs/search`,
-   `@frontal-labs/vectors`, `@frontal-labs/webhooks`, `@frontal-labs/workflows`
+   `@frontal-labs/vectors`, `@frontal-labs/webhooks`,
+   `@frontal-labs/workflows`
 4. `@frontal-labs/sdk` (depends on all other packages)
 
 ## Version Policy
@@ -139,9 +150,9 @@ The GitHub token must have `read:packages` scope for public packages.
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| `404 Not Found` | Package not yet published to GitHub Packages | Wait for next release, or publish manually |
-| `403 Forbidden` | Workflow lacks `packages: write` permission | Verify `packages: write` in publish.yml |
-| Version mismatch between npm and GitHub Packages | Script skipped due to error | Re-run the workflow or publish manually |
+| `404 Not Found` | Not yet on GitHub Packages | Wait for next release |
+| `403 Forbidden` | Missing `packages: write` | Verify workflow permissions |
+| Version mismatch | Script skipped due to error | Re-run the workflow |
 
 ### Manual GitHub Packages Publish
 
@@ -169,7 +180,7 @@ re-publishing, re-running the workflow on main is the recommended approach.
 
 | Problem | Likely Cause | Fix |
 |:---|:---|:---|
-| `npm ERR! 404` | Package doesn't exist yet | Publish once manually or configure org-level trust |
-| `npm ERR! 403` | Trusted Publisher not configured | Verify owner/repo/workflow in npm package settings |
-| Provenance missing | Not published from CI | Publish from GitHub Actions only |
-| Build failure in CI | Type errors or missing deps | Run `bun run build && bun run type-check` locally |
+| `npm ERR! 404` | Package doesn't exist | Publish manually or configure trust |
+| `npm ERR! 403` | Trusted Publisher missing | Verify owner/repo/workflow |
+| Provenance missing | Not published from CI | Publish from GitHub Actions |
+| Build failure | Type errors or deps | Run `bun run build` locally |
