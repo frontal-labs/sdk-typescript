@@ -12,14 +12,14 @@ export interface QueuesClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createQueuesClient(client: FrontalClient): QueuesService;
-export function createQueuesClient(config: QueuesClientConfig): QueuesService;
+export function createQueuesClient(
+  config: QueuesClientConfig | FrontalClient
+): QueuesService;
 export function createQueuesClient(
   clientOrConfig: FrontalClient | QueuesClientConfig
 ): QueuesService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new QueuesService(clientOrConfig._http);
+    return new QueuesService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -28,7 +28,7 @@ export function createQueuesClient(
       process.env.FRONTAL_QUEUES_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_QUEUES_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -38,7 +38,19 @@ export function createQueuesClient(
   return new QueuesService(http);
 }
 
-export const queues = new QueuesService(getDefaultClient()._http);
+let _queuesCache: QueuesService | undefined;
+export const queues = new Proxy<QueuesService>({} as QueuesService, {
+  get(_t, prop) {
+    if (!_queuesCache) {
+      _queuesCache = new QueuesService(getDefaultClient().httpClient);
+    }
+    const inst = _queuesCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_QUEUES_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

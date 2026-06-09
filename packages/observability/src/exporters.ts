@@ -32,8 +32,6 @@ export function createOtlpExporter(
   };
 }
 
-export function createConsoleExporter(
-  pretty: boolean = false
-): ConsoleExporterConfig {
+export function createConsoleExporter(pretty = false): ConsoleExporterConfig {
   return { type: "console", pretty };
 }

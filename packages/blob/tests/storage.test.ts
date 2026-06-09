@@ -1,5 +1,5 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { BlobService } from "../src/service";
 import { signedUrlOptionsSchema } from "../src/schemas";
 
@@ -14,7 +14,7 @@ describe("BlobService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/storage/lake/lake/tables",
+          path: "/storage/lake/lake/tables",
           status: 204,
         },
       ]);
@@ -28,14 +28,14 @@ describe("BlobService", () => {
         )
       ).resolves.not.toThrow();
 
-      mock.expectCalled("POST", "/v1/storage/lake/lake/tables");
+      mock.expectCalled("POST", "/storage/lake/lake/tables");
     });
 
     it("throws on upload failure", async () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/storage/lake/lake/tables",
+          path: "/storage/lake/lake/tables",
           status: 500,
           body: {
             code: "SERVER_ERROR",
@@ -140,7 +140,7 @@ describe("BlobService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/storage/lake/lake/tables/file.txt/materializations",
+          path: "/storage/lake/lake/tables/file.txt/materializations",
           status: 204,
         },
       ]);
@@ -150,7 +150,7 @@ describe("BlobService", () => {
       ).resolves.not.toThrow();
       mock.expectCalled(
         "POST",
-        "/v1/storage/lake/lake/tables/file.txt/materializations"
+        "/storage/lake/lake/tables/file.txt/materializations"
       );
     });
   });
@@ -178,7 +178,7 @@ describe("BlobService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/storage/lake/lake/tables",
+          path: "/storage/lake/lake/tables",
           body: listResponse,
         },
       ]);
@@ -192,7 +192,7 @@ describe("BlobService", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: "/v1/storage/lake/lake/tables",
+          path: "/storage/lake/lake/tables",
           body: { objects: [] },
         },
       ]);
@@ -209,7 +209,7 @@ describe("BlobService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/storage/lake/lake/tables/my-bucket/materializations",
+          path: "/storage/lake/lake/tables/my-bucket/materializations",
           body: "https://signed.example.com/file.txt?token=abc",
         },
       ]);
@@ -247,7 +247,7 @@ describe("BlobService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/storage/lake/lake/tables/file.txt/materializations",
+          path: "/storage/lake/lake/tables/file.txt/materializations",
           status: 200,
           body: {},
         },
@@ -262,7 +262,7 @@ describe("BlobService", () => {
 
       mock.expectCalledWith(
         "POST",
-        "/v1/storage/lake/lake/tables/file.txt/materializations",
+        "/storage/lake/lake/tables/file.txt/materializations",
         {
           destBucket: "dest-bucket",
           destKey: "copy.txt",
@@ -276,7 +276,7 @@ describe("BlobService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/storage/lake/lake/tables/file.txt/materializations",
+          path: "/storage/lake/lake/tables/file.txt/materializations",
           status: 200,
           body: {},
         },
@@ -291,7 +291,7 @@ describe("BlobService", () => {
 
       mock.expectCalledWith(
         "POST",
-        "/v1/storage/lake/lake/tables/file.txt/materializations",
+        "/storage/lake/lake/tables/file.txt/materializations",
         {
           destBucket: "dest-bucket",
           destKey: "moved.txt",
@@ -312,7 +312,7 @@ describe("BlobService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/v1/storage/lake/lake/tables/file.txt",
+          path: "/storage/lake/lake/tables/file.txt",
           body: metadata,
         },
       ]);

@@ -47,7 +47,7 @@ export const clientConfigSchema = z
       .default(DEFAULT_BASE_URL),
     timeout: z.number().int().positive().default(30_000),
     maxRetries: z.number().int().min(0).max(10).default(3),
-    retryDelay: z.number().int().positive().default(1_000),
+    retryDelay: z.number().int().positive().default(1000),
     headers: headersSchema,
     environment: z.string().default("production"),
     debug: z.boolean().default(false),
@@ -59,6 +59,12 @@ export const clientConfigSchema = z
         request: loggerFnSchema.optional(),
         response: loggerFnSchema.optional(),
         error: loggerFnSchema.optional(),
+      })
+      .optional(),
+    circuitBreaker: z
+      .object({
+        failureThreshold: z.number().int().positive().default(5),
+        resetTimeoutMs: z.number().int().positive().default(30_000),
       })
       .optional(),
   })

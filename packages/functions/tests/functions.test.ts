@@ -1,5 +1,5 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { FunctionsService } from "../src/service";
 import { functionConfigSchema, invokeOptionsSchema } from "../src/schemas";
 
@@ -28,16 +28,14 @@ describe("FunctionsService", () => {
   describe("deploy()", () => {
     it("deploys a function with valid config", async () => {
       const { service, mock } = createService([
-        { method: "POST", path: "/v1/workflows/batch", body: functionEntry },
+        { method: "POST", path: "/functions", body: functionEntry },
       ]);
 
       const result = await service.deploy(validConfig);
 
       expect(result.id).toBe("fn_abc123");
       expect(result.name).toBe("my-function");
-      mock.expectCalledWith("POST", "/v1/workflows/batch", {
-        operation: "functions.deploy",
-      });
+      mock.expectCalled("POST", "/functions");
     });
 
     it("throws on invalid config (missing memory)", async () => {
@@ -63,7 +61,7 @@ describe("FunctionsService", () => {
   describe("list()", () => {
     it("lists all functions", async () => {
       const { service } = createService([
-        { method: "GET", path: "/v1/workflows", body: [functionEntry] },
+        { method: "GET", path: "/functions", body: [functionEntry] },
       ]);
 
       const result = await service.list();
@@ -78,7 +76,7 @@ describe("FunctionsService", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: "/v1/workflows",
+          path: "/functions/fn_abc123",
           body: functionEntry,
         },
       ]);
@@ -86,7 +84,7 @@ describe("FunctionsService", () => {
       const result = await service.get("fn_abc123");
 
       expect(result.id).toBe("fn_abc123");
-      mock.expectCalled("GET", "/v1/workflows");
+      mock.expectCalled("GET", "/functions/fn_abc123");
     });
 
     it("throws on 404", async () => {
@@ -99,11 +97,11 @@ describe("FunctionsService", () => {
   describe("delete()", () => {
     it("deletes a function", async () => {
       const { service, mock } = createService([
-        { method: "DELETE", path: "/v1/workflows", status: 204 },
+        { method: "DELETE", path: "/functions/fn_abc123", status: 204 },
       ]);
 
       await expect(service.delete("fn_abc123")).resolves.not.toThrow();
-      mock.expectCalled("DELETE", "/v1/workflows");
+      mock.expectCalled("DELETE", "/functions/fn_abc123");
     });
   });
 
@@ -112,7 +110,7 @@ describe("FunctionsService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/v1/workflows/batch",
+          path: "/functions/fn_abc123/invoke",
           body: { result: 42 },
         },
       ]);
@@ -122,7 +120,7 @@ describe("FunctionsService", () => {
       });
 
       expect(result).toEqual({ result: 42 });
-      mock.expectCalledWith("POST", "/v1/workflows/batch", {
+      mock.expectCalledWith("POST", "/functions/fn_abc123/invoke", {
         payload: { input: "hello" },
       });
     });
@@ -131,7 +129,7 @@ describe("FunctionsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/v1/workflows/batch",
+          path: "/functions/fn_abc123/invoke",
           body: { ok: true },
         },
       ]);
@@ -151,7 +149,7 @@ describe("FunctionsService", () => {
         lastInvoked: "2024-06-15T12:00:00Z",
       };
       const { service } = createService([
-        { method: "GET", path: "/v1/workflows", body: statsData },
+        { method: "GET", path: "/functions/fn_abc123/stats", body: statsData },
       ]);
 
       const result = await service.stats("fn_abc123");
@@ -168,7 +166,7 @@ describe("FunctionsService", () => {
         trigger: { type: "cron", schedule: "0 * * * *" },
       };
       const { service, mock } = createService([
-        { method: "PUT", path: "/v1/workflows", body: updated },
+        { method: "PUT", path: "/functions/fn_abc123/triggers", body: updated },
       ]);
 
       const result = await service.updateTriggers("fn_abc123", {
@@ -177,9 +175,7 @@ describe("FunctionsService", () => {
       });
 
       expect(result).toBeDefined();
-      mock.expectCalledWith("PUT", "/v1/workflows", {
-        operation: "functions.triggers.update",
-      });
+      mock.expectCalled("PUT", "/functions/fn_abc123/triggers");
     });
   });
 });

@@ -44,14 +44,14 @@ function pageWrap<T>(items: T[]) {
 describe("BillingService", () => {
   it("lists plans", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/billing/plans", body: { data: [mockPlan] } },
+      { method: "GET", path: "/billing/plans", body: { data: [mockPlan] } },
     ]);
     const result = await service.plans.list();
     expect(result.data).toHaveLength(1);
   });
   it("gets subscription", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/billing/subscription", body: mockSub },
+      { method: "GET", path: "/billing/subscription", body: mockSub },
     ]);
     const result = await service.subscriptions.get();
     expect(result.id).toBe("sub_1");
@@ -60,7 +60,7 @@ describe("BillingService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/billing/subscription/cancel",
+        path: "/billing/subscription/cancel",
         body: { ...mockSub, status: "canceled" },
       },
     ]);
@@ -71,7 +71,7 @@ describe("BillingService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/billing/invoices",
+        path: "/billing/invoices",
         body: pageWrap([
           {
             id: "inv_1",
@@ -91,7 +91,7 @@ describe("BillingService", () => {
   });
   it("reports usage", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/billing/usage", body: { ingested: 2 } },
+      { method: "POST", path: "/billing/usage", body: { ingested: 2 } },
     ]);
     const result = await service.usage.report([
       { metric: "api_calls", quantity: 100 },
@@ -102,7 +102,7 @@ describe("BillingService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/billing/payment-methods",
+        path: "/billing/payment-methods",
         body: {
           id: "pm_1",
           type: "card",

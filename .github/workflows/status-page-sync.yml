@@ -1,0 +1,155 @@
+name: Status Page Sync
+
+# Hourly sync — fetches status page structure, cross-references with flap state,
+# detects stale incidents, and publishes component status snapshots.
+
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: status-page-sync
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sync-components:
+    name: Sync Component Health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .github/incident
+          sparse-checkout-cone-mode: false
+
+      - name: Restore flap state
+        id: restore-flap
+        uses: actions/cache/restore@v4
+        with:
+          path: flap-state.json
+          key: flap-state-sdk-${{ github.run_id }}
+          restore-keys: flap-state-sdk-
+
+      - name: Fetch status page structure
+        id: fetch-structure
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+          INCIDENT_IO_STATUS_PAGE_ID: ${{ vars.INCIDENT_IO_STATUS_PAGE_ID }}
+        run: |
+          if [[ -z "$INCIDENT_IO_API_KEY" || -z "$INCIDENT_IO_STATUS_PAGE_ID" ]]; then
+            echo "API key or status page ID not configured — skipping"
+            exit 0
+          fi
+
+          curl -sS -H "Authorization: Bearer $INCIDENT_IO_API_KEY" \
+            "https://api.incident.io/v2/status_page_structures/$INCIDENT_IO_STATUS_PAGE_ID" \
+            > status-page-structure.json
+
+          echo "Status page structure fetched"
+          jq '.status_page_structure' status-page-structure.json 2>/dev/null || cat status-page-structure.json
+
+      - name: Fetch Widget API
+        id: widget
+        run: |
+          echo "=== Widget API Summary ==="
+          SUMMARY="$(curl -sS --connect-timeout 5 --max-time 10 \
+            "https://frontal-status.com/api/v1/summary" 2>/dev/null || echo '{}')"
+          echo "$SUMMARY" | jq . 2>/dev/null || echo "$SUMMARY"
+
+          ONGOING="$(echo "$SUMMARY" | jq -r '.ongoing_incidents | length // 0' 2>/dev/null || echo 0)"
+          echo "Public status page shows $ONGOING ongoing incidents"
+
+      - name: Cross-reference with flap state
+        id: cross-reference
+        run: |
+          echo "=== Reconciliation Report ==="
+
+          if [[ -f flap-state.json ]]; then
+            ALERTING="$(jq -r '.alerting // false' flap-state.json)"
+            SP_ID="$(jq -r '.status_page_incident_id // "none"' flap-state.json)"
+            CONSECUTIVE_FAILURES="$(jq -r '.consecutive_failures // 0' flap-state.json)"
+            CONSECUTIVE_SUCCESSES="$(jq -r '.consecutive_successes // 0' flap-state.json)"
+
+            echo "Alerting: $ALERTING"
+            echo "Status Page Incident: $SP_ID"
+            echo "Consecutive Failures: $CONSECUTIVE_FAILURES"
+            echo "Consecutive Successes: $CONSECUTIVE_SUCCESSES"
+          else
+            echo "No flap state found — assuming healthy"
+          fi
+
+          if [[ -f .github/incident/components.json ]]; then
+            echo ""
+            echo "Configured components:"
+            jq -r '.[] | "  - \(.component_id) (\(.name // "unnamed"))"' .github/incident/components.json 2>/dev/null || echo "  (empty or invalid)"
+          fi
+
+      - name: Detect stale incidents
+        id: detect-stale
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+        run: |
+          if [[ -z "$INCIDENT_IO_API_KEY" ]]; then
+            exit 0
+          fi
+
+          echo "Checking for stale SDK status page incidents..."
+          RESPONSE="$(curl -sS -w '\n%{http_code}' \
+            -H "Authorization: Bearer $INCIDENT_IO_API_KEY" \
+            "https://api.incident.io/v2/status_page_incidents")"
+
+          HTTP_CODE="$(echo "$RESPONSE" | tail -1)"
+          BODY="$(echo "$RESPONSE" | sed '$d')"
+
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "Failed to list status page incidents (HTTP $HTTP_CODE)"
+            exit 0
+          fi
+
+          SDK_INCIDENTS="$(echo "$BODY" | jq -r '
+            .status_page_incidents[]? |
+            select(.name | startswith("SDK Synthetic Monitoring")) |
+            "\(.id) \(.incident_status) \(.name)"
+          ' 2>/dev/null || echo "")"
+
+          if [[ -z "$SDK_INCIDENTS" ]]; then
+            echo "No SDK monitoring incidents found on status page"
+          else
+            echo "Active SDK monitoring incidents:"
+            echo "$SDK_INCIDENTS"
+          fi
+
+      - name: Generate component status snapshot
+        run: |
+          jq -n \
+            --arg generated_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+            --arg workflow_run "${{ github.run_id }}" \
+            --argjson alerting "$([ -f flap-state.json ] && jq '.alerting // false' flap-state.json || echo 'false')" \
+            --arg active_incident "$([ -f flap-state.json ] && jq -r '.status_page_incident_id // "none"' flap-state.json || echo 'none')" \
+            --argjson consecutive_failures "$([ -f flap-state.json ] && jq '.consecutive_failures // 0' flap-state.json || echo '0')" \
+            --argjson consecutive_successes "$([ -f flap-state.json ] && jq '.consecutive_successes // 0' flap-state.json || echo '0')" \
+            '{
+              generated_at: $generated_at,
+              workflow_run: $workflow_run,
+              alerting: $alerting,
+              active_incident: $active_incident,
+              consecutive_failures: $consecutive_failures,
+              consecutive_successes: $consecutive_successes
+            }' > component-status.json
+          echo "Component status snapshot:"
+          cat component-status.json
+
+      - name: Upload component status
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-status
+          path: component-status.json
+          retention-days: 7

@@ -1,8 +1,8 @@
 import {
+  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
-  type PaginationMeta,
 } from "@frontal-labs/core";
 import type {
   DeadLetterEvent,
@@ -12,19 +12,6 @@ import type {
   Topic,
 } from "./schemas";
 
-const asPagePayload = <T>(
-  raw: unknown
-): {
-  data: T[];
-  pagination: PaginationMeta;
-  meta?: unknown;
-} =>
-  raw as {
-    data: T[];
-    pagination: PaginationMeta;
-    meta?: unknown;
-  };
-
 // ── Topics ─────────────────────────────────────────────────────────
 
 export class TopicsNamespace {
@@ -33,29 +20,29 @@ export class TopicsNamespace {
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Topic>> {
-    const raw = await this.http.get("/v1/events/topics", opts);
+    const raw = await this.http.get("/events/topics", opts);
     return createPageResult(asPagePayload<Topic>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
   }
 
   async create(input: { name: string; description?: string }): Promise<Topic> {
-    return this.http.post("/v1/events/topics", input);
+    return this.http.post("/events/topics", input);
   }
 
   async get(id: string): Promise<Topic> {
-    return this.http.get(`/v1/events/topics/${id}`);
+    return this.http.get(`/events/topics/${id}`);
   }
 
   async update(
     id: string,
     input: { name?: string; description?: string }
   ): Promise<Topic> {
-    return this.http.put(`/v1/events/topics/${id}`, input);
+    return this.http.put(`/events/topics/${id}`, input);
   }
 
   async delete(id: string): Promise<void> {
-    return this.http.delete(`/v1/events/topics/${id}`);
+    return this.http.delete(`/events/topics/${id}`);
   }
 }
 
@@ -67,26 +54,26 @@ export class SubscriptionsNamespace {
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Subscription>> {
-    const raw = await this.http.get("/v1/events/subscriptions", opts);
+    const raw = await this.http.get("/events/subscriptions", opts);
     return createPageResult(asPagePayload<Subscription>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
   }
 
   async get(id: string): Promise<Subscription> {
-    return this.http.get(`/v1/events/subscriptions/${id}`);
+    return this.http.get(`/events/subscriptions/${id}`);
   }
 
   async update(id: string, input: { filter?: string }): Promise<Subscription> {
-    return this.http.put(`/v1/events/subscriptions/${id}`, input);
+    return this.http.put(`/events/subscriptions/${id}`, input);
   }
 
   async pause(id: string): Promise<Subscription> {
-    return this.http.post(`/v1/events/subscriptions/${id}/pause`, {});
+    return this.http.post(`/events/subscriptions/${id}/pause`, {});
   }
 
   async resume(id: string): Promise<Subscription> {
-    return this.http.post(`/v1/events/subscriptions/${id}/resume`, {});
+    return this.http.post(`/events/subscriptions/${id}/resume`, {});
   }
 }
 
@@ -98,22 +85,22 @@ export class DeadLetterNamespace {
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<DeadLetterEvent>> {
-    const raw = await this.http.get("/v1/events/dead-letter", opts);
+    const raw = await this.http.get("/events/dead-letter", opts);
     return createPageResult(asPagePayload<DeadLetterEvent>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
   }
 
   async get(id: string): Promise<DeadLetterEvent> {
-    return this.http.get(`/v1/events/dead-letter/${id}`);
+    return this.http.get(`/events/dead-letter/${id}`);
   }
 
   async replay(id: string): Promise<void> {
-    return this.http.post(`/v1/events/dead-letter/${id}/replay`, {});
+    return this.http.post(`/events/dead-letter/${id}/replay`, {});
   }
 
   async purge(): Promise<void> {
-    return this.http.post("/v1/events/dead-letter/purge", {});
+    return this.http.post("/events/dead-letter/purge", {});
   }
 }
 
@@ -123,11 +110,11 @@ export class EventSchemasNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async list(): Promise<{ data: EventType[] }> {
-    return this.http.get("/v1/events/schemas");
+    return this.http.get("/events/schemas");
   }
 
   async get(id: string): Promise<EventType> {
-    return this.http.get(`/v1/events/schemas/${id}`);
+    return this.http.get(`/events/schemas/${id}`);
   }
 
   async create(input: {
@@ -135,14 +122,14 @@ export class EventSchemasNamespace {
     version: string;
     schema: Record<string, unknown>;
   }): Promise<EventType> {
-    return this.http.post("/v1/events/schemas", input);
+    return this.http.post("/events/schemas", input);
   }
 
   async update(
     id: string,
     input: { schema?: Record<string, unknown>; description?: string }
   ): Promise<EventType> {
-    return this.http.put(`/v1/events/schemas/${id}`, input);
+    return this.http.put(`/events/schemas/${id}`, input);
   }
 
   async validate(
@@ -152,7 +139,7 @@ export class EventSchemasNamespace {
     valid: boolean;
     errors?: { field: string; message: string }[];
   }> {
-    return this.http.post(`/v1/events/schemas/${schemaId}/validate`, { data });
+    return this.http.post(`/events/schemas/${schemaId}/validate`, { data });
   }
 }
 
@@ -175,17 +162,17 @@ export class EventsService {
     topic: string,
     events: PublishEvent[]
   ): Promise<{ published: number; event_ids: string[] }> {
-    return this.http.post(`/v1/events/topics/${topic}/publish`, { events });
+    return this.http.post(`/events/topics/${topic}/publish`, { events });
   }
 
   async subscribe(
     topic: string,
     config: { endpoint: string; filter?: string }
   ): Promise<Subscription> {
-    return this.http.post(`/v1/events/topics/${topic}/subscribe`, config);
+    return this.http.post(`/events/topics/${topic}/subscribe`, config);
   }
 
   async unsubscribe(subscriptionId: string): Promise<void> {
-    return this.http.delete(`/v1/events/subscriptions/${subscriptionId}`);
+    return this.http.delete(`/events/subscriptions/${subscriptionId}`);
   }
 }

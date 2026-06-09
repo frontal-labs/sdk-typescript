@@ -42,7 +42,7 @@ function pageWrap<T>(items: T[]) {
 describe("LineageService", () => {
   it("gets lineage graph", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/lineage/graph", body: mockGraph },
+      { method: "GET", path: "/lineage/graph", body: mockGraph },
     ]);
     const result = await service.graph.get("ds_1");
     expect(result.nodes).toHaveLength(1);
@@ -50,7 +50,7 @@ describe("LineageService", () => {
   });
   it("lists nodes (paginated)", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/lineage/nodes", body: pageWrap([mockNode]) },
+      { method: "GET", path: "/lineage/nodes", body: pageWrap([mockNode]) },
     ]);
     const result = await service.nodes.list();
     expect(result.data).toHaveLength(1);
@@ -59,7 +59,7 @@ describe("LineageService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/lineage/nodes/node_1/trace",
+        path: "/lineage/nodes/node_1/trace",
         body: mockGraph,
       },
     ]);
@@ -68,7 +68,7 @@ describe("LineageService", () => {
   });
   it("lists edges (paginated)", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/lineage/edges", body: pageWrap([mockEdge]) },
+      { method: "GET", path: "/lineage/edges", body: pageWrap([mockEdge]) },
     ]);
     const result = await service.edges.list();
     expect(result.data).toHaveLength(1);
@@ -77,7 +77,7 @@ describe("LineageService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/lineage/impact",
+        path: "/lineage/impact",
         body: {
           affected_resources: [
             { id: "node_2", type: "pipeline", name: "ETL", impact: "high" },

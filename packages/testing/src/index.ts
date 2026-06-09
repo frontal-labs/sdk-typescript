@@ -24,7 +24,7 @@ export const createMockConfig = (): MockConfig => {
   return {
     apiKey: "frt_test-api-key-1234567890",
     baseUrl: "https://api.test.frontal.dev",
-    timeout: 10000,
+    timeout: 10_000,
   };
 };
 

@@ -20,16 +20,15 @@ export interface FunctionsClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createFunctionsClient(client: FrontalClient): FunctionsService;
 /** Create standalone with just config */
 export function createFunctionsClient(
-  config: FunctionsClientConfig
+  config: FunctionsClientConfig | FrontalClient
 ): FunctionsService;
 export function createFunctionsClient(
   clientOrConfig: FrontalClient | FunctionsClientConfig
 ): FunctionsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new FunctionsService(clientOrConfig._http);
+    return new FunctionsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -38,7 +37,7 @@ export function createFunctionsClient(
       process.env.FRONTAL_FUNCTIONS_API_URL ??
       process.env.FRONTAL_API_URL ??
       "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -48,8 +47,20 @@ export function createFunctionsClient(
   return new FunctionsService(http);
 }
 
-// Default instance
-export const functions = createFunctionsClient(getDefaultClient());
+// Default instance that works automatically with environment variables
+let _functionsCache: FunctionsService | undefined;
+export const functions = new Proxy<FunctionsService>({} as FunctionsService, {
+  get(_t, prop) {
+    if (!_functionsCache) {
+      _functionsCache = createFunctionsClient(getDefaultClient());
+    }
+    const inst = _functionsCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 // New Pattern B exports
 export { FunctionsService } from "./service";

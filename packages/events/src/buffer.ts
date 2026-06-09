@@ -9,7 +9,7 @@ export interface EventBufferConfig {
 const DEFAULT_CONFIG: EventBufferConfig = {
   maxBatchSize: 100,
   flushIntervalMs: 1000,
-  maxBufferSize: 10000,
+  maxBufferSize: 10_000,
 };
 
 interface BufferedEntry {
@@ -33,9 +33,8 @@ export class EventBuffer {
   ) {
     this.publishFn = publishFn;
     this.config = { ...DEFAULT_CONFIG, ...config };
-    const self = this;
     this.timer = setInterval(() => {
-      void self.flush();
+      void this.flush();
     }, this.config.flushIntervalMs);
   }
 

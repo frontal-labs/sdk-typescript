@@ -1,8 +1,14 @@
 echo "Running pre-commit checks..."
 
-# Run Biome format check on staged files only
+# Format check on staged files only
 bun biome format --staged --files-ignore-unknown=true --no-errors-on-unmatched || {
-  echo "Biome format check failed. Run 'bun run format' to fix."
+  echo "Format check failed. Run 'bun run format' to fix."
+  exit 1
+}
+
+# Lint check on staged files only
+bun biome lint --staged --files-ignore-unknown=true --no-errors-on-unmatched || {
+  echo "Lint check failed. Run 'bun run lint:fix' to fix."
   exit 1
 }
 

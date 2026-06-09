@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_GOVERNANCE_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_GOVERNANCE_BASE_URL } from "./constants";
 import { GovernanceService } from "./service";
 
 export interface GovernanceClientConfig {
@@ -12,18 +12,14 @@ export interface GovernanceClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
 export function createGovernanceClient(
-  client: FrontalClient
-): GovernanceService;
-export function createGovernanceClient(
-  config: GovernanceClientConfig
+  config: GovernanceClientConfig | FrontalClient
 ): GovernanceService;
 export function createGovernanceClient(
   clientOrConfig: FrontalClient | GovernanceClientConfig
 ): GovernanceService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new GovernanceService(clientOrConfig._http);
+    return new GovernanceService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -32,7 +28,7 @@ export function createGovernanceClient(
       process.env.FRONTAL_GOVERNANCE_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_GOVERNANCE_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -42,7 +38,22 @@ export function createGovernanceClient(
   return new GovernanceService(http);
 }
 
-export const governance = new GovernanceService(getDefaultClient()._http);
+let _governanceCache: GovernanceService | undefined;
+export const governance = new Proxy<GovernanceService>(
+  {} as GovernanceService,
+  {
+    get(_t, prop) {
+      if (!_governanceCache) {
+        _governanceCache = new GovernanceService(getDefaultClient().httpClient);
+      }
+      const inst = _governanceCache;
+      const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+      return typeof val === "function"
+        ? (val as (...args: unknown[]) => unknown).bind(inst)
+        : val;
+    },
+  }
+);
 
 export { DEFAULT_GOVERNANCE_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

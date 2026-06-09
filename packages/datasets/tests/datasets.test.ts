@@ -22,7 +22,7 @@ const mockDs = {
   id: "ds_1",
   name: "users",
   rowCount: 1000,
-  storageSizeBytes: 512000,
+  storageSizeBytes: 512_000,
   versionCount: 3,
   status: "active",
   createdAt: "2025-01-01T00:00:00Z",
@@ -38,14 +38,14 @@ function pageWrap<T>(items: T[]) {
 describe("DatasetsService", () => {
   it("lists datasets (paginated)", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/datasets", body: pageWrap([mockDs]) },
+      { method: "GET", path: "/datasets", body: pageWrap([mockDs]) },
     ]);
     const result = await service.list();
     expect(result.data).toHaveLength(1);
   });
   it("creates a dataset", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/datasets", body: mockDs },
+      { method: "POST", path: "/datasets", body: mockDs },
     ]);
     const result = await service.create({ name: "users" });
     expect(result.id).toBe("ds_1");
@@ -54,7 +54,7 @@ describe("DatasetsService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/datasets/ds_1/query",
+        path: "/datasets/ds_1/query",
         body: { data: [{ id: 1, name: "Alice" }] },
       },
     ]);
@@ -63,7 +63,7 @@ describe("DatasetsService", () => {
   });
   it("inserts rows", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/datasets/ds_1/data", body: { inserted: 5 } },
+      { method: "POST", path: "/datasets/ds_1/data", body: { inserted: 5 } },
     ]);
     const result = await service.data.insert("ds_1", [{ name: "Bob" }]);
     expect(result.inserted).toBe(5);
@@ -72,10 +72,10 @@ describe("DatasetsService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/datasets/ds_1/stats",
+        path: "/datasets/ds_1/stats",
         body: {
           row_count: 1000,
-          storage_size_bytes: 512000,
+          storage_size_bytes: 512_000,
           column_count: 8,
           last_updated: "2025-01-01T00:00:00Z",
         },
@@ -88,7 +88,7 @@ describe("DatasetsService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/datasets/ds_1/versions/compare",
+        path: "/datasets/ds_1/versions/compare",
         body: { additions: 10, deletions: 2, changes: 5 },
       },
     ]);

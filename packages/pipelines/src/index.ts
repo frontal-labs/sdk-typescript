@@ -14,16 +14,15 @@ export interface PipelinesClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createPipelinesClient(client: FrontalClient): PipelinesService;
 /** Create standalone with just config */
 export function createPipelinesClient(
-  config: PipelinesClientConfig
+  config: PipelinesClientConfig | FrontalClient
 ): PipelinesService;
 export function createPipelinesClient(
   clientOrConfig: FrontalClient | PipelinesClientConfig
 ): PipelinesService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new PipelinesService(clientOrConfig._http);
+    return new PipelinesService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -32,7 +31,7 @@ export function createPipelinesClient(
       process.env.FRONTAL_PIPELINES_API_URL ??
       process.env.FRONTAL_API_URL ??
       "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,7 +42,19 @@ export function createPipelinesClient(
 }
 
 // Default instance that works automatically with environment variables
-export const pipelines = new PipelinesService(getDefaultClient()._http);
+let _pipelinesCache: PipelinesService | undefined;
+export const pipelines = new Proxy<PipelinesService>({} as PipelinesService, {
+  get(_t, prop) {
+    if (!_pipelinesCache) {
+      _pipelinesCache = new PipelinesService(getDefaultClient().httpClient);
+    }
+    const inst = _pipelinesCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export * from "./schemas";
 export { PipelinesService } from "./service";

@@ -13,7 +13,7 @@ describe("createAgentsClient", () => {
 
   it("creates an AgentsService from FrontalClient", async () => {
     const mock = createMockFetch([
-      { method: "GET", path: "/v1/workflows", body: mockPageResponse([]) },
+      { method: "GET", path: "/workflows", body: mockPageResponse([]) },
     ]);
     const client = new FrontalClient({
       apiKey: "frt_test-api-key-1234567890",
@@ -31,12 +31,12 @@ describe("createAgentsClient", () => {
     expect(agents).toBeInstanceOf(AgentsService);
 
     await agents.list();
-    mock.expectCalled("GET", "/v1/workflows");
+    mock.expectCalled("GET", "/workflows");
   });
 
   it("uses FRONTAL_AGENTS_API_URL when creating from config", async () => {
     const mock = createMockFetch([
-      { method: "GET", path: "/v1/workflows", body: mockPageResponse([]) },
+      { method: "GET", path: "/workflows", body: mockPageResponse([]) },
     ]);
     vi.stubGlobal("fetch", mock.fetch);
     process.env.FRONTAL_AGENTS_API_URL = "https://agents.test.frontal.dev/v1";

@@ -14,16 +14,15 @@ export interface WorkflowsClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createWorkflowsClient(client: FrontalClient): WorkflowsService;
 /** Create standalone with just config */
 export function createWorkflowsClient(
-  config: WorkflowsClientConfig
+  config: WorkflowsClientConfig | FrontalClient
 ): WorkflowsService;
 export function createWorkflowsClient(
   clientOrConfig: FrontalClient | WorkflowsClientConfig
 ): WorkflowsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new WorkflowsService(clientOrConfig._http);
+    return new WorkflowsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -32,7 +31,7 @@ export function createWorkflowsClient(
       process.env.FRONTAL_WORKFLOWS_API_URL ??
       process.env.FRONTAL_API_URL ??
       "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,7 +42,19 @@ export function createWorkflowsClient(
 }
 
 // Default instance that works automatically with environment variables
-export const workflows = new WorkflowsService(getDefaultClient()._http);
+let _workflowsCache: WorkflowsService | undefined;
+export const workflows = new Proxy<WorkflowsService>({} as WorkflowsService, {
+  get(_t, prop) {
+    if (!_workflowsCache) {
+      _workflowsCache = new WorkflowsService(getDefaultClient().httpClient);
+    }
+    const inst = _workflowsCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export * from "./schemas";
 export { WorkflowsService } from "./service";

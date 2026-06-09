@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_EVENTS_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_EVENTS_BASE_URL } from "./constants";
 import { EventsService } from "./service";
 
 export interface EventsClientConfig {
@@ -12,14 +12,14 @@ export interface EventsClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createEventsClient(client: FrontalClient): EventsService;
-export function createEventsClient(config: EventsClientConfig): EventsService;
+export function createEventsClient(
+  config: EventsClientConfig | FrontalClient
+): EventsService;
 export function createEventsClient(
   clientOrConfig: FrontalClient | EventsClientConfig
 ): EventsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new EventsService(clientOrConfig._http);
+    return new EventsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -28,7 +28,7 @@ export function createEventsClient(
       process.env.FRONTAL_EVENTS_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_EVENTS_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -38,7 +38,19 @@ export function createEventsClient(
   return new EventsService(http);
 }
 
-export const events = new EventsService(getDefaultClient()._http);
+let _eventsCache: EventsService | undefined;
+export const events = new Proxy<EventsService>({} as EventsService, {
+  get(_t, prop) {
+    if (!_eventsCache) {
+      _eventsCache = new EventsService(getDefaultClient().httpClient);
+    }
+    const inst = _eventsCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_EVENTS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

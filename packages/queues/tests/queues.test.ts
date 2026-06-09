@@ -44,14 +44,14 @@ function pageWrap<T>(items: T[]) {
 describe("QueuesService", () => {
   it("lists queues (paginated)", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/queues", body: pageWrap([mockQueue]) },
+      { method: "GET", path: "/queues", body: pageWrap([mockQueue]) },
     ]);
     const result = await service.list();
     expect(result.data).toHaveLength(1);
   });
   it("creates a queue", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/queues", body: mockQueue },
+      { method: "POST", path: "/queues", body: mockQueue },
     ]);
     const result = await service.create({ name: "tasks" });
     expect(result.id).toBe("q_1");
@@ -60,7 +60,7 @@ describe("QueuesService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/queues/q_1/pause",
+        path: "/queues/q_1/pause",
         body: { ...mockQueue, status: "paused" },
       },
     ]);
@@ -69,7 +69,7 @@ describe("QueuesService", () => {
   });
   it("enqueues a job", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/queues/q_1/jobs", body: mockJob },
+      { method: "POST", path: "/queues/q_1/jobs", body: mockJob },
     ]);
     const result = await service.jobs.enqueue("q_1", { task: "send_email" });
     expect(result.id).toBe("job_1");
@@ -78,7 +78,7 @@ describe("QueuesService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/queues/q_1/jobs/job_1/retry",
+        path: "/queues/q_1/jobs/job_1/retry",
         body: { ...mockJob, status: "pending", attempts: 1 },
       },
     ]);

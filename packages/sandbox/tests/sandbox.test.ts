@@ -53,7 +53,7 @@ describe("SandboxService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/sandbox/sandboxes",
+        path: "/sandbox/sandboxes",
         body: pageWrap([mockSandbox]),
       },
     ]);
@@ -62,7 +62,7 @@ describe("SandboxService", () => {
   });
   it("creates a sandbox", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/sandbox/sandboxes", body: mockSandbox },
+      { method: "POST", path: "/sandbox/sandboxes", body: mockSandbox },
     ]);
     const result = await service.create({
       name: "test-sandbox",
@@ -74,7 +74,7 @@ describe("SandboxService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/sandbox/sandboxes/sbx_1/start",
+        path: "/sandbox/sandboxes/sbx_1/start",
         body: mockSandbox,
       },
     ]);
@@ -85,7 +85,7 @@ describe("SandboxService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/sandbox/sandboxes/sbx_1/stop",
+        path: "/sandbox/sandboxes/sbx_1/stop",
         body: { ...mockSandbox, status: "stopped" },
       },
     ]);
@@ -96,7 +96,7 @@ describe("SandboxService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/sandbox/sandboxes/sbx_1/execute",
+        path: "/sandbox/sandboxes/sbx_1/execute",
         body: mockExecution,
       },
     ]);
@@ -110,7 +110,7 @@ describe("SandboxService", () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/v1/sandbox/templates",
+        path: "/sandbox/templates",
         body: {
           data: [
             {

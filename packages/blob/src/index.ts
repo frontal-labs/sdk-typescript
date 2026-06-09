@@ -21,14 +21,15 @@ export interface BlobClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createBlobClient(client: FrontalClient): BlobService;
 /** Create standalone with just config */
-export function createBlobClient(config: BlobClientConfig): BlobService;
+export function createBlobClient(
+  config: BlobClientConfig | FrontalClient
+): BlobService;
 export function createBlobClient(
   clientOrConfig: FrontalClient | BlobClientConfig
 ): BlobService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new BlobService(clientOrConfig._http);
+    return new BlobService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -37,7 +38,7 @@ export function createBlobClient(
       process.env.FRONTAL_BLOB_API_URL ??
       process.env.FRONTAL_API_URL ??
       "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -47,8 +48,20 @@ export function createBlobClient(
   return new BlobService(http);
 }
 
-// Default instance
-export const blob = createBlobClient(getDefaultClient());
+// Default instance that works automatically with environment variables
+let _blobCache: BlobService | undefined;
+export const blob = new Proxy<BlobService>({} as BlobService, {
+  get(_t, prop) {
+    if (!_blobCache) {
+      _blobCache = createBlobClient(getDefaultClient());
+    }
+    const inst = _blobCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 // New Pattern B exports
 export { BlobService } from "./service";

@@ -1,0 +1,16 @@
+{
+  "default": {
+    "fail_threshold": 3,
+    "recover_threshold": 2,
+    "min_runs_before_alert": 3
+  },
+  "severity": {
+    "minor": { "max_failed_services": 1 },
+    "major": { "max_failed_services": 2 },
+    "critical": { "max_failed_services": 99 }
+  },
+  "timeouts": {
+    "single_check_seconds": 30,
+    "total_run_seconds": 600
+  }
+}

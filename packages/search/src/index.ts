@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_SEARCH_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_SEARCH_BASE_URL } from "./constants";
 import { SearchService } from "./service";
 
 export interface SearchClientConfig {
@@ -12,14 +12,14 @@ export interface SearchClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createSearchClient(client: FrontalClient): SearchService;
-export function createSearchClient(config: SearchClientConfig): SearchService;
+export function createSearchClient(
+  config: SearchClientConfig | FrontalClient
+): SearchService;
 export function createSearchClient(
   clientOrConfig: FrontalClient | SearchClientConfig
 ): SearchService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new SearchService(clientOrConfig._http);
+    return new SearchService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -28,7 +28,7 @@ export function createSearchClient(
       process.env.FRONTAL_SEARCH_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_SEARCH_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -38,7 +38,19 @@ export function createSearchClient(
   return new SearchService(http);
 }
 
-export const search = new SearchService(getDefaultClient()._http);
+let _searchCache: SearchService | undefined;
+export const search = new Proxy<SearchService>({} as SearchService, {
+  get(_t, prop) {
+    if (!_searchCache) {
+      _searchCache = new SearchService(getDefaultClient().httpClient);
+    }
+    const inst = _searchCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_SEARCH_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

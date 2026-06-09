@@ -172,7 +172,9 @@ export function parseFrontalError(
     case 409:
       return new ConflictError(normalized, rateLimit);
     case 429: {
-      const parsedRetry = retryAfter ? Number.parseInt(retryAfter, 10) : NaN;
+      const parsedRetry = retryAfter
+        ? Number.parseInt(retryAfter, 10)
+        : Number.NaN;
       return new RateLimitError(
         normalized,
         Number.isFinite(parsedRetry) ? parsedRetry : 60,

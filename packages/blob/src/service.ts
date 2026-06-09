@@ -10,7 +10,11 @@ import {
 
 /**
  * Service for interacting with Frontal Blob storage.
- * Takes an HttpClient and returns data directly, throwing typed errors.
+ *
+ * **Note:** This service currently routes through the Storage Lake backend
+ * (`/storage/lake/lake/tables`). There is no dedicated `/blob` API service
+ * in the gateway. The blob storage abstraction is provided by the Storage
+ * Lake infrastructure.
  *
  * @example
  * ```typescript
@@ -23,6 +27,8 @@ import {
  * ```
  */
 export class BlobService {
+  private static readonly BASE_PATH = "/storage/lake/lake/tables";
+
   constructor(private readonly http: HttpClient) {}
 
   private command(operation: string, payload: Record<string, unknown> = {}) {
@@ -50,7 +56,7 @@ export class BlobService {
       contentType = "application/octet-stream",
     } = params;
     await this.http.post(
-      "/storage/lake/lake/tables",
+      BlobService.BASE_PATH,
       this.command("blob.upload", { bucket, key, contentType, data })
     );
   }
@@ -128,7 +134,7 @@ export class BlobService {
       ...(prefix ? { prefix } : {}),
     });
     return this.http.get<ListObjectsResult>(
-      "/storage/lake/lake/tables",
+      BlobService.BASE_PATH,
       queryParams,
       listObjectsResultSchema
     );

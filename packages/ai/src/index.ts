@@ -11,7 +11,8 @@ import {
   HttpClient,
 } from "@frontal-labs/core";
 import { AIService } from "./service";
-import { DEFAULT_AI_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_AI_BASE_URL } from "./constants";
+export { VERSION } from "./constants";
 
 /** Config for standalone usage without @frontal-labs/core */
 export interface AIClientConfig {
@@ -22,14 +23,14 @@ export interface AIClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createAIClient(client: FrontalClient): AIService;
-/** Create standalone with just config */
-export function createAIClient(config: AIClientConfig): AIService;
+export function createAIClient(
+  clientOrConfig: FrontalClient | AIClientConfig
+): AIService;
 export function createAIClient(
   clientOrConfig: FrontalClient | AIClientConfig
 ): AIService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new AIService(clientOrConfig._http);
+    return new AIService(clientOrConfig.httpClient);
   }
 
   const baseUrl =
@@ -40,7 +41,7 @@ export function createAIClient(
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
     baseUrl,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -51,13 +52,25 @@ export function createAIClient(
   return new AIService(http);
 }
 
-// Default instance
-export const ai = createAIClient(getDefaultClient());
+// Default instance that works automatically with environment variables
+let _aiCache: AIService | undefined;
+export const ai = new Proxy<AIService>({} as AIService, {
+  get(_t, prop) {
+    if (!_aiCache) {
+      _aiCache = createAIClient(getDefaultClient());
+    }
+    const inst = _aiCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 // New Pattern B exports
 export { AIService } from "./service";
 
-export { DEFAULT_AI_BASE_URL, VERSION };
+export { DEFAULT_AI_BASE_URL };
 export type {
   AIConfig,
   APIResponse,

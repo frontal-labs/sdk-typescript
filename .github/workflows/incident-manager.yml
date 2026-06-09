@@ -1,0 +1,220 @@
+name: Incident Manager
+
+# Manual incident management — force create/resolve, status checks.
+# Mirrors the CLI repo's incident-manager.yml adapted for SDKs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        type: choice
+        required: true
+        options:
+          - auto
+          - force-create
+          - force-update
+          - force-resolve
+          - status-check
+      severity:
+        description: 'Incident severity (for force-create)'
+        type: choice
+        default: minor
+        options:
+          - minor
+          - major
+      incident_name:
+        description: 'Custom incident name (for force-create)'
+        type: string
+        default: ''
+      incident_message:
+        description: 'Custom incident message (markdown)'
+        type: string
+        default: ''
+      dry_run:
+        description: 'Simulate without creating real incidents'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      action:
+        type: string
+        required: true
+      severity:
+        type: string
+        default: 'minor'
+      incident_name:
+        type: string
+        default: ''
+      incident_message:
+        type: string
+        default: ''
+      dry_run:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  manage:
+    name: ${{ inputs.action }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .github/incident
+          sparse-checkout-cone-mode: false
+
+      - name: Restore flap state
+        if: inputs.action != 'status-check' && inputs.action != 'force-create'
+        id: flap-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: flap-state.json
+          key: flap-state-sdk-${{ github.run_id }}
+          restore-keys: flap-state-sdk-
+
+      - name: Initialize flap state (if missing)
+        if: inputs.action != 'status-check'
+        run: |
+          if [[ ! -f flap-state.json ]]; then
+            echo "No flap state found — initializing"
+            .github/scripts/flap-state.sh init
+          fi
+
+      - name: Force resolve
+        if: inputs.action == 'force-resolve'
+        id: force-resolve
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+          INCIDENT_MESSAGE: ${{ inputs.incident_message || 'Incident manually resolved by operator.' }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/incident-client.sh
+
+          SP_ID="$(jq -r '.status_page_incident_id // ""' flap-state.json)"
+
+          if [[ -n "$SP_ID" && "$SP_ID" != "null" ]]; then
+            echo "Resolving status page incident: $SP_ID"
+            if [[ "${{ inputs.dry_run }}" != "true" ]]; then
+              cmd_resolve "$SP_ID" "$INCIDENT_MESSAGE"
+            else
+              echo "DRY RUN: would resolve $SP_ID"
+            fi
+          else
+            echo "No open status page incident found in flap state"
+          fi
+
+          .github/scripts/flap-state.sh resolve
+          echo "Flap state reset"
+
+      - name: Force create
+        if: inputs.action == 'force-create'
+        id: force-create
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+          INCIDENT_IO_STATUS_PAGE_ID: ${{ vars.INCIDENT_IO_STATUS_PAGE_ID }}
+          INCIDENT_NAME: ${{ inputs.incident_name || 'SDK Synthetic Monitoring — Manual Alert' }}
+          INCIDENT_MESSAGE: ${{ inputs.incident_message || 'Manually triggered incident from GitHub Actions.' }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/incident-client.sh
+
+          if [[ "${{ inputs.severity }}" == "major" ]]; then
+            COMP_STATUS="partial_outage"
+          else
+            COMP_STATUS="degraded_performance"
+          fi
+
+          COMPONENT_NAME="$(jq -r '.[0].name // "SDKs"' .github/incident/components.json)"
+          CID="$(.github/scripts/incident-client.sh resolve-component "$COMPONENT_NAME")"
+          COMPONENT_STATUSES="$(jq -c -n \
+            --arg status "$COMP_STATUS" \
+            --arg cid "$CID" \
+            '[{component_id: $cid, component_status: $status}]')"
+
+          if [[ "${{ inputs.dry_run }}" != "true" ]]; then
+            cmd_create_status_page "$INCIDENT_NAME" "$INCIDENT_MESSAGE" "investigating" "$COMPONENT_STATUSES"
+
+            SP_ID="$(grep '^status_page_incident_id=' "$GITHUB_OUTPUT" 2>/dev/null | tail -1 | sed 's/^status_page_incident_id=//' || true)"
+            if [[ -n "${SP_ID:-}" && "${SP_ID:-}" != "null" ]]; then
+              jq --arg id "$SP_ID" '.status_page_incident_id = $id | .alerting = true' flap-state.json > flap-state.json.tmp
+              mv flap-state.json.tmp flap-state.json
+            fi
+          else
+            echo "DRY RUN: would create incident '$INCIDENT_NAME'"
+          fi
+
+      - name: Force update
+        if: inputs.action == 'force-update'
+        id: force-update
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+          INCIDENT_MESSAGE: ${{ inputs.incident_message || 'Manual update from operator.' }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/incident-client.sh
+
+          SP_ID="$(jq -r '.status_page_incident_id // ""' flap-state.json)"
+
+          if [[ -z "$SP_ID" || "$SP_ID" == "null" ]]; then
+            echo "No open status page incident found — nothing to update"
+            exit 1
+          fi
+
+          if [[ "${{ inputs.dry_run }}" != "true" ]]; then
+            cmd_post_update "$SP_ID" "$INCIDENT_MESSAGE"
+          else
+            echo "DRY RUN: would update $SP_ID"
+          fi
+
+      - name: Auto mode
+        if: inputs.action == 'auto'
+        id: auto
+        run: |
+          ACTION="$(.github/scripts/flap-state.sh evaluate | grep '^action=' | cut -d= -f2)"
+          ACTION="${ACTION:-no-op}"
+          echo "Recommended action: $ACTION"
+          echo "action=$ACTION" >> "$GITHUB_OUTPUT"
+
+      - name: Status check
+        if: inputs.action == 'status-check'
+        env:
+          INCIDENT_IO_API_KEY: ${{ secrets.INCIDENT_IO_API_KEY }}
+          INCIDENT_IO_STATUS_PAGE_ID: ${{ vars.INCIDENT_IO_STATUS_PAGE_ID }}
+        run: |
+          echo "=== Flap State ==="
+          cat flap-state.json 2>/dev/null || echo "No flap state found"
+          echo ""
+
+          echo "=== Widget API (frontal-status.com) ==="
+          curl -sS --connect-timeout 5 --max-time 10 \
+            "https://frontal-status.com/api/v1/summary" 2>/dev/null | jq . || echo "Widget API unreachable"
+          echo ""
+
+          if [[ -n "$INCIDENT_IO_API_KEY" ]]; then
+            echo "=== Active Incidents ==="
+            source .github/scripts/incident-client.sh
+            cmd_list_active_incidents || echo "Failed to list incidents"
+            echo ""
+
+            if [[ -n "$INCIDENT_IO_STATUS_PAGE_ID" ]]; then
+              echo "=== Status Page Structure ==="
+              cmd_get_status_page_structure "$INCIDENT_IO_STATUS_PAGE_ID" || echo "Failed to fetch"
+            fi
+          else
+            echo "API key not configured — cannot fetch live incidents"
+          fi
+
+      - name: Save flap state
+        if: inputs.action == 'force-resolve' || inputs.action == 'force-create'
+        uses: actions/cache/save@v4
+        with:
+          path: flap-state.json
+          key: flap-state-sdk-${{ github.run_id }}

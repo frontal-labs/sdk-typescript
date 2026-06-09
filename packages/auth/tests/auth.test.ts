@@ -43,7 +43,7 @@ const mockSession = {
   accessToken: "eyJhbGciOiJIUzI1NiJ9.xxx",
   refreshToken: "ref_xxx",
   expiresIn: 3600,
-  expiresAt: 1735689600,
+  expiresAt: 1_735_689_600,
   tokenType: "bearer" as const,
   user: mockUser,
 };
@@ -169,7 +169,7 @@ describe("AuthService — client-side", () => {
     });
 
     it("gets user", async () => {
-      const { service, mock } = createService([
+      const { service } = createService([
         {
           method: "GET",
           path: "/auth/user",
@@ -295,7 +295,7 @@ describe("AuthAdminService — admin operations", () => {
   });
 
   it("gets user by id", async () => {
-    const { service, mock } = createService([
+    const { service } = createService([
       {
         method: "GET",
         path: "/admin/users/usr_abc123",
@@ -308,7 +308,7 @@ describe("AuthAdminService — admin operations", () => {
 
   it("updates user by id", async () => {
     const updated = { ...mockUser, email: "updated@frontal.dev" };
-    const { service, mock } = createService([
+    const { service } = createService([
       {
         method: "PUT",
         path: "/admin/users/usr_abc123",
@@ -322,7 +322,7 @@ describe("AuthAdminService — admin operations", () => {
   });
 
   it("deletes a user", async () => {
-    const { service, mock } = createService([
+    const { service } = createService([
       {
         method: "DELETE",
         path: "/admin/users/usr_abc123",

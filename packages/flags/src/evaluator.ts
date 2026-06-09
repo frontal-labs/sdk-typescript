@@ -6,7 +6,7 @@ import type {
 } from "./schemas";
 
 function fnv1a(str: string): number {
-  let hash = 2166136261;
+  let hash = 2_166_136_261;
   for (let i = 0; i < str.length; i++) {
     hash ^= str.charCodeAt(i);
     hash +=
@@ -91,15 +91,17 @@ export function evaluateFlagWithRollout(
 ): FlagEvaluation {
   const bucket = hashContext(flag.key, context);
 
-  if (rolloutPercent !== undefined && rolloutPercent > 0) {
-    if (bucket < rolloutPercent) {
-      return {
-        flagKey: flag.key,
-        value: rolloutValue ?? true,
-        reason: `rollout:${rolloutPercent}%`,
-        source: "rollout",
-      };
-    }
+  if (
+    rolloutPercent !== undefined &&
+    rolloutPercent > 0 &&
+    bucket < rolloutPercent
+  ) {
+    return {
+      flagKey: flag.key,
+      value: rolloutValue ?? true,
+      reason: `rollout:${rolloutPercent}%`,
+      source: "rollout",
+    };
   }
 
   return evaluateFlag(flag, context, rules);

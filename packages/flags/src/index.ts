@@ -3,7 +3,7 @@ import {
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
-import { DEFAULT_FLAGS_BASE_URL, VERSION } from "./constants";
+import { DEFAULT_FLAGS_BASE_URL } from "./constants";
 import { FlagsService } from "./service";
 
 export interface FlagsClientConfig {
@@ -12,14 +12,14 @@ export interface FlagsClientConfig {
   timeout?: number;
   maxRetries?: number;
 }
-
-export function createFlagsClient(client: FrontalClient): FlagsService;
-export function createFlagsClient(config: FlagsClientConfig): FlagsService;
+export function createFlagsClient(
+  config: FlagsClientConfig | FrontalClient
+): FlagsService;
 export function createFlagsClient(
   clientOrConfig: FrontalClient | FlagsClientConfig
 ): FlagsService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new FlagsService(clientOrConfig._http);
+    return new FlagsService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -28,7 +28,7 @@ export function createFlagsClient(
       process.env.FRONTAL_FLAGS_API_URL ??
       process.env.FRONTAL_API_URL ??
       DEFAULT_FLAGS_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -38,7 +38,19 @@ export function createFlagsClient(
   return new FlagsService(http);
 }
 
-export const flags = new FlagsService(getDefaultClient()._http);
+let _flagsCache: FlagsService | undefined;
+export const flags = new Proxy<FlagsService>({} as FlagsService, {
+  get(_t, prop) {
+    if (!_flagsCache) {
+      _flagsCache = new FlagsService(getDefaultClient().httpClient);
+    }
+    const inst = _flagsCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export { DEFAULT_FLAGS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

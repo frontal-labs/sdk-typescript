@@ -171,7 +171,6 @@ export class WorkflowBuilder {
       {
         id,
         type: "condition" as const,
-        config: { expression },
         condition: expression,
         ...opts,
       },

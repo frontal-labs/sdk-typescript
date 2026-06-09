@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/graph",
   "version": "0.0.1",
-  "description": "Frontal Graph SDK — business entity CRUD, traversal, time travel, and semantic search",
+  "description": "Frontal Graph SDK \u2014 business entity CRUD, traversal, time travel, and semantic search",
   "keywords": [
     "javascript",
     "typescript",
@@ -37,7 +37,9 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "repository": {
@@ -74,6 +76,7 @@
     "@frontal-labs/testing": "workspace:*",
     "@types/bun": "^1.3.8",
     "@types/node": "^25.2.1",
-    "tsup": "^8.5.1"
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
   }
 }

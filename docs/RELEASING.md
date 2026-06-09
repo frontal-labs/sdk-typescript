@@ -46,7 +46,8 @@ the publish workflow:
 
 After publishing, confirm:
 - Packages appear on [npmjs.com](https://www.npmjs.com/) under `@frontal-labs`
-- Provenance badges are visible on each package page
+- Packages appear on [GitHub Packages](https://github.com/orgs/frontal-labs/packages?repo_name=sdk-typescript) with the same versions
+- Provenance badges are visible on each npm package page
 - GitHub Releases are created with correct changelogs
 
 ## Manual Release (if CI is unavailable)
@@ -69,6 +70,7 @@ bun run release
 | Preview publish | PR opened / updated | `pkg-pr-new` publishes preview packages for testing |
 | Release PR | Changesets merged to main | Changesets bot opens a Version Packages PR |
 | Publish | Version Packages PR merged | Packages published to npm with provenance |
+| GitHub Packages | After npm publish | Same versions published to GitHub Packages npm registry |
 | Docs | After publish | API docs generated and deployed to GitHub Pages |
 
 ## Provenance
@@ -95,6 +97,67 @@ Changesets resolves the dependency graph and publishes in correct order:
 - **patch**: Bug fixes, internal improvements, docs
 - **minor**: New features, new public API surface
 - **major**: Breaking changes to the public API
+
+## GitHub Packages Dual Publishing
+
+All packages are automatically published to **GitHub Packages**
+(`https://npm.pkg.github.com/`) immediately after npm publishing. This provides
+a backup registry and enables consumers within the GitHub ecosystem to install
+packages directly from GitHub Packages.
+
+### How It Works
+
+1. Changesets publishes to npm (existing flow -- unchanged).
+2. The workflow reads the `publishedPackages` output from the Changesets action.
+3. Each newly-published package version is re-published to the GitHub Packages
+   npm registry using the `GITHUB_TOKEN` for authentication.
+4. The publish is idempotent -- if the version already exists on GitHub
+   Packages, the step skips it.
+
+### Consuming from GitHub Packages
+
+To install from GitHub Packages instead of npm:
+
+```bash
+# Create or update .npmrc in your project:
+echo "@frontal-labs:registry=https://npm.pkg.github.com/" >> .npmrc
+echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> .npmrc
+
+# Install as usual:
+npm install @frontal-labs/core
+```
+
+The GitHub token must have `read:packages` scope for public packages.
+
+### GitHub Packages Troubleshooting
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| `404 Not Found` | Package not yet published to GitHub Packages | Wait for next release, or publish manually |
+| `403 Forbidden` | Workflow lacks `packages: write` permission | Verify `packages: write` in publish.yml |
+| Version mismatch between npm and GitHub Packages | Script skipped due to error | Re-run the workflow or publish manually |
+
+### Manual GitHub Packages Publish
+
+If a package needs to be published to GitHub Packages outside of CI (e.g., to
+recover from a partial failure):
+
+```bash
+# Publish all packages that changesets just released:
+GITHUB_TOKEN=<token> bun run publish:github
+
+# Or publish a single package manually:
+cd packages/<name>
+npm publish \
+  --no-provenance \
+  --registry=https://npm.pkg.github.com/ \
+  --@frontal-labs:registry=https://npm.pkg.github.com/ \
+  --//npm.pkg.github.com/:_authToken=<token> \
+  --access=public
+```
+
+The token must have `write:packages` scope. If multiple packages need
+re-publishing, re-running the workflow on main is the recommended approach.
 
 ## Troubleshooting
 

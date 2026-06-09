@@ -47,7 +47,8 @@
 		{ "path": "./packages/sandbox" },
 		{ "path": "./packages/datasets" },
 		{ "path": "./packages/vectors" },
-		{ "path": "./packages/lineage" }
+		{ "path": "./packages/lineage" },
+	{ "path": "./packages/sdk" }
 	],
 	"compilerOptions": {
 		"baseUrl": ".",
@@ -76,7 +77,8 @@
       "@frontal-labs/sandbox": ["./packages/sandbox/src"],
       "@frontal-labs/datasets": ["./packages/datasets/src"],
       "@frontal-labs/vectors": ["./packages/vectors/src"],
-      "@frontal-labs/lineage": ["./packages/lineage/src"]
+      "@frontal-labs/lineage": ["./packages/lineage/src"],
+      "@frontal-labs/sdk": ["./packages/sdk/src"]
 		}
 	}
 }

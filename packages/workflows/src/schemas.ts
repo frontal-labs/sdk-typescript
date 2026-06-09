@@ -44,34 +44,111 @@ export const StepTypeSchema = z.enum([
   "notification",
 ]);
 
-export const WorkflowTriggerSchema = z
-  .object({
-    type: TriggerTypeSchema,
-    config: z.record(z.string(), z.unknown()).optional(),
-    schedule: z.string().optional(),
-    eventType: z.string().optional(),
-    webhookUrl: z.string().url().optional(),
-  })
-  .passthrough();
+const ManualTriggerSchema = z.object({
+  type: z.literal("manual"),
+  config: z.record(z.string(), z.unknown()).optional(),
+});
 
-export const WorkflowStepSchema = z
-  .object({
-    id: z.string(),
-    type: StepTypeSchema,
-    name: z.string().optional(),
-    description: z.string().optional(),
-    config: z.record(z.string(), z.unknown()).optional(),
-    dependsOn: z.array(z.string()).optional(),
-    timeout: z.string().optional(),
-    retryPolicy: z
-      .object({
-        maxAttempts: z.number().int().positive().optional(),
-        backoff: z.enum(["linear", "exponential"]).optional(),
-      })
-      .optional(),
-    condition: z.string().optional(),
-  })
-  .passthrough();
+const ScheduleTriggerSchema = z.object({
+  type: z.literal("schedule"),
+  schedule: z.string(),
+  config: z.record(z.string(), z.unknown()).optional(),
+});
+
+const EventTriggerSchema = z.object({
+  type: z.literal("event"),
+  eventType: z.string(),
+  config: z.record(z.string(), z.unknown()).optional(),
+});
+
+const WebhookTriggerSchema = z.object({
+  type: z.literal("webhook"),
+  webhookUrl: z.string().url(),
+  config: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const WorkflowTriggerSchema = z.discriminatedUnion("type", [
+  ManualTriggerSchema,
+  ScheduleTriggerSchema,
+  EventTriggerSchema,
+  WebhookTriggerSchema,
+]);
+
+const baseStepFields = {
+  id: z.string(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  dependsOn: z.array(z.string()).optional(),
+  timeout: z.string().optional(),
+  retryPolicy: z
+    .object({
+      maxAttempts: z.number().int().positive().optional(),
+      backoff: z.enum(["linear", "exponential"]).optional(),
+    })
+    .optional(),
+};
+
+const TaskStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("task"),
+  config: z.record(z.string(), z.unknown()),
+});
+
+const ApprovalStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("approval"),
+  config: z
+    .object({
+      approvers: z.array(z.string()),
+    })
+    .passthrough(),
+});
+
+const ConditionStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("condition"),
+  condition: z.string(),
+});
+
+const ParallelStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("parallel"),
+  config: z
+    .object({
+      steps: z.array(z.string()),
+    })
+    .passthrough(),
+});
+
+const DelayStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("delay"),
+  config: z
+    .object({
+      duration: z.string(),
+    })
+    .passthrough(),
+});
+
+const NotificationStepSchema = z.object({
+  ...baseStepFields,
+  type: z.literal("notification"),
+  config: z
+    .object({
+      message: z.string(),
+      channels: z.array(z.string()),
+    })
+    .passthrough(),
+});
+
+export const WorkflowStepSchema = z.discriminatedUnion("type", [
+  TaskStepSchema,
+  ApprovalStepSchema,
+  ConditionStepSchema,
+  ParallelStepSchema,
+  DelayStepSchema,
+  NotificationStepSchema,
+]);
 
 export const WorkflowDefinitionSchema = z
   .object({

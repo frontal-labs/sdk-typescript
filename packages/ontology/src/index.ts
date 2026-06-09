@@ -14,16 +14,15 @@ export interface OntologyClientConfig {
 }
 
 /** Create from a FrontalClient instance */
-export function createOntologyClient(client: FrontalClient): OntologyService;
 /** Create standalone with just config */
 export function createOntologyClient(
-  config: OntologyClientConfig
+  config: OntologyClientConfig | FrontalClient
 ): OntologyService;
 export function createOntologyClient(
   clientOrConfig: FrontalClient | OntologyClientConfig
 ): OntologyService {
   if (clientOrConfig instanceof FrontalClient) {
-    return new OntologyService(clientOrConfig._http);
+    return new OntologyService(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
@@ -32,7 +31,7 @@ export function createOntologyClient(
       process.env.FRONTAL_ONTOLOGY_API_URL ??
       process.env.FRONTAL_API_URL ??
       "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30000,
+    timeout: clientOrConfig.timeout ?? 30_000,
     maxRetries: clientOrConfig.maxRetries ?? 3,
     retryDelay: 1000,
     headers: {},
@@ -43,7 +42,19 @@ export function createOntologyClient(
 }
 
 // Default instance that works automatically with environment variables
-export const ontology = new OntologyService(getDefaultClient()._http);
+let _ontologyCache: OntologyService | undefined;
+export const ontology = new Proxy<OntologyService>({} as OntologyService, {
+  get(_t, prop) {
+    if (!_ontologyCache) {
+      _ontologyCache = new OntologyService(getDefaultClient().httpClient);
+    }
+    const inst = _ontologyCache;
+    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(inst)
+      : val;
+  },
+});
 
 export * from "./schemas";
 export { OntologyService } from "./service";

@@ -39,14 +39,14 @@ function pageWrap<T>(items: T[]) {
 describe("SchedulesService", () => {
   it("lists schedules (paginated)", async () => {
     const { service } = createService([
-      { method: "GET", path: "/v1/schedules", body: pageWrap([mockSchedule]) },
+      { method: "GET", path: "/schedules", body: pageWrap([mockSchedule]) },
     ]);
     const result = await service.list();
     expect(result.data).toHaveLength(1);
   });
   it("creates a schedule", async () => {
     const { service } = createService([
-      { method: "POST", path: "/v1/schedules", body: mockSchedule },
+      { method: "POST", path: "/schedules", body: mockSchedule },
     ]);
     const result = await service.create({
       name: "Daily Report",
@@ -59,7 +59,7 @@ describe("SchedulesService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/schedules/sch_1/pause",
+        path: "/schedules/sch_1/pause",
         body: { ...mockSchedule, status: "paused" },
       },
     ]);
@@ -70,7 +70,7 @@ describe("SchedulesService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/schedules/sch_1/trigger",
+        path: "/schedules/sch_1/trigger",
         body: {
           id: "run_1",
           schedule_id: "sch_1",
@@ -87,7 +87,7 @@ describe("SchedulesService", () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/v1/schedules/cron/validate",
+        path: "/schedules/cron/validate",
         body: { valid: true },
       },
     ]);

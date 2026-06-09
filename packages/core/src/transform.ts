@@ -22,7 +22,7 @@ export function camelToSnake(str: string): string {
     .toLowerCase();
 }
 
-const SKIP_TYPES = new Set([
+const _SKIP_TYPES = new Set([
   "Date",
   "Buffer",
   "RegExp",
