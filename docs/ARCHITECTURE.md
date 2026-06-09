@@ -61,7 +61,8 @@ Dataset CRUD with versioning, data operations, and import/export.
 
 ### 12. Events (`@frontal-labs/events`)
 
-Pub/sub event bus with client-side buffering, dead-letter queues, and schema registry.
+Pub/sub event bus with client-side buffering, dead-letter queues, and
+schema registry.
 
 ### 13. Flags (`@frontal-labs/flags`)
 
