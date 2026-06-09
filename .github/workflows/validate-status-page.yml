@@ -35,7 +35,7 @@ permissions:
 jobs:
   config-validation:
     name: Validate Config Files
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -74,7 +74,7 @@ jobs:
 
   dry-run-monitor:
     name: Dry-Run SDK Monitor
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 10
 
     steps:
@@ -110,7 +110,7 @@ jobs:
 
   flap-logic-test:
     name: Flap Prevention Logic Test
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
       - name: Checkout
@@ -221,7 +221,7 @@ jobs:
 
   api-connectivity:
     name: API Connectivity Test
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: inputs.test_api == true
 
     steps:
@@ -248,7 +248,7 @@ jobs:
 
   secret-check:
     name: Secret Presence Check
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
       - name: Check required secrets and variables
@@ -284,7 +284,7 @@ jobs:
 
   gate:
     name: Validation Gate
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     needs: [config-validation, dry-run-monitor, flap-logic-test, api-connectivity, secret-check]
     if: always()
 

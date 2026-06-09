@@ -27,7 +27,7 @@ permissions:
 jobs:
   run-checks:
     name: Run Synthetic Checks
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 15
 
     steps:
@@ -72,7 +72,7 @@ jobs:
 
   manage-incidents:
     name: Manage Incidents
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     needs: run-checks
     if: always()
     timeout-minutes: 10

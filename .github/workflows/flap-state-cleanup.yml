@@ -18,7 +18,7 @@ permissions:
 jobs:
   cleanup:
     name: Clean Stale Flap State
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 5
 
     steps:
