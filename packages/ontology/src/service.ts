@@ -1,5 +1,4 @@
 import {
-  asPagePayload,
   createPageResult,
   type HttpClient,
   type PageResult,
@@ -7,6 +6,19 @@ import {
 } from "@frontal-labs/core";
 import type { z } from "zod";
 import * as S from "./schemas";
+
+const asPagePayload = <T>(
+  raw: unknown
+): {
+  data: T[];
+  pagination: PaginationMeta;
+  meta?: unknown;
+} =>
+  raw as {
+    data: T[];
+    pagination: PaginationMeta;
+    meta?: unknown;
+  };
 
 export class OntologyService {
   readonly migrations: MigrationsNamespace;
@@ -33,7 +45,7 @@ export class OntologyService {
       cursor?: string;
     } = {}
   ): Promise<PageResult<S.Model>> {
-    const raw = await this.http.get("/ontology/engine/ontologies", opts);
+    const raw = await this.http.get("/ontology/engine/runs", opts);
     return createPageResult(asPagePayload<S.Model>(raw), (cursor) =>
       this.list({ ...opts, cursor })
     );
@@ -41,7 +53,7 @@ export class OntologyService {
 
   async create(definition: S.ModelDefinition): Promise<S.Model> {
     const body = S.ModelDefinitionSchema.parse(definition);
-    return this.http.post("/ontology/engine/ontologies", body);
+    return this.http.post("/ontology/engine/runs", body);
   }
 
   async validate(
@@ -64,37 +76,36 @@ export class ModelAccessor {
 
   async get(version?: number): Promise<S.Model> {
     const params = version ? { version } : undefined;
-    return this.http.get(`/ontology/engine/ontologies/${this._name}`, params);
+    return this.http.get("/ontology/engine/runs", params);
   }
 
   async update(definition: Partial<S.ModelDefinition>): Promise<S.Model> {
-    return this.http.put(
-      `/ontology/engine/ontologies/${this._name}`,
-      definition
-    );
+    return this.http.post("/ontology/engine/runs", definition);
   }
 
   async delete(force = false): Promise<void> {
-    return this.http.delete(`/ontology/engine/ontologies/${this._name}`, {
+    return this.http.post("/ontology/engine/runs", {
+      action: "delete-model",
       force,
     });
   }
 
   async relationships(): Promise<{ data: S.RelationshipDefinition[] }> {
-    return this.http.get("/ontology/relationships/relationships");
+    return this.http.get("/ontology/engine/runs");
   }
 
   async addRelationship(
     definition: S.RelationshipDefinition
   ): Promise<S.RelationshipDefinition> {
     const body = S.RelationshipDefinitionSchema.parse(definition);
-    return this.http.post("/ontology/relationships/relationships", body);
+    return this.http.post("/ontology/engine/runs", body);
   }
 
   async removeRelationship(relationshipId: string): Promise<void> {
-    return this.http.delete(
-      `/ontology/relationships/relationships/${relationshipId}`
-    );
+    return this.http.post("/ontology/engine/runs", {
+      action: "delete-relationship",
+      relationshipId,
+    });
   }
 
   async validateData(): Promise<{
@@ -114,9 +125,7 @@ export class ModelAccessor {
       migrationId?: string;
     }>;
   }> {
-    return this.http.get("/ontology/versions/versions", {
-      modelId: this._name,
-    });
+    return this.http.get("/ontology/engine/runs");
   }
 }
 
@@ -137,16 +146,13 @@ export class MigrationsNamespace {
     planId: string,
     strategy = "zero-downtime"
   ): Promise<{ id: string; status: string; appliedAt: string }> {
-    return this.http.post("/ontology/engine/migrations/apply", {
-      planId,
-      strategy,
-    });
+    return this.http.post("/ontology/engine/runs", { planId, strategy });
   }
 
   async rollback(
     _migrationId: string
   ): Promise<{ id: string; status: string; rolledBackAt: string }> {
-    return this.http.post("/ontology/engine/migrations/rollback");
+    return this.http.post("/ontology/engine/runs");
   }
 
   async history(opts: { limit?: number; cursor?: string } = {}): Promise<
@@ -159,7 +165,7 @@ export class MigrationsNamespace {
       createdAt: string;
     }>
   > {
-    const raw = await this.http.get("/ontology/engine/migrations", opts);
+    const raw = await this.http.get("/ontology/engine/runs", opts);
     return createPageResult(
       asPagePayload<{
         id: string;
@@ -178,23 +184,26 @@ export class RulesNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async list(): Promise<{ data: S.RuleDefinition[] }> {
-    return this.http.get("/ontology/reasoning/rules");
+    return this.http.get("/ontology/engine/runs");
   }
 
   async create(definition: S.RuleDefinition): Promise<S.RuleDefinition> {
     const body = S.RuleDefinitionSchema.parse(definition);
-    return this.http.post("/ontology/reasoning/rules", body);
+    return this.http.post("/ontology/engine/runs", body);
   }
 
   async update(
     _ruleId: string,
     definition: Partial<S.RuleDefinition>
   ): Promise<S.RuleDefinition> {
-    return this.http.put(`/ontology/reasoning/rules/${_ruleId}`, definition);
+    return this.http.post("/ontology/engine/runs", definition);
   }
 
   async delete(ruleId: string): Promise<void> {
-    return this.http.delete(`/ontology/reasoning/rules/${ruleId}`);
+    return this.http.post("/ontology/engine/runs", {
+      action: "delete-rule",
+      ruleId,
+    });
   }
 
   async evaluate(opts: {
@@ -210,12 +219,12 @@ export class MixinsNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async list(): Promise<{ data: S.MixinDefinition[] }> {
-    return this.http.get("/ontology/schemas/schemas");
+    return this.http.get("/ontology/engine/runs");
   }
 
   async create(definition: S.MixinDefinition): Promise<S.MixinDefinition> {
     const body = S.MixinDefinitionSchema.parse(definition);
-    return this.http.post("/ontology/schemas/schemas", body);
+    return this.http.post("/ontology/engine/runs", body);
   }
 }
 
@@ -247,24 +256,19 @@ export class GenerationNamespace {
   async suggestions(
     opts: { status?: "pending" | "accepted" | "rejected" } = {}
   ): Promise<{ data: unknown[] }> {
-    return this.http.get("/ontology/engine/suggestions", opts);
+    return this.http.get("/ontology/engine/runs", opts);
   }
 
   async acceptSuggestion(_suggestionId: string): Promise<unknown> {
-    return this.http.post(
-      `/ontology/engine/suggestions/${_suggestionId}/accept`
-    );
+    return this.http.post("/ontology/engine/runs");
   }
 
   async rejectSuggestion(
     _suggestionId: string,
     reason?: string
   ): Promise<unknown> {
-    return this.http.post(
-      `/ontology/engine/suggestions/${_suggestionId}/reject`,
-      {
-        reason,
-      }
-    );
+    return this.http.post("/ontology/engine/runs", {
+      reason,
+    });
   }
 }

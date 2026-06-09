@@ -31,7 +31,7 @@ describe("OntologyService", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: "/ontology/engine/runs",
+          path: "/v1/ontology/engine/runs",
           body: mockPageResponse(items),
         },
       ]);
@@ -39,14 +39,14 @@ describe("OntologyService", () => {
       const result = await service.list();
 
       expect(result.data).toHaveLength(2);
-      mock.expectCalled("GET", "/ontology/engine/runs");
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
 
     it("passes filter options", async () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/ontology/engine/runs",
+          path: "/v1/ontology/engine/runs",
           body: mockPageResponse([]),
         },
       ]);
@@ -59,7 +59,7 @@ describe("OntologyService", () => {
     it("creates a model definition", async () => {
       const mdl = model({ name: "customer" });
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body: mdl },
+        { method: "POST", path: "/v1/ontology/engine/runs", body: mdl },
       ]);
 
       const result = await service.create({
@@ -68,7 +68,7 @@ describe("OntologyService", () => {
       });
 
       expect(result.name).toBe("customer");
-      mock.expectCalled("POST", "/ontology/engine/runs");
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -78,7 +78,7 @@ describe("OntologyService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ontology/engine/ontologies/validate",
+          path: "/v1/ontology/engine/ontologies/validate",
           body,
         },
       ]);
@@ -89,7 +89,7 @@ describe("OntologyService", () => {
       });
 
       expect(result.valid).toBe(true);
-      mock.expectCalled("POST", "/ontology/engine/ontologies/validate");
+      mock.expectCalled("POST", "/v1/ontology/engine/ontologies/validate");
     });
 
     it("returns validation errors", async () => {
@@ -100,7 +100,7 @@ describe("OntologyService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/ontology/engine/ontologies/validate",
+          path: "/v1/ontology/engine/ontologies/validate",
           body,
         },
       ]);
@@ -119,13 +119,13 @@ describe("OntologyService", () => {
     it("checks ontology integrity", async () => {
       const body = { valid: true };
       const { service, mock } = createService([
-        { method: "GET", path: "/ontology/engine/health", body },
+        { method: "GET", path: "/v1/ontology/engine/health", body },
       ]);
 
       const result = await service.checkIntegrity();
 
       expect(result.valid).toBe(true);
-      mock.expectCalled("GET", "/ontology/engine/health");
+      mock.expectCalled("GET", "/v1/ontology/engine/health");
     });
   });
 });
@@ -286,7 +286,7 @@ describe("MigrationsNamespace", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ontology/engine/ontologies/compare-versions",
+          path: "/v1/ontology/engine/ontologies/compare-versions",
           body,
         },
       ]);
@@ -294,7 +294,10 @@ describe("MigrationsNamespace", () => {
       const result = await service.migrations.plan({ modelId: "mdl_1" });
 
       expect(result.id).toBe("mig_1");
-      mock.expectCalled("POST", "/ontology/engine/ontologies/compare-versions");
+      mock.expectCalled(
+        "POST",
+        "/v1/ontology/engine/ontologies/compare-versions"
+      );
     });
   });
 
@@ -302,13 +305,13 @@ describe("MigrationsNamespace", () => {
     it("applies a migration plan", async () => {
       const body = { id: "mig_1", status: "applied", appliedAt: "2024-01-01" };
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.migrations.apply("plan_1");
 
       expect(result.status).toBe("applied");
-      mock.expectCalledWith("POST", "/ontology/engine/runs", {
+      mock.expectCalledWith("POST", "/v1/ontology/engine/runs", {
         planId: "plan_1",
         strategy: "zero-downtime",
       });
@@ -323,13 +326,13 @@ describe("MigrationsNamespace", () => {
         rolledBackAt: "2024-01-01",
       };
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.migrations.rollback("mig_1");
 
       expect(result.status).toBe("rolled_back");
-      mock.expectCalled("POST", "/ontology/engine/runs");
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -348,7 +351,7 @@ describe("MigrationsNamespace", () => {
       const { service, mock } = createService([
         {
           method: "GET",
-          path: "/ontology/engine/runs",
+          path: "/v1/ontology/engine/runs",
           body: mockPageResponse(items),
         },
       ]);
@@ -356,7 +359,7 @@ describe("MigrationsNamespace", () => {
       const result = await service.migrations.history();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("GET", "/ontology/engine/runs");
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
   });
 });
@@ -368,13 +371,13 @@ describe("RulesNamespace", () => {
         data: [{ id: "rule_1", name: "email_required", type: "validation" }],
       };
       const { service, mock } = createService([
-        { method: "GET", path: "/ontology/engine/runs", body },
+        { method: "GET", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.rules.list();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("GET", "/ontology/engine/runs");
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
   });
 
@@ -382,7 +385,7 @@ describe("RulesNamespace", () => {
     it("creates a rule", async () => {
       const body = { id: "rule_1", name: "email_format", type: "validation" };
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.rules.create({
@@ -394,7 +397,7 @@ describe("RulesNamespace", () => {
       });
 
       expect(result.name).toBe("email_format");
-      mock.expectCalled("POST", "/ontology/engine/runs");
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -406,7 +409,7 @@ describe("RulesNamespace", () => {
         type: "validation",
       };
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.rules.update("rule_1", {
@@ -414,19 +417,19 @@ describe("RulesNamespace", () => {
       });
 
       expect(result.name).toBe("email_format_v2");
-      mock.expectCalled("POST", "/ontology/engine/runs");
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
   describe("delete()", () => {
     it("deletes a rule", async () => {
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", status: 204 },
+        { method: "POST", path: "/v1/ontology/engine/runs", status: 204 },
       ]);
 
       await service.rules.delete("rule_1");
 
-      mock.expectCalled("POST", "/ontology/engine/runs");
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -439,7 +442,7 @@ describe("RulesNamespace", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ontology/engine/ontologies/validate",
+          path: "/v1/ontology/engine/ontologies/validate",
           body,
         },
       ]);
@@ -447,7 +450,7 @@ describe("RulesNamespace", () => {
       const result = await service.rules.evaluate({ entityType: "user" });
 
       expect(result.summary.violations).toBe(0);
-      mock.expectCalled("POST", "/ontology/engine/ontologies/validate");
+      mock.expectCalled("POST", "/v1/ontology/engine/ontologies/validate");
     });
   });
 });
@@ -457,13 +460,13 @@ describe("MixinsNamespace", () => {
     it("lists all mixins", async () => {
       const body = { data: [{ name: "timestamped", fields: [] }] };
       const { service, mock } = createService([
-        { method: "GET", path: "/ontology/engine/runs", body },
+        { method: "GET", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.mixins.list();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("GET", "/ontology/engine/runs");
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
   });
 
@@ -474,7 +477,7 @@ describe("MixinsNamespace", () => {
         fields: [{ name: "createdBy", type: "string" }],
       };
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.mixins.create({
@@ -483,7 +486,7 @@ describe("MixinsNamespace", () => {
       });
 
       expect(result.name).toBe("auditable");
-      mock.expectCalled("POST", "/ontology/engine/runs");
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 });
@@ -499,7 +502,7 @@ describe("GenerationNamespace", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ontology/engine/ontologies/generate",
+          path: "/v1/ontology/engine/ontologies/generate",
           body,
         },
       ]);
@@ -510,7 +513,7 @@ describe("GenerationNamespace", () => {
       );
 
       expect(result.confidence).toBe(0.88);
-      mock.expectCalled("POST", "/ontology/engine/ontologies/generate");
+      mock.expectCalled("POST", "/v1/ontology/engine/ontologies/generate");
     });
   });
 
@@ -520,7 +523,7 @@ describe("GenerationNamespace", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ontology/engine/ontologies/infer-classes",
+          path: "/v1/ontology/engine/ontologies/infer-classes",
           body,
         },
       ]);
@@ -530,7 +533,7 @@ describe("GenerationNamespace", () => {
       });
 
       expect(result.proposals).toHaveLength(1);
-      mock.expectCalled("POST", "/ontology/engine/ontologies/infer-classes");
+      mock.expectCalled("POST", "/v1/ontology/engine/ontologies/infer-classes");
     });
   });
 
@@ -538,13 +541,13 @@ describe("GenerationNamespace", () => {
     it("lists suggestions", async () => {
       const body = { data: [{ id: "sug_1", status: "pending" }] };
       const { service, mock } = createService([
-        { method: "GET", path: "/ontology/engine/runs", body },
+        { method: "GET", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.generation.suggestions();
 
       expect(result.data).toHaveLength(1);
-      mock.expectCalled("GET", "/ontology/engine/runs");
+      mock.expectCalled("GET", "/v1/ontology/engine/runs");
     });
   });
 
@@ -552,13 +555,13 @@ describe("GenerationNamespace", () => {
     it("accepts a suggestion", async () => {
       const body = { id: "sug_1", status: "accepted" };
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.generation.acceptSuggestion("sug_1");
 
       expect(result.status).toBe("accepted");
-      mock.expectCalled("POST", "/ontology/engine/runs");
+      mock.expectCalled("POST", "/v1/ontology/engine/runs");
     });
   });
 
@@ -566,7 +569,7 @@ describe("GenerationNamespace", () => {
     it("rejects a suggestion with reason", async () => {
       const body = { id: "sug_1", status: "rejected" };
       const { service, mock } = createService([
-        { method: "POST", path: "/ontology/engine/runs", body },
+        { method: "POST", path: "/v1/ontology/engine/runs", body },
       ]);
 
       const result = await service.generation.rejectSuggestion(
@@ -575,7 +578,7 @@ describe("GenerationNamespace", () => {
       );
 
       expect(result.status).toBe("rejected");
-      mock.expectCalledWith("POST", "/ontology/engine/runs", {
+      mock.expectCalledWith("POST", "/v1/ontology/engine/runs", {
         reason: "Not relevant",
       });
     });

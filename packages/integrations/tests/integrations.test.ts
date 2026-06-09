@@ -8,7 +8,7 @@ import {
   installedIntegrationSchema,
   actionRunSchema,
   connectionTestSchema,
-} from "@/index";
+} from "../src/index";
 
 function createService(
   routes: {
