@@ -260,7 +260,8 @@ jobs:
           missing=0
 
           check() {
-            local name="$1" val="${!name:-}"
+            local name="$1"
+            local val="${!name:-}"
             if [[ -z "$val" ]]; then
               echo "MISSING: $name"
               missing=1
