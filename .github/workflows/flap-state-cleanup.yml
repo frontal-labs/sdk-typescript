@@ -30,7 +30,7 @@ jobs:
 
       - name: Restore flap state
         id: restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: flap-state.json
           key: flap-state-sdk-${{ github.run_id }}
@@ -92,7 +92,7 @@ jobs:
           jq '{alerting, consecutive_failures, consecutive_successes, history_count: (.history | length)}' flap-state.json
 
       - name: Save cleaned state
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: flap-state.json
           key: flap-state-sdk-${{ github.run_id }}
