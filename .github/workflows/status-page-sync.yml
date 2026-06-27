@@ -32,7 +32,7 @@ jobs:
 
       - name: Restore flap state
         id: restore-flap
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: flap-state.json
           key: flap-state-sdk-${{ github.run_id }}
