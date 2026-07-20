@@ -4,7 +4,9 @@
 export const DEFAULT_BASE_URL = "https://api.frontal.dev/v1";
 
 /**
- * API key prefix for Frontal API
+ * The Frontal API key prefix. Opaque API keys are the sole public credential;
+ * the platform edge validates the key and exchanges it for a short-lived JWT —
+ * the SDK never handles JWTs.
  */
 export const API_KEY_PREFIX = "frt_";
 

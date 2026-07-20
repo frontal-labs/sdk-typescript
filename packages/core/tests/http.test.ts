@@ -93,6 +93,59 @@ describe("HttpClient", () => {
     });
   });
 
+  describe("URL /v1 prefix handling", () => {
+    it("should not double the /v1 segment when a route also starts with /v1/", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ data: "test" }),
+      });
+
+      await httpClient.get("/v1/data/query/runs");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.test.com/v1/data/query/runs",
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+
+    it("should leave unprefixed routes untouched", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ data: "test" }),
+      });
+
+      await httpClient.get("/data/query/runs");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.test.com/v1/data/query/runs",
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+
+    it("should not strip /v1 from a route when the base URL has no /v1 segment", async () => {
+      const noVersionClient = new HttpClient(
+        createMockConfig({ baseUrl: "https://api.test.com" })
+      );
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ data: "test" }),
+      });
+
+      await noVersionClient.get("/v1/health");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.test.com/v1/health",
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
   describe("GET requests", () => {
     it("should make a successful GET request", async () => {
       const responseData = { id: "123", name: "Test" };

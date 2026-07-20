@@ -1,8 +1,9 @@
 import type { z } from "zod";
 import type { ClientConfigOutput } from "./config";
+import { DEFAULT_BASE_URL } from "./constants";
 import { NetworkError } from "./errors";
 import { HttpClient } from "./http";
-import { keys } from "./keys";
+import { env } from "./keys";
 
 const unwrapClientError = (error: unknown): never => {
   if (error instanceof NetworkError) {
@@ -125,8 +126,7 @@ export class FrontalClient {
 }
 
 export const getDefaultClient = (): FrontalClient => {
-  const env = keys.client.safeParse(process.env);
-  if (!env.success) {
+  if (!env.FRONTAL_API_KEY) {
     throw new Error(
       "FRONTAL_API_KEY environment variable is required. " +
         "Set it in your environment or pass apiKey explicitly to new FrontalClient()."
@@ -134,13 +134,13 @@ export const getDefaultClient = (): FrontalClient => {
   }
 
   return new FrontalClient({
-    apiKey: env.data.FRONTAL_API_KEY,
-    baseUrl: process.env.FRONTAL_API_URL || "https://api.frontal.dev/v1",
+    apiKey: env.FRONTAL_API_KEY,
+    baseUrl: env.FRONTAL_API_URL ?? DEFAULT_BASE_URL,
     timeout: 30_000,
     maxRetries: 3,
     retryDelay: 1000,
     headers: {},
-    environment: env.data.FRONTAL_ENVIRONMENT ?? "development",
-    debug: env.data.FRONTAL_DEBUG ?? false,
+    environment: env.NODE_ENV,
+    debug: env.FRONTAL_DEBUG,
   });
 };

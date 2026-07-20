@@ -1,7 +1,8 @@
 /**
  * Builds a normalized route path from segments.
  * Joins segments with "/", collapses consecutive slashes,
- * and warns on double "/v1/" prefix (common SDK misconfiguration).
+ * and collapses an accidental double "/v1/v1" prefix (common SDK
+ * misconfiguration) down to a single "/v1".
  *
  * @example
  * ```ts
@@ -10,11 +11,11 @@
  * ```
  */
 export function route(...segments: string[]): string {
-  const path = segments.filter(Boolean).join("/").replace(/\/+/g, "/");
-
-  if (path.includes("/v1/v1")) {
-    console.warn(`[SDK] Double /v1/ prefix detected in route: ${path}`);
-  }
+  const path = segments
+    .filter(Boolean)
+    .join("/")
+    .replace(/\/+/g, "/")
+    .replace(/^\/?v1\/v1\//, "v1/");
 
   return `/${path}`;
 }

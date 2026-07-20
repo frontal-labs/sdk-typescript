@@ -1,5 +1,9 @@
-// Core client
-// Default client factory
+/**
+ * @frontal-labs/core
+ *
+ * Foundational primitives for the Frontal TypeScript SDK.
+ */
+
 export { FrontalClient, getDefaultClient } from "./client";
 export type { ClientConfigInput, ClientConfigOutput } from "./config";
 // Configuration schemas
@@ -31,7 +35,7 @@ export type { RateLimitInfo } from "./errors";
 // HTTP client for API requests
 export { HttpClient } from "./http";
 // Environment variable management
-export { keys } from "./keys";
+export { env } from "./keys";
 // Pagination utilities
 export {
   asPagePayload,

@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { API_KEY_PREFIX, DEFAULT_BASE_URL } from "./constants";
 
+// Keys are `frt_<base64url>`; base64url includes `-` and `_`.
+const API_KEY_PATTERN = new RegExp(`^${API_KEY_PREFIX}[A-Za-z0-9_-]+$`);
+
 const loggerFnSchema = z.custom<(...args: unknown[]) => void>(
   (value) => typeof value === "function",
   "Expected function"
@@ -31,10 +34,7 @@ export const clientConfigSchema = z
     apiKey: z
       .string()
       .min(9, "apiKey is required")
-      .regex(
-        new RegExp(`^${API_KEY_PREFIX}[A-Za-z0-9_]+$`),
-        `apiKey must start with "${API_KEY_PREFIX}"`
-      ),
+      .regex(API_KEY_PATTERN, `apiKey must start with "${API_KEY_PREFIX}"`),
     baseUrl: z
       .string()
       .url()

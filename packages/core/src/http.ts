@@ -334,20 +334,24 @@ export class HttpClient {
 
   private buildUrl(path: string, params?: Record<string, unknown>): string {
     const base = this.config.baseUrl.replace(/\/$/, "");
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    const url = `${base}${normalizedPath}`;
+    let normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-    if (
-      this.config.debug &&
-      base.endsWith("/v1") &&
-      normalizedPath.startsWith("/v1/")
-    ) {
-      console.warn(
-        "[SDK] Double /v1/ prefix detected. " +
-          `The base URL already includes "/v1" but the route also starts with "/v1/". ` +
-          "Update your SDK package to the latest version."
-      );
+    // The base URL already includes the "/v1" version segment. If a route also
+    // starts with "/v1/" the two would concatenate into ".../v1/v1/..." (a 404).
+    // Strip the duplicate so packages are robust regardless of whether they
+    // prefix paths with the version segment or the base URL is overridden.
+    if (base.endsWith("/v1") && normalizedPath.startsWith("/v1/")) {
+      if (this.config.debug) {
+        console.warn(
+          "[SDK] Double /v1/ prefix detected and normalized. " +
+            `The base URL already includes "/v1" but the route "${normalizedPath}" ` +
+            'also starts with "/v1/". Write routes without a leading "/v1".'
+        );
+      }
+      normalizedPath = normalizedPath.slice("/v1".length);
     }
+
+    const url = `${base}${normalizedPath}`;
 
     const transformedParams = params
       ? (deepCamelToSnake(params) as Record<string, unknown>)
@@ -372,6 +376,9 @@ export class HttpClient {
     extra: Record<string, string> = {}
   ): Record<string, string> {
     return {
+      // The opaque API key (`frt_…`) is the sole public credential. The platform
+      // edge validates it and exchanges it for a short-lived JWT before reaching
+      // any service — the SDK never sees or sends a JWT.
       Authorization: `Bearer ${this.config.apiKey}`,
       "Content-Type": "application/json",
       Accept: "application/json",

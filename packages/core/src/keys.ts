@@ -1,36 +1,24 @@
+import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
-const apiKeySchema = z
-  .string()
-  .min(9)
-  .max(128, "FRONTAL_API_KEY is too long")
-  .refine(
-    (value) =>
-      /^frt_[A-Za-z0-9_]+$/.test(value) ||
-      /^fr_typed[A-Za-z0-9_]+$/.test(value),
-    "FRONTAL_API_KEY must start with frt_"
-  )
-  .refine((value) => value.length >= 9, "FRONTAL_API_KEY is too short");
-
-const debugSchema = z.preprocess((value) => {
-  if (typeof value === "boolean") return value;
-  if (typeof value !== "string") return value;
-
-  const normalized = value.toLowerCase();
-  if (normalized === "true" || normalized === "1") return true;
-  if (normalized === "false" || normalized === "0") return false;
-  return value;
-}, z.boolean().optional());
-
 /**
- * Shared env schemas used by packages.
+ * Parsed runtime environment used by all packages.
+ * Access via `import { env } from "@frontal-labs/core"`.
  */
-export const keys = {
-  client: z
-    .object({
-      FRONTAL_API_KEY: apiKeySchema,
-      FRONTAL_ENVIRONMENT: z.string().optional(),
-      FRONTAL_DEBUG: debugSchema,
-    })
-    .strip(),
-};
+export const env = createEnv({
+  server: {
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
+    FRONTAL_API_URL: z.url().optional(),
+    FRONTAL_API_KEY: z.string().min(1).optional(),
+    FRONTAL_DEBUG: z.boolean().optional().default(false),
+  },
+  runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
+    FRONTAL_API_URL: process.env.FRONTAL_API_URL,
+    FRONTAL_API_KEY: process.env.FRONTAL_API_KEY,
+    FRONTAL_DEBUG: process.env.FRONTAL_DEBUG,
+  },
+  emptyStringAsUndefined: true,
+});
