@@ -565,7 +565,7 @@ Schema-based configuration validation:
 ```typescript
 const storageConfigSchema = z.object({
   apiKey: z.string().optional(),
-  baseUrl: z.string().url().optional()
+  baseUrl: z.url().optional()
 });
 
 // Automatic validation

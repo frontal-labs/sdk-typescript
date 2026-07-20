@@ -554,7 +554,7 @@ const errorResponseSchema = z.object({
   code: z.string(),
   message: z.string(),
   requestId: z.string(),
-  docs: z.string().url().optional(),
+  docs: z.url().optional(),
   fields: z.array(errorFieldSchema).optional(),
 })
 ```
