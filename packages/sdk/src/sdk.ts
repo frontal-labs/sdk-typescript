@@ -1,240 +1,180 @@
-import type { FrontalClient } from "@frontal-labs/core";
-import { createAIClient } from "@frontal-labs/ai";
-import type { AIService } from "@frontal-labs/ai";
+import type { AgentsSdk } from "@frontal-labs/agents";
 import { createAgentsClient } from "@frontal-labs/agents";
-import type { AgentsService } from "@frontal-labs/agents";
+import type { AISdk } from "@frontal-labs/ai";
+import { createAIClient } from "@frontal-labs/ai";
+import type { AuditSdk } from "@frontal-labs/audit";
 import { createAuditClient } from "@frontal-labs/audit";
-import type { AuditService } from "@frontal-labs/audit";
+import type { AuthSdk } from "@frontal-labs/auth";
 import { createAuthClient } from "@frontal-labs/auth";
-import type { AuthService } from "@frontal-labs/auth";
+import type { BillingSdk } from "@frontal-labs/billing";
 import { createBillingClient } from "@frontal-labs/billing";
-import type { BillingService } from "@frontal-labs/billing";
+import type { BlobSdk } from "@frontal-labs/blob";
 import { createBlobClient } from "@frontal-labs/blob";
-import type { BlobService } from "@frontal-labs/blob";
+import type { ConnectorsSdk } from "@frontal-labs/connectors";
 import { createConnectorsClient } from "@frontal-labs/connectors";
-import type { ConnectorsService } from "@frontal-labs/connectors";
+import type { FrontalClient } from "@frontal-labs/core";
+import type { DataSdk } from "@frontal-labs/data";
+import { createDataClient } from "@frontal-labs/data";
+import type { DatasetsSdk } from "@frontal-labs/datasets";
 import { createDatasetsClient } from "@frontal-labs/datasets";
-import type { DatasetsService } from "@frontal-labs/datasets";
+import type { EventsSdk } from "@frontal-labs/events";
 import { createEventsClient } from "@frontal-labs/events";
-import type { EventsService } from "@frontal-labs/events";
-import { createFlagsClient } from "@frontal-labs/flags";
-import type { FlagsService } from "@frontal-labs/flags";
-import { createFunctionsClient } from "@frontal-labs/functions";
-import type { FunctionsService } from "@frontal-labs/functions";
+import type { GovernanceSdk } from "@frontal-labs/governance";
 import { createGovernanceClient } from "@frontal-labs/governance";
-import type { GovernanceService } from "@frontal-labs/governance";
+import type { GraphSdk } from "@frontal-labs/graph";
 import { createGraphClient } from "@frontal-labs/graph";
-import type { GraphService } from "@frontal-labs/graph";
+import type { IntegrationsSdk } from "@frontal-labs/integrations";
 import { createIntegrationsClient } from "@frontal-labs/integrations";
-import type { IntegrationsService } from "@frontal-labs/integrations";
+import type { LineageSdk } from "@frontal-labs/lineage";
 import { createLineageClient } from "@frontal-labs/lineage";
-import type { LineageService } from "@frontal-labs/lineage";
+import type { ObservabilitySdk } from "@frontal-labs/observability";
 import { createObservabilityClient } from "@frontal-labs/observability";
-import type { ObservabilityService } from "@frontal-labs/observability";
+import type { OntologySdk } from "@frontal-labs/ontology";
 import { createOntologyClient } from "@frontal-labs/ontology";
-import type { OntologyService } from "@frontal-labs/ontology";
-import { createOrganizationClient } from "@frontal-labs/organization";
-import type { OrganizationService } from "@frontal-labs/organization";
+import type { PipelinesSdk } from "@frontal-labs/pipelines";
 import { createPipelinesClient } from "@frontal-labs/pipelines";
-import type { PipelinesService } from "@frontal-labs/pipelines";
-import { createQueuesClient } from "@frontal-labs/queues";
-import type { QueuesService } from "@frontal-labs/queues";
+import type { SandboxSdk } from "@frontal-labs/sandbox";
 import { createSandboxClient } from "@frontal-labs/sandbox";
-import type { SandboxService } from "@frontal-labs/sandbox";
+import type { SchedulesSdk } from "@frontal-labs/schedules";
 import { createSchedulesClient } from "@frontal-labs/schedules";
-import type { SchedulesService } from "@frontal-labs/schedules";
-import { createSearchClient } from "@frontal-labs/search";
-import type { SearchService } from "@frontal-labs/search";
-import { createVectorsClient } from "@frontal-labs/vectors";
-import type { VectorsService } from "@frontal-labs/vectors";
+import type { WebhooksSdk } from "@frontal-labs/webhooks";
 import { createWebhooksClient } from "@frontal-labs/webhooks";
-import type { WebhooksService } from "@frontal-labs/webhooks";
+import type { WorkersSdk } from "@frontal-labs/workers";
+import { createWorkersClient } from "@frontal-labs/workers";
+import type { WorkflowsSdk } from "@frontal-labs/workflows";
 import { createWorkflowsClient } from "@frontal-labs/workflows";
-import type { WorkflowsService } from "@frontal-labs/workflows";
 
-/**
- * Unified SDK client that provides lazy access to all Frontal services.
- *
- * Services are created on first access, so constructing the Sdk is cheap —
- * no HTTP clients are allocated until you actually use a service.
- *
- * @example
- * ```typescript
- * import { Sdk } from '@frontal-labs/sdk'
- * const sdk = new Sdk({ apiKey: 'frt_...' })
- * await sdk.blob.upload({ bucket: 'my-bucket', key: 'file.txt', data })
- * await sdk.ai.inference('hello')
- * ```
- */
-export class Sdk {
+export class Frontal {
   readonly #frontal: FrontalClient;
 
-  // ── Storage ──────────────────────────────────────────────────────────
-
-  #blob?: BlobService;
-  get blob(): BlobService {
+  #blob?: BlobSdk;
+  get blob(): BlobSdk {
     this.#blob ??= createBlobClient(this.#frontal);
     return this.#blob;
   }
 
-  // ── AI & Agents ─────────────────────────────────────────────────────
-
-  #ai?: AIService;
-  get ai(): AIService {
+  #ai?: AISdk;
+  get ai(): AISdk {
     this.#ai ??= createAIClient(this.#frontal);
     return this.#ai;
   }
 
-  #agents?: AgentsService;
-  get agents(): AgentsService {
+  #agents?: AgentsSdk;
+  get agents(): AgentsSdk {
     this.#agents ??= createAgentsClient(this.#frontal);
     return this.#agents;
   }
 
-  // ── Data ─────────────────────────────────────────────────────────────
-
-  #graph?: GraphService;
-  get graph(): GraphService {
+  #graph?: GraphSdk;
+  get graph(): GraphSdk {
     this.#graph ??= createGraphClient(this.#frontal);
     return this.#graph;
   }
 
-  #datasets?: DatasetsService;
-  get datasets(): DatasetsService {
+  #datasets?: DatasetsSdk;
+  get datasets(): DatasetsSdk {
     this.#datasets ??= createDatasetsClient(this.#frontal);
     return this.#datasets;
   }
 
-  #vectors?: VectorsService;
-  get vectors(): VectorsService {
-    this.#vectors ??= createVectorsClient(this.#frontal);
-    return this.#vectors;
+  #data?: DataSdk;
+  get data(): DataSdk {
+    this.#data ??= createDataClient(this.#frontal);
+    return this.#data;
   }
 
-  #search?: SearchService;
-  get search(): SearchService {
-    this.#search ??= createSearchClient(this.#frontal);
-    return this.#search;
-  }
-
-  #lineage?: LineageService;
-  get lineage(): LineageService {
+  #lineage?: LineageSdk;
+  get lineage(): LineageSdk {
     this.#lineage ??= createLineageClient(this.#frontal);
     return this.#lineage;
   }
 
-  // ── Compute ─────────────────────────────────────────────────────────
-
-  #functions?: FunctionsService;
-  get functions(): FunctionsService {
-    this.#functions ??= createFunctionsClient(this.#frontal);
-    return this.#functions;
+  #workers?: WorkersSdk;
+  get workers(): WorkersSdk {
+    this.#workers ??= createWorkersClient(this.#frontal);
+    return this.#workers;
   }
 
-  #pipelines?: PipelinesService;
-  get pipelines(): PipelinesService {
+  #pipelines?: PipelinesSdk;
+  get pipelines(): PipelinesSdk {
     this.#pipelines ??= createPipelinesClient(this.#frontal);
     return this.#pipelines;
   }
 
-  #workflows?: WorkflowsService;
-  get workflows(): WorkflowsService {
+  #workflows?: WorkflowsSdk;
+  get workflows(): WorkflowsSdk {
     this.#workflows ??= createWorkflowsClient(this.#frontal);
     return this.#workflows;
   }
 
-  #queues?: QueuesService;
-  get queues(): QueuesService {
-    this.#queues ??= createQueuesClient(this.#frontal);
-    return this.#queues;
-  }
-
-  #schedules?: SchedulesService;
-  get schedules(): SchedulesService {
+  #schedules?: SchedulesSdk;
+  get schedules(): SchedulesSdk {
     this.#schedules ??= createSchedulesClient(this.#frontal);
     return this.#schedules;
   }
 
-  #sandbox?: SandboxService;
-  get sandbox(): SandboxService {
+  #sandbox?: SandboxSdk;
+  get sandbox(): SandboxSdk {
     this.#sandbox ??= createSandboxClient(this.#frontal);
     return this.#sandbox;
   }
 
-  // ── Platform ────────────────────────────────────────────────────────
-
-  #auth?: AuthService;
-  get auth(): AuthService {
+  #auth?: AuthSdk;
+  get auth(): AuthSdk {
     this.#auth ??= createAuthClient(this.#frontal);
     return this.#auth;
   }
 
-  #organization?: OrganizationService;
-  get organization(): OrganizationService {
-    this.#organization ??= createOrganizationClient(this.#frontal);
-    return this.#organization;
-  }
-
-  #observability?: ObservabilityService;
-  get observability(): ObservabilityService {
+  #observability?: ObservabilitySdk;
+  get observability(): ObservabilitySdk {
     this.#observability ??= createObservabilityClient(this.#frontal);
     return this.#observability;
   }
 
-  #events?: EventsService;
-  get events(): EventsService {
+  #events?: EventsSdk;
+  get events(): EventsSdk {
     this.#events ??= createEventsClient(this.#frontal);
     return this.#events;
   }
 
-  #flags?: FlagsService;
-  get flags(): FlagsService {
-    this.#flags ??= createFlagsClient(this.#frontal);
-    return this.#flags;
-  }
-
-  #audit?: AuditService;
-  get audit(): AuditService {
+  #audit?: AuditSdk;
+  get audit(): AuditSdk {
     this.#audit ??= createAuditClient(this.#frontal);
     return this.#audit;
   }
 
-  #governance?: GovernanceService;
-  get governance(): GovernanceService {
+  #governance?: GovernanceSdk;
+  get governance(): GovernanceSdk {
     this.#governance ??= createGovernanceClient(this.#frontal);
     return this.#governance;
   }
 
-  #billing?: BillingService;
-  get billing(): BillingService {
+  #billing?: BillingSdk;
+  get billing(): BillingSdk {
     this.#billing ??= createBillingClient(this.#frontal);
     return this.#billing;
   }
 
-  // ── Integrations ────────────────────────────────────────────────────
-
-  #connectors?: ConnectorsService;
-  get connectors(): ConnectorsService {
+  #connectors?: ConnectorsSdk;
+  get connectors(): ConnectorsSdk {
     this.#connectors ??= createConnectorsClient(this.#frontal);
     return this.#connectors;
   }
 
-  #integrations?: IntegrationsService;
-  get integrations(): IntegrationsService {
+  #integrations?: IntegrationsSdk;
+  get integrations(): IntegrationsSdk {
     this.#integrations ??= createIntegrationsClient(this.#frontal);
     return this.#integrations;
   }
 
-  #webhooks?: WebhooksService;
-  get webhooks(): WebhooksService {
+  #webhooks?: WebhooksSdk;
+  get webhooks(): WebhooksSdk {
     this.#webhooks ??= createWebhooksClient(this.#frontal);
     return this.#webhooks;
   }
 
-  // ── Models ───────────────────────────────────────────────────────────
-
-  #ontology?: OntologyService;
-  get ontology(): OntologyService {
+  #ontology?: OntologySdk;
+  get ontology(): OntologySdk {
     this.#ontology ??= createOntologyClient(this.#frontal);
     return this.#ontology;
   }
