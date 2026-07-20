@@ -59,6 +59,7 @@
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/testing",
   "license": "MIT",
+  "private": true,
   "author": "Frontal Labs",
   "publishConfig": {
     "access": "public",

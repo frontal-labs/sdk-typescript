@@ -34,6 +34,7 @@
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/core",
   "license": "MIT",
+  "private": true,
   "author": "Frontal Labs",
   "publishConfig": {
     "access": "public",
