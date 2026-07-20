@@ -21,19 +21,19 @@ const client = new FrontalClient({
 
 const datasets = createDatasetsClient(client);
 
-const ds = await datasets.datasets.create({
-  name: "user_events",
-  description: "User interaction events",
+// Submit an ingestion request
+const run = await datasets.ingest({
+  dataset: "user_events",
+  source: "events-topic",
 });
 
-await datasets.data.insert(ds.id, [
-  { user_id: "usr_1", event: "page_view" },
-]);
+// List and read datasets from the ingest service
+const page = await datasets.list({ limit: 20 });
+const ds = await datasets.get("user_events");
 
-const results = await datasets.data.query(ds.id, {
-  where: { event: "page_view" },
-  limit: 10,
-});
+// Browse the catalog
+const catalog = await datasets.catalog.datasets.list();
+const sources = await datasets.catalog.sources.list();
 ```
 
 ## Configuration

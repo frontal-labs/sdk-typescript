@@ -28,7 +28,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-labs/functions`
+## `@frontal-labs/workers`
 
 ### ✨ New Features
 -

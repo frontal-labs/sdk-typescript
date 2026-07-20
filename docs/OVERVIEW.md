@@ -25,22 +25,18 @@ Turborepo, and Changesets for a seamless developer experience.
 | `@frontal-labs/billing` | Plans, subscriptions, and usage metering. |
 | `@frontal-labs/blob` | Object storage compatible with Blob and S3. |
 | `@frontal-labs/connectors` | Data connectors. |
-| `@frontal-labs/datasets` | Dataset CRUD and versioning. |
+| `@frontal-labs/data` | Data platform subdomains (aggregations, quality, query, serving, streams, …). |
+| `@frontal-labs/datasets` | Dataset ingest, catalog, and schemas. |
 | `@frontal-labs/events` | Pub/sub event bus with DLQ support. |
-| `@frontal-labs/flags` | Feature flags and A/B experiments. |
-| `@frontal-labs/functions` | Serverless functions. |
+| `@frontal-labs/workers` | Serverless workers on the edge runtime. |
 | `@frontal-labs/governance` | Policy management and RBAC. |
 | `@frontal-labs/graph` | Entity CRUD and semantic search. |
 | `@frontal-labs/integrations` | Third-party integrations. |
 | `@frontal-labs/lineage` | Data lineage and impact analysis. |
 | `@frontal-labs/observability` | Logs, metrics, and traces. |
 | `@frontal-labs/ontology` | Schema management and inference. |
-| `@frontal-labs/organization` | Tenants, teams, members, and roles. |
 | `@frontal-labs/pipelines` | Declarative data pipelines. |
-| `@frontal-labs/queues` | Job and message queues. |
 | `@frontal-labs/sandbox` | Isolated code execution. |
 | `@frontal-labs/schedules` | Cron-based scheduling. |
-| `@frontal-labs/search` | Unified cross-service search. |
-| `@frontal-labs/vectors` | Embeddings and similarity search. |
 | `@frontal-labs/webhooks` | Endpoint management. |
 | `@frontal-labs/workflows` | Workflow orchestration. |

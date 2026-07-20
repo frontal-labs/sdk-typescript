@@ -10,22 +10,18 @@ This guide covers all SDK packages in this repository:
 - `@frontal-labs/graph`
 - `@frontal-labs/ontology`
 - `@frontal-labs/blob`
-- `@frontal-labs/functions`
+- `@frontal-labs/workers`
 - `@frontal-labs/testing`
 - `@frontal-labs/auth`
-- `@frontal-labs/organization`
 - `@frontal-labs/observability`
 - `@frontal-labs/events`
-- `@frontal-labs/flags`
 - `@frontal-labs/audit`
 - `@frontal-labs/governance`
 - `@frontal-labs/billing`
 - `@frontal-labs/webhooks`
-- `@frontal-labs/queues`
 - `@frontal-labs/schedules`
 - `@frontal-labs/sandbox`
 - `@frontal-labs/datasets`
-- `@frontal-labs/vectors`
 - `@frontal-labs/lineage`
 
 It includes architecture, setup, usage patterns, and end-to-end examples.
@@ -35,7 +31,7 @@ It includes architecture, setup, usage patterns, and end-to-end examples.
 Install:
 
 ```bash
-bun add @frontal-labs/core @frontal-labs/ai @frontal-labs/agents @frontal-labs/workflows @frontal-labs/pipelines @frontal-labs/graph @frontal-labs/ontology @frontal-labs/blob @frontal-labs/functions
+bun add @frontal-labs/core @frontal-labs/ai @frontal-labs/agents @frontal-labs/workflows @frontal-labs/pipelines @frontal-labs/graph @frontal-labs/ontology @frontal-labs/blob @frontal-labs/workers
 ```
 
 Typical environment variables:
@@ -187,7 +183,7 @@ Agent lifecycle and execution SDK:
 - delegated decision workflows
 - controlled rollout/experimentation for agent strategies
 
-### Example: define and deploy an agent
+### Example: define an agent
 
 ```ts
 import { createAgentsClient } from "@frontal-labs/agents";
@@ -200,25 +196,27 @@ const agents = createAgentsClient({
 const agent = await agents
   .define("ticket-triager")
   .description("Classifies and routes tickets")
-  .manual()
   .trigger("support.ticket.created")
   .tags("support", "triage")
   .create();
-
-await agents.use(agent.id).deploy("production", { runSimulationFirst: true });
 ```
 
 ### Example: run + watch
 
 ```ts
-const exec = await agents.use("agt_123").message("support.ticket.created", {
+// Starting a run returns the run object; watch it via SSE.
+const run = await agents.use(agent.id).message("support.ticket.created", {
   ticketId: "t_987",
   text: "Payment failed after plan upgrade"
 });
 
-for await (const event of agents.use("agt_123").watch(exec.executionId)) {
+for await (const event of agents.use(agent.id).watch(run.id)) {
   console.log(event.type, event.data);
 }
+
+// Or poll to completion, then read the transcript.
+const done = await agents.use(agent.id).waitForCompletion(run.id);
+const transcript = await agents.use(agent.id).conversation(run.id);
 ```
 
 ## 5) `@frontal-labs/workflows`
@@ -370,15 +368,19 @@ const ontology = createOntologyClient({
   baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
 });
 
-await ontology.validate({
-  name: "Incident",
-  fields: [{ name: "severity", type: "string" }]
-} as any);
+await ontology.validation.validatePayload({
+  objectType: "Incident",
+  payload: { severity: "high" }
+});
 
-const proposal = await ontology.generation.generate(
-  "Model a billing dispute lifecycle with ownership and SLA states.",
-  { substrates: ["billing", "support"] }
-);
+const proposal = await ontology.engine.generate({
+  description: "Model a billing dispute lifecycle with ownership and SLA states.",
+  substrates: ["billing", "support"]
+});
+
+// Browse the resulting object and relationship types.
+const objectTypes = await ontology.objects.listObjectTypes();
+const relTypes = await ontology.relationships.listTypes();
 ```
 
 ## 9) `@frontal-labs/blob`
@@ -424,43 +426,47 @@ const url = await blob.getSignedUrl("contracts", {
 const meta = await blob.getMetadata("contracts", "2026/q2/master.pdf");
 ```
 
-## 10) `@frontal-labs/functions`
+## 10) `@frontal-labs/workers`
 
 ### What it does
 
-Function runtime SDK:
+Serverless Workers SDK for the Frontal edge runtime (`/v1/workers`):
 
-- deploy/list/get/delete
-- invoke/invokeStream
-- invocation stats
-- trigger updates
+- `deploy` a worker from source
+- `invoke` a deployed worker by path (returns the raw `Response`)
+
+> Renamed from `@frontal-labs/functions` — the backend edge runtime calls these
+> **workers**.
 
 ### Use cases
 
 - internal automation hooks
-- lightweight per-event computation
+- lightweight per-request computation at the edge
 - reusable callable business actions
 
 ### Example: deploy + invoke
 
 ```ts
-import { createFunctionsClient } from "@frontal-labs/functions";
+import { createWorkersClient } from "@frontal-labs/workers";
 
-const functions = createFunctionsClient({
+const workers = createWorkersClient({
   apiKey: process.env.FRONTAL_API_KEY!,
   baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
 });
 
-const fn = await functions.deploy({
+await workers.deploy({
   name: "score-lead",
-  runtime: "nodejs20",
-  entrypoint: "index.handler",
-  code: "export const handler = async (input) => ({ score: 42 })",
-  memoryMb: 256,
-  timeoutSec: 10
-} as any);
+  entrypoint: "default",
+  code: "export default () => Response.json({ score: 42 })",
+  envVars: { MODEL: "v2" }
+});
 
-const result = await functions.invoke(fn.id, { payload: { leadId: "l_123" } });
+const res = await workers.invoke("score-lead", {
+  method: "POST",
+  path: "/",
+  body: JSON.stringify({ leadId: "l_123" })
+});
+const result = await res.json();
 ```
 
 ## 11) `@frontal-labs/testing`
@@ -577,75 +583,7 @@ const verify = await auth.mfa.verify({
 });
 ```
 
-## 13) `@frontal-labs/organization`
-
-### What it does
-
-Multi-tenancy and team management extending GoTrue's identity model:
-
-- organization CRUD with plan management
-- tenant (workspace) creation and listing
-- team management with member assignment
-- member invitations and role updates
-- role definitions with permission arrays
-- all GoTrue user ID references for unified identity
-
-### Use cases
-
-- SaaS multi-tenant workspace provisioning
-- team-based access control within organizations
-- role-based permission assignment
-- member lifecycle (invite → accept → role change → remove)
-
-### Example: tenants and teams
-
-```ts
-import { createOrganizationClient } from "@frontal-labs/organization";
-
-const org = createOrganizationClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
-
-const orgData = await org.get();
-
-const tenant = await org.tenants.create({
-  name: "Engineering",
-  slug: "engineering",
-  description: "Engineering department tenant"
-});
-
-const team = await org.teams.create({
-  name: "Platform",
-  description: "Platform engineering team",
-  tenant_id: tenant.id
-});
-
-const members = await org.members.list();
-await org.teams.addMember(team.id, members.data[0].id);
-```
-
-### Example: role and permission management
-
-```ts
-const role = await org.roles.create({
-  name: "Pipeline Operator",
-  description: "Can trigger and manage pipelines",
-  permissions: [
-    { resource: "pipelines", action: "read" },
-    { resource: "pipelines", action: "update" },
-    { resource: "pipelines.runs", action: "create" }
-  ]
-});
-
-const invitation = await org.invitations.create({
-  email: "designer@example.com",
-  role: "member"
-});
-
-await org.members.updateRole("mbr_ghi012", "admin");
-```
-
-## 14) `@frontal-labs/observability`
+## 13) `@frontal-labs/observability`
 
 ### What it does
 
@@ -716,7 +654,7 @@ const dash = await obs.dashboards.create({
 const shared = await obs.dashboards.share(dash.id, { expires_in: "24h" });
 ```
 
-## 15) `@frontal-labs/events`
+## 14) `@frontal-labs/events`
 
 ### What it does
 
@@ -766,85 +704,19 @@ await events.subscriptions.pause(sub.id);
 await events.subscriptions.resume(sub.id);
 ```
 
-### Example: dead-letter recovery
+### Example: replays and consumers
 
 ```ts
-const dlq = await events.deadLetter.list({ limit: 25 });
-for await (const evt of dlq) {
-  await events.deadLetter.replay(evt.id);
-}
+// Replay previously-published (e.g. failed) events.
+await events.replays.create({ topic: "orders.created" });
+const replays = await events.replays.list({ limit: 25 });
+
+// Inspect consumers and routing.
+const consumers = await events.consumers.list();
+const routes = await events.routes.list();
 ```
 
-## 16) `@frontal-labs/flags`
-
-### What it does
-
-Feature flag and experimentation SDK:
-
-- flag CRUD with type support (boolean, string, number)
-- evaluation with user/org/tenant context
-- bulk evaluation for multiple flags
-- targeting rules with attribute operators
-- gradual rollout management (pause/resume)
-- A/B experiment lifecycle and result analysis
-
-### Use cases
-
-- gradual feature rollouts
-- kill switches for emergency disabling
-- A/B testing with variant analysis
-- per-tenant feature enablement
-
-### Example: evaluate and rollout
-
-```ts
-import { createFlagsClient } from "@frontal-labs/flags";
-
-const flags = createFlagsClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
-
-const flag = await flags.flags.create({
-  key: "new-dashboard",
-  name: "New Dashboard UI",
-  type: "boolean",
-  default_value: false
-});
-
-const result = await flags.evaluate("new-dashboard", {
-  user_id: "usr_abc",
-  attributes: { beta_tester: true, region: "us-east" }
-});
-
-const bulk = await flags.evaluateBulk(
-  ["new-dashboard", "dark-mode"],
-  { organization_id: "org_123" }
-);
-```
-
-### Example: A/B experiment
-
-```ts
-const exp = await flags.experiments.create({
-  flag_id: flag.id,
-  name: "Search Ranking Test",
-  variants: [
-    { name: "control", value: "bm25", percentage: 50 },
-    { name: "treatment", value: "neural", percentage: 50 }
-  ]
-});
-
-await flags.experiments.start(exp.id);
-// ... wait for data ...
-await flags.experiments.stop(exp.id);
-
-const results = await flags.experiments.results(exp.id);
-for (const v of results.variants) {
-  console.log(`${v.name}: ${v.sample_size} samples, ${v.conversion_rate} rate`);
-}
-```
-
-## 17) `@frontal-labs/audit`
+## 15) `@frontal-labs/audit`
 
 ### What it does
 
@@ -888,7 +760,7 @@ const results = await audit.query({
 const csv = await audit.export({ format: "csv" });
 ```
 
-## 18) `@frontal-labs/governance`
+## 16) `@frontal-labs/governance`
 
 ### What it does
 
@@ -917,36 +789,32 @@ const gov = createGovernanceClient({
 
 const policy = await gov.policies.create({
   name: "No public dataset access",
-  rules: [{
-    id: "rule_1",
-    resource: "datasets.*",
-    actions: ["read", "export"],
-    effect: "deny",
-    conditions: { "resource.visibility": "public" }
-  }],
-  enabled: true,
-  priority: 10
+  category: "data_protection",
+  definition: { effect: "deny", resource: "datasets.*", actions: ["read", "export"] },
+  definitionFormat: "rego"
 });
 
-const result = await gov.evaluatePolicy(policy.id, {
-  user_id: "usr_abc",
-  resource: { type: "dataset", id: "ds_1", visibility: "public" }
+// Validate a definition without saving, and browse templates.
+const validation = await gov.policies.validate({
+  definition: policy.definition,
+  definitionFormat: "rego"
 });
+const templates = await gov.policies.templates();
 
-const access = await gov.rbac.checkAccess({
-  user_id: "usr_abc",
-  resource: "pipelines.ppl_1",
-  action: "update"
-});
+// Compliance: run an assessment and read the score.
+const assessment = await gov.compliance.runAssessment({ framework: "soc2" });
+const score = await gov.compliance.score({ framework: "soc2" });
 
-await gov.rbac.createBinding({
-  user_id: "usr_abc",
-  role: "pipeline-operator",
-  resource: "pipelines.ppl_1"
+// RBAC: roles, permissions, and access checks.
+const access = await gov.access.check({
+  userId: "usr_abc",
+  roleNames: ["pipeline-operator"],
+  action: "update",
+  resourceType: "pipeline"
 });
 ```
 
-## 19) `@frontal-labs/billing`
+## 17) `@frontal-labs/billing`
 
 ### What it does
 
@@ -974,25 +842,26 @@ const billing = createBillingClient({
   apiKey: process.env.FRONTAL_API_KEY!
 });
 
+const customer = await billing.customers.create({ name: "Acme", externalId: "acme" });
 const plans = await billing.plans.list();
-const sub = await billing.subscriptions.get();
 
-await billing.subscriptions.update({ plan_id: "plan_pro" });
+const sub = await billing.subscriptions.create({
+  customerId: customer.id,
+  planId: plans.data[0].id
+});
+await billing.subscriptions.update(sub.id, { planId: "plan_pro" });
 
 const invoices = await billing.invoices.list();
 for await (const inv of invoices) {
-  console.log(`${inv.id}: ${inv.amount} ${inv.currency} [${inv.status}]`);
+  console.log(`${inv.id}: [${inv.status}]`);
 }
 
-await billing.usage.report([
-  { metric: "api_calls", quantity: 15000 },
-  { metric: "storage_gb", quantity: 42.5 }
-]);
-
-const methods = await billing.paymentMethods.list();
+// Meters, prices, wallets, addons are first-class resources too.
+const meter = await billing.meters.create({ name: "api_calls", aggregation: "sum" });
+const balance = await billing.wallets.realTimeBalance("wal_123");
 ```
 
-## 20) `@frontal-labs/webhooks`
+## 18) `@frontal-labs/webhooks`
 
 ### What it does
 
@@ -1041,51 +910,7 @@ const stats = await webhooks.stats.getStats({
 console.log(`Success rate: ${(stats.success_rate * 100).toFixed(1)}%`);
 ```
 
-## 21) `@frontal-labs/queues`
-
-### What it does
-
-Job and message queue SDK:
-
-- queue CRUD with concurrency and retention settings
-- job enqueue with optional scheduling
-- job listing by status with cancel and retry
-- queue pause/resume for maintenance
-
-### Use cases
-
-- async task processing (emails, exports, notifications)
-- worker pool management
-- scheduled/delayed job execution
-- dead-letter handling and retry
-
-### Example: enqueue and manage jobs
-
-```ts
-import { createQueuesClient } from "@frontal-labs/queues";
-
-const queues = createQueuesClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
-
-const queue = await queues.queues.create({
-  name: "email-notifications",
-  max_concurrency: 5
-});
-
-const job = await queues.jobs.enqueue(queue.id, {
-  to: "user@example.com",
-  template: "welcome",
-  data: { name: "Alice" }
-});
-
-const pending = await queues.jobs.list(queue.id, { status: "pending" });
-
-await queues.queues.pause(queue.id);
-await queues.queues.resume(queue.id);
-```
-
-## 22) `@frontal-labs/schedules`
+## 19) `@frontal-labs/schedules`
 
 ### What it does
 
@@ -1132,27 +957,24 @@ for await (const r of runs) {
 }
 ```
 
-## 23) `@frontal-labs/sandbox`
+## 20) `@frontal-labs/sandbox`
 
 ### What it does
 
-Isolated execution environment SDK:
+Compile-and-judge code execution SDK:
 
-- sandbox lifecycle (create, start, stop, delete, snapshot)
-- code execution with language support (JavaScript, Python, TypeScript)
-- SSE streaming of execution output
-- file management within sandbox workspace
-- template-based environment provisioning
-- CPU/memory limits and network policy control
+- `languages()` — list supported languages
+- `selfTest()` — compile and run once against a single stdin input
+- `submit()` — compile and judge against a set of test cases (scored)
+- sandbox tiers and per-request resource limits
 
 ### Use cases
 
-- secure code execution for user-submitted scripts
-- data processing in isolated environments
-- CI/CD pipeline execution nodes
-- AI agent tool execution sandboxes
+- secure execution of user-submitted code
+- automated grading / judging against test cases
+- AI agent tool execution with isolation
 
-### Example: create and execute
+### Example: self-test and judge
 
 ```ts
 import { createSandboxClient } from "@frontal-labs/sandbox";
@@ -1161,29 +983,26 @@ const sandbox = createSandboxClient({
   apiKey: process.env.FRONTAL_API_KEY!
 });
 
-const tmpl = await sandbox.templates.list();
-const sbx = await sandbox.sandboxes.create({
-  name: "data-processing",
-  template_id: tmpl.data[0].id,
-  cpu_limit: "2",
-  memory_limit: "1Gi",
-  timeout_seconds: 300
+const languages = await sandbox.languages();
+
+const test = await sandbox.selfTest({
+  language: "Python",
+  code: "print('hello')",
+  stdin: ""
 });
+console.log(test.summary?.stdout);
 
-await sandbox.sandboxes.start(sbx.id);
-
-const exec = await sandbox.executions.execute(sbx.id, {
-  code: `print(json.dumps({"processed": True, "records": 42}))`,
-  language: "python"
+const result = await sandbox.submit({
+  language: "Python",
+  code: "print(input())",
+  task: {
+    cases: [{ caseId: 1, score: 100, input: "ok\n", answer: "ok\n" }]
+  }
 });
-
-await sandbox.files.upload(sbx.id, "/workspace/input.csv", "col1,col2\n1,2");
-
-const snap = await sandbox.sandboxes.snapshot(sbx.id);
-await sandbox.sandboxes.stop(sbx.id);
+console.log(result.summary.result, result.summary.score);
 ```
 
-## 24) `@frontal-labs/datasets`
+## 21) `@frontal-labs/datasets`
 
 ### What it does
 
@@ -1202,7 +1021,7 @@ Dataset management SDK:
 - data versioning and rollback
 - ETL source/sink for pipelines
 
-### Example: datasets and versioning
+### Example: ingest, read, and browse the catalog
 
 ```ts
 import { createDatasetsClient } from "@frontal-labs/datasets";
@@ -1211,170 +1030,25 @@ const datasets = createDatasetsClient({
   apiKey: process.env.FRONTAL_API_KEY!
 });
 
-const ds = await datasets.datasets.create({
-  name: "user_events",
-  description: "User interaction events"
+// Submit an ingestion request (ingest service).
+const run = await datasets.ingest({
+  dataset: "user_events",
+  source: "events-topic"
 });
 
-await datasets.data.insert(ds.id, [
-  { user_id: "usr_1", event: "page_view", page: "/home" },
-  { user_id: "usr_2", event: "click", element: "signup" },
-  { user_id: "usr_1", event: "purchase", amount: 49.99 }
-]);
+// List and read datasets.
+const page = await datasets.list({ limit: 20 });
+const ds = await datasets.get("user_events");
 
-const results = await datasets.data.query(ds.id, {
-  where: { event: "purchase" },
-  limit: 10
-});
+// Resolve schemas.
+const schemas = await datasets.schemas.list();
 
-const version = await datasets.versions.create(ds.id);
-const diff = await datasets.versions.compare(ds.id, "1", "2");
-const stats = await datasets.stats.get(ds.id);
+// Browse the catalog.
+const catalogDatasets = await datasets.catalog.datasets.list();
+const sources = await datasets.catalog.sources.list();
 ```
 
-## 25) `@frontal-labs/vectors`
-
-### What it does
-
-Vector embeddings and similarity search SDK:
-
-- index creation with dimensions and distance metric (cosine, euclidean, dot_product)
-- vector upsert, retrieval, and deletion (single + batch)
-- similarity search (top-k nearest neighbors)
-- hybrid search (vector + text)
-
-### Use cases
-
-- semantic search and RAG pipelines
-- recommendation systems
-- image/text similarity matching
-- anomaly detection via embedding distance
-
-### Example: index and search
-
-```ts
-import { createVectorsClient } from "@frontal-labs/vectors";
-
-const vectors = createVectorsClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
-
-const index = await vectors.indexes.create({
-  name: "products",
-  dimensions: 1536,
-  metric: "cosine"
-});
-
-await vectors.vectors.upsert(index.id, [
-  { id: "prod_1", values: embedding1, metadata: { name: "Red Shoes", price: 59.99 } },
-  { id: "prod_2", values: embedding2, metadata: { name: "Blue Sneakers", price: 79.99 } }
-]);
-
-const results = await vectors.search.search(index.id, {
-  vector: queryEmbedding,
-  top_k: 5
-});
-
-const hybrid = await vectors.search.hybridSearch(index.id, {
-  vector: queryEmbedding,
-  text: "red shoes",
-  top_k: 3
-});
-```
-
-### What it does
-
-External data source connector SDK:
-
-- connector CRUD with typed configuration
-- connection testing
-- sync job lifecycle (start, monitor, cancel)
-- connector type catalog (available source types and their config schemas)
-
-### Use cases
-
-- database ingestion (PostgreSQL, MySQL, MongoDB)
-- SaaS data sync (Salesforce, Stripe, HubSpot)
-- API-based data imports
-- periodic data replication
-
-### Example: sync from PostgreSQL
-
-```ts
-import { createConnectorsClient } from "@frontal-labs/connectors";
-
-const connectors = createConnectorsClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
-
-const types = await connectors.types.list();
-
-const conn = await connectors.connectors.create({
-  name: "Production DB",
-  type: "postgresql",
-  config: {
-    host: "db.internal",
-    port: 5432,
-    database: "analytics",
-    ssl: true
-  }
-});
-
-const test = await connectors.connectors.test(conn.id);
-
-const sync = await connectors.sync.start(conn.id);
-
-const syncs = await connectors.sync.list(conn.id);
-for await (const s of syncs) {
-  console.log(`${s.id}: ${s.status} (${s.rows_synced ?? 0} rows)`);
-}
-```
-
-### What it does
-
-Managed third-party integration SDK:
-
-- integration catalog browsing
-- integration CRUD with configuration
-- OAuth authorization flow (authorize, callback, refresh, revoke)
-- integration health and status
-
-### Use cases
-
-- Slack/Discord/Teams notification setup
-- GitHub/GitLab repository integration
-- OAuth-based SaaS connections
-- integration marketplace implementations
-
-### Example: OAuth integration
-
-```ts
-import { createIntegrationsClient } from "@frontal-labs/integrations";
-
-const integrations = createIntegrationsClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
-
-const catalog = await integrations.catalog.list();
-
-const integration = await integrations.integrations.create({
-  name: "Team Notifications",
-  type: "slack",
-  config: { channel: "#alerts" }
-});
-
-const auth = await integrations.auth.authorize(
-  integration.id,
-  "https://myapp.com/oauth/callback"
-);
-// Redirect user to auth.authorize_url, then:
-// await integrations.auth.callback(integration.id, "auth_code_from_provider");
-
-await integrations.auth.refresh(integration.id);
-await integrations.auth.revoke(integration.id);
-```
-
-## 26) `@frontal-labs/lineage`
+## 22) `@frontal-labs/lineage`
 
 ### What it does
 
@@ -1418,34 +1092,30 @@ for (const r of impact.affected_resources) {
 }
 ```
 
-## 27) End-to-End Production Pattern
+## 23) End-to-End Production Pattern
 
 A common high-value orchestration flow:
 
 1. Authenticate users with `@frontal-labs/auth` (GoTrue)
-2. Scope access via `@frontal-labs/organization` tenants and teams
 3. Ingest files with `@frontal-labs/blob`
 4. Extract and classify with `@frontal-labs/ai`
 6. Normalize through `@frontal-labs/pipelines`
 7. Store structured data in `@frontal-labs/datasets`
-8. Index embeddings in `@frontal-labs/vectors`
-9. Persist relationships via `@frontal-labs/graph`
-10. Enforce taxonomy via `@frontal-labs/ontology`
-11. Track provenance with `@frontal-labs/lineage`
-12. Gate features with `@frontal-labs/flags`
-13. Communicate across services with `@frontal-labs/events`
-15. Process async jobs through `@frontal-labs/queues`
+8. Persist relationships via `@frontal-labs/graph`
+9. Enforce taxonomy via `@frontal-labs/ontology`
+10. Track provenance with `@frontal-labs/lineage`
+11. Communicate across services with `@frontal-labs/events`
 16. Schedule recurring work with `@frontal-labs/schedules`
 17. Execute isolated code in `@frontal-labs/sandbox`
 18. Coordinate approvals with `@frontal-labs/workflows`
 19. Delegate decisions with `@frontal-labs/agents`
-20. Execute specialized logic in `@frontal-labs/functions`
+20. Execute specialized logic in `@frontal-labs/workers`
 21. Monitor everything with `@frontal-labs/observability`
 22. Log compliance with `@frontal-labs/audit`
 23. Enforce policies with `@frontal-labs/governance`
 24. Track costs with `@frontal-labs/billing`
 
-## 28) Error Handling Pattern
+## 24) Error Handling Pattern
 
 ```ts
 import { FrontalError } from "@frontal-labs/core";
@@ -1461,7 +1131,7 @@ try {
 }
 ```
 
-## 29) Operational Notes
+## 25) Operational Notes
 
 - Prefer explicit `baseUrl` in production services.
 - Keep API keys scoped and rotated.

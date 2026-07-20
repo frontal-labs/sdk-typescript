@@ -21,18 +21,24 @@ const client = new FrontalClient({
 
 const sandbox = createSandboxClient(client);
 
-const sbx = await sandbox.sandboxes.create({
-  name: "data-processing",
-  template_id: "tmpl_python",
-  timeout_seconds: 300,
-});
+// The sandbox is a compile-and-judge engine.
+const languages = await sandbox.languages();
 
-await sandbox.sandboxes.start(sbx.id);
-
-const exec = await sandbox.executions.execute(sbx.id, {
+// Run once against a single input.
+const test = await sandbox.selfTest({
+  language: "Python",
   code: "print('hello')",
-  language: "python",
+  stdin: "",
 });
+console.log(test.summary?.stdout);
+
+// Judge against test cases.
+const result = await sandbox.submit({
+  language: "Python",
+  code: "print(input())",
+  task: { cases: [{ caseId: 1, score: 100, input: "ok\n", answer: "ok\n" }] },
+});
+console.log(result.summary.result, result.summary.score);
 ```
 
 ## Configuration

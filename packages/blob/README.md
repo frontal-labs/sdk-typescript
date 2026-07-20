@@ -16,12 +16,16 @@ npm install @frontal-labs/blob
 ```ts
 import { blob } from "@frontal-labs/blob";
 
-await blob.upload("assets", "logo.png", file, "image/png");
-
-const url = await blob.getSignedUrl("assets", {
+await blob.upload({
+  bucket: "assets",
   key: "logo.png",
-  operation: "read",
-  expiresIn: 3_600,
+  data: file,
+  contentType: "image/png",
+});
+
+const url = await blob.getSignedUrl({
+  bucket: "assets",
+  options: { key: "logo.png", operation: "read", expiresIn: 3_600 },
 });
 ```
 
@@ -40,7 +44,12 @@ const blob = createBlobClient({
   baseUrl: "https://api.frontal.dev/v1",
 });
 
-await blob.upload("bucket", "path/file.pdf", buffer, "application/pdf");
+await blob.upload({
+  bucket: "bucket",
+  key: "path/file.pdf",
+  data: buffer,
+  contentType: "application/pdf",
+});
 ```
 
 ### Shared client (multiple SDKs)
@@ -60,9 +69,12 @@ const blob = createBlobClient(client);
 ### Download and stream
 
 ```ts
-const data = await blob.download("bucket", "path/file.pdf");
+const data = await blob.download({ bucket: "bucket", key: "path/file.pdf" });
 
-const stream = await blob.downloadStream("bucket", "large-file.bin");
+const stream = await blob.downloadStream({
+  bucket: "bucket",
+  key: "large-file.bin",
+});
 for await (const chunk of stream) {
   // process chunk
 }

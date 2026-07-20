@@ -62,23 +62,21 @@ const agents = createAgentsClient(client);
 const agent = await agents
   .define("ticket-triager")
   .description("Classifies and routes support tickets")
-  .manual()
   .trigger("support.ticket.created")
   .tags("support", "triage")
   .create();
-
-await agents.use(agent.id).deploy("production");
 ```
 
 ### Run and watch
 
 ```ts
-const exec = await agents.use("agt_123").message("support.ticket.created", {
+// Starting a run returns the run; watch it via SSE.
+const run = await agents.use(agent.id).message("support.ticket.created", {
   ticketId: "t_987",
   text: "Payment failed after plan upgrade",
 });
 
-for await (const event of agents.use("agt_123").watch(exec.executionId)) {
+for await (const event of agents.use(agent.id).watch(run.id)) {
   console.log(event.type, event.data);
 }
 ```

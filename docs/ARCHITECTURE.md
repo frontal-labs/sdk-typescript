@@ -67,14 +67,9 @@ Dataset CRUD with versioning, data operations, and import/export.
 Pub/sub event bus with client-side buffering, dead-letter queues, and schema
 registry.
 
-### 13. Flags (`@frontal-labs/flags`)
+### 13. Workers (`@frontal-labs/workers`)
 
-Feature flags with local evaluation, targeting rules, gradual rollouts, and A/B
-experiments.
-
-### 14. Functions (`@frontal-labs/functions`)
-
-Deploy and manage serverless functions on Frontal.
+Deploy and invoke serverless workers on the Frontal edge runtime.
 
 ### 15. Governance (`@frontal-labs/governance`)
 
@@ -100,18 +95,10 @@ Logs, metrics, traces, alerts, and dashboards with OTLP export.
 
 Semantic model and schema management, migrations, and AI-powered inference.
 
-### 21. Organization (`@frontal-labs/organization`)
-
-Multi-tenancy with tenants, teams, members, roles, and invitations.
-
 ### 22. Pipelines (`@frontal-labs/pipelines`)
 
 Declarative data pipelines with substrate orchestration and graph entity
 awareness.
-
-### 23. Queues (`@frontal-labs/queues`)
-
-Job and message queues with scheduling, retry, and dead-letter handling.
 
 ### 24. Sandbox (`@frontal-labs/sandbox`)
 
@@ -121,15 +108,7 @@ Isolated code execution with streaming, snapshots, and file management.
 
 Cron-based scheduling with local validation, run history, and manual triggers.
 
-### 26. Search (`@frontal-labs/search`)
-
-Unified search across vectors, graph, and datasets with hybrid mode.
-
-### 27. Vectors (`@frontal-labs/vectors`)
-
-Embeddings store with similarity search, hybrid search, and AI bridge.
-
-### 28. Webhooks (`@frontal-labs/webhooks`)
+### 26. Webhooks (`@frontal-labs/webhooks`)
 
 Endpoint management with HMAC signature verification, delivery tracking, and
 stats.

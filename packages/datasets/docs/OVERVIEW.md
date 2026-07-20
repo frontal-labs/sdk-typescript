@@ -88,5 +88,4 @@ try {
 ## Related Packages
 
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
-- [@frontal-labs/vectors](../vectors/docs/OVERVIEW.md)
 - [@frontal-labs/lineage](../lineage/docs/OVERVIEW.md)

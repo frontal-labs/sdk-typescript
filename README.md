@@ -6,7 +6,7 @@
 
 # Frontal Typescript SDK
 
-A modular SDK for building on Frontal with AI inference, agents, graph/ontology, workflows, pipelines, storage, and functions.
+A modular SDK for building on Frontal with AI inference, agents, graph/ontology, workflows, pipelines, storage, and workers.
 
 ## Overview
 
@@ -26,7 +26,7 @@ This repository is a monorepo containing various packages designed to simplify t
 | [`@frontal-labs/core`](./packages/core) | Shared client transport, auth, retries, pagination, and error types. | ![npm](https://img.shields.io/npm/v/@frontal-labs/core) |
 | [`@frontal-labs/ai`](./packages/ai) | AI integration and utilities. | ![npm](https://img.shields.io/npm/v/@frontal-labs/ai) |
 | [`@frontal-labs/agents`](./packages/agents) | AI agent integrations and workflows. | ![npm](https://img.shields.io/npm/v/@frontal-labs/agents) |
-| [`@frontal-labs/functions`](./packages/functions) | Serverless functions orchestration. | ![npm](https://img.shields.io/npm/v/@frontal-labs/functions) |
+| [`@frontal-labs/workers`](./packages/workers) | Serverless workers on the edge runtime. | ![npm](https://img.shields.io/npm/v/@frontal-labs/workers) |
 | [`@frontal-labs/graph`](./packages/graph) | Graph database operations. | ![npm](https://img.shields.io/npm/v/@frontal-labs/graph) |
 | [`@frontal-labs/ontology`](./packages/ontology) | Model deployment and management. | ![npm](https://img.shields.io/npm/v/@frontal-labs/ontology) |
 | [`@frontal-labs/pipelines`](./packages/pipelines) | Data pipeline orchestration. | ![npm](https://img.shields.io/npm/v/@frontal-labs/pipelines) |
@@ -143,7 +143,7 @@ Detailed documentation for each package can be found in their respective directo
 - [AI](./packages/ai/README.md)
 - [Agents](./packages/agents/README.md)
 - [Core](./packages/core/README.md)
-- [Functions](./packages/functions/README.md)
+- [Workers](./packages/workers/README.md)
 - [Graph](./packages/graph/README.md)
 - [Models](./packages/ontology/README.md)
 - [Pipelines](./packages/pipelines/README.md)

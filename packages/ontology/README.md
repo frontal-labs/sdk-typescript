@@ -1,7 +1,10 @@
 # @frontal-labs/ontology
 
-Ontology and model management — schema definition, validation, migrations,
-rules, and AI-powered inference.
+Client for the Frontal Ontology platform (`/v1/ontology/*`). The API is composed
+of independent subdomain services, each exposed as a namespace:
+`engine`, `objects`, `relationships`, `schemas`, `versions`, `validation`,
+`transformations`, `reasoning`, `rollouts`, `rollups`, `extract`, and `events`.
+(The `graph` subdomain is served by `@frontal-labs/graph`.)
 
 ## Installation
 
@@ -16,7 +19,11 @@ npm install @frontal-labs/ontology
 ```ts
 import { ontology } from "@frontal-labs/ontology";
 
-const models = await ontology.list({ limit: 10 });
+// Generate an ontology with the engine, then browse object types.
+const proposal = await ontology.engine.generate({
+  description: "Model a billing dispute lifecycle with SLA states.",
+});
+const objectTypes = await ontology.objects.listObjectTypes({ limit: 10 });
 ```
 
 The `ontology` singleton reads `FRONTAL_API_KEY` and
@@ -34,7 +41,8 @@ const ontology = createOntologyClient({
   baseUrl: "https://api.frontal.dev/v1",
 });
 
-await ontology.create({
+// Define/validate a schema via the schemas subdomain.
+await ontology.schemas.create({
   name: "Invoice",
   fields: [
     { name: "amount", type: "number", required: true },
@@ -57,29 +65,32 @@ const client = new FrontalClient({
 const ontology = createOntologyClient(client);
 ```
 
-### Validate a model
+### Validate a payload
 
 ```ts
-await ontology.validate({
-  name: "Incident",
-  fields: [{ name: "severity", type: "string" }],
+await ontology.validation.validatePayload({
+  objectType: "Incident",
+  payload: { severity: "high" },
 });
 ```
 
-### AI-powered generation
+### AI-powered generation & inference
 
 ```ts
-const proposal = await ontology.generation.generate(
-  "Model a billing dispute lifecycle with ownership and SLA states.",
-  { substrates: ["billing", "support"] }
-);
+const proposal = await ontology.engine.generate({
+  description: "Model a billing dispute lifecycle with ownership and SLA states.",
+  substrates: ["billing", "support"],
+});
+const inferred = await ontology.engine.inferClasses({ samples: [] });
 ```
 
-### Migrations
+### Versions & rollouts
 
 ```ts
-const migrations = await ontology.migrations.list({ model: "Invoice" });
-await ontology.migrations.apply("Invoice", { targetVersion: "v2" });
+const bundle = await ontology.versions.createReleaseBundle({ version: "2.0.0" });
+const rollout = await ontology.rollouts.create({ bundleId: bundle.id });
+await ontology.rollouts.start(rollout.id);
+const status = await ontology.rollouts.status(rollout.id);
 ```
 
 ## Configuration

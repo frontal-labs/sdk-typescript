@@ -21,14 +21,19 @@ const client = new FrontalClient({
 
 const billing = createBillingClient(client);
 
+// Resources: customers, plans, subscriptions, invoices, wallets, meters,
+// prices, addons — each with list/create/get/update/delete/search + actions.
+const customer = await billing.customers.create({ name: "Acme", externalId: "acme" });
 const plans = await billing.plans.list();
-const sub = await billing.subscriptions.get();
 
-await billing.usage.report([
-  { metric: "api_calls", quantity: 15000 },
-]);
+const sub = await billing.subscriptions.create({
+  customerId: customer.id,
+  planId: plans.data[0].id,
+});
+await billing.subscriptions.cancel(sub.id);
 
 const invoices = await billing.invoices.list();
+const wallet = await billing.wallets.realTimeBalance("wal_123");
 ```
 
 ## Configuration

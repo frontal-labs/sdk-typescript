@@ -33,7 +33,7 @@ sdk-ts/
 │   ├── datasets/      # Dataset CRUD with versioning
 │   ├── events/        # Pub/sub event bus with dead-letter queues
 │   ├── flags/         # Feature flags with A/B experiments
-│   ├── functions/     # Serverless function deploy, invoke, streaming
+│   ├── workers/      # Serverless worker deploy + invoke (edge runtime)
 │   ├── governance/    # Policy management and RBAC
 │   ├── graph/         # Entity CRUD, relationships, semantic search, history
 │   ├── integrations/  # Third-party application integrations
@@ -138,14 +138,14 @@ bun run type-check  # type-check just this package
 
 ```
 core    ──► ai, agents, audit, auth, billing, blob, connectors, datasets,
-            events, flags, functions, governance, graph, integrations,
+            events, workers, governance, graph, integrations,
             lineage, observability, ontology, organization, pipelines,
             queues, sandbox, schedules, search, vectors, webhooks, workflows
 
 testing ──► all 26 domain packages (devDependency only)
 
 ai, agents, audit, auth, billing, blob, connectors, datasets, events,
-flags, functions, governance, graph, integrations, lineage,
+workers, governance, graph, integrations, lineage,
 observability, ontology, organization, pipelines, queues, sandbox,
 schedules, search, vectors, webhooks, workflows ──► sdk
 ```

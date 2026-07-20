@@ -90,4 +90,3 @@ try {
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/webhooks](../webhooks/docs/OVERVIEW.md)
 - [@frontal-labs/observability](../observability/docs/OVERVIEW.md)
-- [@frontal-labs/queues](../queues/docs/OVERVIEW.md)

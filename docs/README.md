@@ -38,23 +38,19 @@ Each package in the monorepo contains its own documentation:
 - **[@frontal-labs/billing](../packages/billing/)** - Plans and billing
 - **[@frontal-labs/blob](../packages/blob/)** - Object storage
 - **[@frontal-labs/connectors](../packages/connectors/)** - Data connectors
+- **[@frontal-labs/data](../packages/data/)** - Data platform subdomains
 - **[@frontal-labs/datasets](../packages/datasets/)** - Datasets
 - **[@frontal-labs/events](../packages/events/)** - Pub/sub event bus
-- **[@frontal-labs/flags](../packages/flags/)** - Feature flags
-- **[@frontal-labs/functions](../packages/functions/)** - Serverless functions
+- **[@frontal-labs/workers](../packages/workers/)** - Serverless workers
 - **[@frontal-labs/governance](../packages/governance/)** - Policies and RBAC
 - **[@frontal-labs/graph](../packages/graph/)** - Graph entities
 - **[@frontal-labs/integrations](../packages/integrations/)** - Integrations
 - **[@frontal-labs/lineage](../packages/lineage/)** - Data lineage
 - **[@frontal-labs/observability](../packages/observability/)** - Observability
 - **[@frontal-labs/ontology](../packages/ontology/)** - Schema management
-- **[@frontal-labs/organization](../packages/organization/)** - Organization
 - **[@frontal-labs/pipelines](../packages/pipelines/)** - Data pipelines
-- **[@frontal-labs/queues](../packages/queues/)** - Job queues
 - **[@frontal-labs/sandbox](../packages/sandbox/)** - Code execution
 - **[@frontal-labs/schedules](../packages/schedules/)** - Scheduling
-- **[@frontal-labs/search](../packages/search/)** - Unified search
-- **[@frontal-labs/vectors](../packages/vectors/)** - Embeddings
 - **[@frontal-labs/webhooks](../packages/webhooks/)** - Webhooks
 - **[@frontal-labs/workflows](../packages/workflows/)** - Workflows
 
