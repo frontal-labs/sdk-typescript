@@ -5,13 +5,13 @@ Isolated execution SDK for sandbox management, code execution, and file operatio
 ## Installation
 
 ```bash
-bun add @frontal-labs/sandbox @frontal-labs/_core
+bun add @frontal-labs/sandbox @frontal-labs/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/_core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createSandboxClient } from "@frontal-labs/sandbox";
 
 const client = new FrontalClient({

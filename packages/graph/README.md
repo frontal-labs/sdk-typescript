@@ -9,7 +9,7 @@ search.
 npm install @frontal-labs/graph
 ```
 
-`@frontal-labs/_core` is included automatically as a dependency.
+`@frontal-labs/core` is included automatically as a dependency.
 
 ## Quick Start
 
@@ -43,7 +43,7 @@ const customer = await graph.use("customer").create({
 ### Shared client (multiple SDKs)
 
 ```ts
-import { FrontalClient } from "@frontal-labs/_core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createGraphClient } from "@frontal-labs/graph";
 
 const client = new FrontalClient({

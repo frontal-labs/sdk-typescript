@@ -23,7 +23,7 @@ This repository is a monorepo containing various packages designed to simplify t
 
 | Package | Description | Version |
 | :--- | :--- | :--- |
-| [`@frontal-labs/_core`](./packages/_core) | Shared client transport, auth, retries, pagination, and error types. | ![npm](https://img.shields.io/npm/v/@frontal-labs/_core) |
+| [`@frontal-labs/core`](./packages/core) | Shared client transport, auth, retries, pagination, and error types. | ![npm](https://img.shields.io/npm/v/@frontal-labs/core) |
 | [`@frontal-labs/ai`](./packages/ai) | AI integration and utilities. | ![npm](https://img.shields.io/npm/v/@frontal-labs/ai) |
 | [`@frontal-labs/agents`](./packages/agents) | AI agent integrations and workflows. | ![npm](https://img.shields.io/npm/v/@frontal-labs/agents) |
 | [`@frontal-labs/workers`](./packages/workers) | Serverless workers on the edge runtime. | ![npm](https://img.shields.io/npm/v/@frontal-labs/workers) |
@@ -32,7 +32,7 @@ This repository is a monorepo containing various packages designed to simplify t
 | [`@frontal-labs/pipelines`](./packages/pipelines) | Data pipeline orchestration. | ![npm](https://img.shields.io/npm/v/@frontal-labs/pipelines) |
 | [`@frontal-labs/blob`](./packages/blob) | Scalable storage interactions. | ![npm](https://img.shields.io/npm/v/@frontal-labs/blob) |
 | [`@frontal-labs/workflows`](./packages/workflows) | Workflow automation and management. | ![npm](https://img.shields.io/npm/v/@frontal-labs/workflows) |
-| [`@frontal-labs/_testing`](./packages/_testing) | Shared test harness, mocks, and fixtures for SDK packages. | ![npm](https://img.shields.io/npm/v/@frontal-labs/_testing) |
+| [`@frontal-labs/testing`](./packages/testing) | Shared test harness, mocks, and fixtures for SDK packages. | ![npm](https://img.shields.io/npm/v/@frontal-labs/testing) |
 
 ## Getting Started
 
@@ -142,14 +142,14 @@ Optional inputs:
 Detailed documentation for each package can be found in their respective directories:
 - [AI](./packages/ai/README.md)
 - [Agents](./packages/agents/README.md)
-- [Core](./packages/_core/README.md)
+- [Core](./packages/core/README.md)
 - [Workers](./packages/workers/README.md)
 - [Graph](./packages/graph/README.md)
 - [Models](./packages/ontology/README.md)
 - [Pipelines](./packages/pipelines/README.md)
 - [Storage](./packages/blob/README.md)
 - [Workflows](./packages/workflows/README.md)
-- [Testing](./packages/_testing/README.md)
+- [Testing](./packages/testing/README.md)
 
 General project documentation is available in the [`docs`](./docs) folder.
 
@@ -159,4 +159,4 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 ## License
 
-This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](./LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE.md) file for details.

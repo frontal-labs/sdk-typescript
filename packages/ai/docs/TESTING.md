@@ -470,7 +470,7 @@ export default defineConfig({
 import { vi } from 'vitest';
 
 // Global mocks
-vi.mock('@frontal-labs/_core', () => ({
+vi.mock('@frontal-labs/core', () => ({
   FrontalClient: vi.fn()
 }));
 

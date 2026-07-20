@@ -4,7 +4,7 @@ import {
   type HttpClient,
   type PageResult,
   type QueryBuilder,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import * as S from "./schemas";
 
 /**

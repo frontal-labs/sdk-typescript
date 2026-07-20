@@ -24,7 +24,7 @@
   ],
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/blob",
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": "Frontal Labs",
   "files": [
     "dist",
@@ -85,6 +85,6 @@
     "@types/node": "^25.2.1",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "@frontal-labs/_core": "^1.0.2"
+    "@frontal-labs/core": "^1.0.2"
   }
 }

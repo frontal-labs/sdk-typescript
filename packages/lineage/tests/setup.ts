@@ -1,3 +1,3 @@
-import { setupTestEnvironment } from "@frontal-labs/_testing";
+import { setupTestEnvironment } from "@frontal-labs/testing";
 
 setupTestEnvironment();

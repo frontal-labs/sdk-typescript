@@ -3,7 +3,7 @@ import {
   type HttpClient,
   type PageResult,
   pollUntil,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import type {
   ActionRun,
   ConnectionTest,

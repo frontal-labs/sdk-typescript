@@ -79,7 +79,7 @@ const createPackage = async (name: string, type: string, packageManager: string)
       "node": ">=18.0.0"
     },
     dependencies: {
-      "@frontal-labs/_core": "workspace:*",
+      "@frontal-labs/core": "workspace:*",
       "tslib": "^2.8.1",
       "zod": "^4.3.6"
     },
@@ -139,7 +139,7 @@ const createWorkspace = async (name: string, packageManager: string) => {
       "clean": "turbo run clean"
     },
     devDependencies: {
-      "@frontal-labs/_core": "workspace:*",
+      "@frontal-labs/core": "workspace:*",
       "turbo": "^2.4.2",
       "typescript": "^5.7.3"
     },

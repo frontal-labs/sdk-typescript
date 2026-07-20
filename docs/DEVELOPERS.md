@@ -151,7 +151,7 @@ schedules, search, vectors, webhooks, workflows ──► sdk
 ```
 
 Arrows read "is depended on by". All 26 domain packages depend on
-`@frontal-labs/_core` at runtime and on `@frontal-labs/_testing` as a
+`@frontal-labs/core` at runtime and on `@frontal-labs/testing` as a
 devDependency. `@frontal-labs/sdk` depends on every domain package and
 re-exports them as a single unified client.
 

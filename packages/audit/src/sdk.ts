@@ -3,7 +3,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import type { AuditEvent, AuditEventInput } from "./schemas";
 
 /** Filters accepted by `GET /v1/audit/events`. */

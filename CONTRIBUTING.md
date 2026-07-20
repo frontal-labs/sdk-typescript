@@ -95,7 +95,7 @@ bun run lint:fix
 import { z } from 'zod';
 
 // Internal imports
-import { CoreClient } from '@frontal-labs/_core';
+import { CoreClient } from '@frontal-labs/core';
 
 // Relative imports
 import { helper } from './utils';

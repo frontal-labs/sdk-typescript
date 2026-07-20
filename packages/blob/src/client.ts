@@ -2,7 +2,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import {
   DEFAULT_BLOB_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -10,7 +10,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { BlobSdk } from "./sdk";
-import { env } from "@frontal-labs/_core";
+import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a {@link BlobSdk} client standalone.

@@ -9,7 +9,7 @@ speech, transcription, and image/video generation.
 npm install @frontal-labs/ai
 ```
 
-`@frontal-labs/_core` is included automatically as a dependency.
+`@frontal-labs/core` is included automatically as a dependency.
 
 ## Quick Start
 
@@ -46,7 +46,7 @@ const result = await ai.generateText({
 ### Shared client (multiple SDKs)
 
 ```ts
-import { FrontalClient } from "@frontal-labs/_core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createAIClient } from "@frontal-labs/ai";
 
 const client = new FrontalClient({

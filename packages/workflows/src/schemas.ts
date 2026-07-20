@@ -1,4 +1,4 @@
-import { timestampSchema } from "@frontal-labs/_core";
+import { timestampSchema } from "@frontal-labs/core";
 import { z } from "zod";
 
 /**

@@ -3,7 +3,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import type { LineageNode, LineageEdge, LineageGraph } from "./schemas";
 
 /**

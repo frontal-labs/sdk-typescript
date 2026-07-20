@@ -32,7 +32,7 @@ const client = createLineageClient({
 
 ## Core Concepts
 
-The Lineage SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/_core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createLineageClient`) and a default singleton (`lineage`).
+The Lineage SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createLineageClient`) and a default singleton (`lineage`).
 
 ## Configuration
 
@@ -52,7 +52,7 @@ const client = createLineageClient({
 ### Shared FrontalClient (recommended)
 
 ```typescript
-import { FrontalClient } from "@frontal-labs/_core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createLineageClient } from "@frontal-labs/lineage";
 
 const frontal = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
@@ -65,10 +65,10 @@ const client = createLineageClient(frontal);
 
 ## Error Handling
 
-The Lineage SDK throws typed errors from `@frontal-labs/_core`:
+The Lineage SDK throws typed errors from `@frontal-labs/core`:
 
 ```typescript
-import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/_core";
+import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/core";
 
 try {
   await client.someMethod();
@@ -85,6 +85,6 @@ try {
 
 ## Related Packages
 
-- [@frontal-labs/_core](../core/docs/OVERVIEW.md)
+- [@frontal-labs/core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/datasets](../datasets/docs/OVERVIEW.md)
 - [@frontal-labs/pipelines](../pipelines/docs/OVERVIEW.md)

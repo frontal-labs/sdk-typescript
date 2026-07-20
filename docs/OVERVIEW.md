@@ -15,9 +15,9 @@ Turborepo, and Changesets for a seamless developer experience.
 
 | Package | Description |
 | :--- | :--- |
-| `@frontal-labs/_core` | Shared transport, auth, retries, and typed errors. |
+| `@frontal-labs/core` | Shared transport, auth, retries, and typed errors. |
 | `@frontal-labs/sdk` | Unified client for all Frontal services. |
-| `@frontal-labs/_testing` | Test mocks, transport, and fixtures for SDK tests. |
+| `@frontal-labs/testing` | Test mocks, transport, and fixtures for SDK tests. |
 | `@frontal-labs/ai` | AI inference, embeddings, and streaming. |
 | `@frontal-labs/agents` | AI agent integrations with LangChain and Vercel AI. |
 | `@frontal-labs/audit` | Audit trails and compliance checks. |

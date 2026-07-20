@@ -2,7 +2,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import {
   DEFAULT_AUTH_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -10,7 +10,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { AuthSdk } from "./sdk";
-import { env } from "@frontal-labs/_core";
+import { env } from "@frontal-labs/core";
 
 /** Configuration options for creating an Auth API client. */
 export interface AuthClientConfig {

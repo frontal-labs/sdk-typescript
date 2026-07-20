@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   createIntegrationHarness,
   integrationPage,
-} from "@frontal-labs/_testing";
+} from "@frontal-labs/testing";
 import { EventsService } from "@frontal-labs/events";
 import { WebhooksService } from "@frontal-labs/webhooks";
 

@@ -9,7 +9,7 @@ orchestrate with substrate awareness.
 npm install @frontal-labs/pipelines
 ```
 
-`@frontal-labs/_core` is included automatically as a dependency.
+`@frontal-labs/core` is included automatically as a dependency.
 
 ## Quick Start
 
@@ -40,7 +40,7 @@ const run = await pipelines.use("ppl_123").trigger({ source: "manual" });
 ### Shared client (multiple SDKs)
 
 ```ts
-import { FrontalClient } from "@frontal-labs/_core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createPipelinesClient } from "@frontal-labs/pipelines";
 
 const client = new FrontalClient({

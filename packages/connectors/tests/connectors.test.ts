@@ -1,4 +1,4 @@
-import { createTestHttpClient } from "@frontal-labs/_testing";
+import { createTestHttpClient } from "@frontal-labs/testing";
 import { describe, expect, it } from "vitest";
 import {
   ConnectorsService,

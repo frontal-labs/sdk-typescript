@@ -13,12 +13,12 @@ new PipelinesService(http: HttpClient)
 Creates a new PipelinesService instance with an HTTP client.
 
 **Parameters:**
-- `http`: HTTP client instance from `@frontal-labs/_core`
+- `http`: HTTP client instance from `@frontal-labs/core`
 
 **Example:**
 ```typescript
 import { PipelinesService } from "@frontal-labs/pipelines";
-import { getDefaultClient } from "@frontal-labs/_core";
+import { getDefaultClient } from "@frontal-labs/core";
 
 const pipelines = new PipelinesService(getDefaultClient()._http);
 ```
@@ -983,7 +983,7 @@ Creates a PipelinesService instance with a custom FrontalClient.
 **Example:**
 ```typescript
 import { createPipelinesClient } from "@frontal-labs/pipelines";
-import { FrontalClient } from "@frontal-labs/_core";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

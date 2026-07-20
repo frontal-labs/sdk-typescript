@@ -278,7 +278,7 @@ Or configure programmatically:
 
 ```typescript
 import { createPipelinesClient } from "@frontal-labs/pipelines";
-import { FrontalClient } from "@frontal-labs/_core";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

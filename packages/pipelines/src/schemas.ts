@@ -2,7 +2,7 @@ import {
   filterConditionsSchema,
   retryConfigSchema,
   timestampSchema,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import { z } from "zod";
 
 /**

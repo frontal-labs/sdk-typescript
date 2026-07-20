@@ -1,4 +1,4 @@
-import type { HttpClient } from "@frontal-labs/_core";
+import type { HttpClient } from "@frontal-labs/core";
 
 /** Programming language selector for a sandbox request. */
 export interface SandboxLanguage {

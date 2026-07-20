@@ -59,7 +59,7 @@ interface DatasetsClientConfig {
 
 ## Error Types
 
-All methods throw typed errors from `@frontal-labs/_core`:
+All methods throw typed errors from `@frontal-labs/core`:
 
 - `FrontalError` — Base error class
 - `NotFoundError` — Resource not found (404)

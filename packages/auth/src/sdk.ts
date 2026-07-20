@@ -1,4 +1,4 @@
-import type { HttpClient } from "@frontal-labs/_core";
+import type { HttpClient } from "@frontal-labs/core";
 import type {
   AdminUserAttributes,
   AuthOtpResponse,

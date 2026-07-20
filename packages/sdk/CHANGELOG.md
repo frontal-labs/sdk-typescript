@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Bundle `@frontal-labs/_core` into the published JS output instead of leaving it as an external dependency. Replace `workspace:*` protocol with proper `^` semver ranges so packages can be installed from npm without errors.
+- Bundle `@frontal-labs/core` into the published JS output instead of leaving it as an external dependency. Replace `workspace:*` protocol with proper `^` semver ranges so packages can be installed from npm without errors.
 - Updated dependencies
   - @frontal-labs/agents@1.0.1
   - @frontal-labs/ai@0.1.1
@@ -116,7 +116,7 @@ path?, headers?, body? })` (returns the raw `Response`).
   - @frontal-labs/events@1.0.0
   - @frontal-labs/connectors@0.0.3
   - @frontal-labs/schedules@1.0.0
-  - @frontal-labs/_core@1.0.2
+  - @frontal-labs/core@1.0.2
   - @frontal-labs/blob@1.0.0
   - @frontal-labs/webhooks@0.0.3
   - @frontal-labs/graph@0.1.0

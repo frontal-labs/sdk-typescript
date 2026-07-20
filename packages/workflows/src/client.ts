@@ -1,12 +1,12 @@
 /**
- * Config for standalone usage without @frontal-labs/_core
+ * Config for standalone usage without @frontal-labs/core
  */
 
 import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
-} from "@frontal-labs/_core";
+} from "@frontal-labs/core";
 import {
   DEFAULT_WORKFLOWS_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -14,7 +14,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { WorkflowsSdk } from "./sdk";
-import { env } from "@frontal-labs/_core";
+import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a {@link WorkflowsSdk} client standalone.
