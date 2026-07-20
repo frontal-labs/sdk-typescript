@@ -258,6 +258,11 @@ export class ObservabilityEventsNamespace {
     this.traces = new TracesNamespace(http);
   }
 
+  /** Report a single observability event. */
+  report(event: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.http.post("/observability/events", event);
+  }
+
   /** Report a batch of observability events. */
   reportBatch(
     events: Record<string, unknown>[]

@@ -7,8 +7,8 @@ import {
   createIntegrationHarness,
   integrationPage,
 } from "frontal/testing";
-import { GovernanceService } from "@frontal-labs/governance";
-import { AuditService } from "@frontal-labs/audit";
+import { GovernanceSdk as GovernanceService } from "@frontal-labs/governance";
+import { AuditSdk as AuditService } from "@frontal-labs/audit";
 
 const mockValidation = {
   valid: true,

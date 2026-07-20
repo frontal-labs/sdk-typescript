@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "frontal/testing";
 import {
-  LineageService,
+  LineageSdk,
   createLineageClient,
   LineageGraphSchema,
 } from "../src/index";
@@ -15,7 +15,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new LineageService(http), mock };
+  return { service: new LineageSdk(http), mock };
 }
 
 const mockNode = {
@@ -100,7 +100,7 @@ describe("Schemas", () => {
 describe("Factory", () => {
   it("creates client", () => {
     expect(createLineageClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      LineageService
+      LineageSdk
     );
   });
 });

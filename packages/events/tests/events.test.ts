@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createEventsClient,
   EventSchema,
-  EventsService,
+  EventsSdk,
   SubscriptionSchema,
   TopicSchema,
 } from "../src/index";
@@ -17,7 +17,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  const service = new EventsService(http);
+  const service = new EventsSdk(http);
   return { service, mock };
 }
 
@@ -54,7 +54,7 @@ const mockEvent: Record<string, unknown> = {
   metadata: { timestamp: "2025-01-01T00:00:00Z" },
 };
 
-describe("EventsService", () => {
+describe("EventsSdk", () => {
   describe("publish / subscribe", () => {
     it("publishes events to /events/publish with the topic in the body", async () => {
       const { service, mock } = createService([
@@ -254,6 +254,6 @@ describe("createEventsClient factory", () => {
     const client = createEventsClient({
       apiKey: "frt_test-key-1234567890",
     });
-    expect(client).toBeInstanceOf(EventsService);
+    expect(client).toBeInstanceOf(EventsSdk);
   });
 });

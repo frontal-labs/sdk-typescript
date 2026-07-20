@@ -56,6 +56,9 @@ export const auditConfigSchema = z.object({
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
+/** Alias for AuditEventSchema (used by tests). */
+export const AuditSdkEventSchema = AuditEventSchema;
+
 /** A stored audit event. */
 export type AuditEvent = z.infer<typeof AuditEventSchema>;
 /** Input for recording a new audit event. */

@@ -7,9 +7,9 @@ import {
   createIntegrationHarness,
   integrationPage,
 } from "frontal/testing";
-import { PipelinesService } from "@frontal-labs/pipelines";
-import { DatasetsService } from "@frontal-labs/datasets";
-import { LineageService } from "@frontal-labs/lineage";
+import { PipelinesSdk as PipelinesService } from "@frontal-labs/pipelines";
+import { DatasetsSdk as DatasetsService } from "@frontal-labs/datasets";
+import { LineageSdk as LineageService } from "@frontal-labs/lineage";
 
 const mockPipeline = {
   id: "ppl_1", name: "data-ingest", status: "active",

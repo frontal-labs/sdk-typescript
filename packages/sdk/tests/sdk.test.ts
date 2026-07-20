@@ -1,17 +1,17 @@
 import { createTestClient } from "frontal/testing";
 import { describe, expect, it } from "vitest";
-import { Sdk } from "../src/sdk";
+import { Frontal } from "../src/sdk";
 
-describe("Sdk", () => {
+describe("Frontal", () => {
   it("constructs without throwing", () => {
     const { client } = createTestClient();
-    const sdk = new Sdk(client);
-    expect(sdk).toBeInstanceOf(Sdk);
+    const sdk = new Frontal(client);
+    expect(sdk).toBeInstanceOf(Frontal);
   });
 
   it("provides lazy access to all service getters", () => {
     const { client } = createTestClient();
-    const sdk = new Sdk(client);
+    const sdk = new Frontal(client);
 
     expect(sdk.blob).toBeDefined();
     expect(sdk.ai).toBeDefined();
@@ -39,7 +39,7 @@ describe("Sdk", () => {
 
   it("caches service instances", () => {
     const { client } = createTestClient();
-    const sdk = new Sdk(client);
+    const sdk = new Frontal(client);
 
     const blob1 = sdk.blob;
     const blob2 = sdk.blob;

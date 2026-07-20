@@ -43,7 +43,10 @@ export function createAgentsClient(
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
     baseUrl:
-      clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_AGENTS_BASE_URL,
+      clientOrConfig.baseUrl ??
+      process.env.FRONTAL_AGENTS_API_URL ??
+      env.FRONTAL_API_URL ??
+      DEFAULT_AGENTS_BASE_URL,
     timeout: clientOrConfig.timeout ?? DEFAULT_TIMEOUT,
     maxRetries: clientOrConfig.maxRetries ?? DEFAULT_MAX_RETRIES,
     retryDelay: DEFAULT_RETRY_DELAY,

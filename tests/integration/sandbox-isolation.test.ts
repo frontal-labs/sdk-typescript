@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { createIntegrationHarness } from "frontal/testing";
-import { SandboxService } from "@frontal-labs/sandbox";
+import { SandboxSdk as SandboxService } from "@frontal-labs/sandbox";
 
 describe("Sandbox compile-and-judge", () => {
   it("languages → self-test → submit", async () => {

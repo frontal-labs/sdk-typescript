@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "frontal/testing";
 import {
-  IntegrationsService,
+  IntegrationsSdk,
   createIntegrationsClient,
   Integration,
   providerSlugSchema,
@@ -19,7 +19,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new IntegrationsService(http), mock };
+  return { service: new IntegrationsSdk(http), mock };
 }
 
 const mockIntegration = {
@@ -92,10 +92,9 @@ const mockSurface = {
 };
 
 // ---------------------------------------------------------------------------
-// IntegrationsService
-// ---------------------------------------------------------------------------
+// IntegrationsSdk
 
-describe("IntegrationsService", () => {
+describe("IntegrationsSdk", () => {
   describe("providers", () => {
     it("list() returns providers", async () => {
       const { service } = createService([
@@ -552,9 +551,9 @@ describe("Schemas", () => {
 // ---------------------------------------------------------------------------
 
 describe("Factory", () => {
-  it("creates IntegrationsService", () => {
+  it("creates IntegrationsSdk", () => {
     expect(createIntegrationsClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      IntegrationsService
+      IntegrationsSdk
     );
   });
 });

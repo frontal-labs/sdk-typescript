@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "frontal/testing";
-import {
-  WebhooksService,
-  createWebhooksClient,
-  WebhookSchema,
-} from "../src/index";
+import { WebhooksSdk, createWebhooksClient, WebhookSchema } from "../src/index";
 
 function createService(
   routes: {
@@ -15,7 +11,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new WebhooksService(http), mock };
+  return { service: new WebhooksSdk(http), mock };
 }
 
 const mockWebhook = {
@@ -112,7 +108,7 @@ describe("Schemas", () => {
 describe("createWebhooksClient", () => {
   it("creates client", () => {
     expect(createWebhooksClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      WebhooksService
+      WebhooksSdk
     );
   });
 });

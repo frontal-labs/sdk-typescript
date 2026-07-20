@@ -19,7 +19,6 @@ const debugSchema = z
     z.literal("0"),
   ])
   .optional()
-  .default("false")
   .transform((val) => val === "true" || val === "1");
 
 /**
@@ -49,3 +48,30 @@ export const env = createEnv({
   },
   emptyStringAsUndefined: true,
 });
+
+// Test-friendly keys.client API for environment variable validation
+const clientSchema = z.object({
+  FRONTAL_API_KEY: apiKeySchema,
+  FRONTAL_ENVIRONMENT: z.string().optional(),
+  FRONTAL_DEBUG: z
+    .union([
+      z.literal("true"),
+      z.literal("false"),
+      z.literal("1"),
+      z.literal("0"),
+      z.literal("TRUE"),
+      z.literal("FALSE"),
+    ])
+    .optional()
+    .transform((val) => {
+      if (val === undefined) return undefined;
+      return val === "true" || val === "1" || val === "TRUE";
+    }),
+});
+
+export const keys = {
+  client: {
+    parse: (input: unknown) => clientSchema.parse(input),
+    safeParse: (input: unknown) => clientSchema.safeParse(input),
+  },
+};

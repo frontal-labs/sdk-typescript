@@ -1,7 +1,7 @@
 import { createTestHttpClient } from "frontal/testing";
 import { describe, expect, it } from "vitest";
 import {
-  ConnectorsService,
+  ConnectorsSdk,
   connectionTestSchema,
   connectorInstallationSchema,
   connectorSlugSchema,
@@ -19,7 +19,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new ConnectorsService(http), mock };
+  return { service: new ConnectorsSdk(http), mock };
 }
 
 const mockInstallation = {
@@ -76,7 +76,7 @@ const mockCheckpoint = {
 // ConnectorsService
 // ---------------------------------------------------------------------------
 
-describe("ConnectorsService", () => {
+describe("ConnectorsSdk", () => {
   describe("catalog", () => {
     it("list() returns connector definitions", async () => {
       const { service } = createService([
@@ -416,9 +416,9 @@ describe("Schemas", () => {
 // ---------------------------------------------------------------------------
 
 describe("Factory", () => {
-  it("creates ConnectorsService", () => {
+  it("creates ConnectorsSdk", () => {
     expect(createConnectorsClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      ConnectorsService
+      ConnectorsSdk
     );
   });
 });

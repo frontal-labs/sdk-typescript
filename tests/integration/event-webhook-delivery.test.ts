@@ -7,8 +7,8 @@ import {
   createIntegrationHarness,
   integrationPage,
 } from "frontal/testing";
-import { EventsService } from "@frontal-labs/events";
-import { WebhooksService } from "@frontal-labs/webhooks";
+import { EventsSdk as EventsService } from "@frontal-labs/events";
+import { WebhooksSdk as WebhooksService } from "@frontal-labs/webhooks";
 
 const mockTopic = {
   id: "tpc_1", name: "orders.created", event_count: 0,

@@ -7,7 +7,7 @@ import {
   createIntegrationHarness,
   integrationPage,
 } from "frontal/testing";
-import { ObservabilityService } from "@frontal-labs/observability";
+import { ObservabilitySdk as ObservabilityService } from "@frontal-labs/observability";
 
 const mockLog = {
   id: "log_1", timestamp: "2025-01-01T00:00:00Z",
