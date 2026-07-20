@@ -11,14 +11,16 @@ const apiKeySchema = z
     "FRONTAL_API_KEY must start with frt_"
   );
 
-const debugSchema = z.preprocess((val: string) => {
-  if (typeof val === "boolean") return val;
-  if (typeof val !== "string") return val;
-  const normalized = val.toLowerCase();
-  if (normalized === "true" || normalized === "1") return true;
-  if (normalized === "false" || normalized === "0") return false;
-  return val;
-}, z.boolean().optional().default(false));
+const debugSchema = z
+  .union([
+    z.literal("true"),
+    z.literal("false"),
+    z.literal("1"),
+    z.literal("0"),
+  ])
+  .optional()
+  .default("false")
+  .transform((val) => val === "true" || val === "1");
 
 /**
  * Parsed runtime environment used by all packages.

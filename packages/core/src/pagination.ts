@@ -30,7 +30,7 @@ const paginationSchema = z
  */
 export function pageResultSchema<T extends ZodType>(itemSchema: T) {
   const effectiveItemSchema =
-    itemSchema instanceof z.ZodObject ? itemSchema.passthrough() : itemSchema;
+    itemSchema instanceof z.ZodObject ? itemSchema.loose() : itemSchema;
 
   return z
     .object({
@@ -124,6 +124,19 @@ function buildPageResult<T>(
   return page;
 }
 
+/**
+ * Creates a PageResult with lazy page fetching and async iteration support.
+ *
+ * Accepts two call signatures:
+ * 1. `createPageResult(data[], pagination, fetchNext, meta?)` — array-based.
+ * 2. `createPageResult(raw, fetchNext?)` — raw payload with embedded pagination.
+ *
+ * The `fetchNext` callback can take a cursor string (for cursor-based APIs)
+ * or no arguments (for offset-based APIs).
+ *
+ * @typeParam T - The item type of the page.
+ * @returns A PageResult with `nextPage()`, `all()`, and `Symbol.asyncIterator`.
+ */
 export function createPageResult<T>(
   dataOrRaw:
     | T[]
