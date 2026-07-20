@@ -13,7 +13,7 @@ import type {
   SyncRun,
 } from "./schemas";
 
-export class ConnectorsService {
+export class ConnectorsSdk {
   readonly installations: InstallationsNamespace;
 
   constructor(private readonly http: HttpClient) {
@@ -26,13 +26,13 @@ export class ConnectorsService {
 
   async list(): Promise<ConnectorDefinition[]> {
     const res = await this.http.get<{ connectors: ConnectorDefinition[] }>(
-      "/connectors"
+      "/connectors/catalog"
     );
     return res.connectors;
   }
 
   async get(slug: string): Promise<ConnectorDefinition> {
-    return this.http.get<ConnectorDefinition>(`/connectors/${slug}`);
+    return this.http.get<ConnectorDefinition>(`/connectors/catalog/${slug}`);
   }
 
   // ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ export class ConnectorsService {
     input?: ReplaySyncRunInput
   ): Promise<SyncRun> {
     return this.http.post<SyncRun>(
-      `/sync-runs/${syncRunId}/replay`,
+      `/connectors/sync-runs/${syncRunId}/replay`,
       input ?? {}
     );
   }

@@ -51,16 +51,16 @@ export class UsersNamespace {
   async list(
     params?: PageParams
   ): Promise<{ data: { users: unknown[]; aud: string }; error: null }> {
-    return this.http.get("/admin/users", params ?? {});
+    return this.http.get("/auth/admin/users", params ?? {});
   }
 
   async get(uid: string): Promise<UserResponse> {
-    return this.http.get(`/admin/users/${uid}`);
+    return this.http.get(`/auth/admin/users/${uid}`);
   }
 
   async create(attributes: AdminUserAttributes): Promise<UserResponse> {
     const body = AdminUserAttributesSchema.parse(attributes);
-    return this.http.post("/admin/users", body);
+    return this.http.post("/auth/admin/users", body);
   }
 
   async update(
@@ -68,11 +68,11 @@ export class UsersNamespace {
     attributes: AdminUserAttributes
   ): Promise<UserResponse> {
     const body = AdminUserAttributesSchema.parse(attributes);
-    return this.http.put(`/admin/users/${uid}`, body);
+    return this.http.put(`/auth/admin/users/${uid}`, body);
   }
 
   async delete(id: string, shouldSoftDelete?: boolean): Promise<UserResponse> {
-    return this.http.delete(`/admin/users/${id}`, {
+    return this.http.delete(`/auth/admin/users/${id}`, {
       shouldSoftDelete,
     });
   }
@@ -81,7 +81,7 @@ export class UsersNamespace {
     email: string,
     options?: { data?: Record<string, unknown>; redirectTo?: string }
   ): Promise<UserResponse> {
-    return this.http.post("/invite", { email, ...options });
+    return this.http.post("/auth/invite", { email, ...options });
   }
 }
 
@@ -91,7 +91,7 @@ export class InviteNamespace {
   async generateLink(
     params: GenerateLinkParams
   ): Promise<GenerateLinkResponse> {
-    return this.http.post("/admin/generate_link", params);
+    return this.http.post("/auth/admin/generate_link", params);
   }
 }
 
@@ -105,7 +105,7 @@ export class SessionNamespace {
     data: null;
     error: { message: string; status: number } | null;
   }> {
-    return this.http.post("/admin/logout", { jwt, scope });
+    return this.http.post("/auth/admin/logout", { jwt, scope });
   }
 }
 
@@ -189,7 +189,7 @@ class AdminMfaNamespace {
     data: { factors: unknown[] };
     error: null;
   }> {
-    return this.http.get(`/admin/users/${userId}/factors`);
+    return this.http.get(`/auth/admin/users/${userId}/factors`);
   }
 
   async deleteFactor(
@@ -199,7 +199,7 @@ class AdminMfaNamespace {
     data: { id: string };
     error: null;
   }> {
-    return this.http.delete(`/admin/users/${userId}/factors/${id}`);
+    return this.http.delete(`/auth/admin/users/${userId}/factors/${id}`);
   }
 }
 
@@ -208,47 +208,163 @@ export class MfaNamespace {
 
   async enroll(params: MfaEnrollParams): Promise<unknown> {
     const body = MfaEnrollParamsSchema.parse(params);
-    return this.http.post("/auth/mfa/enroll", body);
+    return this.http.post("/auth/factors", body);
   }
 
   async challenge(params: MfaChallengeParams): Promise<unknown> {
-    const body = MfaChallengeParamsSchema.parse(params);
-    return this.http.post("/auth/mfa/challenge", body);
+    const body = MfaChallengeParamsSchema.parse(params) as { factorId: string };
+    return this.http.post(`/auth/factors/${body.factorId}/challenge`, body);
   }
 
   async verify(params: MfaVerifyParams): Promise<unknown> {
-    const body = MfaVerifyParamsSchema.parse(params);
-    return this.http.post("/auth/mfa/verify", body);
+    const body = MfaVerifyParamsSchema.parse(params) as { factorId: string };
+    return this.http.post(`/auth/factors/${body.factorId}/verify`, body);
   }
 
   async challengeAndVerify(
     params: MfaChallengeAndVerifyParams
   ): Promise<unknown> {
-    const body = MfaChallengeAndVerifyParamsSchema.parse(params);
-    return this.http.post("/auth/mfa/challenge", { ...body, verify: true });
+    const body = MfaChallengeAndVerifyParamsSchema.parse(params) as {
+      factorId: string;
+    };
+    return this.http.post(`/auth/factors/${body.factorId}/verify`, body);
   }
 
   async unenroll(params: MfaUnenrollParams): Promise<unknown> {
-    const body = MfaUnenrollParamsSchema.parse(params);
-    return this.http.post("/auth/mfa/unenroll", body);
+    const body = MfaUnenrollParamsSchema.parse(params) as { factorId: string };
+    return this.http.delete(`/auth/factors/${body.factorId}`);
   }
 
   async listFactors(): Promise<unknown> {
-    return this.http.get("/auth/mfa/factors");
-  }
-
-  async getAuthenticatorAssuranceLevel(): Promise<unknown> {
-    return this.http.get("/auth/mfa/aal");
+    return this.http.get("/auth/factors");
   }
 }
 
-export class AuthService {
+type Obj = Record<string, unknown>;
+
+/**
+ * Authenticated account self-management (`/api/account/*`, exposed publicly as
+ * `/v1/auth/account/*`): profile, password, API keys, devices, MFA factors,
+ * sessions, and the account audit log.
+ */
+export class AccountNamespace {
+  readonly apiKeys: AccountApiKeysNamespace;
+  readonly devices: AccountDevicesNamespace;
+  readonly sessions: AccountSessionsNamespace;
+  readonly mfa: AccountMfaNamespace;
+
+  constructor(private readonly http: HttpClient) {
+    this.apiKeys = new AccountApiKeysNamespace(http);
+    this.devices = new AccountDevicesNamespace(http);
+    this.sessions = new AccountSessionsNamespace(http);
+    this.mfa = new AccountMfaNamespace(http);
+  }
+
+  getProfile(): Promise<Obj> {
+    return this.http.get("/auth/account/profile");
+  }
+  updateProfile(input: Obj): Promise<Obj> {
+    return this.http.put("/auth/account/profile", input);
+  }
+  deleteProfile(): Promise<void> {
+    return this.http.delete("/auth/account/profile");
+  }
+  updatePassword(input: {
+    currentPassword?: string;
+    newPassword: string;
+  }): Promise<Obj> {
+    return this.http.post("/auth/account/password", input);
+  }
+  getAuditLog(opts: Obj = {}): Promise<Obj> {
+    return this.http.get("/auth/account/audit-log", opts);
+  }
+}
+
+class AccountApiKeysNamespace {
+  constructor(private readonly http: HttpClient) {}
+  list(): Promise<Obj> {
+    return this.http.get("/auth/account/security/api-keys");
+  }
+  create(input: Obj): Promise<Obj> {
+    return this.http.post("/auth/account/security/api-keys", input);
+  }
+  get(keyId: string): Promise<Obj> {
+    return this.http.get(`/auth/account/security/api-keys/${keyId}`);
+  }
+  update(keyId: string, input: Obj): Promise<Obj> {
+    return this.http.put(`/auth/account/security/api-keys/${keyId}`, input);
+  }
+  delete(keyId: string): Promise<void> {
+    return this.http.delete(`/auth/account/security/api-keys/${keyId}`);
+  }
+}
+
+class AccountDevicesNamespace {
+  constructor(private readonly http: HttpClient) {}
+  list(): Promise<Obj> {
+    return this.http.get("/auth/account/security/devices");
+  }
+  register(input: Obj): Promise<Obj> {
+    return this.http.post("/auth/account/security/devices", input);
+  }
+  get(deviceId: string): Promise<Obj> {
+    return this.http.get(`/auth/account/security/devices/${deviceId}`);
+  }
+  delete(deviceId: string): Promise<void> {
+    return this.http.delete(`/auth/account/security/devices/${deviceId}`);
+  }
+  trust(deviceId: string): Promise<Obj> {
+    return this.http.post(
+      `/auth/account/security/devices/${deviceId}/trust`,
+      {}
+    );
+  }
+}
+
+class AccountSessionsNamespace {
+  constructor(private readonly http: HttpClient) {}
+  list(): Promise<Obj> {
+    return this.http.get("/auth/account/sessions");
+  }
+  extend(sessionId: string): Promise<Obj> {
+    return this.http.post(`/auth/account/sessions/${sessionId}/extend`, {});
+  }
+  revoke(sessionId: string): Promise<void> {
+    return this.http.delete(`/auth/account/sessions/${sessionId}`);
+  }
+}
+
+class AccountMfaNamespace {
+  constructor(private readonly http: HttpClient) {}
+  list(): Promise<Obj> {
+    return this.http.get("/auth/account/mfa");
+  }
+  enroll(input: Obj): Promise<Obj> {
+    return this.http.post("/auth/account/mfa", input);
+  }
+  get(factorId: string): Promise<Obj> {
+    return this.http.get(`/auth/account/mfa/${factorId}`);
+  }
+  unenroll(factorId: string): Promise<void> {
+    return this.http.delete(`/auth/account/mfa/${factorId}`);
+  }
+  verify(factorId: string, input: Obj): Promise<Obj> {
+    return this.http.post(`/auth/account/mfa/${factorId}/verify`, input);
+  }
+  challenge(factorId: string): Promise<Obj> {
+    return this.http.post(`/auth/account/mfa/${factorId}/challenge`, {});
+  }
+}
+
+export class AuthSdk {
   readonly mfa: MfaNamespace;
   readonly admin: AuthAdminService;
+  readonly account: AccountNamespace;
 
   constructor(private readonly http: HttpClient) {
     this.mfa = new MfaNamespace(http);
     this.admin = new AuthAdminService(http);
+    this.account = new AccountNamespace(http);
   }
 
   // ── Sign-up / Sign-in ────────────────────────────────────────────
@@ -321,7 +437,7 @@ export class AuthService {
     | { data: { session: Session }; error: null }
     | { data: { session: null }; error: null }
   > {
-    return this.http.get("/auth/session");
+    return this.http.get("/auth/auth/session");
   }
 
   async getUser(jwt?: string): Promise<UserResponse> {
@@ -342,7 +458,7 @@ export class AuthService {
     accessToken: string;
     refreshToken: string;
   }): Promise<AuthResponse> {
-    return this.http.post("/auth/session", currentSession);
+    return this.http.post("/auth/auth/session", currentSession);
   }
 
   async refreshSession(currentSession?: {

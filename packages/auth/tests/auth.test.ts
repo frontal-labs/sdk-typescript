@@ -1,15 +1,15 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import { AuthService, createAuthClient } from "../src/index";
+import { describe, expect, it } from "vitest";
+import { AuthSdk, createAuthClient } from "../src/index";
 import {
-  SignUpWithPasswordCredentialsSchema,
-  SignInWithPasswordCredentialsSchema,
-  SignInWithOtpCredentialsSchema,
-  VerifyOtpParamsSchema,
   MfaEnrollParamsSchema,
   MfaUnenrollParamsSchema,
-  UserSchema,
   SessionSchema,
+  SignInWithOtpCredentialsSchema,
+  SignInWithPasswordCredentialsSchema,
+  SignUpWithPasswordCredentialsSchema,
+  UserSchema,
+  VerifyOtpParamsSchema,
 } from "../src/schemas";
 
 function createService(
@@ -22,7 +22,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  const service = new AuthService(http);
+  const service = new AuthSdk(http);
   return { service, mock };
 }
 
@@ -210,35 +210,69 @@ describe("AuthService — client-side", () => {
     });
   });
 
-  describe("MFA", () => {
-    it("enrolls TOTP", async () => {
+  describe("MFA (factors)", () => {
+    it("enrolls a factor at POST /auth/factors", async () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/auth/mfa/enroll",
-          body: data({
-            id: "mfa_1",
-            type: "totp",
-            totp: { qr_code: "qr", secret: "sec", uri: "otpauth://" },
-          }),
+          path: "/auth/factors",
+          body: data({ id: "mfa_1", type: "totp" }),
         },
       ]);
       const result = await service.mfa.enroll({ factorType: "totp" });
       expect(result.data).toBeDefined();
-      mock.expectCalled("POST", "/auth/mfa/enroll");
+      mock.expectCalled("POST", "/auth/factors");
     });
 
-    it("unenrolls factor", async () => {
+    it("unenrolls a factor via DELETE /auth/factors/{id}", async () => {
+      const { service, mock } = createService([
+        { method: "DELETE", path: "/auth/factors/mfa_1", status: 204 },
+      ]);
+      await service.mfa.unenroll({ factorId: "mfa_1" });
+      mock.expectCalled("DELETE", "/auth/factors/mfa_1");
+    });
+
+    it("verifies a factor via /auth/factors/{id}/verify", async () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/auth/mfa/unenroll",
-          body: data({ id: "mfa_1" }),
+          path: "/auth/factors/mfa_1/verify",
+          body: data({ verified: true }),
         },
       ]);
-      const result = await service.mfa.unenroll({ factorId: "mfa_1" });
-      expect(result.data).toBeDefined();
-      mock.expectCalled("POST", "/auth/mfa/unenroll");
+      await service.mfa.verify({
+        factorId: "mfa_1",
+        challengeId: "ch_1",
+        code: "123456",
+      });
+      mock.expectCalled("POST", "/auth/factors/mfa_1/verify");
+    });
+  });
+
+  describe("account management", () => {
+    it("profile, api-keys, sessions resolve under /auth/account/*", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/auth/account/profile",
+          body: { id: "usr_1" },
+        },
+        {
+          method: "GET",
+          path: "/auth/account/security/api-keys",
+          body: { data: [] },
+        },
+        { method: "GET", path: "/auth/account/sessions", body: { data: [] } },
+      ]);
+      await service.account.getProfile();
+      await service.account.apiKeys.list();
+      await service.account.sessions.list();
+      mock.expectCalled("GET", "/auth/account/profile");
+      mock.expectCalled("GET", "/auth/account/security/api-keys");
+      mock.expectCalled("GET", "/auth/account/sessions");
+      expect(
+        mock.requests.some((r: { path: string }) => r.path.includes("/v1/v1/"))
+      ).toBe(false);
     });
   });
 
@@ -379,6 +413,6 @@ describe("createAuthClient factory", () => {
       apiKey: "frt_test-key-1234567890",
       baseUrl: "https://api.test.frontal.dev/auth/v1",
     });
-    expect(client).toBeInstanceOf(AuthService);
+    expect(client).toBeInstanceOf(AuthSdk);
   });
 });

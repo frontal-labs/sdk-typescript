@@ -52,6 +52,17 @@ describe("WebhooksService", () => {
     });
     expect(result.id).toBe("wh_1");
   });
+  it("gets an endpoint without doubling the /v1 prefix", async () => {
+    const { service, mock } = createService([
+      { method: "GET", path: "/webhooks/wh_1", body: mockWebhook },
+    ]);
+    const result = await service.endpoints.get("wh_1");
+    expect(result.id).toBe("wh_1");
+    // Guard against the historical `/v1/v1/webhooks/...` double-prefix bug.
+    expect(
+      mock.requests.some((r: { path: string }) => r.path.includes("/v1/v1/"))
+    ).toBe(false);
+  });
   it("rotates secret", async () => {
     const { service } = createService([
       {

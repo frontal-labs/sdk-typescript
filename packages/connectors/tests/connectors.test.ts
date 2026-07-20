@@ -1,13 +1,13 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
+import { describe, expect, it } from "vitest";
 import {
   ConnectorsService,
+  connectionTestSchema,
+  connectorInstallationSchema,
+  connectorSlugSchema,
   createConnectorsClient,
   Installation,
-  connectorSlugSchema,
-  connectorInstallationSchema,
   syncRunSchema,
-  connectionTestSchema,
 } from "../src/index";
 
 function createService(
@@ -82,7 +82,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "GET",
-          path: "/connectors",
+          path: "/connectors/catalog",
           body: { connectors: [mockConnector] },
         },
       ]);
@@ -93,7 +93,11 @@ describe("ConnectorsService", () => {
 
     it("get() returns a single connector", async () => {
       const { service } = createService([
-        { method: "GET", path: "/connectors/postgres", body: mockConnector },
+        {
+          method: "GET",
+          path: "/connectors/catalog/postgres",
+          body: mockConnector,
+        },
       ]);
       const result = await service.get("postgres");
       expect(result.slug).toBe("postgres");
@@ -151,7 +155,7 @@ describe("ConnectorsService", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/sync-runs/sr_1/replay",
+          path: "/connectors/sync-runs/sr_1/replay",
           body: mockSyncRun,
         },
       ]);

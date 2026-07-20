@@ -1,10 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import {
-  SandboxService,
-  createSandboxClient,
-  SandboxSchema,
-} from "../src/index";
+import { describe, expect, it } from "vitest";
+import { createSandboxClient, SandboxSdk } from "../src/index";
 
 function createService(
   routes: {
@@ -15,129 +11,93 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new SandboxService(http), mock };
+  return { service: new SandboxSdk(http), mock };
 }
 
-const mockSandbox = {
-  id: "sbx_1",
-  name: "test-sandbox",
-  templateId: "tmpl_1",
-  status: "running",
-  cpuLimit: "1",
-  memoryLimit: "512Mi",
-  timeoutSeconds: 300,
-  networkPolicy: "none",
-  createdAt: "2025-01-01T00:00:00Z",
-  updatedAt: "2025-01-01T00:00:00Z",
-};
-const mockExecution = {
-  id: "exec_1",
-  sandbox_id: "sbx_1",
-  code: "print('hello')",
-  language: "python",
-  status: "completed",
-  result: "hello",
-  duration_ms: 150,
-  created_at: "2025-01-01T00:00:00Z",
-};
-
-function pageWrap<T>(items: T[]) {
-  return {
-    data: items,
-    pagination: { cursor: null, hasMore: false, total: items.length },
-  };
+function noDoublePrefix(mock: { requests: { path: string }[] }): boolean {
+  return !mock.requests.some((r) => r.path.includes("/v1/v1/"));
 }
 
-describe("SandboxService", () => {
-  it("lists sandboxes (paginated)", async () => {
-    const { service } = createService([
+describe("SandboxSdk", () => {
+  it("lists supported languages", async () => {
+    const { service, mock } = createService([
       {
         method: "GET",
-        path: "/sandbox/sandboxes",
-        body: pageWrap([mockSandbox]),
+        path: "/sandbox/languages",
+        body: ["Rust", "Python", "C++"],
       },
     ]);
-    const result = await service.list();
-    expect(result.data).toHaveLength(1);
+    const langs = await service.languages();
+    expect(langs).toContain("Python");
+    mock.expectCalled("GET", "/sandbox/languages");
+    expect(noDoublePrefix(mock)).toBe(true);
   });
-  it("creates a sandbox", async () => {
-    const { service } = createService([
-      { method: "POST", path: "/sandbox/sandboxes", body: mockSandbox },
-    ]);
-    const result = await service.create({
-      name: "test-sandbox",
-      templateId: "tmpl_1",
-    });
-    expect(result.id).toBe("sbx_1");
-  });
-  it("starts a sandbox", async () => {
-    const { service } = createService([
+
+  it("runs a self-test (compile + single run)", async () => {
+    const { service, mock } = createService([
       {
         method: "POST",
-        path: "/sandbox/sandboxes/sbx_1/start",
-        body: mockSandbox,
-      },
-    ]);
-    const result = await service.start("sbx_1");
-    expect(result.status).toBe("running");
-  });
-  it("stops a sandbox", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/sandbox/sandboxes/sbx_1/stop",
-        body: { ...mockSandbox, status: "stopped" },
-      },
-    ]);
-    const result = await service.stop("sbx_1");
-    expect(result.status).toBe("stopped");
-  });
-  it("executes code", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/sandbox/sandboxes/sbx_1/execute",
-        body: mockExecution,
-      },
-    ]);
-    const result = await service.executions.execute("sbx_1", {
-      code: "print('hello')",
-      language: "python",
-    });
-    expect(result.status).toBe("completed");
-  });
-  it("lists templates", async () => {
-    const { service } = createService([
-      {
-        method: "GET",
-        path: "/sandbox/templates",
+        path: "/sandbox/self-test",
         body: {
-          data: [
-            {
-              id: "tmpl_1",
-              name: "Python 3.12",
-              image: "python:3.12",
-              created_at: "",
-            },
-          ],
+          compile: { exitStatus: 0, stdout: "", stderr: "" },
+          summary: {
+            exitStatus: 0,
+            stdout: "hello\n",
+            stderr: "",
+            executionTimeMs: 5,
+            memoryUsageKib: 512,
+          },
         },
       },
     ]);
-    const result = await service.templates.list();
-    expect(result.data).toHaveLength(1);
+    const result = await service.selfTest({
+      language: "Python",
+      code: "print('hello')",
+      stdin: "",
+    });
+    expect(result.summary?.stdout).toBe("hello\n");
+    // string language is normalized to { name }.
+    mock.expectCalledWith("POST", "/sandbox/self-test", {
+      language: { name: "Python" },
+    });
   });
-});
 
-describe("Schemas", () => {
-  it("validates Sandbox", () => {
-    expect(SandboxSchema.safeParse(mockSandbox).success).toBe(true);
+  it("submits a judged run against test cases", async () => {
+    const { service, mock } = createService([
+      {
+        method: "POST",
+        path: "/sandbox/submit",
+        body: {
+          compile: { exitStatus: 0, stdout: "", stderr: "" },
+          cases: [
+            {
+              caseId: 1,
+              exitStatus: 0,
+              result: "JUDGE_RESULT_ACCEPTED",
+              score: 100,
+            },
+          ],
+          summary: { result: "JUDGE_RESULT_ACCEPTED", score: 100 },
+        },
+      },
+    ]);
+    const result = await service.submit({
+      language: { name: "Python" },
+      code: "print('ok')",
+      task: {
+        cases: [{ caseId: 1, score: 100, input: "ok\n", answer: "ok\n" }],
+      },
+    });
+    expect(result.summary.score).toBe(100);
+    expect(result.cases).toHaveLength(1);
+    mock.expectCalled("POST", "/sandbox/submit");
   });
 });
 
 describe("createSandboxClient", () => {
   it("creates client", () => {
     expect(createSandboxClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      SandboxService
+      SandboxSdk
     );
   });
 });

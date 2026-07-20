@@ -86,4 +86,4 @@ try {
 ## Related Packages
 
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
-- [@frontal-labs/functions](../functions/docs/OVERVIEW.md)
+- [@frontal-labs/workers](../workers/docs/OVERVIEW.md)

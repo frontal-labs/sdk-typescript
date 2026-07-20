@@ -86,5 +86,4 @@ try {
 ## Related Packages
 
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
-- [@frontal-labs/organization](../organization/docs/OVERVIEW.md)
 - [@frontal-labs/governance](../governance/docs/OVERVIEW.md)

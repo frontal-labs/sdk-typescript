@@ -86,6 +86,5 @@ try {
 ## Related Packages
 
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
-- [@frontal-labs/queues](../queues/docs/OVERVIEW.md)
 - [@frontal-labs/pipelines](../pipelines/docs/OVERVIEW.md)
 - [@frontal-labs/workflows](../workflows/docs/OVERVIEW.md)

@@ -4,9 +4,9 @@ import {
   type HttpClient,
   type PageResult,
 } from "@frontal-labs/core";
-import type { Webhook, DeliveryAttempt, WebhookStats } from "./schemas";
+import type { DeliveryAttempt, Webhook, WebhookStats } from "./schemas";
 
-export class WebhooksService {
+export class WebhooksSdk {
   readonly endpoints: EndpointsNamespace;
   readonly deliveries: DeliveriesNamespace;
   readonly stats: StatsNamespace;
@@ -32,19 +32,19 @@ export class EndpointsNamespace {
     return this.http.post("/webhooks", input);
   }
   async get(id: string): Promise<Webhook> {
-    return this.http.get(`/v1/webhooks/${id}`);
+    return this.http.get(`/webhooks/${id}`);
   }
   async update(
     id: string,
     input: { url?: string; events?: string[] }
   ): Promise<Webhook> {
-    return this.http.put(`/v1/webhooks/${id}`, input);
+    return this.http.put(`/webhooks/${id}`, input);
   }
   async delete(id: string): Promise<void> {
-    return this.http.delete(`/v1/webhooks/${id}`);
+    return this.http.delete(`/webhooks/${id}`);
   }
   async rotateSecret(id: string): Promise<{ secret: string }> {
-    return this.http.post(`/v1/webhooks/${id}/rotate-secret`, {});
+    return this.http.post(`/webhooks/${id}/rotate-secret`, {});
   }
 }
 
@@ -64,10 +64,10 @@ export class DeliveriesNamespace {
     );
   }
   async get(id: string): Promise<DeliveryAttempt> {
-    return this.http.get(`/v1/webhooks/deliveries/${id}`);
+    return this.http.get(`/webhooks/deliveries/${id}`);
   }
   async retry(id: string): Promise<DeliveryAttempt> {
-    return this.http.post(`/v1/webhooks/deliveries/${id}/retry`, {});
+    return this.http.post(`/webhooks/deliveries/${id}/retry`, {});
   }
 }
 

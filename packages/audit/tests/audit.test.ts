@@ -1,10 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import {
-  AuditService,
-  createAuditClient,
-  AuditEventSchema,
-} from "../src/index";
+import { describe, expect, it } from "vitest";
+import { AuditSdkEventSchema, AuditSdk, createAuditClient } from "../src/index";
 
 function createService(
   routes: {
@@ -15,7 +11,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new AuditService(http), mock };
+  return { service: new AuditSdk(http), mock };
 }
 
 const mockEvent = {
@@ -34,76 +30,66 @@ function pageWrap<T>(items: T[]) {
   };
 }
 
-describe("AuditService", () => {
-  it("logs an event", async () => {
+describe("AuditSdk", () => {
+  it("records an event (create + log alias)", async () => {
     const { service, mock } = createService([
       { method: "POST", path: "/audit/events", body: mockEvent },
     ]);
-    const result = await service.log({
+    const result = await service.events.create({
       action: "user.created",
       resource: { type: "user", id: "usr_2" },
     });
     expect(result.id).toBe("evt_1");
+    const viaAlias = await service.log({ action: "user.created" });
+    expect(viaAlias.id).toBe("evt_1");
     mock.expectCalled("POST", "/audit/events");
   });
-  it("queries events (paginated)", async () => {
-    const { service } = createService([
+  it("records a batch of events", async () => {
+    const { service, mock } = createService([
       {
         method: "POST",
-        path: "/audit/events/query",
-        body: pageWrap([mockEvent]),
+        path: "/audit/events/batch",
+        body: { recorded: 2, failed: 0 },
       },
     ]);
-    const result = await service.query({});
+    const res = await service.events.createBatch([
+      { action: "a" },
+      { action: "b" },
+    ]);
+    expect(res.recorded).toBe(2);
+    mock.expectCalled("POST", "/audit/events/batch");
+  });
+  it("lists events with filters (GET, paginated)", async () => {
+    const { service, mock } = createService([
+      { method: "GET", path: "/audit/events", body: pageWrap([mockEvent]) },
+    ]);
+    const result = await service.events.list({ action: "user.created" });
     expect(result.data).toHaveLength(1);
+    mock.expectCalled("GET", "/audit/events");
+    expect(
+      mock.requests.some((r: { path: string }) => r.path.includes("/v1/v1/"))
+    ).toBe(false);
   });
-  it("exports events", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/audit/events/export",
-        body: { download_url: "https://..." },
-      },
+  it("gets an event by id", async () => {
+    const { service, mock } = createService([
+      { method: "GET", path: "/audit/events/evt_1", body: mockEvent },
     ]);
-    const result = await service.export({ format: "csv" });
-    expect(result.downloadUrl).toBeDefined();
-  });
-  it("lists audit trails (paginated)", async () => {
-    const { service } = createService([
-      {
-        method: "GET",
-        path: "/audit/trails",
-        body: pageWrap([
-          { id: "t1", name: "Test", filter: {}, created_at: "" },
-        ]),
-      },
-    ]);
-    const result = await service.trails.list();
-    expect(result.data).toHaveLength(1);
-  });
-  it("runs compliance check", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/audit/compliance/check",
-        body: { passed: true, findings: [] },
-      },
-    ]);
-    const result = await service.compliance.runCheck({ checkId: "chk_1" });
-    expect(result.passed).toBe(true);
+    const result = await service.events.get("evt_1");
+    expect(result.id).toBe("evt_1");
+    mock.expectCalled("GET", "/audit/events/evt_1");
   });
 });
 
 describe("Schemas", () => {
-  it("validates AuditEvent", () => {
-    expect(AuditEventSchema.safeParse(mockEvent).success).toBe(true);
+  it("validates AuditSdkEvent", () => {
+    expect(AuditSdkEventSchema.safeParse(mockEvent).success).toBe(true);
   });
 });
 
 describe("createAuditClient", () => {
   it("creates client", () => {
     expect(createAuditClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      AuditService
+      AuditSdk
     );
   });
 });

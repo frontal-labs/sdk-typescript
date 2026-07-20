@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import { BillingService, createBillingClient, PlanSchema } from "../src/index";
+import { describe, expect, it } from "vitest";
+import { BillingSdk, createBillingClient, PlanSchema } from "../src/index";
 
-function createService(
+function _createService(
   routes: {
     method: string;
     path: string | RegExp;
@@ -11,7 +11,7 @@ function createService(
   }[] = []
 ) {
   const { http } = createTestHttpClient(routes);
-  return { service: new BillingService(http) };
+  return { service: new BillingSdk(http) };
 }
 
 const mockPlan = {
@@ -41,82 +41,122 @@ function pageWrap<T>(items: T[]) {
   };
 }
 
-describe("BillingService", () => {
-  it("lists plans", async () => {
-    const { service } = createService([
-      { method: "GET", path: "/billing/plans", body: { data: [mockPlan] } },
+function createSvcMock(
+  routes: Parameters<typeof createTestHttpClient>[0] = []
+) {
+  const { http, mock } = createTestHttpClient(routes);
+  return { service: new BillingSdk(http), mock };
+}
+
+describe("BillingSdk", () => {
+  it("customers: list/get + entitlements + portal", async () => {
+    const { service, mock } = createSvcMock([
+      {
+        method: "GET",
+        path: "/billing/customers",
+        body: pageWrap([{ id: "cus_1" }]),
+      },
+      {
+        method: "GET",
+        path: "/billing/customers/cus_1",
+        body: { id: "cus_1" },
+      },
+      {
+        method: "GET",
+        path: "/billing/customers/cus_1/entitlements",
+        body: { data: [] },
+      },
     ]);
-    const result = await service.plans.list();
-    expect(result.data).toHaveLength(1);
+    expect((await service.customers.list()).data).toHaveLength(1);
+    expect((await service.customers.get("cus_1")).id).toBe("cus_1");
+    await service.customers.entitlements("cus_1");
+    mock.expectCalled("GET", "/billing/customers/cus_1/entitlements");
+    expect(
+      mock.requests.some((r: { path: string }) => r.path.includes("/v1/v1/"))
+    ).toBe(false);
   });
-  it("gets subscription", async () => {
-    const { service } = createService([
-      { method: "GET", path: "/billing/subscription", body: mockSub },
+
+  it("plans: list + clone", async () => {
+    const { service, mock } = createSvcMock([
+      { method: "GET", path: "/billing/plans", body: pageWrap([mockPlan]) },
+      { method: "POST", path: "/billing/plans/plan_1/clone", body: mockPlan },
     ]);
-    const result = await service.subscriptions.get();
-    expect(result.id).toBe("sub_1");
+    expect((await service.plans.list()).data).toHaveLength(1);
+    await service.plans.clone("plan_1");
+    mock.expectCalled("POST", "/billing/plans/plan_1/clone");
   });
-  it("cancels subscription", async () => {
-    const { service } = createService([
+
+  it("subscriptions: create + cancel/pause/resume (plural path)", async () => {
+    const { service, mock } = createSvcMock([
+      { method: "POST", path: "/billing/subscriptions", body: mockSub },
       {
         method: "POST",
-        path: "/billing/subscription/cancel",
+        path: "/billing/subscriptions/sub_1/cancel",
         body: { ...mockSub, status: "canceled" },
       },
     ]);
-    const result = await service.subscriptions.cancel();
-    expect(result.status).toBe("canceled");
+    const created = await service.subscriptions.create({ planId: "plan_1" });
+    expect(created.id).toBe("sub_1");
+    const canceled = await service.subscriptions.cancel("sub_1");
+    expect(canceled.status).toBe("canceled");
+    mock.expectCalled("POST", "/billing/subscriptions");
+    mock.expectCalled("POST", "/billing/subscriptions/sub_1/cancel");
   });
-  it("lists invoices (paginated)", async () => {
-    const { service } = createService([
+
+  it("invoices: list + finalize + void", async () => {
+    const { service, mock } = createSvcMock([
       {
         method: "GET",
         path: "/billing/invoices",
-        body: pageWrap([
-          {
-            id: "inv_1",
-            subscription_id: "sub_1",
-            amount: 99,
-            currency: "USD",
-            status: "paid",
-            period_start: "",
-            period_end: "",
-            created_at: "",
-          },
-        ]),
+        body: pageWrap([{ id: "inv_1", status: "draft" }]),
       },
-    ]);
-    const result = await service.invoices.list();
-    expect(result.data).toHaveLength(1);
-  });
-  it("reports usage", async () => {
-    const { service } = createService([
-      { method: "POST", path: "/billing/usage", body: { ingested: 2 } },
-    ]);
-    const result = await service.usage.report([
-      { metric: "api_calls", quantity: 100 },
-    ]);
-    expect(result.ingested).toBe(2);
-  });
-  it("adds payment method", async () => {
-    const { service } = createService([
       {
         method: "POST",
-        path: "/billing/payment-methods",
-        body: {
-          id: "pm_1",
-          type: "card",
-          last_four: "4242",
-          is_default: true,
-          created_at: "",
-        },
+        path: "/billing/invoices/inv_1/finalize",
+        body: { id: "inv_1", status: "open" },
       },
     ]);
-    const result = await service.paymentMethods.create({
-      type: "card",
-      token: "tok_xxx",
-    });
-    expect(result.id).toBe("pm_1");
+    expect((await service.invoices.list()).data).toHaveLength(1);
+    const f = await service.invoices.finalize("inv_1");
+    expect(f.status).toBe("open");
+    mock.expectCalled("POST", "/billing/invoices/inv_1/finalize");
+  });
+
+  it("wallets: top-up + real-time balance", async () => {
+    const { service, mock } = createSvcMock([
+      {
+        method: "POST",
+        path: "/billing/wallets/wal_1/top-up",
+        body: { id: "wal_1" },
+      },
+      {
+        method: "GET",
+        path: "/billing/wallets/wal_1/balance/real-time",
+        body: { balance: 100 },
+      },
+    ]);
+    await service.wallets.topUp("wal_1", { amount: 50 });
+    const bal = await service.wallets.realTimeBalance("wal_1");
+    expect(bal.balance).toBe(100);
+    mock.expectCalled("POST", "/billing/wallets/wal_1/top-up");
+    mock.expectCalled("GET", "/billing/wallets/wal_1/balance/real-time");
+  });
+
+  it("meters/prices/addons resources resolve at /billing/*", async () => {
+    const { service, mock } = createSvcMock([
+      { method: "POST", path: "/billing/meters/met_1/disable", body: {} },
+      {
+        method: "GET",
+        path: "/billing/prices/lookup/pro-monthly",
+        body: { id: "price_1" },
+      },
+      { method: "GET", path: "/billing/addons", body: pageWrap([]) },
+    ]);
+    await service.meters.disable("met_1");
+    const p = await service.prices.lookup("pro-monthly");
+    expect(p.id).toBe("price_1");
+    await service.addons.list();
+    mock.expectCalled("GET", "/billing/prices/lookup/pro-monthly");
   });
 });
 
@@ -129,7 +169,7 @@ describe("Schemas", () => {
 describe("createBillingClient", () => {
   it("creates client", () => {
     expect(createBillingClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      BillingService
+      BillingSdk
     );
   });
 });

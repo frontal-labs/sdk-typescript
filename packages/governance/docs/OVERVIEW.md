@@ -89,5 +89,4 @@ try {
 
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/auth](../auth/docs/OVERVIEW.md)
-- [@frontal-labs/organization](../organization/docs/OVERVIEW.md)
 - [@frontal-labs/audit](../audit/docs/OVERVIEW.md)

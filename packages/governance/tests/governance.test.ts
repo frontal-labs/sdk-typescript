@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
+import { describe, expect, it } from "vitest";
 import {
-  GovernanceService,
   createGovernanceClient,
+  GovernanceSdk,
   PolicySchema,
 } from "../src/index";
 
@@ -15,7 +15,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new GovernanceService(http), mock };
+  return { service: new GovernanceSdk(http), mock };
 }
 
 const mockPolicy = {
@@ -35,64 +35,121 @@ function pageWrap<T>(items: T[]) {
   };
 }
 
-describe("GovernanceService", () => {
-  it("evaluates a policy", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/governance/policies/pol_1/evaluate",
-        body: { policy_id: "pol_1", passed: true, rule_results: [] },
-      },
-    ]);
-    const result = await service.evaluatePolicy("pol_1", {});
-    expect(result.passed).toBe(true);
-  });
-  it("lists policies (paginated)", async () => {
-    const { service } = createService([
-      {
-        method: "GET",
-        path: "/governance/policies",
-        body: pageWrap([mockPolicy]),
-      },
-    ]);
-    const result = await service.policies.list();
-    expect(result.data).toHaveLength(1);
-  });
-  it("enables a policy", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/governance/policies/pol_1/enable",
-        body: mockPolicy,
-      },
-    ]);
-    const result = await service.policies.enable("pol_1");
-    expect(result.id).toBe("pol_1");
-  });
-  it("disables a policy", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/governance/policies/pol_1/disable",
-        body: mockPolicy,
-      },
-    ]);
-    const result = await service.policies.disable("pol_1");
-    expect(result.id).toBe("pol_1");
-  });
-  it("checks RBAC access", async () => {
-    const { service } = createService([
-      {
-        method: "POST",
-        path: "/governance/rbac/check",
-        body: { allowed: true },
-      },
-    ]);
-    const result = await service.rbac.checkAccess({
-      resource: "pipelines",
-      action: "read",
+function noDoublePrefix(mock: { requests: { path: string }[] }): boolean {
+  return !mock.requests.some((r) => r.path.includes("/v1/v1/"));
+}
+
+describe("GovernanceSdk", () => {
+  describe("policies", () => {
+    it("lists, validates, and reads templates at /policies*", async () => {
+      const { service, mock } = createService([
+        { method: "GET", path: "/policies", body: pageWrap([mockPolicy]) },
+        {
+          method: "POST",
+          path: "/policies/validate",
+          body: { valid: true },
+        },
+        {
+          method: "GET",
+          path: "/policies/templates",
+          body: { data: [{ id: "tpl_1" }] },
+        },
+        {
+          method: "POST",
+          path: "/policies/from-template",
+          body: mockPolicy,
+        },
+      ]);
+      const list = await service.policies.list();
+      expect(list.data).toHaveLength(1);
+      const v = await service.policies.validate({ definition: {} });
+      expect(v.valid).toBe(true);
+      const t = await service.policies.templates();
+      expect(t.data).toHaveLength(1);
+      const p = await service.policies.fromTemplate({ templateId: "tpl_1" });
+      expect(p.id).toBe("pol_1");
+      mock.expectCalled("POST", "/policies/validate");
+      mock.expectCalled("GET", "/policies/templates");
+      expect(noDoublePrefix(mock)).toBe(true);
     });
-    expect(result.allowed).toBe(true);
+
+    it("reads policy versions", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/policies/pol_1/versions",
+          body: { data: [{ version: 1 }] },
+        },
+      ]);
+      const res = await service.policies.versions("pol_1");
+      expect(res.data).toHaveLength(1);
+      mock.expectCalled("GET", "/policies/pol_1/versions");
+    });
+  });
+
+  describe("compliance", () => {
+    it("frameworks / assessments / violations / score", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/compliance/frameworks",
+          body: { data: [{ id: "gdpr" }] },
+        },
+        {
+          method: "POST",
+          path: "/compliance/assessments",
+          body: { id: "as_1", framework: "gdpr" },
+        },
+        {
+          method: "POST",
+          path: "/compliance/violations/vi_1/resolve",
+          body: { resolved: true },
+        },
+        {
+          method: "GET",
+          path: "/compliance/score",
+          body: { overallScore: 92 },
+        },
+      ]);
+      expect((await service.compliance.frameworks()).data).toHaveLength(1);
+      const a = await service.compliance.runAssessment({ framework: "gdpr" });
+      expect(a.id).toBe("as_1");
+      await service.compliance.resolveViolation("vi_1");
+      const s = await service.compliance.score();
+      expect(s.overallScore).toBe(92);
+      mock.expectCalled("POST", "/compliance/assessments");
+      mock.expectCalled("POST", "/compliance/violations/vi_1/resolve");
+    });
+  });
+
+  describe("access control", () => {
+    it("roles, permissions, and access check", async () => {
+      const { service, mock } = createService([
+        { method: "GET", path: "/roles", body: pageWrap([{ id: "ro_1" }]) },
+        {
+          method: "POST",
+          path: "/permissions",
+          body: { id: "pe_1" },
+        },
+        { method: "POST", path: "/access/check", body: { allowed: true } },
+      ]);
+      const roles = await service.roles.list();
+      expect(roles.data).toHaveLength(1);
+      await service.permissions.create({
+        name: "read",
+        description: "read",
+        resourceType: "pipeline",
+        action: "read",
+      });
+      const check = await service.access.check({
+        userId: "usr_1",
+        roleNames: ["admin"],
+        action: "read",
+      });
+      expect(check.allowed).toBe(true);
+      mock.expectCalled("POST", "/access/check");
+      mock.expectCalled("GET", "/roles");
+    });
   });
 });
 
@@ -105,7 +162,7 @@ describe("Schemas", () => {
 describe("createGovernanceClient", () => {
   it("creates client", () => {
     expect(createGovernanceClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      GovernanceService
+      GovernanceSdk
     );
   });
 });

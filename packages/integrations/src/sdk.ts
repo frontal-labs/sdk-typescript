@@ -14,7 +14,7 @@ import type {
   ReplayActionRunInput,
 } from "./schemas";
 
-export class IntegrationsService {
+export class IntegrationsSdk {
   readonly providers: ProvidersNamespace;
   readonly policy: PolicyNamespace;
 
@@ -24,7 +24,7 @@ export class IntegrationsService {
   }
 
   // ---------------------------------------------------------------------------
-  // Integrations
+  // IntegrationsSdk
   // ---------------------------------------------------------------------------
 
   async list(
