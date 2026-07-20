@@ -22,7 +22,7 @@ const asPagePayload = <T>(
     meta?: unknown;
   };
 
-export class WorkflowsService {
+export class WorkflowsSdk {
   readonly approvals: ApprovalsNamespace;
   readonly steps: StepsNamespace;
   readonly templates: TemplatesNamespace;
@@ -42,7 +42,7 @@ export class WorkflowsService {
   }
 
   async list(
-    opts: { status?: string; limit?: number; cursor?: string } = {}
+    opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.Workflow>> {
     const raw = await this.http.get("/workflows", opts);
     return createPageResult(asPagePayload<S.Workflow>(raw), (cursor) =>
@@ -258,7 +258,7 @@ export class WorkflowAccessor {
   }
 
   async executions(
-    opts: { status?: string; limit?: number; cursor?: string } = {}
+    opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.WorkflowExecution>> {
     const raw = await this.http.post("/workflows/search", {
       workflowId: this.id,
@@ -271,6 +271,13 @@ export class WorkflowAccessor {
 
   async execution(executionId: string): Promise<S.WorkflowExecution> {
     return this.http.get(`/workflows/${this.id}/${executionId}`);
+  }
+
+  /** Fetch a compact summary of a workflow execution. */
+  async executionSummary(
+    executionId: string
+  ): Promise<Record<string, unknown>> {
+    return this.http.get(`/workflows/${this.id}/${executionId}/summary`);
   }
 
   async trigger(
@@ -310,7 +317,7 @@ export class ApprovalsNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async list(
-    opts: { status?: string; limit?: number; cursor?: string } = {}
+    opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.Approval>> {
     const raw = await this.http.get("/workflows", opts);
     return createPageResult(asPagePayload<S.Approval>(raw), (cursor) =>
@@ -363,7 +370,7 @@ export class TemplatesNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async list(
-    opts: { category?: string; limit?: number; cursor?: string } = {}
+    opts: { category?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.WorkflowTemplate>> {
     const raw = await this.http.get("/workflows", opts);
     return createPageResult(asPagePayload<S.WorkflowTemplate>(raw), (cursor) =>

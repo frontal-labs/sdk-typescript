@@ -7,7 +7,7 @@ import {
 } from "@frontal-labs/core";
 import * as S from "./schemas";
 
-export class GraphService {
+export class GraphSdk {
   readonly history: HistoryNamespace;
 
   constructor(private readonly http: HttpClient) {
@@ -70,6 +70,41 @@ export class GraphService {
     }[]
   ): Promise<S.BatchResult> {
     return this.http.post("/ontology/graph/graph/build", { operations });
+  }
+
+  /** Read many entities/relationships in a single request. */
+  async bulkRead(
+    request: { ids?: string[]; entityType?: string } & Record<string, unknown>
+  ): Promise<{ entities: S.Entity[] }> {
+    return this.http.post("/ontology/graph/graph/bulk-read", request);
+  }
+
+  /** Fetch a single relationship by id. */
+  async getRelationship(id: string): Promise<S.Edge> {
+    return this.http.get(`/ontology/graph/relationships/${id}`);
+  }
+
+  /** Update a relationship by id. */
+  async updateRelationship(
+    id: string,
+    fields: Record<string, unknown>
+  ): Promise<S.Edge> {
+    return this.http.put(`/ontology/graph/relationships/${id}`, { fields });
+  }
+
+  /** Fetch the status of an asynchronous graph run. */
+  async run(runId: string): Promise<Record<string, unknown>> {
+    return this.http.get(`/ontology/graph/runs/${runId}`);
+  }
+
+  capabilities(): Promise<Record<string, unknown>> {
+    return this.http.get("/ontology/graph/capabilities");
+  }
+  health(): Promise<Record<string, unknown>> {
+    return this.http.get("/ontology/graph/health");
+  }
+  info(): Promise<Record<string, unknown>> {
+    return this.http.get("/ontology/graph/info");
   }
 }
 

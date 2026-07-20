@@ -96,7 +96,7 @@ export class TracesNamespace {
   constructor(private readonly http: HttpClient) {}
 
   async get(traceId: string): Promise<Trace> {
-    return this.http.get(`/v1/observability/traces/${traceId}`);
+    return this.http.get(`/observability/traces/${traceId}`);
   }
 
   async list(
@@ -145,19 +145,19 @@ export class AlertsNamespace {
   }
 
   async update(id: string, rule: Partial<AlertRule>): Promise<AlertRule> {
-    return this.http.put(`/v1/observability/alerts/${id}`, rule);
+    return this.http.put(`/observability/alerts/${id}`, rule);
   }
 
   async delete(id: string): Promise<void> {
-    return this.http.delete(`/v1/observability/alerts/${id}`);
+    return this.http.delete(`/observability/alerts/${id}`);
   }
 
   async enable(id: string): Promise<AlertRule> {
-    return this.http.post(`/v1/observability/alerts/${id}/enable`, {});
+    return this.http.post(`/observability/alerts/${id}/enable`, {});
   }
 
   async disable(id: string): Promise<AlertRule> {
-    return this.http.post(`/v1/observability/alerts/${id}/disable`, {});
+    return this.http.post(`/observability/alerts/${id}/disable`, {});
   }
 
   async listIncidents(
@@ -180,7 +180,7 @@ export class DashboardsNamespace {
   }
 
   async get(id: string): Promise<Dashboard> {
-    return this.http.get(`/v1/observability/dashboards/${id}`);
+    return this.http.get(`/observability/dashboards/${id}`);
   }
 
   async create(
@@ -190,29 +190,59 @@ export class DashboardsNamespace {
   }
 
   async update(id: string, dashboard: Partial<Dashboard>): Promise<Dashboard> {
-    return this.http.put(`/v1/observability/dashboards/${id}`, dashboard);
+    return this.http.put(`/observability/dashboards/${id}`, dashboard);
   }
 
   async delete(id: string): Promise<void> {
-    return this.http.delete(`/v1/observability/dashboards/${id}`);
+    return this.http.delete(`/observability/dashboards/${id}`);
   }
 
   async share(
     id: string,
     opts: { expiresIn?: string; public?: boolean } = {}
   ): Promise<{ shareUrl: string }> {
-    return this.http.post(`/v1/observability/dashboards/${id}/share`, opts);
+    return this.http.post(`/observability/dashboards/${id}/share`, opts);
   }
 }
 
 // ── Service ────────────────────────────────────────────────────────
 
-export class ObservabilityService {
+/**
+ * Structured observability events (`/v1/observability/events`).
+ */
+export class ObservabilityEventsNamespace {
+  readonly logs: LogsNamespace;
+  readonly metrics: MetricsNamespace;
+  readonly traces: TracesNamespace;
+
+  constructor(private readonly http: HttpClient) {
+    this.logs = new LogsNamespace(http);
+    this.metrics = new MetricsNamespace(http);
+    this.traces = new TracesNamespace(http);
+  }
+
+  /** Report a batch of observability events. */
+  reportBatch(
+    events: Record<string, unknown>[]
+  ): Promise<Record<string, unknown>> {
+    return this.http.post("/observability/events/batch", { events });
+  }
+
+  /** Aggregate statistics over reported events. */
+  stats(
+    opts: { from?: string; to?: string; [key: string]: unknown } = {}
+  ): Promise<Record<string, unknown>> {
+    return this.http.get("/observability/events/stats", opts);
+  }
+}
+
+export class ObservabilitySdk {
   readonly logs: LogsNamespace;
   readonly metrics: MetricsNamespace;
   readonly traces: TracesNamespace;
   readonly alerts: AlertsNamespace;
   readonly dashboards: DashboardsNamespace;
+  readonly events: ObservabilityEventsNamespace;
 
   constructor(private readonly http: HttpClient) {
     this.logs = new LogsNamespace(http);
@@ -220,5 +250,6 @@ export class ObservabilityService {
     this.traces = new TracesNamespace(http);
     this.alerts = new AlertsNamespace(http);
     this.dashboards = new DashboardsNamespace(http);
+    this.events = new ObservabilityEventsNamespace(http);
   }
 }

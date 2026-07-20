@@ -1,65 +1,12 @@
-import {
-  FrontalClient,
-  getDefaultClient,
-  HttpClient,
-} from "@frontal-labs/core";
-import { DEFAULT_EVENTS_BASE_URL } from "./constants";
-import { EventsService } from "./service";
+/**
+ * @frontal-labs/events
+ *
+ * Event-driven architecture and messaging for Frontal.
+ */
 
-export interface EventsClientConfig {
-  apiKey: string;
-  baseUrl?: string;
-  timeout?: number;
-  maxRetries?: number;
-}
-export function createEventsClient(
-  config: EventsClientConfig | FrontalClient
-): EventsService;
-export function createEventsClient(
-  clientOrConfig: FrontalClient | EventsClientConfig
-): EventsService {
-  if (clientOrConfig instanceof FrontalClient) {
-    return new EventsService(clientOrConfig.httpClient);
-  }
-  const http = new HttpClient({
-    apiKey: clientOrConfig.apiKey,
-    baseUrl:
-      clientOrConfig.baseUrl ??
-      process.env.FRONTAL_EVENTS_API_URL ??
-      process.env.FRONTAL_API_URL ??
-      DEFAULT_EVENTS_BASE_URL,
-    timeout: clientOrConfig.timeout ?? 30_000,
-    maxRetries: clientOrConfig.maxRetries ?? 3,
-    retryDelay: 1000,
-    headers: {},
-    environment: "production",
-    debug: false,
-  });
-  return new EventsService(http);
-}
-
-let _eventsCache: EventsService | undefined;
-export const events = new Proxy<EventsService>({} as EventsService, {
-  get(_t, prop) {
-    if (!_eventsCache) {
-      _eventsCache = new EventsService(getDefaultClient().httpClient);
-    }
-    const inst = _eventsCache;
-    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === "function"
-      ? (val as (...args: unknown[]) => unknown).bind(inst)
-      : val;
-  },
-});
-
+export { createEventsClient, events, type EventsClientConfig } from "./client";
+export type { EventBufferConfig } from "./buffer";
+export { EventBuffer } from "./buffer";
 export { DEFAULT_EVENTS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";
-export { EventBuffer } from "./buffer";
-export type { EventBufferConfig } from "./buffer";
-export { EventsService } from "./service";
-export {
-  TopicsNamespace,
-  SubscriptionsNamespace,
-  DeadLetterNamespace,
-  EventSchemasNamespace,
-} from "./service";
+export { EventsSdk } from "./sdk";

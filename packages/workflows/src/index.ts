@@ -1,60 +1,14 @@
-import {
-  FrontalClient,
-  getDefaultClient,
-  HttpClient,
-} from "@frontal-labs/core";
-import { WorkflowsService } from "./service";
+/**
+ * @frontal-labs/workflows
+ *
+ * Define and orchestrate multi-step workflows on Frontal.
+ */
 
-/** Config for standalone usage without @frontal-labs/core */
-export interface WorkflowsClientConfig {
-  apiKey: string;
-  baseUrl?: string;
-  timeout?: number;
-  maxRetries?: number;
-}
-
-/** Create from a FrontalClient instance */
-/** Create standalone with just config */
-export function createWorkflowsClient(
-  config: WorkflowsClientConfig | FrontalClient
-): WorkflowsService;
-export function createWorkflowsClient(
-  clientOrConfig: FrontalClient | WorkflowsClientConfig
-): WorkflowsService {
-  if (clientOrConfig instanceof FrontalClient) {
-    return new WorkflowsService(clientOrConfig.httpClient);
-  }
-  const http = new HttpClient({
-    apiKey: clientOrConfig.apiKey,
-    baseUrl:
-      clientOrConfig.baseUrl ??
-      process.env.FRONTAL_WORKFLOWS_API_URL ??
-      process.env.FRONTAL_API_URL ??
-      "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30_000,
-    maxRetries: clientOrConfig.maxRetries ?? 3,
-    retryDelay: 1000,
-    headers: {},
-    environment: "production",
-    debug: false,
-  });
-  return new WorkflowsService(http);
-}
-
-// Default instance that works automatically with environment variables
-let _workflowsCache: WorkflowsService | undefined;
-export const workflows = new Proxy<WorkflowsService>({} as WorkflowsService, {
-  get(_t, prop) {
-    if (!_workflowsCache) {
-      _workflowsCache = new WorkflowsService(getDefaultClient().httpClient);
-    }
-    const inst = _workflowsCache;
-    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === "function"
-      ? (val as (...args: unknown[]) => unknown).bind(inst)
-      : val;
-  },
-});
-
+export {
+  createWorkflowsClient,
+  workflows,
+  type WorkflowsClientConfig,
+} from "./client";
+export { DEFAULT_WORKFLOWS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";
-export { WorkflowsService } from "./service";
+export { WorkflowsSdk } from "./sdk";

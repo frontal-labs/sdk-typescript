@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
+import { describe, expect, it } from "vitest";
 import {
-  EventsService,
   createEventsClient,
   EventSchema,
-  TopicSchema,
+  EventsService,
   SubscriptionSchema,
+  TopicSchema,
 } from "../src/index";
 
 function createService(
@@ -56,11 +56,11 @@ const mockEvent: Record<string, unknown> = {
 
 describe("EventsService", () => {
   describe("publish / subscribe", () => {
-    it("publishes events", async () => {
+    it("publishes events to /events/publish with the topic in the body", async () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/events/topics/orders.created/publish",
+          path: "/events/publish",
           body: { published: 2, event_ids: ["evt_1", "evt_2"] },
         },
       ]);
@@ -68,14 +68,16 @@ describe("EventsService", () => {
         { source: "test", type: "test.event", data: {} },
       ]);
       expect(result.published).toBe(2);
-      mock.expectCalled("POST", "/events/topics/orders.created/publish");
+      mock.expectCalledWith("POST", "/events/publish", {
+        topic: "orders.created",
+      });
     });
 
-    it("subscribes to topic", async () => {
-      const { service } = createService([
+    it("subscribes via POST /events/subscriptions", async () => {
+      const { service, mock } = createService([
         {
           method: "POST",
-          path: "/events/topics/orders.created/subscribe",
+          path: "/events/subscriptions",
           body: mockSub,
         },
       ]);
@@ -83,6 +85,10 @@ describe("EventsService", () => {
         endpoint: "https://hooks.example.com/orders",
       });
       expect(result.id).toBe("sub_1");
+      mock.expectCalledWith("POST", "/events/subscriptions", {
+        topic: "orders.created",
+        endpoint: "https://hooks.example.com/orders",
+      });
     });
 
     it("unsubscribes", async () => {
@@ -152,29 +158,79 @@ describe("EventsService", () => {
     });
   });
 
-  describe("dead letter", () => {
-    it("replays a dead-letter event", async () => {
+  describe("replays", () => {
+    it("creates a replay via /events/replays", async () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/events/dead-letter/evt_dlq_1/replay",
-          status: 204,
+          path: "/events/replays",
+          body: { id: "rep_1", status: "queued" },
         },
       ]);
-      await service.deadLetter.replay("evt_dlq_1");
-      mock.expectCalled("POST", "/events/dead-letter/evt_dlq_1/replay");
+      const replay = await service.replays.create({ topic: "orders.created" });
+      expect(replay.id).toBe("rep_1");
+      mock.expectCalled("POST", "/events/replays");
     });
 
-    it("purges dead-letter queue", async () => {
+    it("lists replays", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/events/replays",
+          body: {
+            data: [{ id: "rep_1" }],
+            pagination: { cursor: null, hasMore: false, total: 1 },
+          },
+        },
+      ]);
+      const res = await service.replays.list();
+      expect(res.data).toHaveLength(1);
+      mock.expectCalled("GET", "/events/replays");
+    });
+  });
+
+  describe("consumers/routes/buses", () => {
+    it("lists consumers, consumer-groups, and routes at their real paths", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/events/consumers",
+          body: { data: [], pagination: { cursor: null, hasMore: false } },
+        },
+        {
+          method: "GET",
+          path: "/events/consumer-groups",
+          body: { data: [], pagination: { cursor: null, hasMore: false } },
+        },
+        {
+          method: "GET",
+          path: "/events/routes",
+          body: { data: [], pagination: { cursor: null, hasMore: false } },
+        },
+      ]);
+      await service.consumers.list();
+      await service.consumerGroups.list();
+      await service.routes.list();
+      mock.expectCalled("GET", "/events/consumers");
+      mock.expectCalled("GET", "/events/consumer-groups");
+      mock.expectCalled("GET", "/events/routes");
+    });
+  });
+
+  describe("schema validate", () => {
+    it("validates against /events/schemas/validate with schemaId in the body", async () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/events/dead-letter/purge",
-          status: 204,
+          path: "/events/schemas/validate",
+          body: { valid: true },
         },
       ]);
-      await service.deadLetter.purge();
-      mock.expectCalled("POST", "/events/dead-letter/purge");
+      const res = await service.schemas.validate("evt.type", { a: 1 });
+      expect(res.valid).toBe(true);
+      mock.expectCalledWith("POST", "/events/schemas/validate", {
+        schemaId: "evt.type",
+      });
     });
   });
 });

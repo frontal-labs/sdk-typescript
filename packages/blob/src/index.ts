@@ -5,71 +5,7 @@
  * Fully compatible with Blob and S3 standard patterns.
  */
 
-import {
-  FrontalClient,
-  getDefaultClient,
-  HttpClient,
-} from "@frontal-labs/core";
-import { BlobService } from "./service";
-
-/** Config for standalone usage without @frontal-labs/core */
-export interface BlobClientConfig {
-  apiKey: string;
-  baseUrl?: string;
-  timeout?: number;
-  maxRetries?: number;
-}
-
-/** Create from a FrontalClient instance */
-/** Create standalone with just config */
-export function createBlobClient(
-  config: BlobClientConfig | FrontalClient
-): BlobService;
-export function createBlobClient(
-  clientOrConfig: FrontalClient | BlobClientConfig
-): BlobService {
-  if (clientOrConfig instanceof FrontalClient) {
-    return new BlobService(clientOrConfig.httpClient);
-  }
-  const http = new HttpClient({
-    apiKey: clientOrConfig.apiKey,
-    baseUrl:
-      clientOrConfig.baseUrl ??
-      process.env.FRONTAL_BLOB_API_URL ??
-      process.env.FRONTAL_API_URL ??
-      "https://api.frontal.dev/v1",
-    timeout: clientOrConfig.timeout ?? 30_000,
-    maxRetries: clientOrConfig.maxRetries ?? 3,
-    retryDelay: 1000,
-    headers: {},
-    environment: "production",
-    debug: false,
-  });
-  return new BlobService(http);
-}
-
-// Default instance that works automatically with environment variables
-let _blobCache: BlobService | undefined;
-export const blob = new Proxy<BlobService>({} as BlobService, {
-  get(_t, prop) {
-    if (!_blobCache) {
-      _blobCache = createBlobClient(getDefaultClient());
-    }
-    const inst = _blobCache;
-    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === "function"
-      ? (val as (...args: unknown[]) => unknown).bind(inst)
-      : val;
-  },
-});
-
-// New Pattern B exports
-export { BlobService } from "./service";
-
-export { VERSION } from "./constants";
-export type {
-  BlobObject,
-  BucketConfig,
-  ListObjectsResult,
-  SignedUrlOptions,
-} from "./schemas";
+export { createBlobClient, blob, type BlobClientConfig } from "./client";
+export { DEFAULT_BLOB_BASE_URL, VERSION } from "./constants";
+export { BlobSdk } from "./sdk";
+export * from "./schemas";

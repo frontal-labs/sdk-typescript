@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
+import { describe, expect, it } from "vitest";
 import {
-  ObservabilityService,
-  createObservabilityClient,
-  LogEntrySchema,
   AlertRuleSchema,
+  createObservabilityClient,
   DashboardSchema,
+  LogEntrySchema,
+  ObservabilitySdk,
   TraceSchema,
 } from "../src/index";
 
@@ -18,7 +18,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  const service = new ObservabilityService(http);
+  const service = new ObservabilitySdk(http);
   return { service, mock };
 }
 
@@ -70,7 +70,7 @@ const mockDashboard: Record<string, unknown> = {
   updatedAt: "2025-01-01T00:00:00Z",
 };
 
-describe("ObservabilityService", () => {
+describe("ObservabilitySdk", () => {
   describe("logs", () => {
     it("queries logs (paginated)", async () => {
       const { service } = createService([
@@ -229,11 +229,37 @@ describe("Schemas validation", () => {
   });
 });
 
+describe("events", () => {
+  it("reports a single event, a batch, and reads stats", async () => {
+    const { http, mock } = createTestHttpClient([
+      { method: "POST", path: "/observability/events", body: { id: "ev_1" } },
+      {
+        method: "POST",
+        path: "/observability/events/batch",
+        body: { accepted: 2 },
+      },
+      {
+        method: "GET",
+        path: "/observability/events/stats",
+        body: { count: 10 },
+      },
+    ]);
+    const service = new ObservabilitySdk(http);
+    await service.events.report({ type: "deploy" });
+    await service.events.reportBatch([{ type: "a" }, { type: "b" }]);
+    const stats = await service.events.stats();
+    expect(stats.count).toBe(10);
+    mock.expectCalled("POST", "/observability/events");
+    mock.expectCalled("POST", "/observability/events/batch");
+    mock.expectCalled("GET", "/observability/events/stats");
+  });
+});
+
 describe("createObservabilityClient factory", () => {
   it("creates client from config", () => {
     const client = createObservabilityClient({
       apiKey: "frt_test-key-1234567890",
     });
-    expect(client).toBeInstanceOf(ObservabilityService);
+    expect(client).toBeInstanceOf(ObservabilitySdk);
   });
 });

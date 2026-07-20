@@ -22,7 +22,7 @@ const asPagePayload = <T>(
     meta?: unknown;
   };
 
-export class PipelinesService {
+export class PipelinesSdk {
   readonly lineage: LineageNamespace;
 
   constructor(private readonly http: HttpClient) {
@@ -59,6 +59,11 @@ export class PipelinesService {
       "/data/pipelines/pipelines",
       this.command("pipelines.create", { definition: body })
     );
+  }
+
+  /** Discover what the pipelines service supports. */
+  async capabilities(): Promise<Record<string, unknown>> {
+    return this.http.get("/data/pipelines/capabilities");
   }
 }
 
@@ -344,19 +349,5 @@ export class LineageNamespace {
     } = {}
   ): Promise<S.LineageGraph> {
     return this.http.get("/data/pipelines/info", opts);
-  }
-
-  async upstream(
-    _entityType: string,
-    _entityId: string
-  ): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
-    return this.http.get("/data/pipelines/info");
-  }
-
-  async downstream(
-    _entityType: string,
-    _entityId: string
-  ): Promise<{ pipelines: S.Pipeline[]; entities: unknown[] }> {
-    return this.http.get("/data/pipelines/info");
   }
 }

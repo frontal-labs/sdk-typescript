@@ -49,7 +49,7 @@ import {
  * const result = await ai.generateText({ model: 'gpt-4o-mini', prompt: 'Hello' })
  * ```
  */
-export class AIService {
+export class AISdk {
   constructor(private readonly http: HttpClient) {}
 
   // ── Text Generation ─────────────────────────────────────────────────
@@ -457,6 +457,61 @@ export class AIService {
     }
 
     return [];
+  }
+
+  /**
+   * Returns the gateway's default model ids per capability
+   * (e.g. chat, reranking, embedding).
+   */
+  async getDefaultModels(): Promise<Record<string, string>> {
+    return this.http.get<Record<string, string>>("/internal/models/defaults");
+  }
+
+  /**
+   * Reranks `documents` by relevance to `query` using a reranking model.
+   * Returns one score per input document, in input order.
+   *
+   * @param options.model - Reranking model id (see {@link getDefaultModels}).
+   * @param options.query - The query to score documents against.
+   * @param options.documents - Documents as plain strings or rich objects.
+   * @param options.topK - Optionally keep only the top-K documents.
+   * @param options.criteria - Optional natural-language relevance criteria.
+   */
+  async rerank(options: {
+    model: string;
+    query: string;
+    documents: Array<
+      | string
+      | {
+          content: string;
+          sourcePath?: string;
+          chunkIndex?: number;
+          metadata?: Record<string, string>;
+        }
+    >;
+    topK?: number;
+    criteria?: string;
+  }): Promise<{ scores: number[]; usage?: unknown }> {
+    const documents = options.documents.map((doc) =>
+      typeof doc === "string" ? { content: doc } : doc
+    );
+    return this.http.post<{ scores: number[]; usage?: unknown }>(
+      "/internal/rerank",
+      {
+        model: options.model,
+        query: options.query,
+        documents,
+        topK: options.topK,
+        criteria: options.criteria,
+      }
+    );
+  }
+
+  /** Health check for the AI gateway. */
+  async health(): Promise<{ status: string } & Record<string, unknown>> {
+    return this.http.get<{ status: string } & Record<string, unknown>>(
+      "/health"
+    );
   }
 
   // ── Utility Methods ──────────────────────────────────────────────────

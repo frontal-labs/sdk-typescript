@@ -3,7 +3,6 @@ import {
   type BlobObject,
   blobObjectSchema,
   type ListObjectsResult,
-  listObjectsResultSchema,
   type SignedUrlOptions,
   signedUrlOptionsSchema,
 } from "./schemas";
@@ -11,10 +10,10 @@ import {
 /**
  * Service for interacting with Frontal Blob storage.
  *
- * **Note:** This service currently routes through the Storage Lake backend
- * (`/storage/lake/lake/tables`). There is no dedicated `/blob` API service
- * in the gateway. The blob storage abstraction is provided by the Storage
- * Lake infrastructure.
+ * Routes map to the Blob object-store backend under the versioned base URL:
+ * objects live at `/v1/blob/object/{bucket}/{key}` and buckets at
+ * `/v1/blob/bucket/{bucket}`. Paths are written without the leading `/v1`
+ * because the client base URL already includes it.
  *
  * @example
  * ```typescript
@@ -26,27 +25,23 @@ import {
  * await blob.upload({ bucket: 'my-bucket', key: 'file.pdf', data, contentType: 'application/pdf' })
  * ```
  */
-export class BlobService {
-  private static readonly BASE_PATH = "/storage/lake/lake/tables";
+export class BlobSdk {
+  private static readonly OBJECT_PATH = "/blob/object";
 
   constructor(private readonly http: HttpClient) {}
-
-  private command(operation: string, payload: Record<string, unknown> = {}) {
-    return { operation, ...payload };
-  }
 
   /**
    * Uploads data to a bucket.
    * @param params - The upload parameters.
    * @param params.bucket - The bucket name.
-   * @param params.key - The object key.
+   * @param params.key - The object key (may contain `/` for folders).
    * @param params.data - The data to upload.
    * @param params.contentType - The content type of the data.
    */
   async upload(params: {
     bucket: string;
     key: string;
-    data: Buffer | ReadableStream;
+    data: Blob | Buffer | ReadableStream | ArrayBuffer | Uint8Array;
     contentType?: string;
   }): Promise<void> {
     const {
@@ -55,9 +50,18 @@ export class BlobService {
       data,
       contentType = "application/octet-stream",
     } = params;
-    await this.http.post(
-      BlobService.BASE_PATH,
-      this.command("blob.upload", { bucket, key, contentType, data })
+    const form = new FormData();
+    const blob =
+      data instanceof Blob
+        ? data
+        : new Blob([data as BlobPart], {
+            type: contentType,
+          });
+    form.append("file", blob, key.split("/").pop() ?? key);
+    form.append("cacheControl", "3600");
+    await this.http.postFormData(
+      `${BlobSdk.OBJECT_PATH}/${bucket}/${key}`,
+      form
     );
   }
 
@@ -70,11 +74,7 @@ export class BlobService {
   async download(params: { bucket: string; key: string }): Promise<Blob> {
     const { bucket, key } = params;
     const response = await this.http.getRaw(
-      `/storage/lake/lake/tables/${key}`,
-      {
-        operation: "blob.download",
-        bucket,
-      }
+      `${BlobSdk.OBJECT_PATH}/${bucket}/${key}`
     );
     return response.blob();
   }
@@ -92,11 +92,7 @@ export class BlobService {
   }): Promise<ReadableStream<Uint8Array>> {
     const { bucket, key } = params;
     const response = await this.http.getRaw(
-      `/storage/lake/lake/tables/${key}`,
-      {
-        operation: "blob.download.stream",
-        bucket,
-      }
+      `${BlobSdk.OBJECT_PATH}/${bucket}/${key}`
     );
     if (!response.body) {
       throw new Error("Response has no body stream");
@@ -112,39 +108,36 @@ export class BlobService {
    */
   async delete(params: { bucket: string; key: string }): Promise<void> {
     const { bucket, key } = params;
-    return this.http.post(
-      `/storage/lake/lake/tables/${key}/materializations`,
-      this.command("blob.delete", { bucket })
-    );
+    return this.http.delete(`${BlobSdk.OBJECT_PATH}/${bucket}/${key}`);
   }
 
   /**
-   * Lists objects in a bucket with optional prefix.
+   * Lists objects in a bucket under an optional prefix.
    * @param params - The list parameters.
    * @param params.bucket - The bucket name.
    * @param params.prefix - Optional prefix to filter objects.
+   * @param params.limit - Optional page size.
+   * @param params.offset - Optional offset.
    */
   async list(params: {
     bucket: string;
     prefix?: string;
+    limit?: number;
+    offset?: number;
   }): Promise<ListObjectsResult> {
-    const { bucket, prefix } = params;
-    const queryParams = this.command("blob.list", {
-      bucket,
-      ...(prefix ? { prefix } : {}),
-    });
-    return this.http.get<ListObjectsResult>(
-      BlobService.BASE_PATH,
-      queryParams,
-      listObjectsResultSchema
+    const { bucket, prefix = "", limit, offset } = params;
+    return this.http.post<ListObjectsResult>(
+      `${BlobSdk.OBJECT_PATH}/list/${bucket}`,
+      { prefix, limit, offset }
     );
   }
 
   /**
-   * Generates a signed URL for temporary access.
+   * Generates a signed URL for temporary access to an object.
    * @param params - The signed URL parameters.
    * @param params.bucket - The bucket name.
-   * @param params.options - Signed URL options.
+   * @param params.options - Signed URL options (`key`, `expiresIn`).
+   * @returns The signed URL.
    */
   async getSignedUrl(params: {
     bucket: string;
@@ -152,10 +145,11 @@ export class BlobService {
   }): Promise<string> {
     const { bucket, options } = params;
     const validated = signedUrlOptionsSchema.parse(options);
-    return this.http.post<string>(
-      `/storage/lake/lake/tables/${bucket}/materializations`,
-      this.command("blob.sign", validated)
+    const res = await this.http.post<{ signedURL: string }>(
+      `${BlobSdk.OBJECT_PATH}/sign/${bucket}/${validated.key}`,
+      { expiresIn: validated.expiresIn }
     );
+    return res.signedURL;
   }
 
   /**
@@ -173,14 +167,12 @@ export class BlobService {
     destKey: string;
   }): Promise<void> {
     const { sourceBucket, sourceKey, destBucket, destKey } = params;
-    return this.http.post(
-      `/storage/lake/lake/tables/${sourceKey}/materializations`,
-      this.command("blob.copy", {
-        sourceBucket,
-        destBucket,
-        destKey,
-      })
-    );
+    return this.http.post(`${BlobSdk.OBJECT_PATH}/copy`, {
+      bucketId: sourceBucket,
+      sourceKey,
+      destinationBucket: destBucket,
+      destinationKey: destKey,
+    });
   }
 
   /**
@@ -198,14 +190,12 @@ export class BlobService {
     destKey: string;
   }): Promise<void> {
     const { sourceBucket, sourceKey, destBucket, destKey } = params;
-    return this.http.post(
-      `/storage/lake/lake/tables/${sourceKey}/materializations`,
-      this.command("blob.move", {
-        sourceBucket,
-        destBucket,
-        destKey,
-      })
-    );
+    return this.http.post(`${BlobSdk.OBJECT_PATH}/move`, {
+      bucketId: sourceBucket,
+      sourceKey,
+      destinationBucket: destBucket,
+      destinationKey: destKey,
+    });
   }
 
   /**
@@ -220,8 +210,8 @@ export class BlobService {
   }): Promise<BlobObject> {
     const { bucket, key } = params;
     return this.http.get<BlobObject>(
-      `/storage/lake/lake/tables/${key}`,
-      { operation: "blob.metadata", bucket },
+      `${BlobSdk.OBJECT_PATH}/info/${bucket}/${key}`,
+      undefined,
       blobObjectSchema
     );
   }

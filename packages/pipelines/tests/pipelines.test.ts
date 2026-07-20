@@ -4,24 +4,38 @@ import {
   mockPageResponse,
 } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
-import { PipelineBuilder, PipelinesService } from "../src/service";
+import { PipelineBuilder, PipelinesSdk } from "../src/sdk";
 
 function createService(
   routes: Parameters<typeof createTestHttpClient>[0] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  const service = new PipelinesService(http);
+  const service = new PipelinesSdk(http);
   return { service, mock };
 }
 
 const pipeline = fixtures.pipeline;
 
-describe("PipelinesService", () => {
+describe("PipelinesSdk", () => {
   describe("define()", () => {
     it("returns a PipelineBuilder", () => {
       const { service } = createService();
       const builder = service.define("etl-pipeline");
       expect(builder).toBeInstanceOf(PipelineBuilder);
+    });
+  });
+
+  describe("capabilities()", () => {
+    it("reads /data/pipelines/capabilities", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/data/pipelines/capabilities",
+          body: { features: [] },
+        },
+      ]);
+      await service.capabilities();
+      mock.expectCalled("GET", "/data/pipelines/capabilities");
     });
   });
 
@@ -327,7 +341,7 @@ describe("PipelineAccessor", () => {
         };
       });
 
-      const service = new PipelinesService(http);
+      const service = new PipelinesSdk(http);
       const result = await service.use(pipelineId).waitForRun("run_1", {
         interval: 10,
         timeout: 5000,
@@ -351,41 +365,6 @@ describe("LineageNamespace", () => {
       const result = await service.lineage.graph();
 
       expect(result.nodes).toEqual([]);
-      mock.expectCalled("GET", "/data/pipelines/info");
-    });
-  });
-
-  describe("upstream()", () => {
-    it("fetches upstream lineage", async () => {
-      const body = { pipelines: [pipeline()], entities: [] };
-      const { service, mock } = createService([
-        { method: "GET", path: "/data/pipelines/info", body },
-      ]);
-
-      const result = await service.lineage.upstream("user", "ent_1");
-
-      expect(result.pipelines).toHaveLength(1);
-      mock.expectCalled("GET", "/data/pipelines/info");
-    });
-  });
-
-  describe("downstream()", () => {
-    it("fetches downstream lineage", async () => {
-      const body = {
-        pipelines: [],
-        entities: [{ id: "ent_2", type: "report" }],
-      };
-      const { service, mock } = createService([
-        {
-          method: "GET",
-          path: "/data/pipelines/info",
-          body,
-        },
-      ]);
-
-      const result = await service.lineage.downstream("user", "ent_1");
-
-      expect(result.entities).toHaveLength(1);
       mock.expectCalled("GET", "/data/pipelines/info");
     });
   });

@@ -4,19 +4,19 @@ import {
   mockPageResponse,
 } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
-import { WorkflowBuilder, WorkflowsService } from "../src/service";
+import { WorkflowBuilder, WorkflowsSdk } from "../src/sdk";
 
 function createService(
   routes: Parameters<typeof createTestHttpClient>[0] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  const service = new WorkflowsService(http);
+  const service = new WorkflowsSdk(http);
   return { service, mock };
 }
 
 const workflow = fixtures.workflow;
 
-describe("WorkflowsService", () => {
+describe("WorkflowsSdk", () => {
   describe("define()", () => {
     it("returns a WorkflowBuilder", () => {
       const { service } = createService();
@@ -274,6 +274,23 @@ describe("WorkflowAccessor", () => {
     });
   });
 
+  describe("executionSummary()", () => {
+    it("fetches the execution summary", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: `/v1/workflows/${workflowId}/exec_1/summary`,
+          body: { id: "exec_1", status: "completed", stepCount: 3 },
+        },
+      ]);
+
+      const result = await service.use(workflowId).executionSummary("exec_1");
+
+      expect(result.status).toBe("completed");
+      mock.expectCalled("GET", `/v1/workflows/${workflowId}/exec_1/summary`);
+    });
+  });
+
   describe("trigger()", () => {
     it("triggers a workflow execution", async () => {
       const body = { id: "exec_1", workflowId, status: "running" };
@@ -309,7 +326,7 @@ describe("WorkflowAccessor", () => {
         };
       });
 
-      const service = new WorkflowsService(http);
+      const service = new WorkflowsSdk(http);
       const result = await service.use(workflowId).waitForCompletion("exec_1", {
         interval: 10,
         timeout: 5000,

@@ -4,19 +4,19 @@ import {
   mockPageResponse,
 } from "@frontal-labs/testing";
 import { describe, expect, it } from "vitest";
-import { EntityAccessor, GraphService } from "../src/service";
+import { EntityAccessor, GraphSdk } from "../src/sdk";
 
 function createService(
   routes: Parameters<typeof createTestHttpClient>[0] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  const service = new GraphService(http);
+  const service = new GraphSdk(http);
   return { service, mock };
 }
 
 const entity = fixtures.entity;
 
-describe("GraphService", () => {
+describe("GraphSdk", () => {
   describe("entities()", () => {
     it("returns an EntityAccessor for the given type", () => {
       const { service } = createService();
@@ -378,6 +378,62 @@ describe("HistoryNamespace", () => {
       mock.expectCalledWith("POST", "/ontology/graph/runs", {
         toVersion: 1,
       });
+    });
+  });
+
+  describe("management + relationships", () => {
+    it("bulkRead posts to /ontology/graph/graph/bulk-read", async () => {
+      const { service, mock } = createService([
+        {
+          method: "POST",
+          path: "/ontology/graph/graph/bulk-read",
+          body: { entities: [] },
+        },
+      ]);
+      await service.bulkRead({ ids: ["a", "b"] });
+      mock.expectCalled("POST", "/ontology/graph/graph/bulk-read");
+    });
+
+    it("get/update relationship by id", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/ontology/graph/relationships/rel_1",
+          body: { id: "rel_1" },
+        },
+        {
+          method: "PUT",
+          path: "/ontology/graph/relationships/rel_1",
+          body: { id: "rel_1" },
+        },
+      ]);
+      await service.getRelationship("rel_1");
+      await service.updateRelationship("rel_1", { weight: 2 });
+      mock.expectCalled("GET", "/ontology/graph/relationships/rel_1");
+      mock.expectCalled("PUT", "/ontology/graph/relationships/rel_1");
+    });
+
+    it("health/capabilities/info + run status", async () => {
+      const { service, mock } = createService([
+        { method: "GET", path: "/ontology/graph/health", body: { ok: true } },
+        {
+          method: "GET",
+          path: "/ontology/graph/capabilities",
+          body: { features: [] },
+        },
+        {
+          method: "GET",
+          path: "/ontology/graph/runs/run_1",
+          body: { id: "run_1" },
+        },
+      ]);
+      await service.health();
+      await service.capabilities();
+      await service.run("run_1");
+      mock.expectCalled("GET", "/ontology/graph/runs/run_1");
+      expect(
+        mock.requests.some((r: { path: string }) => r.path.includes("/v1/v1/"))
+      ).toBe(false);
     });
   });
 });

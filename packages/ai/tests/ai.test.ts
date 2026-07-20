@@ -1,10 +1,10 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
-import { AIService } from "../src/service";
+import { AISdk } from "../src/sdk";
 
 function createService(routes: MockRoute[] = []) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new AIService(http), mock };
+  return { service: new AISdk(http), mock };
 }
 
 const chatResponse = (content: string, finishReason = "stop") => ({
@@ -12,7 +12,7 @@ const chatResponse = (content: string, finishReason = "stop") => ({
   usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
 });
 
-describe("AIService", () => {
+describe("AISdk", () => {
   describe("generateText()", () => {
     it("sends chat completion request and returns text", async () => {
       const { service } = createService([
@@ -245,7 +245,7 @@ describe("AIService", () => {
         arrayBuffer: async () => mockArrayBuffer,
       });
 
-      const service = new AIService(http);
+      const service = new AISdk(http);
       const result = await service.generateSpeech({
         text: "Hello world",
         voice: "alloy",
@@ -267,7 +267,7 @@ describe("AIService", () => {
         text: "Hello world",
       });
 
-      const service = new AIService(http);
+      const service = new AISdk(http);
       const result = await service.transcribe({
         file: new Blob(["audio data"]),
         model: "whisper-1",
@@ -298,7 +298,7 @@ describe("AIService", () => {
   });
 
   describe("listModels()", () => {
-    it("lists models in OpenAI format", async () => {
+    it("lists models in OpenAISdk format", async () => {
       const modelsResponse = {
         object: "list",
         data: [{ id: "gpt-4" }, { id: "gpt-3.5-turbo" }],
@@ -463,6 +463,53 @@ describe("AIService", () => {
       expect(service.getCurrentStep()).toBe(5);
       service.resetSteps();
       expect(service.getCurrentStep()).toBe(0);
+    });
+  });
+
+  describe("gateway endpoints", () => {
+    it("fetches default models", async () => {
+      const { service, mock } = createService([
+        {
+          method: "GET",
+          path: "/internal/models/defaults",
+          body: {
+            chatModelId: "openai/gpt-4o",
+            rerankingModelId: "cohere/rerank",
+          },
+        },
+      ]);
+      const result = await service.getDefaultModels();
+      expect(result.chatModelId).toBe("openai/gpt-4o");
+      mock.expectCalled("GET", "/internal/models/defaults");
+    });
+
+    it("reranks documents (normalizes string docs)", async () => {
+      const { service, mock } = createService([
+        {
+          method: "POST",
+          path: "/internal/rerank",
+          body: { scores: [0.9, 0.1] },
+        },
+      ]);
+      const result = await service.rerank({
+        model: "cohere/rerank",
+        query: "red shoes",
+        documents: ["a red sneaker", "a blue hat"],
+      });
+      expect(result.scores).toEqual([0.9, 0.1]);
+      mock.expectCalledWith("POST", "/internal/rerank", {
+        model: "cohere/rerank",
+        query: "red shoes",
+        documents: [{ content: "a red sneaker" }, { content: "a blue hat" }],
+      });
+    });
+
+    it("checks gateway health", async () => {
+      const { service } = createService([
+        { method: "GET", path: "/health", body: { status: "ok" } },
+      ]);
+      const result = await service.health();
+      expect(result.status).toBe("ok");
     });
   });
 });

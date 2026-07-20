@@ -1,6 +1,11 @@
 import { timestampSchema } from "@frontal-labs/core";
 import { z } from "zod";
 
+/**
+ * Cursor used for paginated list operations.
+ */
+export type Cursor = string;
+
 export const WorkflowStatusSchema = z.enum([
   "draft",
   "active",

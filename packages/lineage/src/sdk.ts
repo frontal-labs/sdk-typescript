@@ -6,7 +6,7 @@ import {
 } from "@frontal-labs/core";
 import type { LineageNode, LineageEdge, LineageGraph } from "./schemas";
 
-export class LineageService {
+export class LineageSdk {
   readonly graph: GraphNamespace;
   readonly nodes: NodesNamespace;
   readonly edges: EdgesNamespace;

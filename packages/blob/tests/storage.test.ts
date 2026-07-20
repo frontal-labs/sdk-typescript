@@ -1,41 +1,41 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
-import { BlobService } from "../src/service";
+import { BlobSdk } from "../src/sdk";
 import { signedUrlOptionsSchema } from "../src/schemas";
 
 function createService(routes: MockRoute[] = []) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new BlobService(http), mock };
+  return { service: new BlobSdk(http), mock };
 }
 
-describe("BlobService", () => {
+describe("BlobSdk", () => {
   describe("upload()", () => {
-    it("uploads data to a bucket", async () => {
+    it("uploads data to an object path", async () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/storage/lake/lake/tables",
-          status: 204,
+          path: "/blob/object/my-bucket/docs/file.pdf",
+          body: { Key: "docs/file.pdf" },
         },
       ]);
 
       await expect(
-        service.upload(
-          "my-bucket",
-          "docs/file.pdf",
-          Buffer.from("content"),
-          "application/pdf"
-        )
+        service.upload({
+          bucket: "my-bucket",
+          key: "docs/file.pdf",
+          data: Buffer.from("content"),
+          contentType: "application/pdf",
+        })
       ).resolves.not.toThrow();
 
-      mock.expectCalled("POST", "/storage/lake/lake/tables");
+      mock.expectCalled("POST", "/blob/object/my-bucket/docs/file.pdf");
     });
 
     it("throws on upload failure", async () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/storage/lake/lake/tables",
+          path: "/blob/object/my-bucket/file.txt",
           status: 500,
           body: {
             code: "SERVER_ERROR",
@@ -57,38 +57,36 @@ describe("BlobService", () => {
 
   describe("download()", () => {
     it("downloads data as a blob", async () => {
-      // getRaw returns raw Response — we need a custom mock fetch for this
       const { http } = createTestHttpClient([]);
-      // Override getRaw directly for this test
-      const mockBlob = new Blob(["file content"], { type: "text/plain" });
+      const mockBlobSdk = new BlobSdk(["file content"], { type: "text/plain" });
       const getRawSpy = vi
         .spyOn(
           http as unknown as {
             getRaw: () => Promise<{
-              blob: () => Promise<Blob>;
+              blob: () => Promise<BlobSdk>;
               body: null;
             }>;
           },
           "getRaw"
         )
         .mockResolvedValue({
-          blob: async () => mockBlob,
+          blob: async () => mockBlobSdk,
           body: null,
         });
 
-      const service = new BlobService(http);
+      const service = new BlobSdk(http);
       const result = await service.download({
         bucket: "my-bucket",
         key: "file.txt",
       });
 
-      expect(result).toBeInstanceOf(Blob);
+      expect(result).toBeInstanceOf(BlobSdk);
+      expect(getRawSpy).toHaveBeenCalledWith("/blob/object/my-bucket/file.txt");
       getRawSpy.mockRestore();
     });
 
     it("throws on 404", async () => {
       const { service } = createService([]);
-      // No route = 404 from mock fetch, getRaw will throw
       await expect(
         service.download({ bucket: "my-bucket", key: "missing.txt" })
       ).rejects.toThrow();
@@ -108,7 +106,7 @@ describe("BlobService", () => {
         body: stream,
       });
 
-      const service = new BlobService(http);
+      const service = new BlobSdk(http);
       const result = await service.downloadStream({
         bucket: "my-bucket",
         key: "file.bin",
@@ -128,7 +126,7 @@ describe("BlobService", () => {
         body: null,
       });
 
-      const service = new BlobService(http);
+      const service = new BlobSdk(http);
       await expect(
         service.downloadStream({ bucket: "my-bucket", key: "file.bin" })
       ).rejects.toThrow("Response has no body stream");
@@ -139,19 +137,17 @@ describe("BlobService", () => {
     it("deletes an object from a bucket", async () => {
       const { service, mock } = createService([
         {
-          method: "POST",
-          path: "/storage/lake/lake/tables/file.txt/materializations",
-          status: 204,
+          method: "DELETE",
+          path: "/blob/object/my-bucket/file.txt",
+          status: 200,
+          body: {},
         },
       ]);
 
       await expect(
         service.delete({ bucket: "my-bucket", key: "file.txt" })
       ).resolves.not.toThrow();
-      mock.expectCalled(
-        "POST",
-        "/storage/lake/lake/tables/file.txt/materializations"
-      );
+      mock.expectCalled("DELETE", "/blob/object/my-bucket/file.txt");
     });
   });
 
@@ -177,8 +173,8 @@ describe("BlobService", () => {
       };
       const { service } = createService([
         {
-          method: "GET",
-          path: "/storage/lake/lake/tables",
+          method: "POST",
+          path: "/blob/object/list/my-bucket",
           body: listResponse,
         },
       ]);
@@ -188,29 +184,30 @@ describe("BlobService", () => {
       expect(result.objects).toHaveLength(2);
     });
 
-    it("lists objects with prefix", async () => {
+    it("lists objects with prefix in the request body", async () => {
       const { service, mock } = createService([
         {
-          method: "GET",
-          path: "/storage/lake/lake/tables",
+          method: "POST",
+          path: "/blob/object/list/my-bucket",
           body: { objects: [] },
         },
       ]);
 
       await service.list({ bucket: "my-bucket", prefix: "docs/" });
 
-      const req = mock.requests[0];
-      expect(req.url).toContain("prefix=docs%2F");
+      mock.expectCalledWith("POST", "/blob/object/list/my-bucket", {
+        prefix: "docs/",
+      });
     });
   });
 
   describe("getSignedUrl()", () => {
-    it("generates a signed URL for read", async () => {
-      const { service } = createService([
+    it("generates a signed URL for an object", async () => {
+      const { service, mock } = createService([
         {
           method: "POST",
-          path: "/storage/lake/lake/tables/my-bucket/materializations",
-          body: "https://signed.example.com/file.txt?token=abc",
+          path: "/blob/object/sign/my-bucket/file.txt",
+          body: { signedURL: "https://signed.example.com/file.txt?token=abc" },
         },
       ]);
 
@@ -224,6 +221,7 @@ describe("BlobService", () => {
       });
 
       expect(result).toContain("https://signed.example.com");
+      mock.expectCalled("POST", "/blob/object/sign/my-bucket/file.txt");
     });
 
     it("throws on invalid options (negative expiresIn)", async () => {
@@ -247,7 +245,7 @@ describe("BlobService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/storage/lake/lake/tables/file.txt/materializations",
+          path: "/blob/object/copy",
           status: 200,
           body: {},
         },
@@ -260,14 +258,12 @@ describe("BlobService", () => {
         destKey: "copy.txt",
       });
 
-      mock.expectCalledWith(
-        "POST",
-        "/storage/lake/lake/tables/file.txt/materializations",
-        {
-          destBucket: "dest-bucket",
-          destKey: "copy.txt",
-        }
-      );
+      mock.expectCalledWith("POST", "/blob/object/copy", {
+        bucketId: "source-bucket",
+        sourceKey: "file.txt",
+        destinationBucket: "dest-bucket",
+        destinationKey: "copy.txt",
+      });
     });
   });
 
@@ -276,7 +272,7 @@ describe("BlobService", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/storage/lake/lake/tables/file.txt/materializations",
+          path: "/blob/object/move",
           status: 200,
           body: {},
         },
@@ -289,14 +285,12 @@ describe("BlobService", () => {
         destKey: "moved.txt",
       });
 
-      mock.expectCalledWith(
-        "POST",
-        "/storage/lake/lake/tables/file.txt/materializations",
-        {
-          destBucket: "dest-bucket",
-          destKey: "moved.txt",
-        }
-      );
+      mock.expectCalledWith("POST", "/blob/object/move", {
+        bucketId: "source-bucket",
+        sourceKey: "file.txt",
+        destinationBucket: "dest-bucket",
+        destinationKey: "moved.txt",
+      });
     });
   });
 
@@ -309,10 +303,10 @@ describe("BlobService", () => {
         lastModified: "2024-01-01T00:00:00Z",
         etag: '"abc123"',
       };
-      const { service } = createService([
+      const { service, mock } = createService([
         {
           method: "GET",
-          path: "/storage/lake/lake/tables/file.txt",
+          path: "/blob/object/info/my-bucket/file.txt",
           body: metadata,
         },
       ]);
@@ -324,6 +318,7 @@ describe("BlobService", () => {
 
       expect(result.key).toBe("file.txt");
       expect(result.size).toBe(1024);
+      mock.expectCalled("GET", "/blob/object/info/my-bucket/file.txt");
     });
   });
 });

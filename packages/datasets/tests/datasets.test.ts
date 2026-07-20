@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import {
-  DatasetsService,
-  createDatasetsClient,
-  DatasetSchema,
-} from "../src/index";
+import { DatasetsSdk, createDatasetsClient, DatasetSchema } from "../src/index";
 
 function createService(
   routes: {
@@ -15,7 +11,7 @@ function createService(
   }[] = []
 ) {
   const { http, mock } = createTestHttpClient(routes);
-  return { service: new DatasetsService(http), mock };
+  return { service: new DatasetsSdk(http), mock };
 }
 
 const mockDs = {
@@ -35,65 +31,71 @@ function pageWrap<T>(items: T[]) {
   };
 }
 
-describe("DatasetsService", () => {
-  it("lists datasets (paginated)", async () => {
+describe("DatasetsSdk", () => {
+  it("lists datasets from the ingest service (paginated)", async () => {
     const { service } = createService([
-      { method: "GET", path: "/datasets", body: pageWrap([mockDs]) },
+      {
+        method: "GET",
+        path: "/data/ingest/datasets",
+        body: pageWrap([mockDs]),
+      },
     ]);
     const result = await service.list();
     expect(result.data).toHaveLength(1);
   });
-  it("creates a dataset", async () => {
-    const { service } = createService([
-      { method: "POST", path: "/datasets", body: mockDs },
+  it("gets a dataset by id", async () => {
+    const { service, mock } = createService([
+      { method: "GET", path: "/data/ingest/datasets/ds_1", body: mockDs },
     ]);
-    const result = await service.create({ name: "users" });
+    const result = await service.get("ds_1");
     expect(result.id).toBe("ds_1");
+    expect(
+      mock.requests.some((r: { path: string }) => r.path.includes("/v1/v1/"))
+    ).toBe(false);
   });
-  it("queries data", async () => {
+  it("submits an ingestion request", async () => {
     const { service } = createService([
       {
         method: "POST",
-        path: "/datasets/ds_1/query",
-        body: { data: [{ id: 1, name: "Alice" }] },
+        path: "/data/ingest/datasets/ingest",
+        body: { runId: "run_1" },
       },
     ]);
-    const result = await service.data.query("ds_1", { limit: 10 });
+    const result = await service.ingest({ dataset: "users" });
+    expect(result.runId).toBe("run_1");
+  });
+  it("lists schemas", async () => {
+    const { service } = createService([
+      {
+        method: "GET",
+        path: "/data/ingest/schemas",
+        body: pageWrap([{ schemaRef: "users@1" }]),
+      },
+    ]);
+    const result = await service.schemas.list();
+    expect(result.data[0].schemaRef).toBe("users@1");
+  });
+  it("browses catalog datasets", async () => {
+    const { service } = createService([
+      {
+        method: "GET",
+        path: "/data/catalog/catalog/datasets",
+        body: pageWrap([mockDs]),
+      },
+    ]);
+    const result = await service.catalog.datasets.list();
     expect(result.data).toHaveLength(1);
   });
-  it("inserts rows", async () => {
-    const { service } = createService([
-      { method: "POST", path: "/datasets/ds_1/data", body: { inserted: 5 } },
-    ]);
-    const result = await service.data.insert("ds_1", [{ name: "Bob" }]);
-    expect(result.inserted).toBe(5);
-  });
-  it("gets stats", async () => {
+  it("browses catalog sources", async () => {
     const { service } = createService([
       {
         method: "GET",
-        path: "/datasets/ds_1/stats",
-        body: {
-          row_count: 1000,
-          storage_size_bytes: 512_000,
-          column_count: 8,
-          last_updated: "2025-01-01T00:00:00Z",
-        },
+        path: "/data/catalog/catalog/sources",
+        body: pageWrap([{ id: "src_1", name: "postgres" }]),
       },
     ]);
-    const result = await service.stats.get("ds_1");
-    expect(result.rowCount).toBe(1000);
-  });
-  it("compares versions", async () => {
-    const { service } = createService([
-      {
-        method: "GET",
-        path: "/datasets/ds_1/versions/compare",
-        body: { additions: 10, deletions: 2, changes: 5 },
-      },
-    ]);
-    const result = await service.versions.compare("ds_1", "v1", "v2");
-    expect(result.additions).toBe(10);
+    const result = await service.catalog.sources.list();
+    expect(result.data[0].id).toBe("src_1");
   });
 });
 
@@ -105,7 +107,7 @@ describe("Schemas", () => {
 describe("Factory", () => {
   it("creates client", () => {
     expect(createDatasetsClient({ apiKey: "frt_test-xxx" })).toBeInstanceOf(
-      DatasetsService
+      DatasetsSdk
     );
   });
 });
