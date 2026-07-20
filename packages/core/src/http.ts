@@ -6,6 +6,12 @@ import { NetworkError, parseFrontalError } from "./errors";
 import { calculateDelay } from "./retry";
 import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
 
+/**
+ * Low-level HTTP client for the Frontal API.
+ * Handles request/response transformation (snake_case ↔ camelCase),
+ * retry logic, circuit breaker integration, SSE streaming, and
+ * response schema validation.
+ */
 export class HttpClient {
   private readonly breaker?: CircuitBreaker;
 
@@ -18,6 +24,12 @@ export class HttpClient {
     }
   }
 
+  /**
+   * Sends a GET request.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @param schema - Optional Zod schema for response validation.
+   */
   async get<T>(
     path: string,
     params?: Record<string, unknown>,
@@ -26,6 +38,12 @@ export class HttpClient {
     return this.request("GET", path, undefined, params, schema);
   }
 
+  /**
+   * Sends a POST request with a JSON body.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @param schema - Optional Zod schema for response validation.
+   */
   async post<T>(
     path: string,
     body?: unknown,
@@ -34,6 +52,12 @@ export class HttpClient {
     return this.request("POST", path, body ?? {}, undefined, schema);
   }
 
+  /**
+   * Sends a PUT request with a JSON body.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @param schema - Optional Zod schema for response validation.
+   */
   async put<T>(
     path: string,
     body?: unknown,
@@ -42,6 +66,12 @@ export class HttpClient {
     return this.request("PUT", path, body ?? {}, undefined, schema);
   }
 
+  /**
+   * Sends a PATCH request with a JSON body.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @param schema - Optional Zod schema for response validation.
+   */
   async patch<T>(
     path: string,
     body?: unknown,
@@ -50,6 +80,12 @@ export class HttpClient {
     return this.request("PATCH", path, body ?? {}, undefined, schema);
   }
 
+  /**
+   * Sends a DELETE request.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @param schema - Optional Zod schema for response validation.
+   */
   async delete<T = void>(
     path: string,
     params?: Record<string, unknown>,
@@ -58,6 +94,14 @@ export class HttpClient {
     return this.request("DELETE", path, {}, params, schema);
   }
 
+  /**
+   * Sends a raw PUT request with a binary/stream body.
+   * @param path - API endpoint path.
+   * @param body - Binary buffer or readable stream.
+   * @param contentType - MIME type of the body.
+   * @param headers - Additional request headers.
+   * @returns The parsed JSON response with keys converted to camelCase.
+   */
   async putRaw(
     path: string,
     body: Buffer | ReadableStream,
@@ -78,6 +122,12 @@ export class HttpClient {
       : json;
   }
 
+  /**
+   * Opens a GET SSE stream, yielding parsed server-sent events.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @yields SSE event objects with `type`, `data`, and optional `id` fields.
+   */
   async *stream(
     path: string,
     params?: Record<string, string>
@@ -91,6 +141,12 @@ export class HttpClient {
     yield* this.parseSSEResponse(res);
   }
 
+  /**
+   * Sends a POST request that returns an SSE stream.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @yields SSE event objects with `type`, `data`, and optional `id` fields.
+   */
   async *postStream(
     path: string,
     body?: unknown
@@ -105,6 +161,13 @@ export class HttpClient {
     yield* this.parseSSEResponse(res);
   }
 
+  /**
+   * Sends a POST request and returns the raw Response object.
+   * @param path - API endpoint path.
+   * @param body - Request payload.
+   * @param headers - Additional request headers.
+   * @returns The raw fetch Response (caller must handle parsing).
+   */
   async postRaw(
     path: string,
     body?: unknown,
@@ -120,6 +183,15 @@ export class HttpClient {
     return res;
   }
 
+  /**
+   * Sends a POST request with a FormData body (multipart/form-data).
+   * Automatically removes the Content-Type header so the browser sets the
+   * correct multipart boundary.
+   * @param path - API endpoint path.
+   * @param formData - FormData payload.
+   * @param headers - Additional request headers.
+   * @returns The parsed JSON response with keys converted to camelCase.
+   */
   async postFormData<T>(
     path: string,
     formData: FormData,
@@ -139,6 +211,13 @@ export class HttpClient {
     return deepSnakeToCamel(json) as T;
   }
 
+  /**
+   * Sends a raw GET request and returns the Response object directly.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @param headers - Additional request headers.
+   * @returns The raw fetch Response (caller must handle parsing).
+   */
   async getRaw(
     path: string,
     params?: Record<string, unknown>,

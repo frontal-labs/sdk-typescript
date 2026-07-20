@@ -15,9 +15,14 @@ import type {
 
 // ── Logs ───────────────────────────────────────────────────────────
 
+/** Namespace for log-related operations. */
 export class LogsNamespace {
   constructor(private readonly http: HttpClient) {}
 
+  /**
+   * Query logs with a search expression and time range.
+   * @param input - Query parameters including search expression and time window.
+   */
   async query(input: {
     query: string;
     timeFrom: string;
@@ -32,6 +37,10 @@ export class LogsNamespace {
     );
   }
 
+  /**
+   * Stream logs in real-time matching a query.
+   * @param input - Stream query parameters.
+   */
   async *stream(input: {
     query: string;
     timeFrom: string;
@@ -40,6 +49,7 @@ export class LogsNamespace {
     yield* this.http.stream("/observability/logs/stream", input);
   }
 
+  /** Ingest log entries into the observability platform. */
   async ingest(entries: Omit<LogEntry, "id">[]): Promise<{ ingested: number }> {
     return this.http.post("/observability/logs/ingest", { entries });
   }
@@ -47,9 +57,15 @@ export class LogsNamespace {
 
 // ── Metrics ────────────────────────────────────────────────────────
 
+/** Namespace for metric-related operations. */
 export class MetricsNamespace {
   constructor(private readonly http: HttpClient) {}
 
+  /**
+   * Query a time series for a specific metric.
+   * @param metric - Metric name.
+   * @param timeRange - Time range and optional granularity.
+   */
   async query(
     metric: string,
     timeRange: {
@@ -64,6 +80,7 @@ export class MetricsNamespace {
     });
   }
 
+  /** List available metrics with pagination. */
   async listMetrics(opts: { limit?: number; cursor?: string } = {}): Promise<
     PageResult<{
       name: string;
@@ -78,6 +95,7 @@ export class MetricsNamespace {
     );
   }
 
+  /** Ingest metric data points. */
   async ingest(
     points: {
       metric: string;
@@ -92,13 +110,16 @@ export class MetricsNamespace {
 
 // ── Traces ─────────────────────────────────────────────────────────
 
+/** Namespace for trace-related operations. */
 export class TracesNamespace {
   constructor(private readonly http: HttpClient) {}
 
+  /** Get a single trace by ID. */
   async get(traceId: string): Promise<Trace> {
     return this.http.get(`/observability/traces/${traceId}`);
   }
 
+  /** List traces with optional filtering and pagination. */
   async list(
     opts: {
       service?: string;
@@ -113,6 +134,7 @@ export class TracesNamespace {
     );
   }
 
+  /** Query traces with advanced filtering (duration, time range, etc.). */
   async query(filter: {
     service?: string;
     minDuration?: number;
@@ -129,37 +151,45 @@ export class TracesNamespace {
 
 // ── Alerts ─────────────────────────────────────────────────────────
 
+/** Namespace for alert rule and incident operations. */
 export class AlertsNamespace {
   constructor(private readonly http: HttpClient) {}
 
+  /** List alert rules with optional filtering. */
   async list(
     opts: { enabled?: boolean; severity?: string } = {}
   ): Promise<{ data: AlertRule[] }> {
     return this.http.get("/observability/alerts", opts);
   }
 
+  /** Create a new alert rule. */
   async create(
     rule: Omit<AlertRule, "id" | "createdAt" | "lastFiredAt">
   ): Promise<AlertRule> {
     return this.http.post("/observability/alerts", rule);
   }
 
+  /** Update an existing alert rule. */
   async update(id: string, rule: Partial<AlertRule>): Promise<AlertRule> {
     return this.http.put(`/observability/alerts/${id}`, rule);
   }
 
+  /** Delete an alert rule. */
   async delete(id: string): Promise<void> {
     return this.http.delete(`/observability/alerts/${id}`);
   }
 
+  /** Enable an alert rule. */
   async enable(id: string): Promise<AlertRule> {
     return this.http.post(`/observability/alerts/${id}/enable`, {});
   }
 
+  /** Disable an alert rule. */
   async disable(id: string): Promise<AlertRule> {
     return this.http.post(`/observability/alerts/${id}/disable`, {});
   }
 
+  /** List incidents with optional status filtering and pagination. */
   async listIncidents(
     opts: { status?: string; limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Incident>> {
@@ -172,31 +202,38 @@ export class AlertsNamespace {
 
 // ── Dashboards ─────────────────────────────────────────────────────
 
+/** Namespace for dashboard operations. */
 export class DashboardsNamespace {
   constructor(private readonly http: HttpClient) {}
 
+  /** List all dashboards. */
   async list(): Promise<{ data: Dashboard[] }> {
     return this.http.get("/observability/dashboards");
   }
 
+  /** Get a single dashboard by ID. */
   async get(id: string): Promise<Dashboard> {
     return this.http.get(`/observability/dashboards/${id}`);
   }
 
+  /** Create a new dashboard. */
   async create(
     dashboard: Omit<Dashboard, "id" | "createdAt" | "updatedAt">
   ): Promise<Dashboard> {
     return this.http.post("/observability/dashboards", dashboard);
   }
 
+  /** Update an existing dashboard. */
   async update(id: string, dashboard: Partial<Dashboard>): Promise<Dashboard> {
     return this.http.put(`/observability/dashboards/${id}`, dashboard);
   }
 
+  /** Delete a dashboard. */
   async delete(id: string): Promise<void> {
     return this.http.delete(`/observability/dashboards/${id}`);
   }
 
+  /** Generate a shareable link for a dashboard. */
   async share(
     id: string,
     opts: { expiresIn?: string; public?: boolean } = {}
@@ -236,12 +273,22 @@ export class ObservabilityEventsNamespace {
   }
 }
 
+/**
+ * Client for the Frontal Observability API (`/v1/observability`).
+ * Manages logs, metrics, traces, alerts, dashboards, and events.
+ */
 export class ObservabilitySdk {
+  /** Log operations. */
   readonly logs: LogsNamespace;
+  /** Metric operations. */
   readonly metrics: MetricsNamespace;
+  /** Trace operations. */
   readonly traces: TracesNamespace;
+  /** Alert and incident operations. */
   readonly alerts: AlertsNamespace;
+  /** Dashboard operations. */
   readonly dashboards: DashboardsNamespace;
+  /** Event operations. */
   readonly events: ObservabilityEventsNamespace;
 
   constructor(private readonly http: HttpClient) {

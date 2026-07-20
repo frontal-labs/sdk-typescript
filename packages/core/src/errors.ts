@@ -3,12 +3,23 @@ import { type ErrorField, errorResponseSchema } from "./schemas";
 
 type ErrorResponseInput = z.infer<typeof errorResponseSchema>;
 
+/**
+ * Rate-limit metadata returned in API response headers.
+ */
 export interface RateLimitInfo {
+  /** Maximum number of requests allowed in the current window. */
   limit: number;
+  /** Number of requests remaining in the current window. */
   remaining: number;
-  reset: number; // Unix timestamp
+  /** Unix timestamp (seconds) when the rate-limit window resets. */
+  reset: number;
 }
 
+/**
+ * Base error class for all Frontal API errors.
+ * Contains the error code, request ID, HTTP status code, optional docs URL,
+ * and optional rate-limit information.
+ */
 export class FrontalError extends Error {
   readonly code: string;
   readonly requestId: string;
@@ -16,6 +27,11 @@ export class FrontalError extends Error {
   readonly docs?: string;
   readonly rateLimit?: RateLimitInfo;
 
+  /**
+   * @param response - The parsed error response from the API.
+   * @param statusCode - The HTTP status code.
+   * @param rateLimit - Optional rate-limit headers from the response.
+   */
   constructor(
     response: ErrorResponseInput,
     statusCode: number,
@@ -35,6 +51,9 @@ export class FrontalError extends Error {
   }
 }
 
+/**
+ * Thrown when the API returns a 404 status.
+ */
 export class NotFoundError extends FrontalError {
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 404, rateLimit);
@@ -42,6 +61,9 @@ export class NotFoundError extends FrontalError {
   }
 }
 
+/**
+ * Thrown when the API returns a 401 status.
+ */
 export class UnauthorizedError extends FrontalError {
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 401, rateLimit);
@@ -49,6 +71,9 @@ export class UnauthorizedError extends FrontalError {
   }
 }
 
+/**
+ * Thrown when the API returns a 403 status.
+ */
 export class ForbiddenError extends FrontalError {
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 403, rateLimit);
@@ -56,7 +81,11 @@ export class ForbiddenError extends FrontalError {
   }
 }
 
+/**
+ * Thrown when the API returns a 400 status with field-level validation details.
+ */
 export class ValidationError extends FrontalError {
+  /** Per-field validation errors returned by the API. */
   readonly fields: ErrorField[];
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 400, rateLimit);
@@ -65,6 +94,9 @@ export class ValidationError extends FrontalError {
   }
 }
 
+/**
+ * Thrown when the API returns a 409 status (resource conflict).
+ */
 export class ConflictError extends FrontalError {
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 409, rateLimit);
@@ -72,7 +104,11 @@ export class ConflictError extends FrontalError {
   }
 }
 
+/**
+ * Thrown when the API returns a 429 status (rate limited).
+ */
 export class RateLimitError extends FrontalError {
+  /** Recommended delay in seconds before retrying. */
   readonly retryAfter: number;
   constructor(
     r: ErrorResponseInput,
@@ -85,6 +121,9 @@ export class RateLimitError extends FrontalError {
   }
 }
 
+/**
+ * Thrown when the API returns a 5xx status code.
+ */
 export class ServiceError extends FrontalError {
   constructor(
     r: ErrorResponseInput,
@@ -96,6 +135,10 @@ export class ServiceError extends FrontalError {
   }
 }
 
+/**
+ * Thrown when a network-level failure prevents the request from reaching the API.
+ * The original error is available via the `cause` property.
+ */
 export class NetworkError extends Error {
   constructor(readonly cause: unknown) {
     super("Network error — could not reach Frontal API");
@@ -107,6 +150,9 @@ export class NetworkError extends Error {
   }
 }
 
+/**
+ * Thrown when an operation exceeds a time limit.
+ */
 export class TimeoutError extends Error {
   constructor(message = "Operation timed out") {
     super(message);
@@ -152,6 +198,17 @@ function normalizeErrorBody(body: unknown): ErrorResponseInput {
   };
 }
 
+/**
+ * Parses an API error response body into the appropriate FrontalError subclass
+ * based on the HTTP status code. Handles malformed or unexpected payloads
+ * by falling back to a generic ServiceError.
+ *
+ * @param body - The raw error response body (typically parsed JSON).
+ * @param status - The HTTP status code.
+ * @param retryAfter - Optional `Retry-After` header value.
+ * @param rateLimit - Optional rate-limit headers from the response.
+ * @returns The corresponding FrontalError subclass instance.
+ */
 export function parseFrontalError(
   body: unknown,
   status: number,

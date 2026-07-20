@@ -12,12 +12,27 @@ import {
 import { SchedulesSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a standalone Frontal Schedules client.
+ */
 export interface SchedulesClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Schedules API. Defaults to {@link DEFAULT_SCHEDULE_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
+
+/**
+ * Creates a {@link SchedulesSdk} client from a {@link FrontalClient} instance
+ * or a {@link SchedulesClientConfig} configuration object.
+ *
+ * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `SchedulesSdk` instance.
+ */
 export function createSchedulesClient(
   config: SchedulesClientConfig | FrontalClient
 ): SchedulesSdk;
@@ -48,6 +63,10 @@ export function createSchedulesClient(
 
 let _schedulesCache: SchedulesSdk | undefined;
 
+/**
+ * Convenience singleton proxy for the Frontal Schedules SDK.
+ * Lazily initialises from environment variables on first property access.
+ */
 export const schedules = new Proxy<SchedulesSdk>({} as SchedulesSdk, {
   get(_t, prop) {
     if (!_schedulesCache) {

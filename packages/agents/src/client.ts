@@ -12,6 +12,14 @@ import {
 import { AgentsSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating an {@link AgentsSdk} client standalone.
+ *
+ * @property apiKey - Frontal API key.
+ * @property baseUrl - Override the default agents API base URL.
+ * @property timeout - Request timeout in milliseconds (default 30_000).
+ * @property maxRetries - Maximum number of retry attempts (default 3).
+ */
 export interface AgentsClientConfig {
   apiKey: string;
   baseUrl?: string;
@@ -19,6 +27,13 @@ export interface AgentsClientConfig {
   maxRetries?: number;
 }
 
+/**
+ * Creates an {@link AgentsSdk} from either an existing {@link FrontalClient}
+ * or a plain configuration object.
+ *
+ * @param clientOrConfig - A pre-configured FrontalClient or config options.
+ * @returns A fully-initialized AgentsSdk.
+ */
 export function createAgentsClient(
   config: AgentsClientConfig | FrontalClient
 ): AgentsSdk;
@@ -45,6 +60,16 @@ export function createAgentsClient(
 
 let _agentsCache: AgentsSdk | undefined;
 
+/**
+ * Convenience singleton that lazily creates an {@link AgentsSdk} using the
+ * default environment configuration (FRONTAL_API_KEY, FRONTAL_API_URL, etc.).
+ *
+ * @example
+ * ```ts
+ * import { agents } from "@frontal-labs/agents";
+ * const list = await agents.list();
+ * ```
+ */
 export const agents = new Proxy<AgentsSdk>({} as AgentsSdk, {
   get(_t, prop) {
     if (!_agentsCache) {

@@ -12,13 +12,27 @@ import {
 import { WebhooksSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a standalone Frontal Webhooks client.
+ */
 export interface WebhooksClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Webhooks API. Defaults to {@link DEFAULT_WEBHOOKS_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
 
+/**
+ * Creates a {@link WebhooksSdk} client from a {@link FrontalClient} instance or
+ * a {@link WebhooksClientConfig} configuration object.
+ *
+ * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `WebhooksSdk` instance.
+ */
 export function createWebhooksClient(
   config: WebhooksClientConfig | FrontalClient
 ): WebhooksSdk;
@@ -47,6 +61,10 @@ export function createWebhooksClient(
 
 let _webhooksCache: WebhooksSdk | undefined;
 
+/**
+ * Convenience singleton proxy for the Frontal Webhooks SDK.
+ * Lazily initialises from environment variables on first property access.
+ */
 export const webhooks = new Proxy<WebhooksSdk>({} as WebhooksSdk, {
   get(_t, prop) {
     if (!_webhooksCache) {

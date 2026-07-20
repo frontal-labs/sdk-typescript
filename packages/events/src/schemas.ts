@@ -2,6 +2,7 @@ import { z } from "zod";
 
 // ── Event ──────────────────────────────────────────────────────────
 
+/** Zod schema for a stored event (CloudEvents-compliant). */
 export const EventSchema = z
   .object({
     id: z.string(),
@@ -21,8 +22,9 @@ export const EventSchema = z
     specversion: z.string().default("1.0"),
     datacontenttype: z.literal("application/json").default("application/json"),
   })
-  .passthrough();
+  .loose();
 
+/** Zod schema for publishing an event to a topic. */
 export const PublishEventSchema = z.object({
   source: z.string(),
   type: z.string(),
@@ -40,6 +42,7 @@ export const PublishEventSchema = z.object({
 
 // ── Topic ──────────────────────────────────────────────────────────
 
+/** Zod schema for an event topic. */
 export const TopicSchema = z
   .object({
     id: z.string(),
@@ -50,10 +53,11 @@ export const TopicSchema = z
     createdAt: z.string(),
     updatedAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
 // ── Subscription ───────────────────────────────────────────────────
 
+/** Zod schema for an event subscription. */
 export const SubscriptionSchema = z
   .object({
     id: z.string(),
@@ -71,10 +75,11 @@ export const SubscriptionSchema = z
     createdAt: z.string(),
     updatedAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
 // ── Dead Letter ────────────────────────────────────────────────────
 
+/** Zod schema for a dead-letter event (failed delivery). */
 export const DeadLetterEventSchema = z
   .object({
     id: z.string(),
@@ -85,10 +90,11 @@ export const DeadLetterEventSchema = z
     lastAttemptAt: z.string(),
     createdAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
 // ── Event Schema Registry ──────────────────────────────────────────
 
+/** Zod schema for a registered event type/schema. */
 export const EventTypeSchema = z
   .object({
     id: z.string(),
@@ -98,21 +104,29 @@ export const EventTypeSchema = z
     description: z.string().optional(),
     createdAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
 // ── Config ─────────────────────────────────────────────────────────
 
+/** Zod schema for validating events client configuration. */
 export const eventsConfigSchema = z.object({
   apiKey: z.string().min(1),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   timeout: z.number().int().positive().optional(),
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
+/** A stored event. */
 export type Event = z.infer<typeof EventSchema>;
+/** An event to publish. */
 export type PublishEvent = z.infer<typeof PublishEventSchema>;
+/** An event topic. */
 export type Topic = z.infer<typeof TopicSchema>;
+/** An event subscription. */
 export type Subscription = z.infer<typeof SubscriptionSchema>;
+/** A dead-letter event from a failed delivery. */
 export type DeadLetterEvent = z.infer<typeof DeadLetterEventSchema>;
+/** A registered event type with schema. */
 export type EventType = z.infer<typeof EventTypeSchema>;
+/** Validated events client configuration. */
 export type EventsConfig = z.input<typeof eventsConfigSchema>;

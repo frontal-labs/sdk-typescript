@@ -1,6 +1,8 @@
 /**
- * Client-side cron expression validation.
- * Validates standard 5-field cron expressions without server round-trip.
+ * Validates a standard 5-field cron expression locally without a server round-trip.
+ *
+ * @param expression - A 5-field cron expression (minute, hour, day of month, month, day of week).
+ * @returns An object with `valid` boolean, optional `error` message, and optional human-readable `description`.
  */
 export function validateCronLocal(expression: string): {
   valid: boolean;
@@ -100,8 +102,13 @@ function describeCron(expression: string): string {
 }
 
 /**
- * Computes next run times from a cron expression locally.
- * Falls back to manual computation for simple patterns.
+ * Computes the next run times from a cron expression locally without a server round-trip.
+ * Supports simple 5-field expressions for minute and hour fields.
+ *
+ * @param expression - A 5-field cron expression.
+ * @param count - Number of future run times to compute (default 5).
+ * @param from - Starting point for calculations (defaults to now).
+ * @returns An array of `Date` objects representing the next run times.
  */
 export function nextCronRunsLocal(
   expression: string,

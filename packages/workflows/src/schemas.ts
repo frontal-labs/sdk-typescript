@@ -6,6 +6,9 @@ import { z } from "zod";
  */
 export type Cursor = string;
 
+/**
+ * Schema for workflow lifecycle status.
+ */
 export const WorkflowStatusSchema = z.enum([
   "draft",
   "active",
@@ -14,6 +17,9 @@ export const WorkflowStatusSchema = z.enum([
   "failed",
   "cancelled",
 ]);
+/**
+ * Schema for workflow execution status.
+ */
 export const ExecutionStatusSchema = z.enum([
   "pending",
   "running",
@@ -21,6 +27,9 @@ export const ExecutionStatusSchema = z.enum([
   "failed",
   "cancelled",
 ]);
+/**
+ * Schema for individual step execution status.
+ */
 export const StepStatusSchema = z.enum([
   "pending",
   "running",
@@ -28,18 +37,27 @@ export const StepStatusSchema = z.enum([
   "failed",
   "skipped",
 ]);
+/**
+ * Schema for approval status.
+ */
 export const ApprovalStatusSchema = z.enum([
   "pending",
   "approved",
   "rejected",
   "expired",
 ]);
+/**
+ * Schema for workflow trigger types.
+ */
 export const TriggerTypeSchema = z.enum([
   "manual",
   "schedule",
   "event",
   "webhook",
 ]);
+/**
+ * Schema for workflow step types.
+ */
 export const StepTypeSchema = z.enum([
   "task",
   "approval",
@@ -49,29 +67,44 @@ export const StepTypeSchema = z.enum([
   "notification",
 ]);
 
+/**
+ * Schema for a manual workflow trigger.
+ */
 const ManualTriggerSchema = z.object({
   type: z.literal("manual"),
   config: z.record(z.string(), z.unknown()).optional(),
 });
 
+/**
+ * Schema for a scheduled workflow trigger (cron).
+ */
 const ScheduleTriggerSchema = z.object({
   type: z.literal("schedule"),
   schedule: z.string(),
   config: z.record(z.string(), z.unknown()).optional(),
 });
 
+/**
+ * Schema for an event-based workflow trigger.
+ */
 const EventTriggerSchema = z.object({
   type: z.literal("event"),
   eventType: z.string(),
   config: z.record(z.string(), z.unknown()).optional(),
 });
 
+/**
+ * Schema for a webhook-based workflow trigger.
+ */
 const WebhookTriggerSchema = z.object({
   type: z.literal("webhook"),
-  webhookUrl: z.string().url(),
+  webhookUrl: z.url(),
   config: z.record(z.string(), z.unknown()).optional(),
 });
 
+/**
+ * Discriminated union schema for all workflow trigger types.
+ */
 export const WorkflowTriggerSchema = z.discriminatedUnion("type", [
   ManualTriggerSchema,
   ScheduleTriggerSchema,
@@ -106,7 +139,7 @@ const ApprovalStepSchema = z.object({
     .object({
       approvers: z.array(z.string()),
     })
-    .passthrough(),
+    .loose(),
 });
 
 const ConditionStepSchema = z.object({
@@ -122,7 +155,7 @@ const ParallelStepSchema = z.object({
     .object({
       steps: z.array(z.string()),
     })
-    .passthrough(),
+    .loose(),
 });
 
 const DelayStepSchema = z.object({
@@ -132,7 +165,7 @@ const DelayStepSchema = z.object({
     .object({
       duration: z.string(),
     })
-    .passthrough(),
+    .loose(),
 });
 
 const NotificationStepSchema = z.object({
@@ -143,9 +176,12 @@ const NotificationStepSchema = z.object({
       message: z.string(),
       channels: z.array(z.string()),
     })
-    .passthrough(),
+    .loose(),
 });
 
+/**
+ * Discriminated union schema for all workflow step types.
+ */
 export const WorkflowStepSchema = z.discriminatedUnion("type", [
   TaskStepSchema,
   ApprovalStepSchema,
@@ -155,6 +191,9 @@ export const WorkflowStepSchema = z.discriminatedUnion("type", [
   NotificationStepSchema,
 ]);
 
+/**
+ * Schema for defining a new workflow (triggers, steps, variables, tags).
+ */
 export const WorkflowDefinitionSchema = z
   .object({
     name: z.string().min(1),
@@ -167,6 +206,9 @@ export const WorkflowDefinitionSchema = z
   })
   .strict();
 
+/**
+ * Schema for a full workflow resource including runtime state.
+ */
 export const WorkflowSchema = WorkflowDefinitionSchema.extend({
   id: z.string(),
   status: WorkflowStatusSchema,
@@ -182,8 +224,11 @@ export const WorkflowSchema = WorkflowDefinitionSchema.extend({
       durationMs: z.number().int().optional(),
     })
     .optional(),
-}).passthrough();
+}).loose();
 
+/**
+ * Schema for a workflow execution with step-level details.
+ */
 export const WorkflowExecutionSchema = z
   .object({
     id: z.string(),
@@ -212,8 +257,11 @@ export const WorkflowExecutionSchema = z
     durationMs: z.number().int().optional(),
     error: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a workflow approval request.
+ */
 export const ApprovalSchema = z
   .object({
     id: z.string(),
@@ -235,8 +283,11 @@ export const ApprovalSchema = z
     expiresAt: timestampSchema.optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a workflow step definition (standalone).
+ */
 export const StepDefinitionSchema = z
   .object({
     id: z.string(),
@@ -252,8 +303,11 @@ export const StepDefinitionSchema = z
       })
       .optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a reusable workflow template.
+ */
 export const WorkflowTemplateSchema = z
   .object({
     id: z.string(),
@@ -271,20 +325,33 @@ export const WorkflowTemplateSchema = z
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })
-  .passthrough();
+  .loose();
 
-// Inferred types
+/** Workflow lifecycle status type. */
 export type WorkflowStatus = z.infer<typeof WorkflowStatusSchema>;
+/** Workflow execution status type. */
 export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>;
+/** Step execution status type. */
 export type StepStatus = z.infer<typeof StepStatusSchema>;
+/** Approval status type. */
 export type ApprovalStatus = z.infer<typeof ApprovalStatusSchema>;
+/** Trigger type identifier. */
 export type TriggerType = z.infer<typeof TriggerTypeSchema>;
+/** Step type identifier. */
 export type StepType = z.infer<typeof StepTypeSchema>;
+/** Workflow trigger configuration type. */
 export type WorkflowTrigger = z.infer<typeof WorkflowTriggerSchema>;
+/** Workflow step configuration type. */
 export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
+/** Workflow definition (input) type. */
 export type WorkflowDefinition = z.infer<typeof WorkflowDefinitionSchema>;
+/** Full workflow resource type. */
 export type Workflow = z.infer<typeof WorkflowSchema>;
+/** Workflow execution type. */
 export type WorkflowExecution = z.infer<typeof WorkflowExecutionSchema>;
+/** Approval request type. */
 export type Approval = z.infer<typeof ApprovalSchema>;
+/** Standalone step definition type. */
 export type StepDefinition = z.infer<typeof StepDefinitionSchema>;
+/** Reusable workflow template type. */
 export type WorkflowTemplate = z.infer<typeof WorkflowTemplateSchema>;

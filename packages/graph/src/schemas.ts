@@ -1,6 +1,9 @@
 import { filterConditionsSchema, timestampSchema } from "@frontal-labs/core";
 import { z } from "zod";
 
+/**
+ * Schema for entity metadata (id, type, version, timestamps).
+ */
 export const EntityMetaSchema = z
   .object({
     id: z.string(),
@@ -10,16 +13,22 @@ export const EntityMetaSchema = z
     updatedAt: timestampSchema,
     createdBy: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a linked entity reference (id, type, relation).
+ */
 export const LinkedEntitySchema = z
   .object({
     id: z.string(),
     type: z.string(),
     relation: z.string(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a full entity with data, meta, linked entities, and timestamps.
+ */
 export const EntitySchema = z
   .object({
     id: z.string(),
@@ -31,8 +40,11 @@ export const EntitySchema = z
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a relationship edge between two entities.
+ */
 export const EdgeSchema = z
   .object({
     id: z.string(),
@@ -42,8 +54,11 @@ export const EdgeSchema = z
     weight: z.number().optional(),
     createdAt: timestampSchema,
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for querying entities in the graph with conditions, ordering, and pagination.
+ */
 export const GraphQuerySchema = z
   .object({
     entityType: z.string(),
@@ -56,10 +71,13 @@ export const GraphQuerySchema = z
       .optional(),
     limit: z.number().int().positive().optional(),
     cursor: z.string().optional(),
-    at: z.string().datetime().optional(),
+    at: z.iso.datetime().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for entity version history with change tracking.
+ */
 export const EntityHistorySchema = z
   .object({
     entityId: z.string(),
@@ -76,8 +94,11 @@ export const EntityHistorySchema = z
       })
     ),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for graph traversal requests (start entity, direction, depth).
+ */
 export const TraversalRequestSchema = z
   .object({
     startEntity: z.object({ id: z.string(), type: z.string() }),
@@ -85,8 +106,11 @@ export const TraversalRequestSchema = z
     maxDepth: z.number().int().positive().default(5),
     filters: z.record(z.string(), z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for finding paths between two entities in the graph.
+ */
 export const PathRequestSchema = z
   .object({
     fromEntity: z.object({ id: z.string(), type: z.string() }),
@@ -94,8 +118,11 @@ export const PathRequestSchema = z
     maxPaths: z.number().int().positive().default(10),
     algorithm: z.enum(["shortest", "all", "weighted"]).default("shortest"),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for semantic search options (query, entity type, filters, threshold).
+ */
 export const SemanticSearchOptionsSchema = z
   .object({
     query: z.string(),
@@ -104,8 +131,11 @@ export const SemanticSearchOptionsSchema = z
     limit: z.number().int().positive().default(10),
     threshold: z.number().min(0).max(1).default(0.7),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for the result of a batch operation (total/successful/failed counts).
+ */
 export const BatchResultSchema = z
   .object({
     total: z.number().int(),
@@ -119,16 +149,25 @@ export const BatchResultSchema = z
       })
     ),
   })
-  .passthrough();
+  .loose();
 
-// Inferred types
+/** Entity metadata type. */
 export type EntityMeta = z.infer<typeof EntityMetaSchema>;
+/** Linked entity reference type. */
 export type LinkedEntity = z.infer<typeof LinkedEntitySchema>;
+/** Full entity type. */
 export type Entity = z.infer<typeof EntitySchema>;
+/** Relationship edge type. */
 export type Edge = z.infer<typeof EdgeSchema>;
+/** Graph query type. */
 export type GraphQuery = z.infer<typeof GraphQuerySchema>;
+/** Entity version history type. */
 export type EntityHistory = z.infer<typeof EntityHistorySchema>;
+/** Graph traversal request type. */
 export type TraversalRequest = z.infer<typeof TraversalRequestSchema>;
+/** Path finding request type. */
 export type PathRequest = z.infer<typeof PathRequestSchema>;
+/** Semantic search options type. */
 export type SemanticSearchOptions = z.infer<typeof SemanticSearchOptionsSchema>;
+/** Batch operation result type. */
 export type BatchResult = z.infer<typeof BatchResultSchema>;

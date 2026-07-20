@@ -2,6 +2,7 @@ import { z } from "zod";
 
 // ── Logs ───────────────────────────────────────────────────────────
 
+/** Valid log severity levels. */
 export const LogLevelSchema = z.enum([
   "debug",
   "info",
@@ -10,6 +11,7 @@ export const LogLevelSchema = z.enum([
   "fatal",
 ]);
 
+/** Schema for a single log entry. */
 export const LogEntrySchema = z
   .object({
     id: z.string(),
@@ -22,8 +24,9 @@ export const LogEntrySchema = z
     traceId: z.string().optional(),
     spanId: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/** Schema for querying logs. */
 export const LogQuerySchema = z.object({
   query: z.string(),
   timeFrom: z.string(),
@@ -35,24 +38,27 @@ export const LogQuerySchema = z.object({
 
 // ── Metrics ────────────────────────────────────────────────────────
 
+/** Schema for a single metric data point. */
 export const MetricPointSchema = z
   .object({
     timestamp: z.string(),
     value: z.number(),
     tags: z.record(z.string(), z.string()).optional(),
   })
-  .passthrough();
+  .loose();
 
+/** Schema for a metric series with multiple data points. */
 export const MetricSeriesSchema = z
   .object({
     metric: z.string(),
     unit: z.string().optional(),
     data: z.array(MetricPointSchema),
   })
-  .passthrough();
+  .loose();
 
 // ── Traces ─────────────────────────────────────────────────────────
 
+/** Schema for a span within a trace. */
 export const TraceSpanSchema = z
   .object({
     spanId: z.string(),
@@ -63,8 +69,9 @@ export const TraceSpanSchema = z
     status: z.enum(["ok", "error"]),
     attributes: z.record(z.string(), z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
+/** Schema for a trace with its spans. */
 export const TraceSchema = z
   .object({
     id: z.string(),
@@ -78,12 +85,14 @@ export const TraceSchema = z
     endTime: z.string(),
     attributes: z.record(z.string(), z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
 // ── Alerts ─────────────────────────────────────────────────────────
 
+/** Alert severity levels. */
 export const AlertSeveritySchema = z.enum(["critical", "warning", "info"]);
 
+/** Schema for an alert rule definition. */
 export const AlertRuleSchema = z
   .object({
     id: z.string(),
@@ -99,14 +108,16 @@ export const AlertRuleSchema = z
     lastFiredAt: z.string().optional(),
     createdAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
+/** Incident lifecycle statuses. */
 export const IncidentStatusSchema = z.enum([
   "firing",
   "resolved",
   "acknowledged",
 ]);
 
+/** Schema for an alert incident. */
 export const IncidentSchema = z
   .object({
     id: z.string(),
@@ -117,10 +128,11 @@ export const IncidentSchema = z
     metricValue: z.number(),
     threshold: z.number(),
   })
-  .passthrough();
+  .loose();
 
 // ── Dashboards ─────────────────────────────────────────────────────
 
+/** Dashboard widget visualization types. */
 export const WidgetTypeSchema = z.enum([
   "line",
   "bar",
@@ -129,6 +141,7 @@ export const WidgetTypeSchema = z.enum([
   "heatmap",
 ]);
 
+/** Schema for a dashboard widget. */
 export const DashboardWidgetSchema = z
   .object({
     id: z.string(),
@@ -140,8 +153,9 @@ export const DashboardWidgetSchema = z
     height: z.number().int().min(1).max(6),
     options: z.record(z.string(), z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
+/** Schema for a dashboard with its widgets. */
 export const DashboardSchema = z
   .object({
     id: z.string(),
@@ -151,28 +165,43 @@ export const DashboardSchema = z
     createdAt: z.string(),
     updatedAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
 // ── Config ─────────────────────────────────────────────────────────
 
+/** Schema for observability client configuration. */
 export const obsConfigSchema = z.object({
   apiKey: z.string().min(1),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   timeout: z.number().int().positive().optional(),
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
+/** Log severity level. */
 export type LogLevel = z.infer<typeof LogLevelSchema>;
+/** A single log entry. */
 export type LogEntry = z.infer<typeof LogEntrySchema>;
+/** Log query parameters. */
 export type LogQuery = z.infer<typeof LogQuerySchema>;
+/** A single metric data point. */
 export type MetricPoint = z.infer<typeof MetricPointSchema>;
+/** A metric series with data points. */
 export type MetricSeries = z.infer<typeof MetricSeriesSchema>;
+/** A trace with spans. */
 export type Trace = z.infer<typeof TraceSchema>;
+/** A span within a trace. */
 export type TraceSpan = z.infer<typeof TraceSpanSchema>;
+/** Alert severity level. */
 export type AlertSeverity = z.infer<typeof AlertSeveritySchema>;
+/** Alert rule definition. */
 export type AlertRule = z.infer<typeof AlertRuleSchema>;
+/** Incident status. */
 export type IncidentStatus = z.infer<typeof IncidentStatusSchema>;
+/** An alert incident. */
 export type Incident = z.infer<typeof IncidentSchema>;
+/** Dashboard widget type. */
 export type WidgetType = z.infer<typeof WidgetTypeSchema>;
+/** A dashboard with widgets. */
 export type Dashboard = z.infer<typeof DashboardSchema>;
+/** Observability client configuration. */
 export type ObsConfig = z.input<typeof obsConfigSchema>;

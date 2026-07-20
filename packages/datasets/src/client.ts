@@ -12,17 +12,32 @@ import {
 import { DatasetsSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/** Configuration options for creating a Datasets API client. */
 export interface DatasetsClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Datasets API. Defaults to `DEFAULT_DATASETS_BASE_URL`. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. */
   timeout?: number;
+  /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
 }
 
+/**
+ * Create a Datasets SDK client.
+ * @param config - Either a `FrontalClient` instance or a `DatasetsClientConfig` object.
+ * @returns A configured `DatasetsSdk` instance.
+ */
 export function createDatasetsClient(
   config: DatasetsClientConfig | FrontalClient
 ): DatasetsSdk;
 
+/**
+ * Create a Datasets SDK client.
+ * @param clientOrConfig - Either a `FrontalClient` instance or a `DatasetsClientConfig` object.
+ * @returns A configured `DatasetsSdk` instance.
+ */
 export function createDatasetsClient(
   clientOrConfig: FrontalClient | DatasetsClientConfig
 ): DatasetsSdk {
@@ -47,6 +62,10 @@ export function createDatasetsClient(
 
 let _datasetsCache: DatasetsSdk | undefined;
 
+/**
+ * Default singleton Datasets SDK instance backed by the default {@link FrontalClient}.
+ * Lazily initialized on first access.
+ */
 export const datasets = new Proxy<DatasetsSdk>({} as DatasetsSdk, {
   get(_t, prop) {
     if (!_datasetsCache) {

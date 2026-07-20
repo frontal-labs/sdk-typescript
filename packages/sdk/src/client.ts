@@ -12,14 +12,23 @@ import { env } from "@frontal-labs/core";
  * Configuration for standalone usage without a FrontalClient instance.
  */
 export interface FrontalClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the API. Defaults to {@link DEFAULT_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
 
-/** Create from a FrontalClient instance */
-/** Create standalone with config */
+/**
+ * Creates a unified {@link Frontal} SDK client from a {@link FrontalClient}
+ * instance or a {@link FrontalClientConfig} configuration object.
+ *
+ * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `Frontal` client with access to all service namespaces.
+ */
 export function createFrontalClient(
   config: FrontalClientConfig | FrontalClient
 ): Frontal;
@@ -45,7 +54,11 @@ export function createFrontalClient(
   );
 }
 
-/** Default Frontal SDK instance (reads FRONTAL_API_KEY from env) */
+/**
+ * Convenience singleton proxy for the unified Frontal SDK.
+ * Lazily initialises from environment variables on first property access.
+ * Provides access to all Frontal service namespaces as lazy getters.
+ */
 let _frontalCache: Frontal | undefined;
 
 export const frontal = new Proxy<Frontal>({} as Frontal, {

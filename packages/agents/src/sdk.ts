@@ -31,16 +31,31 @@ const asPagePayload = <T>(raw: unknown) =>
  * the client base URL already includes it.
  */
 export class AgentsSdk {
+  /**
+   * @param http - The HTTP client used to make API requests.
+   */
   constructor(private readonly http: HttpClient) {}
 
+  /**
+   * Starts building a new agent definition.
+   * @param name - The name of the agent.
+   */
   define(name: string): AgentBuilder {
     return new AgentBuilder(name, this.http);
   }
 
+  /**
+   * Returns an accessor for an existing agent by ID.
+   * @param id - The agent ID.
+   */
   use(id: string): AgentAccessor {
     return new AgentAccessor(id, this.http);
   }
 
+  /**
+   * Lists agents with optional status and trigger filters.
+   * @param opts - Filters (status, trigger) and pagination options.
+   */
   async list(
     opts: {
       status?: z.infer<typeof S.AgentStatusSchema>;
@@ -55,6 +70,10 @@ export class AgentsSdk {
     );
   }
 
+  /**
+   * Creates a new agent from a definition.
+   * @param definition - The agent definition (validated before sending).
+   */
   async create(definition: S.AgentDefinition): Promise<S.Agent> {
     const body = S.AgentDefinitionSchema.parse(definition);
     return this.http.post("/agents", body);
@@ -66,6 +85,9 @@ export class AgentsSdk {
   }
 }
 
+/**
+ * Fluent builder for defining and creating agents.
+ */
 export class AgentBuilder {
   private _definition: Partial<z.input<typeof S.AgentDefinitionSchema>> & {
     name: string;
@@ -83,11 +105,20 @@ export class AgentBuilder {
     };
   }
 
+  /**
+   * Sets a human-readable description for the agent.
+   * @param text - The description text.
+   */
   description(text: string): this {
     this._definition.description = text;
     return this;
   }
 
+  /**
+   * Adds a trigger event that activates the agent.
+   * @param event - The event name.
+   * @param filter - Optional conditions to filter events.
+   */
   trigger(event: string, filter?: Record<string, unknown>): this {
     this._definition.triggers = [
       ...(this._definition.triggers ?? []),
@@ -96,11 +127,19 @@ export class AgentBuilder {
     return this;
   }
 
+  /**
+   * Sets the full scope configuration for the agent.
+   * @param scope - The scope object (read/write/action permissions).
+   */
   scope(scope: z.input<typeof S.AgentScopeSchema>): this {
     this._definition.scope = scope;
     return this;
   }
 
+  /**
+   * Grants read access to one or more entity types.
+   * @param entityTypes - Entity type names to allow reading.
+   */
   canRead(...entityTypes: string[]): this {
     this._definition.scope = {
       ...this._definition.scope,
@@ -109,6 +148,10 @@ export class AgentBuilder {
     return this;
   }
 
+  /**
+   * Grants write access to one or more entity types.
+   * @param entityTypes - Entity type names to allow writing.
+   */
   canWrite(...entityTypes: string[]): this {
     this._definition.scope = {
       ...this._definition.scope,
@@ -117,6 +160,10 @@ export class AgentBuilder {
     return this;
   }
 
+  /**
+   * Registers actions the agent is allowed to invoke.
+   * @param actions - Action names to allow.
+   */
   canInvoke(...actions: string[]): this {
     this._definition.scope = {
       ...this._definition.scope,
@@ -125,6 +172,10 @@ export class AgentBuilder {
     return this;
   }
 
+  /**
+   * Configures conditions that cause the agent to escalate.
+   * @param conditions - Escalation condition names.
+   */
   escalatesOn(...conditions: string[]): this {
     this._definition.scope = {
       ...this._definition.scope,
@@ -133,11 +184,19 @@ export class AgentBuilder {
     return this;
   }
 
+  /**
+   * Sets the confidence threshold configuration.
+   * @param config - Confidence thresholds for auto-execute, escalate, review.
+   */
   confidence(config: z.input<typeof S.ConfidenceConfigSchema>): this {
     this._definition.confidence = config;
     return this;
   }
 
+  /**
+   * Sets the confidence threshold above which the agent auto-executes.
+   * @param threshold - Value between 0 and 1.
+   */
   autoExecuteAbove(threshold: number): this {
     this._definition.confidence = {
       ...this._definition.confidence,
@@ -146,6 +205,10 @@ export class AgentBuilder {
     return this;
   }
 
+  /**
+   * Sets the confidence threshold below which the agent escalates.
+   * @param threshold - Value between 0 and 1.
+   */
   escalateBelow(threshold: number): this {
     this._definition.confidence = {
       ...this._definition.confidence,
@@ -154,37 +217,66 @@ export class AgentBuilder {
     return this;
   }
 
+  /**
+   * Configures the agent's memory settings.
+   * @param config - Memory type, TTL, and token limits.
+   */
   memory(config: z.input<typeof S.MemoryConfigSchema>): this {
     this._definition.memory = config;
     return this;
   }
 
+  /**
+   * Configures retry behavior for the agent.
+   * @param config - Retry configuration (max retries, backoff, etc.).
+   */
   retry(config: z.input<typeof S.retryConfigSchema>): this {
     this._definition.retry = config;
     return this;
   }
 
+  /**
+   * Sets the maximum execution timeout for the agent.
+   * @param duration - Duration string (e.g. "30s", "5m").
+   */
   timeout(duration: string): this {
     this._definition.timeout = duration;
     return this;
   }
 
+  /**
+   * Configures rate limiting for the agent.
+   * @param config - Rate limit configuration.
+   */
   rateLimit(config: z.input<typeof S.RateLimitConfigSchema>): this {
     this._definition.rateLimit = config;
     return this;
   }
 
+  /**
+   * Adds tags to the agent for categorization.
+   * @param tags - Tag strings to attach.
+   */
   tags(...tags: string[]): this {
     this._definition.tags = [...(this._definition.tags ?? []), ...tags];
     return this;
   }
 
-  // Register behavior handler
+  /**
+   * Registers a behavior handler for a specific event.
+   * @param event - The event name to handle.
+   * @param handler - The handler function.
+   */
   on(event: string, handler: AgentHandler): this {
     this._handlers.set(event, handler);
     return this;
   }
 
+  /**
+   * Validates the definition and creates the agent on the API.
+   * @returns The created agent resource.
+   * @throws ZodError if the definition is invalid.
+   */
   async create(): Promise<S.Agent> {
     const definition = S.AgentDefinitionSchema.parse(this._definition);
     const agent = await this.http.post("/agents", definition);
@@ -192,20 +284,34 @@ export class AgentBuilder {
   }
 }
 
+/**
+ * Accessor for a single agent resource. Provides get/update/delete operations,
+ * run management, version history, and streaming.
+ */
 export class AgentAccessor {
   constructor(
     private readonly id: string,
     private readonly http: HttpClient
   ) {}
 
+  /**
+   * Fetches the agent definition and current state.
+   */
   async get(): Promise<S.Agent> {
     return this.http.get(`/agents/${this.id}`);
   }
 
+  /**
+   * Partially updates the agent definition.
+   * @param definition - Fields to update.
+   */
   async update(definition: Partial<S.AgentDefinition>): Promise<S.Agent> {
     return this.http.put(`/agents/${this.id}`, definition);
   }
 
+  /**
+   * Deletes the agent.
+   */
   async delete(): Promise<void> {
     return this.http.delete(`/agents/${this.id}`);
   }

@@ -12,17 +12,32 @@ import {
 import { GovernanceSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/** Configuration options for creating a Governance API client. */
 export interface GovernanceClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Governance API. Defaults to `DEFAULT_GOVERNANCE_BASE_URL`. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. */
   timeout?: number;
+  /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
 }
 
+/**
+ * Create a Governance SDK client.
+ * @param config - Either a `FrontalClient` instance or a `GovernanceClientConfig` object.
+ * @returns A configured `GovernanceSdk` instance.
+ */
 export function createGovernanceClient(
   config: GovernanceClientConfig | FrontalClient
 ): GovernanceSdk;
 
+/**
+ * Create a Governance SDK client.
+ * @param clientOrConfig - Either a `FrontalClient` instance or a `GovernanceClientConfig` object.
+ * @returns A configured `GovernanceSdk` instance.
+ */
 export function createGovernanceClient(
   clientOrConfig: FrontalClient | GovernanceClientConfig
 ): GovernanceSdk {
@@ -47,6 +62,10 @@ export function createGovernanceClient(
 
 let _governanceCache: GovernanceSdk | undefined;
 
+/**
+ * Default singleton Governance SDK instance backed by the default {@link FrontalClient}.
+ * Lazily initialized on first access.
+ */
 export const governance = new Proxy<GovernanceSdk>({} as GovernanceSdk, {
   get(_t, prop) {
     if (!_governanceCache) {

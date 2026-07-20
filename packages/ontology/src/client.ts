@@ -12,6 +12,14 @@ import {
 import { OntologySdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating an {@link OntologySdk} client standalone.
+ *
+ * @property apiKey - Frontal API key.
+ * @property baseUrl - Override the default ontology API base URL.
+ * @property timeout - Request timeout in milliseconds (default 30_000).
+ * @property maxRetries - Maximum number of retry attempts (default 3).
+ */
 export interface OntologyClientConfig {
   apiKey: string;
   baseUrl?: string;
@@ -19,6 +27,13 @@ export interface OntologyClientConfig {
   maxRetries?: number;
 }
 
+/**
+ * Creates an {@link OntologySdk} from either an existing {@link FrontalClient}
+ * or a plain configuration object.
+ *
+ * @param config - A pre-configured FrontalClient or config options.
+ * @returns A fully-initialized OntologySdk.
+ */
 export function createOntologyClient(
   config: OntologyClientConfig | FrontalClient
 ): OntologySdk;
@@ -47,6 +62,16 @@ export function createOntologyClient(
 
 let _ontologyCache: OntologySdk | undefined;
 
+/**
+ * Convenience singleton that lazily creates an {@link OntologySdk} using the
+ * default environment configuration.
+ *
+ * @example
+ * ```ts
+ * import { ontology } from "@frontal-labs/ontology";
+ * const models = await ontology.schemas.list();
+ * ```
+ */
 export const ontology = new Proxy<OntologySdk>({} as OntologySdk, {
   get(_t, prop) {
     if (!_ontologyCache) {

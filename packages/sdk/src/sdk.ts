@@ -44,141 +44,171 @@ import { createWorkersClient } from "@frontal-labs/workers";
 import type { WorkflowsSdk } from "@frontal-labs/workflows";
 import { createWorkflowsClient } from "@frontal-labs/workflows";
 
+/**
+ * Unified Frontal SDK client providing lazy access to all service namespaces.
+ * Each service namespace is initialised on first access from the shared
+ * {@link FrontalClient} connection.
+ */
 export class Frontal {
   readonly #frontal: FrontalClient;
 
+  /** Blob storage service. */
   #blob?: BlobSdk;
   get blob(): BlobSdk {
     this.#blob ??= createBlobClient(this.#frontal);
     return this.#blob;
   }
 
+  /** AI service (agents, embeddings, etc.). */
   #ai?: AISdk;
   get ai(): AISdk {
     this.#ai ??= createAIClient(this.#frontal);
     return this.#ai;
   }
 
+  /** Agent management service. */
   #agents?: AgentsSdk;
   get agents(): AgentsSdk {
     this.#agents ??= createAgentsClient(this.#frontal);
     return this.#agents;
   }
 
+  /** Knowledge graph service. */
   #graph?: GraphSdk;
   get graph(): GraphSdk {
     this.#graph ??= createGraphClient(this.#frontal);
     return this.#graph;
   }
 
+  /** Dataset management service. */
   #datasets?: DatasetsSdk;
   get datasets(): DatasetsSdk {
     this.#datasets ??= createDatasetsClient(this.#frontal);
     return this.#datasets;
   }
 
+  /** Data processing service. */
   #data?: DataSdk;
   get data(): DataSdk {
     this.#data ??= createDataClient(this.#frontal);
     return this.#data;
   }
 
+  /** Data lineage service. */
   #lineage?: LineageSdk;
   get lineage(): LineageSdk {
     this.#lineage ??= createLineageClient(this.#frontal);
     return this.#lineage;
   }
 
+  /** Serverless workers service. */
   #workers?: WorkersSdk;
   get workers(): WorkersSdk {
     this.#workers ??= createWorkersClient(this.#frontal);
     return this.#workers;
   }
 
+  /** Pipeline management service. */
   #pipelines?: PipelinesSdk;
   get pipelines(): PipelinesSdk {
     this.#pipelines ??= createPipelinesClient(this.#frontal);
     return this.#pipelines;
   }
 
+  /** Workflow management service. */
   #workflows?: WorkflowsSdk;
   get workflows(): WorkflowsSdk {
     this.#workflows ??= createWorkflowsClient(this.#frontal);
     return this.#workflows;
   }
 
+  /** Schedule management service. */
   #schedules?: SchedulesSdk;
   get schedules(): SchedulesSdk {
     this.#schedules ??= createSchedulesClient(this.#frontal);
     return this.#schedules;
   }
 
+  /** Sandbox code execution service. */
   #sandbox?: SandboxSdk;
   get sandbox(): SandboxSdk {
     this.#sandbox ??= createSandboxClient(this.#frontal);
     return this.#sandbox;
   }
 
+  /** Authentication service. */
   #auth?: AuthSdk;
   get auth(): AuthSdk {
     this.#auth ??= createAuthClient(this.#frontal);
     return this.#auth;
   }
 
+  /** Observability (logs, metrics, traces, alerts) service. */
   #observability?: ObservabilitySdk;
   get observability(): ObservabilitySdk {
     this.#observability ??= createObservabilityClient(this.#frontal);
     return this.#observability;
   }
 
+  /** Event management service. */
   #events?: EventsSdk;
   get events(): EventsSdk {
     this.#events ??= createEventsClient(this.#frontal);
     return this.#events;
   }
 
+  /** Audit log service. */
   #audit?: AuditSdk;
   get audit(): AuditSdk {
     this.#audit ??= createAuditClient(this.#frontal);
     return this.#audit;
   }
 
+  /** Governance service. */
   #governance?: GovernanceSdk;
   get governance(): GovernanceSdk {
     this.#governance ??= createGovernanceClient(this.#frontal);
     return this.#governance;
   }
 
+  /** Billing service. */
   #billing?: BillingSdk;
   get billing(): BillingSdk {
     this.#billing ??= createBillingClient(this.#frontal);
     return this.#billing;
   }
 
+  /** Connector management service. */
   #connectors?: ConnectorsSdk;
   get connectors(): ConnectorsSdk {
     this.#connectors ??= createConnectorsClient(this.#frontal);
     return this.#connectors;
   }
 
+  /** Integration management service. */
   #integrations?: IntegrationsSdk;
   get integrations(): IntegrationsSdk {
     this.#integrations ??= createIntegrationsClient(this.#frontal);
     return this.#integrations;
   }
 
+  /** Webhook management service. */
   #webhooks?: WebhooksSdk;
   get webhooks(): WebhooksSdk {
     this.#webhooks ??= createWebhooksClient(this.#frontal);
     return this.#webhooks;
   }
 
+  /** Ontology service. */
   #ontology?: OntologySdk;
   get ontology(): OntologySdk {
     this.#ontology ??= createOntologyClient(this.#frontal);
     return this.#ontology;
   }
 
+  /**
+   * @param frontal - The underlying {@link FrontalClient} instance to use for all API calls.
+   */
   constructor(frontal: FrontalClient) {
     this.#frontal = frontal;
   }

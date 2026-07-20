@@ -12,17 +12,32 @@ import {
 import { EventsSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/** Configuration options for creating an Events API client. */
 export interface EventsClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Events API. Defaults to `DEFAULT_EVENTS_BASE_URL`. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. */
   timeout?: number;
+  /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
 }
 
+/**
+ * Create an Events SDK client.
+ * @param config - Either a `FrontalClient` instance or an `EventsClientConfig` object.
+ * @returns A configured `EventsSdk` instance.
+ */
 export function createEventsClient(
   config: EventsClientConfig | FrontalClient
 ): EventsSdk;
 
+/**
+ * Create an Events SDK client.
+ * @param clientOrConfig - Either a `FrontalClient` instance or an `EventsClientConfig` object.
+ * @returns A configured `EventsSdk` instance.
+ */
 export function createEventsClient(
   clientOrConfig: FrontalClient | EventsClientConfig
 ): EventsSdk {
@@ -45,6 +60,10 @@ export function createEventsClient(
 
 let _eventsCache: EventsSdk | undefined;
 
+/**
+ * Default singleton Events SDK instance backed by the default {@link FrontalClient}.
+ * Lazily initialized on first access.
+ */
 export const events = new Proxy<EventsSdk>({} as EventsSdk, {
   get(_t, prop) {
     if (!_eventsCache) {

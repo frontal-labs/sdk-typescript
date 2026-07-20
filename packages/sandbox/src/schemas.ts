@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Schema for a sandbox environment. */
 export const SandboxSchema = z
   .object({
     id: z.string(),
@@ -13,7 +14,9 @@ export const SandboxSchema = z
     createdAt: z.string(),
     updatedAt: z.string(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for a sandbox code execution. */
 export const SandboxExecutionSchema = z
   .object({
     id: z.string(),
@@ -26,7 +29,9 @@ export const SandboxExecutionSchema = z
     durationMs: z.number().optional(),
     createdAt: z.string(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for a sandbox template. */
 export const SandboxTemplateSchema = z
   .object({
     id: z.string(),
@@ -36,15 +41,21 @@ export const SandboxTemplateSchema = z
     env: z.record(z.string(), z.string()).optional(),
     createdAt: z.string(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for sandbox client configuration. */
 export const sandboxConfigSchema = z.object({
   apiKey: z.string().min(1),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   timeout: z.number().int().positive().optional(),
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
+/** A sandbox environment. */
 export type Sandbox = z.infer<typeof SandboxSchema>;
+/** A sandbox code execution. */
 export type SandboxExecution = z.infer<typeof SandboxExecutionSchema>;
+/** A sandbox template. */
 export type SandboxTemplate = z.infer<typeof SandboxTemplateSchema>;
+/** Sandbox client configuration. */
 export type SandboxConfig = z.input<typeof sandboxConfigSchema>;

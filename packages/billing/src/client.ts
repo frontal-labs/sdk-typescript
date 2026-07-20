@@ -12,17 +12,32 @@ import {
 import { BillingSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/** Configuration options for creating a Billing API client. */
 export interface BillingClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Billing API. Defaults to `DEFAULT_BILLING_BASE_URL`. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. */
   timeout?: number;
+  /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
 }
 
+/**
+ * Create a Billing SDK client.
+ * @param config - Either a `FrontalClient` instance or a `BillingClientConfig` object.
+ * @returns A configured `BillingSdk` instance.
+ */
 export function createBillingClient(
   config: BillingClientConfig | FrontalClient
 ): BillingSdk;
 
+/**
+ * Create a Billing SDK client.
+ * @param clientOrConfig - Either a `FrontalClient` instance or a `BillingClientConfig` object.
+ * @returns A configured `BillingSdk` instance.
+ */
 export function createBillingClient(
   clientOrConfig: FrontalClient | BillingClientConfig
 ): BillingSdk {
@@ -45,6 +60,10 @@ export function createBillingClient(
 
 let _billingCache: BillingSdk | undefined;
 
+/**
+ * Default singleton Billing SDK instance backed by the default {@link FrontalClient}.
+ * Lazily initialized on first access.
+ */
 export const billing = new Proxy<BillingSdk>({} as BillingSdk, {
   get(_t, prop) {
     if (!_billingCache) {

@@ -127,7 +127,7 @@ export interface EmbedResult {
  */
 export const aiConfigSchema = z.object({
   apiKey: z.string().optional(),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
 });
 
 /**
@@ -212,6 +212,9 @@ export const generateObjectOptionsSchema = z.object({
   maxRetries: z.number().optional(),
 });
 
+/**
+ * Options for structured object generation, including a target schema.
+ */
 export type GenerateObjectOptions<T> = Omit<
   z.infer<typeof generateObjectOptionsSchema>,
   "schema"
@@ -219,6 +222,9 @@ export type GenerateObjectOptions<T> = Omit<
   schema: z.ZodSchema<T> | Record<string, unknown>;
 };
 
+/**
+ * Result of a structured object generation.
+ */
 export interface GenerateObjectResult<T> {
   object: T;
   usage: {
@@ -239,6 +245,9 @@ export const generateSpeechOptionsSchema = z.object({
   format: z.enum(["mp3", "wav", "opus"]).optional(),
 });
 
+/**
+ * Options for text-to-speech generation.
+ */
 export type GenerateSpeechOptions = z.infer<typeof generateSpeechOptionsSchema>;
 
 /**
@@ -253,8 +262,14 @@ export const generateImageOptionsSchema = z.object({
   n: z.number().min(1).max(10).optional(),
 });
 
+/**
+ * Options for image generation.
+ */
 export type GenerateImageOptions = z.infer<typeof generateImageOptionsSchema>;
 
+/**
+ * Result of an image generation request.
+ */
 export interface GenerateImageResult {
   images: {
     url?: string;
@@ -274,20 +289,32 @@ export const generateVideoOptionsSchema = z.object({
   aspectRatio: z.string().optional(),
 });
 
+/**
+ * Options for video generation.
+ */
 export type GenerateVideoOptions = z.infer<typeof generateVideoOptionsSchema>;
 
+/**
+ * Result of a video generation request.
+ */
 export interface GenerateVideoResult {
   videoUrl: string;
 }
 
 // Prompt Management Types
 
+/**
+ * Definition of a single variable within a prompt template.
+ */
 export interface VariableDefinition {
   type: "string" | "number" | "boolean";
   description?: string;
   defaultValue?: string | number | boolean;
 }
 
+/**
+ * A named prompt template with typed variable definitions.
+ */
 export interface Prompt {
   name: string;
   template: string;
@@ -296,12 +323,18 @@ export interface Prompt {
   version?: string;
 }
 
+/**
+ * A chain of prompts executed in sequence.
+ */
 export interface PromptChain {
   prompts: Prompt[];
 }
 
 // Tool System Types
 
+/**
+ * A callable tool with a name, description, parameter schema, and executor.
+ */
 export interface Tool<TParams = unknown, TResult = unknown> {
   name: string;
   description: string;
@@ -310,6 +343,9 @@ export interface Tool<TParams = unknown, TResult = unknown> {
 }
 // OpenAI-compatible types
 
+/**
+ * Zod schema for a chat message in OpenAI-compatible format.
+ */
 export const chatMessageSchema = z.object({
   role: z.enum(["system", "user", "assistant", "function", "tool"]),
   content: z.union([z.string(), z.null()]).optional(),
@@ -317,8 +353,14 @@ export const chatMessageSchema = z.object({
   toolCalls: z.array(z.any()).optional(),
 });
 
+/**
+ * A chat message with role and optional content/name/toolCalls.
+ */
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
+/**
+ * Zod schema for an OpenAI-compatible chat completion request.
+ */
 export const chatCompletionRequestSchema = z.object({
   model: z.string(),
   messages: z.array(chatMessageSchema),
@@ -345,8 +387,14 @@ export const chatCompletionRequestSchema = z.object({
     .optional(),
 });
 
+/**
+ * OpenAI-compatible chat completion request.
+ */
 export type ChatCompletionRequest = z.infer<typeof chatCompletionRequestSchema>;
 
+/**
+ * Zod schema for an OpenAI-compatible chat completion response.
+ */
 export const chatCompletionResponseSchema = z.object({
   id: z.string(),
   object: z.literal("chat.completion"),
@@ -369,10 +417,16 @@ export const chatCompletionResponseSchema = z.object({
   systemFingerprint: z.string().optional(),
 });
 
+/**
+ * OpenAI-compatible chat completion response.
+ */
 export type ChatCompletionResponse = z.infer<
   typeof chatCompletionResponseSchema
 >;
 
+/**
+ * Zod schema for a streaming chat completion chunk.
+ */
 export const chatCompletionChunkSchema = z.object({
   id: z.string(),
   object: z.literal("chat.completion.chunk"),
@@ -391,8 +445,14 @@ export const chatCompletionChunkSchema = z.object({
   ),
 });
 
+/**
+ * A streaming chat completion chunk with delta content.
+ */
 export type ChatCompletionChunk = z.infer<typeof chatCompletionChunkSchema>;
 
+/**
+ * Zod schema for an OpenAI-compatible embeddings request.
+ */
 export const embeddingsRequestSchema = z.object({
   input: z.union([z.string(), z.array(z.string())]),
   model: z.string(),
@@ -401,8 +461,14 @@ export const embeddingsRequestSchema = z.object({
   user: z.string().optional(),
 });
 
+/**
+ * OpenAI-compatible embeddings request.
+ */
 export type EmbeddingsRequest = z.infer<typeof embeddingsRequestSchema>;
 
+/**
+ * Zod schema for an OpenAI-compatible embeddings response.
+ */
 export const embeddingsResponseSchema = z.object({
   object: z.literal("list"),
   data: z.array(
@@ -419,8 +485,14 @@ export const embeddingsResponseSchema = z.object({
   }),
 });
 
+/**
+ * OpenAI-compatible embeddings response.
+ */
 export type EmbeddingsResponse = z.infer<typeof embeddingsResponseSchema>;
 
+/**
+ * Zod schema for audio transcription options.
+ */
 export const transcriptionOptionsSchema = z.object({
   file: z.any(),
   model: z.string(),
@@ -432,19 +504,34 @@ export const transcriptionOptionsSchema = z.object({
   temperature: z.number().optional(),
 });
 
+/**
+ * Options for audio transcription.
+ */
 export type TranscriptionOptions = z.infer<typeof transcriptionOptionsSchema>;
 
+/**
+ * Result of an audio transcription.
+ */
 export interface TranscriptionResult {
   text: string;
 }
 
+/**
+ * Zod schema for content moderation options.
+ */
 export const moderationOptionsSchema = z.object({
   input: z.union([z.string(), z.array(z.string())]),
   model: z.string().optional(),
 });
 
+/**
+ * Options for content moderation.
+ */
 export type ModerationOptions = z.infer<typeof moderationOptionsSchema>;
 
+/**
+ * Result of a content moderation check.
+ */
 export interface ModerationResult {
   id: string;
   model: string;

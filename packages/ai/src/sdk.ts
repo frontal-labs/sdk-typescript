@@ -50,6 +50,9 @@ import {
  * ```
  */
 export class AISdk {
+  /**
+   * @param http - The HTTP client used to make API requests.
+   */
   constructor(private readonly http: HttpClient) {}
 
   // ── Text Generation ─────────────────────────────────────────────────
@@ -547,14 +550,24 @@ export class AISdk {
 
   private currentStep = 0;
 
+  /**
+   * Sets the current step count for tracking progress.
+   * @param count - The step count value.
+   */
   stepCountIs(count: number): void {
     this.currentStep = count;
   }
 
+  /**
+   * Returns the current step count.
+   */
   getCurrentStep(): number {
     return this.currentStep;
   }
 
+  /**
+   * Resets the step counter to zero.
+   */
   resetSteps(): void {
     this.currentStep = 0;
   }

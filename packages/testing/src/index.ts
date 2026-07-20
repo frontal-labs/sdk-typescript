@@ -14,12 +14,17 @@ import { vi } from "vitest";
 // Configuration
 // ============================================================================
 
+/** Configuration for mock SDK client. */
 export interface MockConfig {
+  /** API key to use in tests. */
   apiKey: string;
+  /** Base URL for the mock API. */
   baseUrl: string;
+  /** Request timeout in milliseconds. */
   timeout: number;
 }
 
+/** Creates a default mock configuration for testing. */
 export const createMockConfig = (): MockConfig => {
   return {
     apiKey: "frt_test-api-key-1234567890",
@@ -32,12 +37,14 @@ export const createMockConfig = (): MockConfig => {
 // Environment
 // ============================================================================
 
+/** Set up environment variables for testing. */
 export const setupTestEnvironment = () => {
   process.env.NODE_ENV = "test";
   process.env.CI = "true";
   process.env.FRONTAL_API_KEY = "frt_test-api-key-1234567890";
 };
 
+/** Clean up test environment variables. */
 export const cleanupTestEnvironment = () => {
   delete process.env.NODE_ENV;
   delete process.env.CI;
@@ -48,25 +55,44 @@ export const cleanupTestEnvironment = () => {
 // HTTP Mocking
 // ============================================================================
 
+/** A mock API route definition for testing. */
 export interface MockRoute {
+  /** HTTP method to match (e.g. "GET", "POST"). */
   method: string;
+  /** URL path or pattern to match. */
   path: string | RegExp;
+  /** HTTP status code to return (default 200). */
   status?: number;
+  /** Response body to return. */
   body?: unknown;
+  /** Optional response headers. */
   headers?: Record<string, string>;
 }
 
+/** A recorded mock request for test assertions. */
 export interface RequestLog {
+  /** HTTP method used. */
   method: string;
+  /** Full request URL. */
   url: string;
+  /** Request pathname. */
   path: string;
+  /** Parsed request body. */
   body: unknown;
+  /** Request headers. */
   headers: Record<string, string>;
 }
 
 /**
  * Creates a mock fetch function that matches routes and records requests.
  * Use this to inject into FrontalClient / HttpClient via the `fetch` config option.
+ */
+/**
+ * Creates a mock fetch function that matches routes and records requests.
+ * Use this to inject into FrontalClient / HttpClient via the `fetch` config option.
+ *
+ * @param routes - Initial set of mock routes to match against.
+ * @returns An object with `fetch`, `requests` array, and assertion helpers.
  */
 export function createMockFetch(routes: MockRoute[] = []) {
   const requests: RequestLog[] = [];
@@ -208,6 +234,13 @@ export function createMockFetch(routes: MockRoute[] = []) {
  * Creates a FrontalClient with a mock fetch injected.
  * Returns the client + mock handle so tests can set up routes and assert calls.
  */
+/**
+ * Creates a FrontalClient with a mock fetch injected.
+ * Returns the client + mock handle so tests can set up routes and assert calls.
+ *
+ * @param routes - Initial set of mock routes.
+ * @returns An object with `client` (FrontalClient) and `mock` (mock fetch handle).
+ */
 export function createTestClient(routes: MockRoute[] = []) {
   const mock = createMockFetch(routes);
   const client = new FrontalClient({
@@ -226,6 +259,12 @@ export function createTestClient(routes: MockRoute[] = []) {
 
 /**
  * Creates just an HttpClient with a mock fetch. Useful for service-level tests.
+ */
+/**
+ * Creates just an HttpClient with a mock fetch. Useful for service-level tests.
+ *
+ * @param routes - Initial set of mock routes.
+ * @returns An object with `http` (HttpClient) and `mock` (mock fetch handle).
  */
 export function createTestHttpClient(routes: MockRoute[] = []) {
   const mock = createMockFetch(routes);
@@ -247,7 +286,13 @@ export function createTestHttpClient(routes: MockRoute[] = []) {
 // Response Factories
 // ============================================================================
 
-/** Creates a paginated response body matching the SDK's expected format */
+/**
+ * Creates a paginated response body matching the SDK's expected format.
+ *
+ * @param data - Array of items for the current page.
+ * @param opts - Pagination options (cursor, hasMore, total).
+ * @returns A paginated response object.
+ */
 export function mockPageResponse<T>(
   data: T[],
   opts: { cursor?: string | null; hasMore?: boolean; total?: number } = {}
@@ -267,7 +312,14 @@ export function mockPageResponse<T>(
   };
 }
 
-/** Creates an error response body */
+/**
+ * Creates an error response body matching the SDK's expected format.
+ *
+ * @param code - Error code string.
+ * @param message - Human-readable error message.
+ * @param _status - HTTP status code (default 400).
+ * @returns An error response object.
+ */
 export function mockErrorResponse(
   code: string,
   message: string,
@@ -284,6 +336,7 @@ export function mockErrorResponse(
 // Entity Fixtures
 // ============================================================================
 
+/** Factory functions for creating test entity fixtures with random IDs. */
 export const fixtures = {
   entity: (overrides: Record<string, unknown> = {}) => ({
     id: `ent_${Math.random().toString(36).slice(2, 8)}`,

@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-/**
- * Zod schema for deploying a worker.
- */
+/** Input for deploying a worker (source code). */
 export const deployWorkerInputSchema = z.object({
   name: z.string().min(1),
   code: z.string().min(1),
@@ -10,14 +8,10 @@ export const deployWorkerInputSchema = z.object({
   envVars: z.record(z.string(), z.string()).optional(),
 });
 
-/**
- * Input for deploying a worker.
- */
+/** Input for deploying a worker. */
 export type DeployWorkerInput = z.infer<typeof deployWorkerInputSchema>;
 
-/**
- * Zod schema for invoking a worker.
- */
+/** Options for invoking a deployed worker. */
 export const invokeWorkerOptionsSchema = z.object({
   method: z.string().optional(),
   path: z.string().optional(),
@@ -33,19 +27,13 @@ export const invokeWorkerOptionsSchema = z.object({
     .optional(),
 });
 
-/**
- * Options for invoking a worker.
- */
+/** Options for invoking a worker. */
 export type InvokeWorkerOptions = z.infer<typeof invokeWorkerOptionsSchema>;
 
-/**
- * Zod schema for a worker reference.
- */
+/** A reference to a deployed worker (by name). */
 export const workerRefSchema = z.looseObject({
   name: z.string(),
 });
 
-/**
- * A deployed worker reference.
- */
+/** A deployed worker reference. */
 export type WorkerRef = z.infer<typeof workerRefSchema>;

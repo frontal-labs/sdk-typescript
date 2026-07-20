@@ -12,13 +12,27 @@ import {
 import { IntegrationsSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a standalone Frontal Integrations client.
+ */
 export interface IntegrationsClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Integrations API. Defaults to {@link DEFAULT_INTEGRATIONS_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
 
+/**
+ * Creates an {@link IntegrationsSdk} client from a {@link FrontalClient}
+ * instance or an {@link IntegrationsClientConfig} configuration object.
+ *
+ * @param clientOrConfig - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `IntegrationsSdk` instance.
+ */
 export function createIntegrationsClient(
   clientOrConfig: FrontalClient | IntegrationsClientConfig
 ): IntegrationsSdk {
@@ -43,6 +57,10 @@ export function createIntegrationsClient(
 
 let _integrationsCache: IntegrationsSdk | undefined;
 
+/**
+ * Convenience singleton proxy for the Frontal Integrations SDK.
+ * Lazily initialises from environment variables on first property access.
+ */
 export const integrations = new Proxy<IntegrationsSdk>({} as IntegrationsSdk, {
   get(_t, prop) {
     if (!_integrationsCache) {

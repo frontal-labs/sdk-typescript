@@ -12,13 +12,27 @@ import {
 import { LineageSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a standalone Frontal Lineage client.
+ */
 export interface LineageClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Lineage API. Defaults to {@link DEFAULT_LINEAGE_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
 
+/**
+ * Creates a {@link LineageSdk} client from a {@link FrontalClient} instance or
+ * a {@link LineageClientConfig} configuration object.
+ *
+ * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `LineageSdk` instance.
+ */
 export function createLineageClient(
   config: LineageClientConfig | FrontalClient
 ): LineageSdk;
@@ -45,6 +59,10 @@ export function createLineageClient(
 
 let _lineageCache: LineageSdk | undefined;
 
+/**
+ * Convenience singleton proxy for the Frontal Lineage SDK.
+ * Lazily initialises from environment variables on first property access.
+ */
 export const lineage = new Proxy<LineageSdk>({} as LineageSdk, {
   get(_t, prop) {
     if (!_lineageCache) {

@@ -12,6 +12,14 @@ import {
 import { GraphSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a {@link GraphSdk} client standalone.
+ *
+ * @property apiKey - Frontal API key.
+ * @property baseUrl - Override the default graph API base URL.
+ * @property timeout - Request timeout in milliseconds (default 30_000).
+ * @property maxRetries - Maximum number of retry attempts (default 3).
+ */
 export interface GraphClientConfig {
   apiKey: string;
   baseUrl?: string;
@@ -19,6 +27,13 @@ export interface GraphClientConfig {
   maxRetries?: number;
 }
 
+/**
+ * Creates a {@link GraphSdk} from either an existing {@link FrontalClient}
+ * or a plain configuration object.
+ *
+ * @param config - A pre-configured FrontalClient or config options.
+ * @returns A fully-initialized GraphSdk.
+ */
 export function createGraphClient(
   config: GraphClientConfig | FrontalClient
 ): GraphSdk;
@@ -45,6 +60,16 @@ export function createGraphClient(
 
 let _graphCache: GraphSdk | undefined;
 
+/**
+ * Convenience singleton that lazily creates a {@link GraphSdk} using the
+ * default environment configuration.
+ *
+ * @example
+ * ```ts
+ * import { graph } from "@frontal-labs/graph";
+ * const result = await graph.query({ entityType: "user" });
+ * ```
+ */
 export const graph = new Proxy<GraphSdk>({} as GraphSdk, {
   get(_t, prop) {
     if (!_graphCache) {

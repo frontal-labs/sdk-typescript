@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Zod schema for a stored audit event. */
 export const AuditEventSchema = z
   .object({
     id: z.string(),
@@ -14,8 +15,9 @@ export const AuditEventSchema = z
     tenantId: z.string().optional(),
     timestamp: z.string(),
   })
-  .passthrough();
+  .loose();
 
+/** Zod schema for creating a new audit event. */
 export const AuditEventInputSchema = z.object({
   action: z.string(),
   resource: z.object({ type: z.string(), id: z.string() }),
@@ -23,6 +25,7 @@ export const AuditEventInputSchema = z.object({
   status: z.enum(["success", "failure", "denied"]).default("success"),
 });
 
+/** Zod schema for filtering audit events when querying. */
 export const AuditQuerySchema = z.object({
   actorUserId: z.string().optional(),
   action: z.string().optional(),
@@ -32,6 +35,7 @@ export const AuditQuerySchema = z.object({
   timeTo: z.string().optional(),
 });
 
+/** Zod schema for an audit report. */
 export const AuditReportSchema = z
   .object({
     id: z.string(),
@@ -42,17 +46,23 @@ export const AuditReportSchema = z
     downloadUrl: z.string().optional(),
     createdAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
+/** Zod schema for validating audit client configuration. */
 export const auditConfigSchema = z.object({
   apiKey: z.string().min(1),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   timeout: z.number().int().positive().optional(),
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
+/** A stored audit event. */
 export type AuditEvent = z.infer<typeof AuditEventSchema>;
+/** Input for recording a new audit event. */
 export type AuditEventInput = z.infer<typeof AuditEventInputSchema>;
+/** Filters for querying audit events. */
 export type AuditQuery = z.infer<typeof AuditQuerySchema>;
+/** An audit report definition. */
 export type AuditReport = z.infer<typeof AuditReportSchema>;
+/** Validated audit client configuration. */
 export type AuditConfig = z.input<typeof auditConfigSchema>;

@@ -12,6 +12,14 @@ import {
 import { BlobSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a {@link BlobSdk} client standalone.
+ *
+ * @property apiKey - Frontal API key.
+ * @property baseUrl - Override the default blob API base URL.
+ * @property timeout - Request timeout in milliseconds (default 30_000).
+ * @property maxRetries - Maximum number of retry attempts (default 3).
+ */
 export interface BlobClientConfig {
   apiKey: string;
   baseUrl?: string;
@@ -19,6 +27,13 @@ export interface BlobClientConfig {
   maxRetries?: number;
 }
 
+/**
+ * Creates a {@link BlobSdk} from either an existing {@link FrontalClient}
+ * or a plain configuration object.
+ *
+ * @param config - A pre-configured FrontalClient or config options.
+ * @returns A fully-initialized BlobSdk.
+ */
 export function createBlobClient(
   config: BlobClientConfig | FrontalClient
 ): BlobSdk;
@@ -45,6 +60,16 @@ export function createBlobClient(
 
 let _blobCache: BlobSdk | undefined;
 
+/**
+ * Convenience singleton that lazily creates a {@link BlobSdk} using the
+ * default environment configuration.
+ *
+ * @example
+ * ```ts
+ * import { blob } from "@frontal-labs/blob";
+ * const objects = await blob.list({ bucket: "my-bucket" });
+ * ```
+ */
 export const blob = new Proxy<BlobSdk>({} as BlobSdk, {
   get(_t, prop) {
     if (!_blobCache) {

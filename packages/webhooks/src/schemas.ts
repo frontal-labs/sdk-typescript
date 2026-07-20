@@ -1,16 +1,19 @@
 import { z } from "zod";
 
+/** Schema for a webhook endpoint configuration. */
 export const WebhookSchema = z
   .object({
     id: z.string(),
-    url: z.string().url(),
+    url: z.url(),
     events: z.array(z.string()),
     secret: z.string().optional(),
     status: z.enum(["active", "disabled"]),
     createdAt: z.string(),
     updatedAt: z.string(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for a webhook delivery attempt. */
 export const DeliveryAttemptSchema = z
   .object({
     id: z.string(),
@@ -22,7 +25,9 @@ export const DeliveryAttemptSchema = z
     durationMs: z.number().optional(),
     attemptedAt: z.string(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for webhook delivery statistics. */
 export const WebhookStatsSchema = z
   .object({
     totalDeliveries: z.number(),
@@ -30,15 +35,21 @@ export const WebhookStatsSchema = z
     avgLatencyMs: z.number(),
     errorRate: z.number(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for webhooks client configuration. */
 export const webhooksConfigSchema = z.object({
   apiKey: z.string().min(1),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   timeout: z.number().int().positive().optional(),
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
+/** A webhook endpoint. */
 export type Webhook = z.infer<typeof WebhookSchema>;
+/** A webhook delivery attempt. */
 export type DeliveryAttempt = z.infer<typeof DeliveryAttemptSchema>;
+/** Webhook delivery statistics. */
 export type WebhookStats = z.infer<typeof WebhookStatsSchema>;
+/** Webhooks client configuration. */
 export type WebhooksConfig = z.input<typeof webhooksConfigSchema>;

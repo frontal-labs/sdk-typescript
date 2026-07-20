@@ -5,12 +5,18 @@ import {
 } from "@frontal-labs/core";
 import { z } from "zod";
 
+/**
+ * Schema for pipeline lifecycle status.
+ */
 export const PipelineStatusSchema = z.enum([
   "draft",
   "active",
   "paused",
   "deprecated",
 ]);
+/**
+ * Schema for pipeline run status.
+ */
 export const RunStatusSchema = z.enum([
   "pending",
   "running",
@@ -19,6 +25,9 @@ export const RunStatusSchema = z.enum([
   "cancelled",
 ]);
 
+/**
+ * Schema for a pipeline data source (graph entity, webhook, schedule, or manual).
+ */
 export const PipelineSourceSchema = z
   .object({
     type: z.enum(["graph-entity", "webhook", "schedule", "manual"]),
@@ -26,8 +35,11 @@ export const PipelineSourceSchema = z
     filter: filterConditionsSchema.optional(),
     config: z.record(z.string(), z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a single step within a pipeline definition.
+ */
 export const PipelineStepSchema = z
   .object({
     id: z.string(),
@@ -47,8 +59,11 @@ export const PipelineStepSchema = z
     timeout: z.string().optional(),
     retry: retryConfigSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for defining a new pipeline (source, steps, schedule, policies).
+ */
 export const PipelineDefinitionSchema = z
   .object({
     name: z.string().min(1),
@@ -63,6 +78,9 @@ export const PipelineDefinitionSchema = z
   })
   .strict();
 
+/**
+ * Schema for a full pipeline resource with runtime state.
+ */
 export const PipelineSchema = PipelineDefinitionSchema.extend({
   id: z.string(),
   version: z.number().int(),
@@ -78,8 +96,11 @@ export const PipelineSchema = PipelineDefinitionSchema.extend({
     .optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
-}).passthrough();
+}).loose();
 
+/**
+ * Schema for a pipeline run (execution).
+ */
 export const PipelineRunSchema = z
   .object({
     id: z.string(),
@@ -106,15 +127,18 @@ export const PipelineRunSchema = z
     durationMs: z.number().int().optional(),
     error: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a pipeline backfill operation (reprocess historical data).
+ */
 export const BackfillSchema = z
   .object({
     id: z.string(),
     pipelineId: z.string(),
     status: z.enum(["pending", "running", "completed", "failed", "cancelled"]),
-    from: z.string().datetime(),
-    to: z.string().datetime(),
+    from: z.iso.datetime(),
+    to: z.iso.datetime(),
     strategy: z.enum(["full", "incremental"]).default("incremental"),
     dryRun: z.boolean().default(false),
     processed: z.number().int().default(0),
@@ -131,8 +155,11 @@ export const BackfillSchema = z
     createdAt: timestampSchema,
     completedAt: timestampSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a pipeline lineage graph (nodes and edges).
+ */
 export const LineageGraphSchema = z
   .object({
     nodes: z.array(
@@ -153,8 +180,11 @@ export const LineageGraphSchema = z
     ),
     lastUpdated: timestampSchema,
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for pipeline health status and metrics.
+ */
 export const PipelineHealthSchema = z
   .object({
     pipelineId: z.string(),
@@ -188,16 +218,25 @@ export const PipelineHealthSchema = z
       })
     ),
   })
-  .passthrough();
+  .loose();
 
-// Inferred types
+/** Pipeline lifecycle status type. */
 export type PipelineStatus = z.infer<typeof PipelineStatusSchema>;
+/** Run execution status type. */
 export type RunStatus = z.infer<typeof RunStatusSchema>;
+/** Pipeline data source type. */
 export type PipelineSource = z.infer<typeof PipelineSourceSchema>;
+/** Single pipeline step type. */
 export type PipelineStep = z.infer<typeof PipelineStepSchema>;
+/** Pipeline definition (input) type. */
 export type PipelineDefinition = z.infer<typeof PipelineDefinitionSchema>;
+/** Full pipeline resource type. */
 export type Pipeline = z.infer<typeof PipelineSchema>;
+/** Pipeline run (execution) type. */
 export type PipelineRun = z.infer<typeof PipelineRunSchema>;
+/** Backfill operation type. */
 export type Backfill = z.infer<typeof BackfillSchema>;
+/** Lineage graph type. */
 export type LineageGraph = z.infer<typeof LineageGraphSchema>;
+/** Pipeline health status type. */
 export type PipelineHealth = z.infer<typeof PipelineHealthSchema>;

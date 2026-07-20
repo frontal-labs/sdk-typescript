@@ -28,6 +28,9 @@ import {
 export class BlobSdk {
   private static readonly OBJECT_PATH = "/blob/object";
 
+  /**
+   * @param http - The HTTP client used to make API requests.
+   */
   constructor(private readonly http: HttpClient) {}
 
   /**

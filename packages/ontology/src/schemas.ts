@@ -1,6 +1,9 @@
 import { timestampSchema } from "@frontal-labs/core";
 import { z } from "zod";
 
+/**
+ * Schema for field data types.
+ */
 export const FieldTypeSchema = z.enum([
   "string",
   "integer",
@@ -16,6 +19,9 @@ export const FieldTypeSchema = z.enum([
   "text",
 ]);
 
+/**
+ * Schema for relationship cardinality types.
+ */
 export const RelationshipTypeSchema = z.enum([
   "hasOne",
   "hasMany",
@@ -23,6 +29,9 @@ export const RelationshipTypeSchema = z.enum([
   "manyToMany",
 ]);
 
+/**
+ * Schema for defining a field within a model.
+ */
 export const FieldDefinitionSchema = z
   .object({
     type: FieldTypeSchema,
@@ -44,8 +53,11 @@ export const FieldDefinitionSchema = z
     items: z.string().optional(),
     description: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for defining a relationship between models.
+ */
 export const RelationshipDefinitionSchema = z
   .object({
     name: z.string().optional(),
@@ -62,8 +74,11 @@ export const RelationshipDefinitionSchema = z
     computed: z.record(z.string(), z.unknown()).optional(),
     description: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for substrate routing configuration (operational/analytical/semantic/cache).
+ */
 export const SubstrateRoutingSchema = z
   .object({
     operational: z.string().optional(),
@@ -71,8 +86,11 @@ export const SubstrateRoutingSchema = z
     semantic: z.string().optional(),
     cache: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for semantic metadata (description, lifecycle, tags).
+ */
 export const SemanticMetadataSchema = z
   .object({
     description: z.string().optional(),
@@ -81,8 +99,11 @@ export const SemanticMetadataSchema = z
     significantEvents: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for defining a database index on a model.
+ */
 export const IndexDefinitionSchema = z
   .object({
     name: z.string().optional(),
@@ -91,8 +112,11 @@ export const IndexDefinitionSchema = z
     unique: z.boolean().default(false),
     type: z.enum(["btree", "hash", "gin", "gist", "brin"]).default("btree"),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for defining a new model (fields, relationships, substrates, indexes).
+ */
 export const ModelDefinitionSchema = z
   .object({
     name: z.string(),
@@ -111,14 +135,20 @@ export const ModelDefinitionSchema = z
   })
   .strict();
 
+/**
+ * Schema for a full model resource including runtime state.
+ */
 export const ModelSchema = ModelDefinitionSchema.extend({
   id: z.string(),
   version: z.number().int(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
   entityCount: z.number().int().optional(),
-}).passthrough();
+}).loose();
 
+/**
+ * Schema for a migration plan between model versions.
+ */
 export const MigrationPlanSchema = z
   .object({
     id: z.string(),
@@ -148,8 +178,11 @@ export const MigrationPlanSchema = z
     ]),
     createdAt: timestampSchema,
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a validation or transformation rule.
+ */
 export const RuleDefinitionSchema = z
   .object({
     name: z.string(),
@@ -162,6 +195,9 @@ export const RuleDefinitionSchema = z
   })
   .strict();
 
+/**
+ * Schema for a reusable mixin (shared set of fields and relationships).
+ */
 export const MixinDefinitionSchema = z
   .object({
     name: z.string(),
@@ -174,18 +210,29 @@ export const MixinDefinitionSchema = z
   })
   .strict();
 
-// Inferred types
+/** Field data type. */
 export type FieldType = z.infer<typeof FieldTypeSchema>;
+/** Relationship cardinality type. */
 export type RelationshipType = z.infer<typeof RelationshipTypeSchema>;
+/** Field definition type. */
 export type FieldDefinition = z.infer<typeof FieldDefinitionSchema>;
+/** Relationship definition type. */
 export type RelationshipDefinition = z.infer<
   typeof RelationshipDefinitionSchema
 >;
+/** Substrate routing configuration type. */
 export type SubstrateRouting = z.infer<typeof SubstrateRoutingSchema>;
+/** Semantic metadata type. */
 export type SemanticMetadata = z.infer<typeof SemanticMetadataSchema>;
+/** Index definition type. */
 export type IndexDefinition = z.infer<typeof IndexDefinitionSchema>;
+/** Model definition (input) type. */
 export type ModelDefinition = z.infer<typeof ModelDefinitionSchema>;
+/** Full model resource type. */
 export type Model = z.infer<typeof ModelSchema>;
+/** Migration plan type. */
 export type MigrationPlan = z.infer<typeof MigrationPlanSchema>;
+/** Validation/transformation rule definition type. */
 export type RuleDefinition = z.infer<typeof RuleDefinitionSchema>;
+/** Reusable mixin definition type. */
 export type MixinDefinition = z.infer<typeof MixinDefinitionSchema>;

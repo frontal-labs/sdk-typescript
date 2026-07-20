@@ -6,6 +6,12 @@
  *
  * The signature header is expected to be "t=<timestamp>,v1=<signature>" format,
  * or a raw hex-encoded HMAC.
+ *
+ * @param payload - The raw webhook request body as a string.
+ * @param signatureHeader - The `Signature` header value (raw hex or `t=...,v1=...` format).
+ * @param secret - The shared signing secret.
+ * @param toleranceMs - Timestamp tolerance in milliseconds for anti-replay (default 300s).
+ * @returns An object with `valid` boolean and optional `error` message.
  */
 export function verifyWebhookSignature(
   payload: string,
@@ -75,6 +81,12 @@ function timingSafeEqual(a: string, b: string): boolean {
 /**
  * Verifies and extracts a typed event from an incoming webhook payload.
  * Combines signature verification with JSON parsing in one call.
+ *
+ * @param payload - The raw webhook request body as a string.
+ * @param signatureHeader - The `Signature` header value.
+ * @param secret - The shared signing secret.
+ * @param toleranceMs - Timestamp tolerance in milliseconds for anti-replay.
+ * @returns An object with `valid` boolean, optional parsed `event`, and optional `error` message.
  */
 export function extractWebhookEvent<T = Record<string, unknown>>(
   payload: string,

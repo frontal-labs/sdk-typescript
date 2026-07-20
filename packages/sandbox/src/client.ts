@@ -12,13 +12,27 @@ import {
 import { SandboxSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a standalone Frontal Sandbox client.
+ */
 export interface SandboxClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Sandbox API. Defaults to {@link DEFAULT_SANDBOX_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
 
+/**
+ * Creates a {@link SandboxSdk} client from a {@link FrontalClient} instance or
+ * a {@link SandboxClientConfig} configuration object.
+ *
+ * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `SandboxSdk` instance.
+ */
 export function createSandboxClient(
   config: SandboxClientConfig | FrontalClient
 ): SandboxSdk;
@@ -45,6 +59,10 @@ export function createSandboxClient(
 
 let _sandboxCache: SandboxSdk | undefined;
 
+/**
+ * Convenience singleton proxy for the Frontal Sandbox SDK.
+ * Lazily initialises from environment variables on first property access.
+ */
 export const sandbox = new Proxy<SandboxSdk>({} as SandboxSdk, {
   get(_t, prop) {
     if (!_sandboxCache) {

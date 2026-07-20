@@ -16,6 +16,14 @@ import {
 import { WorkflowsSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a {@link WorkflowsSdk} client standalone.
+ *
+ * @property apiKey - Frontal API key.
+ * @property baseUrl - Override the default workflows API base URL.
+ * @property timeout - Request timeout in milliseconds (default 30_000).
+ * @property maxRetries - Maximum number of retry attempts (default 3).
+ */
 export interface WorkflowsClientConfig {
   apiKey: string;
   baseUrl?: string;
@@ -23,8 +31,13 @@ export interface WorkflowsClientConfig {
   maxRetries?: number;
 }
 
-/** Create from a FrontalClient instance */
-/** Create standalone with just config */
+/**
+ * Creates a {@link WorkflowsSdk} from either an existing {@link FrontalClient}
+ * or a plain configuration object.
+ *
+ * @param clientOrConfig - A pre-configured FrontalClient or config options.
+ * @returns A fully-initialized WorkflowsSdk.
+ */
 export function createWorkflowsClient(
   config: WorkflowsClientConfig | FrontalClient
 ): WorkflowsSdk;
@@ -51,9 +64,18 @@ export function createWorkflowsClient(
   return new WorkflowsSdk(http);
 }
 
-// Default instance that works automatically with environment variables
 let _workflowsCache: WorkflowsSdk | undefined;
 
+/**
+ * Convenience singleton that lazily creates a {@link WorkflowsSdk} using the
+ * default environment configuration.
+ *
+ * @example
+ * ```ts
+ * import { workflows } from "@frontal-labs/workflows";
+ * const list = await workflows.list();
+ * ```
+ */
 export const workflows = new Proxy<WorkflowsSdk>({} as WorkflowsSdk, {
   get(_t, prop) {
     if (!_workflowsCache) {

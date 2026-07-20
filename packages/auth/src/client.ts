@@ -12,17 +12,32 @@ import {
 import { AuthSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/** Configuration options for creating an Auth API client. */
 export interface AuthClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Auth API. Defaults to `DEFAULT_AUTH_BASE_URL`. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. */
   timeout?: number;
+  /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
 }
 
+/**
+ * Create an Auth SDK client.
+ * @param config - Either a `FrontalClient` instance or an `AuthClientConfig` object.
+ * @returns A configured `AuthSdk` instance.
+ */
 export function createAuthClient(
   config: AuthClientConfig | FrontalClient
 ): AuthSdk;
 
+/**
+ * Create an Auth SDK client.
+ * @param clientOrConfig - Either a `FrontalClient` instance or an `AuthClientConfig` object.
+ * @returns A configured `AuthSdk` instance.
+ */
 export function createAuthClient(
   clientOrConfig: FrontalClient | AuthClientConfig
 ): AuthSdk {
@@ -45,6 +60,10 @@ export function createAuthClient(
 
 let _authCache: AuthSdk | undefined;
 
+/**
+ * Default singleton Auth SDK instance backed by the default {@link FrontalClient}.
+ * Lazily initialized on first access.
+ */
 export const auth = new Proxy<AuthSdk>({} as AuthSdk, {
   get(_t, prop) {
     if (!_authCache) {

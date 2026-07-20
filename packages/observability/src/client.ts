@@ -12,13 +12,27 @@ import {
 import { ObservabilitySdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a standalone Frontal Observability client.
+ */
 export interface ObservabilityClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Observability API. Defaults to {@link DEFAULT_OBSERVABILITY_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
 
+/**
+ * Creates an {@link ObservabilitySdk} client from a {@link FrontalClient}
+ * instance or an {@link ObservabilityClientConfig} configuration object.
+ *
+ * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `ObservabilitySdk` instance.
+ */
 export function createObservabilityClient(
   config: ObservabilityClientConfig | FrontalClient
 ): ObservabilitySdk;
@@ -47,6 +61,10 @@ export function createObservabilityClient(
 
 let _observabilityCache: ObservabilitySdk | undefined;
 
+/**
+ * Convenience singleton proxy for the Frontal Observability SDK.
+ * Lazily initialises from environment variables on first property access.
+ */
 export const observability = new Proxy<ObservabilitySdk>(
   {} as ObservabilitySdk,
   {

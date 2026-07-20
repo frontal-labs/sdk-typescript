@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Schema for a schedule definition. */
 export const ScheduleSchema = z
   .object({
     id: z.string(),
@@ -17,7 +18,9 @@ export const ScheduleSchema = z
     createdAt: z.string(),
     updatedAt: z.string(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for a schedule execution run. */
 export const ScheduleRunSchema = z
   .object({
     id: z.string(),
@@ -28,14 +31,19 @@ export const ScheduleRunSchema = z
     error: z.string().optional(),
     createdAt: z.string(),
   })
-  .passthrough();
+  .loose();
+
+/** Schema for schedules client configuration. */
 export const schedulesConfigSchema = z.object({
   apiKey: z.string().min(1),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   timeout: z.number().int().positive().optional(),
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
+/** A schedule definition. */
 export type Schedule = z.infer<typeof ScheduleSchema>;
+/** A schedule execution run. */
 export type ScheduleRun = z.infer<typeof ScheduleRunSchema>;
+/** Schedules client configuration. */
 export type SchedulesConfig = z.input<typeof schedulesConfigSchema>;

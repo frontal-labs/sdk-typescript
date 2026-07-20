@@ -12,13 +12,27 @@ import {
 import { WorkersSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating a standalone Frontal Workers client.
+ */
 export interface WorkersClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Workers API. Defaults to {@link DEFAULT_WORKERS_BASE_URL}. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
   timeout?: number;
+  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
 }
 
+/**
+ * Creates a {@link WorkersSdk} client from a {@link FrontalClient} instance or
+ * a {@link WorkersClientConfig} configuration object.
+ *
+ * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @returns A configured `WorkersSdk` instance.
+ */
 export function createWorkersClient(
   config: WorkersClientConfig | FrontalClient
 ): WorkersSdk;
@@ -45,6 +59,10 @@ export function createWorkersClient(
 
 let _workersCache: WorkersSdk | undefined;
 
+/**
+ * Convenience singleton proxy for the Frontal Workers SDK.
+ * Lazily initialises from environment variables on first property access.
+ */
 export const workers = new Proxy<WorkersSdk>({} as WorkersSdk, {
   get(_t, prop) {
     if (!_workersCache) {

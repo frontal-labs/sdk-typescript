@@ -12,13 +12,23 @@ import {
 import { ConnectorsSdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/** Configuration options for creating a Connectors API client. */
 export interface ConnectorsClientConfig {
+  /** Frontal API key. */
   apiKey: string;
+  /** Base URL for the Connectors API. Defaults to `DEFAULT_CONNECTORS_BASE_URL`. */
   baseUrl?: string;
+  /** Request timeout in milliseconds. */
   timeout?: number;
+  /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
 }
 
+/**
+ * Create a Connectors SDK client.
+ * @param clientOrConfig - Either a `FrontalClient` instance or a `ConnectorsClientConfig` object.
+ * @returns A configured `ConnectorsSdk` instance.
+ */
 export function createConnectorsClient(
   clientOrConfig: FrontalClient | ConnectorsClientConfig
 ): ConnectorsSdk {
@@ -43,6 +53,10 @@ export function createConnectorsClient(
 
 let _connectorsCache: ConnectorsSdk | undefined;
 
+/**
+ * Default singleton Connectors SDK instance backed by the default {@link FrontalClient}.
+ * Lazily initialized on first access.
+ */
 export const connectors = new Proxy<ConnectorsSdk>({} as ConnectorsSdk, {
   get(_t, prop) {
     if (!_connectorsCache) {

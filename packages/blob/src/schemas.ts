@@ -21,9 +21,9 @@ export type BucketConfig = z.infer<typeof bucketConfigSchema>;
  */
 export const blobObjectSchema = z.object({
   key: z.string(),
-  size: z.number().int().nonnegative(),
+  size: z.number().int().min(0),
   contentType: z.string(),
-  lastModified: z.string().datetime(),
+  lastModified: z.iso.datetime(),
   etag: z.string(),
   metadata: z.record(z.string(), z.string()).optional(),
 });
@@ -70,7 +70,7 @@ export type SignedUrlOptions = z.infer<typeof signedUrlOptionsSchema>;
  */
 export const blobConfigSchema = z.object({
   apiKey: z.string().optional(),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
 });
 
 /**

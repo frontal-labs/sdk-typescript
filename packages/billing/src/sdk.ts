@@ -19,16 +19,28 @@ interface ListOpts {
  * them under a `/v1/billing` namespace and strips the `billing` segment, so the
  * SDK writes `/billing/<resource>` (base URL already includes `/v1`).
  */
+/** Client for the Frontal Billing API. Manages customers, plans, subscriptions, invoices, wallets, meters, prices, and add-ons. */
 export class BillingSdk {
+  /** Namespace for customer operations. */
   readonly customers: CustomersNamespace;
+  /** Namespace for plan operations. */
   readonly plans: PlansNamespace;
+  /** Namespace for subscription operations. */
   readonly subscriptions: SubscriptionsNamespace;
+  /** Namespace for invoice operations. */
   readonly invoices: InvoicesNamespace;
+  /** Namespace for wallet operations. */
   readonly wallets: WalletsNamespace;
+  /** Namespace for meter operations. */
   readonly meters: MetersNamespace;
+  /** Namespace for price operations. */
   readonly prices: PricesNamespace;
+  /** Namespace for add-on operations. */
   readonly addons: AddonsNamespace;
 
+  /**
+   * @param http - The HTTP client used for API requests.
+   */
   constructor(http: HttpClient) {
     this.customers = new CustomersNamespace(http);
     this.plans = new PlansNamespace(http);
@@ -72,19 +84,24 @@ abstract class ResourceNamespace<T = Obj> {
   }
 }
 
+/** Namespace for customer operations. */
 export class CustomersNamespace extends ResourceNamespace {
   constructor(http: HttpClient) {
     super(http, "/billing/customers");
   }
+  /** Get entitlements for a customer. */
   entitlements(id: string): Promise<Obj> {
     return this.http.get(`/billing/customers/${id}/entitlements`);
   }
+  /** Get usage data for a customer. */
   usage(id: string): Promise<Obj> {
     return this.http.get(`/billing/customers/${id}/usage`);
   }
+  /** Get wallets for a customer. */
   wallets(id: string): Promise<Obj> {
     return this.http.get(`/billing/customers/${id}/wallets`);
   }
+  /** Get invoice summary for a customer. */
   invoiceSummary(id: string): Promise<Obj> {
     return this.http.get(`/billing/customers/${id}/invoices/summary`);
   }
@@ -94,49 +111,62 @@ export class CustomersNamespace extends ResourceNamespace {
   }
 }
 
+/** Namespace for plan operations. */
 export class PlansNamespace extends ResourceNamespace<Plan> {
   constructor(http: HttpClient) {
     super(http, "/billing/plans");
   }
+  /** Clone a plan with optional overrides. */
   clone(id: string, input: Obj = {}): Promise<Plan> {
     return this.http.post(`/billing/plans/${id}/clone`, input);
   }
+  /** Get entitlements for a plan. */
   entitlements(id: string): Promise<Obj> {
     return this.http.get(`/billing/plans/${id}/entitlements`);
   }
 }
 
+/** Namespace for subscription operations. */
 export class SubscriptionsNamespace extends ResourceNamespace<Subscription> {
   constructor(http: HttpClient) {
     super(http, "/billing/subscriptions");
   }
+  /** Activate a subscription. */
   activate(id: string): Promise<Subscription> {
     return this.http.post(`/billing/subscriptions/${id}/activate`, {});
   }
+  /** Cancel a subscription with optional parameters. */
   cancel(id: string, input: Obj = {}): Promise<Subscription> {
     return this.http.post(`/billing/subscriptions/${id}/cancel`, input);
   }
+  /** Pause a subscription. */
   pause(id: string, input: Obj = {}): Promise<Subscription> {
     return this.http.post(`/billing/subscriptions/${id}/pause`, input);
   }
+  /** Resume a paused subscription. */
   resume(id: string, input: Obj = {}): Promise<Subscription> {
     return this.http.post(`/billing/subscriptions/${id}/resume`, input);
   }
+  /** Get entitlements for a subscription. */
   entitlements(id: string): Promise<Obj> {
     return this.http.get(`/billing/subscriptions/${id}/entitlements`);
   }
 }
 
+/** Namespace for invoice operations. */
 export class InvoicesNamespace extends ResourceNamespace<Invoice> {
   constructor(http: HttpClient) {
     super(http, "/billing/invoices");
   }
+  /** Finalize a draft invoice. */
   finalize(id: string): Promise<Invoice> {
     return this.http.post(`/billing/invoices/${id}/finalize`, {});
   }
+  /** Void an open invoice. */
   void(id: string): Promise<Invoice> {
     return this.http.post(`/billing/invoices/${id}/void`, {});
   }
+  /** Generate a preview invoice. */
   preview(input: Obj): Promise<Invoice> {
     return this.http.post("/billing/invoices/preview", input);
   }
@@ -146,46 +176,57 @@ export class InvoicesNamespace extends ResourceNamespace<Invoice> {
   }
 }
 
+/** Namespace for wallet operations. */
 export class WalletsNamespace extends ResourceNamespace {
   constructor(http: HttpClient) {
     super(http, "/billing/wallets");
   }
+  /** List transactions for a wallet. */
   transactions(id: string, opts: ListOpts = {}): Promise<Obj> {
     return this.http.get(`/billing/wallets/${id}/transactions`, opts);
   }
+  /** Top up a wallet balance. */
   topUp(id: string, input: Obj): Promise<Obj> {
     return this.http.post(`/billing/wallets/${id}/top-up`, input);
   }
+  /** Terminate a wallet. */
   terminate(id: string): Promise<Obj> {
     return this.http.post(`/billing/wallets/${id}/terminate`, {});
   }
+  /** Get the real-time balance of a wallet. */
   realTimeBalance(id: string): Promise<Obj> {
     return this.http.get(`/billing/wallets/${id}/balance/real-time`);
   }
 }
 
+/** Namespace for meter operations. */
 export class MetersNamespace extends ResourceNamespace {
   constructor(http: HttpClient) {
     super(http, "/billing/meters");
   }
+  /** Disable a meter. */
   disable(id: string): Promise<Obj> {
     return this.http.post(`/billing/meters/${id}/disable`, {});
   }
 }
 
+/** Namespace for price operations. */
 export class PricesNamespace extends ResourceNamespace {
   constructor(http: HttpClient) {
     super(http, "/billing/prices");
   }
+  /** Look up a price by its lookup key. */
   lookup(lookupKey: string): Promise<Obj> {
     return this.http.get(`/billing/prices/lookup/${lookupKey}`);
   }
 }
 
+/** Namespace for add-on operations. */
 export class AddonsNamespace extends ResourceNamespace {
   constructor(http: HttpClient) {
     super(http, "/billing/addons");
   }
+  /** Get entitlements for an add-on. */
   entitlements(id: string): Promise<Obj> {
     return this.http.get(`/billing/addons/${id}/entitlements`);
   }

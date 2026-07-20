@@ -2,6 +2,7 @@ import { z } from "zod";
 
 // ── Core Identity ──────────────────────────────────────────────────
 
+/** Zod schema for a user identity linked to an external provider. */
 export const UserIdentitySchema = z
   .object({
     id: z.string(),
@@ -13,8 +14,9 @@ export const UserIdentitySchema = z
     lastSignInAt: z.string().optional(),
     updatedAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/** Zod schema for a multi-factor authentication factor. */
 export const FactorSchema = z
   .object({
     id: z.string(),
@@ -24,7 +26,7 @@ export const FactorSchema = z
     createdAt: z.string(),
     updatedAt: z.string(),
   })
-  .passthrough();
+  .loose();
 
 export const UserSchema = z
   .object({
@@ -54,10 +56,11 @@ export const UserSchema = z
     newPhone: z.string().optional(),
     deletedAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 // ── Sessions ───────────────────────────────────────────────────────
 
+/** Zod schema for an authentication session containing tokens and user data. */
 export const SessionSchema = z
   .object({
     accessToken: z.string(),
@@ -69,10 +72,11 @@ export const SessionSchema = z
     providerToken: z.string().nullable().optional(),
     providerRefreshToken: z.string().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 
 // ── Credentials ────────────────────────────────────────────────────
 
+/** Zod schema for signing up with email/phone and password. */
 export const SignUpWithPasswordCredentialsSchema = z
   .object({
     email: z.string().email().optional(),
@@ -91,6 +95,7 @@ export const SignUpWithPasswordCredentialsSchema = z
     message: "email or phone required",
   });
 
+/** Zod schema for signing in with email/phone and password. */
 export const SignInWithPasswordCredentialsSchema = z
   .object({
     email: z.string().email().optional(),
@@ -102,6 +107,7 @@ export const SignInWithPasswordCredentialsSchema = z
     message: "email or phone required",
   });
 
+/** Zod schema for signing in with a one-time password (OTP) sent via email or phone. */
 export const SignInWithOtpCredentialsSchema = z
   .object({
     email: z.string().email().optional(),
@@ -120,6 +126,7 @@ export const SignInWithOtpCredentialsSchema = z
     message: "email or phone required",
   });
 
+/** Zod schema for supported OAuth providers. */
 export const ProviderSchema = z.enum([
   "apple",
   "azure",
@@ -145,6 +152,7 @@ export const ProviderSchema = z.enum([
   "fly",
 ]);
 
+/** Zod schema for signing in with an OAuth provider. */
 export const SignInWithOAuthCredentialsSchema = z.object({
   provider: ProviderSchema,
   options: z
@@ -157,6 +165,7 @@ export const SignInWithOAuthCredentialsSchema = z.object({
     .optional(),
 });
 
+/** Zod schema for signing in with a third-party ID token. */
 export const SignInWithIdTokenCredentialsSchema = z.object({
   provider: z.string(),
   token: z.string(),
@@ -165,6 +174,7 @@ export const SignInWithIdTokenCredentialsSchema = z.object({
   options: z.object({ captchaToken: z.string().optional() }).optional(),
 });
 
+/** Zod schema for signing in with SSO via a provider ID or domain. */
 export const SignInWithSSOParamsSchema = z.union([
   z.object({
     providerId: z.string(),
@@ -186,6 +196,7 @@ export const SignInWithSSOParamsSchema = z.union([
   }),
 ]);
 
+/** Zod schema for signing in anonymously. */
 export const SignInAnonymouslyCredentialsSchema = z.object({
   options: z
     .object({
@@ -197,6 +208,7 @@ export const SignInAnonymouslyCredentialsSchema = z.object({
 
 // ── Verification ───────────────────────────────────────────────────
 
+/** Zod schema for email OTP types. */
 export const EmailOtpTypeSchema = z.enum([
   "signup",
   "invite",
@@ -206,8 +218,10 @@ export const EmailOtpTypeSchema = z.enum([
   "email",
 ]);
 
+/** Zod schema for mobile OTP types. */
 export const MobileOtpTypeSchema = z.enum(["sms", "phone_change"]);
 
+/** Zod schema for verifying an OTP. */
 export const VerifyOtpParamsSchema = z.union([
   z.object({
     phone: z.string(),
@@ -236,6 +250,7 @@ export const VerifyOtpParamsSchema = z.union([
 
 // ── User Attributes ────────────────────────────────────────────────
 
+/** Zod schema for updating standard user attributes. */
 export const UserAttributesSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
@@ -244,6 +259,7 @@ export const UserAttributesSchema = z.object({
   data: z.record(z.string(), z.unknown()).optional(),
 });
 
+/** Zod schema for admin-only user attributes (includes metadata, ban, role, etc.). */
 export const AdminUserAttributesSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().optional(),
@@ -261,6 +277,7 @@ export const AdminUserAttributesSchema = z.object({
 
 // ── MFA ────────────────────────────────────────────────────────────
 
+/** Zod schema for MFA enrollment parameters (TOTP, phone, or WebAuthn). */
 export const MfaEnrollParamsSchema = z.union([
   z.object({
     factorType: z.literal("totp"),
@@ -278,21 +295,26 @@ export const MfaEnrollParamsSchema = z.union([
   }),
 ]);
 
+/** Zod schema for initiating an MFA challenge. */
 export const MfaChallengeParamsSchema = z.object({ factorId: z.string() });
 
+/** Zod schema for verifying an MFA challenge. */
 export const MfaVerifyParamsSchema = z.object({
   factorId: z.string(),
   challengeId: z.string(),
   code: z.string(),
 });
 
+/** Zod schema for challenging and verifying in a single step. */
 export const MfaChallengeAndVerifyParamsSchema = z.object({
   factorId: z.string(),
   code: z.string(),
 });
 
+/** Zod schema for unenrolling from an MFA factor. */
 export const MfaUnenrollParamsSchema = z.object({ factorId: z.string() });
 
+/** Zod schema for the MFA enrollment response. */
 export const MfaEnrollResponseSchema = z.object({
   id: z.string(),
   type: z.enum(["totp", "phone", "webauthn"]),
@@ -303,12 +325,14 @@ export const MfaEnrollResponseSchema = z.object({
   phone: z.string().optional(),
 });
 
+/** Zod schema for the MFA challenge response. */
 export const MfaChallengeResponseSchema = z.object({
   id: z.string(),
   type: z.enum(["totp", "phone", "webauthn"]),
   expiresAt: z.number(),
 });
 
+/** Zod schema for the MFA verification response containing a new session. */
 export const MfaVerifyResponseSchema = z.object({
   accessToken: z.string(),
   tokenType: z.literal("bearer"),
@@ -317,6 +341,7 @@ export const MfaVerifyResponseSchema = z.object({
   user: UserSchema,
 });
 
+/** Zod schema for the list of enrolled MFA factors. */
 export const AuthMFAListFactorsResponseSchema = z.object({
   all: z.array(FactorSchema),
   totp: z.array(FactorSchema),
@@ -324,6 +349,7 @@ export const AuthMFAListFactorsResponseSchema = z.object({
   webauthn: z.array(FactorSchema),
 });
 
+/** Zod schema for the authenticator assurance level (AAL). */
 export const AuthenticatorAssuranceLevelSchema = z.object({
   currentLevel: z.enum(["aal1", "aal2"]).nullable(),
   nextLevel: z.enum(["aal1", "aal2"]).nullable(),
@@ -334,17 +360,20 @@ export const AuthenticatorAssuranceLevelSchema = z.object({
 
 // ── Admin ──────────────────────────────────────────────────────────
 
+/** Zod schema for pagination parameters. */
 export const PageParamsSchema = z.object({
   page: z.number().int().positive().optional(),
   perPage: z.number().int().positive().optional(),
 });
 
+/** Zod schema for pagination metadata. */
 export const PaginationSchema = z.object({
   nextPage: z.number().nullable(),
   lastPage: z.number(),
   total: z.number(),
 });
 
+/** Zod schema for generating a magic link. */
 export const GenerateLinkParamsSchema = z.object({
   type: z.enum([
     "signup",
@@ -367,6 +396,7 @@ export const GenerateLinkParamsSchema = z.object({
 
 // ── Auth Events ────────────────────────────────────────────────────
 
+/** Zod schema for auth state change event types. */
 export const AuthChangeEventSchema = z.enum([
   "INITIAL_SESSION",
   "PASSWORD_RECOVERY",
@@ -379,58 +409,87 @@ export const AuthChangeEventSchema = z.enum([
 
 // ── Config ─────────────────────────────────────────────────────────
 
+/** Zod schema for validating auth client configuration. */
 export const authConfigSchema = z.object({
   apiKey: z.string().min(1),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   timeout: z.number().int().positive().optional(),
   maxRetries: z.number().int().min(0).max(10).optional(),
 });
 
 // ── Inferred Types ─────────────────────────────────────────────────
 
+/** A registered user. */
 export type User = z.infer<typeof UserSchema>;
+/** An authentication session with tokens. */
 export type Session = z.infer<typeof SessionSchema>;
+/** A user identity linked to an external provider. */
 export type UserIdentity = z.infer<typeof UserIdentitySchema>;
+/** An MFA factor. */
 export type Factor = z.infer<typeof FactorSchema>;
+/** Auth state change event type. */
 export type AuthChangeEvent = z.infer<typeof AuthChangeEventSchema>;
+/** Supported OAuth provider. */
 export type Provider = z.infer<typeof ProviderSchema>;
+/** Credentials for signing up with email/phone and password. */
 export type SignUpWithPasswordCredentials = z.input<
   typeof SignUpWithPasswordCredentialsSchema
 >;
+/** Credentials for signing in with email/phone and password. */
 export type SignInWithPasswordCredentials = z.input<
   typeof SignInWithPasswordCredentialsSchema
 >;
+/** Credentials for signing in with a one-time password. */
 export type SignInWithOtpCredentials = z.input<
   typeof SignInWithOtpCredentialsSchema
 >;
+/** Credentials for signing in with OAuth. */
 export type SignInWithOAuthCredentials = z.input<
   typeof SignInWithOAuthCredentialsSchema
 >;
+/** Credentials for signing in with an ID token. */
 export type SignInWithIdTokenCredentials = z.input<
   typeof SignInWithIdTokenCredentialsSchema
 >;
+/** Parameters for signing in with SSO. */
 export type SignInWithSSOParams = z.input<typeof SignInWithSSOParamsSchema>;
+/** Credentials for anonymous sign-in. */
 export type SignInAnonymouslyCredentials = z.input<
   typeof SignInAnonymouslyCredentialsSchema
 >;
+/** Parameters for verifying an OTP. */
 export type VerifyOtpParams = z.input<typeof VerifyOtpParamsSchema>;
+/** Standard user attributes for update. */
 export type UserAttributes = z.input<typeof UserAttributesSchema>;
+/** Admin-only user attributes for create/update. */
 export type AdminUserAttributes = z.input<typeof AdminUserAttributesSchema>;
+/** Parameters for MFA enrollment. */
 export type MfaEnrollParams = z.input<typeof MfaEnrollParamsSchema>;
+/** Parameters for MFA challenge. */
 export type MfaChallengeParams = z.input<typeof MfaChallengeParamsSchema>;
+/** Parameters for MFA verification. */
 export type MfaVerifyParams = z.input<typeof MfaVerifyParamsSchema>;
+/** Parameters for combined MFA challenge and verification. */
 export type MfaChallengeAndVerifyParams = z.input<
   typeof MfaChallengeAndVerifyParamsSchema
 >;
+/** Parameters for MFA unenrollment. */
 export type MfaUnenrollParams = z.input<typeof MfaUnenrollParamsSchema>;
+/** Pagination query parameters. */
 export type PageParams = z.input<typeof PageParamsSchema>;
+/** Pagination metadata. */
 export type Pagination = z.infer<typeof PaginationSchema>;
+/** Parameters for generating a magic link. */
 export type GenerateLinkParams = z.input<typeof GenerateLinkParamsSchema>;
+/** Email OTP type. */
 export type EmailOtpType = z.infer<typeof EmailOtpTypeSchema>;
+/** Mobile OTP type. */
 export type MobileOtpType = z.infer<typeof MobileOtpTypeSchema>;
+/** Validated auth client configuration. */
 export type AuthConfig = z.input<typeof authConfigSchema>;
 
 // Response shapes
+/** Standard authentication response containing user and session or an error. */
 export type AuthResponse =
   | {
       data: { user: User; session: Session } | { user: null; session: null };
@@ -440,30 +499,36 @@ export type AuthResponse =
       data: { user: null; session: null };
       error: { message: string; status: number };
     };
+/** Token-based authentication response. */
 export type AuthTokenResponse =
   | { data: { user: User; session: Session }; error: null }
   | {
       data: { user: null; session: null };
       error: { message: string; status: number };
     };
+/** OTP-based authentication response. */
 export type AuthOtpResponse =
   | { data: { user: null; session: null; messageId?: string }; error: null }
   | {
       data: { user: null; session: null };
       error: { message: string; status: number };
     };
+/** User query/update response. */
 export type UserResponse =
   | { data: { user: User }; error: null }
   | { data: { user: null }; error: { message: string; status: number } };
+/** OAuth authorization response. */
 export type OAuthResponse =
   | { data: { provider: string; url: string }; error: null }
   | {
       data: { provider: string; url: null };
       error: { message: string; status: number };
     };
+/** SSO authorization response. */
 export type SSOResponse =
   | { data: { url: string }; error: null }
   | { data: { url: null }; error: { message: string; status: number } };
+/** Magic link generation response. */
 export type GenerateLinkResponse =
   | {
       data: {

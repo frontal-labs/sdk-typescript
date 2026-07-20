@@ -70,5 +70,7 @@ export const clientConfigSchema = z
   })
   .strict();
 
+/** Raw (unvalidated) client configuration type derived from the Zod input shape. */
 export type ClientConfigInput = z.input<typeof clientConfigSchema>;
+/** Fully validated and defaulted client configuration type. */
 export type ClientConfigOutput = z.output<typeof clientConfigSchema>;

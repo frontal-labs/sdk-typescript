@@ -1,16 +1,17 @@
 import { HttpClient } from "@frontal-labs/core";
 import { createMockFetch, type MockRoute, type RequestLog } from "./index";
 
+/** Shared integration test harness with mock state across multiple services. */
 export interface IntegrationHarness {
-  /** Shared mock fetch — all services route through this */
+  /** Shared mock fetch — all services route through this. */
   fetch: ReturnType<typeof createMockFetch>["fetch"];
-  /** All recorded requests across all services */
+  /** All recorded requests across all services. */
   requests: RequestLog[];
-  /** Create an HttpClient connected to the shared mock */
+  /** Create an HttpClient connected to the shared mock. */
   createHttp(routes?: MockRoute[]): { http: HttpClient };
-  /** Assert an endpoint was called by any service */
+  /** Assert an endpoint was called by any service. */
   expectCalled(method: string, pathSubstring: string): RequestLog;
-  /** Reset recorded requests */
+  /** Reset recorded requests. */
   reset(): void;
 }
 
@@ -18,6 +19,14 @@ export interface IntegrationHarness {
  * Creates an integration test harness with shared mock state.
  * Multiple services can be created within the harness and they all
  * share the same mock fetch and request log.
+ */
+/**
+ * Creates an integration test harness with shared mock state.
+ * Multiple services can be created within the harness and they all
+ * share the same mock fetch and request log.
+ *
+ * @param initialRoutes - Initial set of mock routes.
+ * @returns An {@link IntegrationHarness} for shared test setup and assertions.
  */
 export function createIntegrationHarness(
   initialRoutes: MockRoute[] = []
@@ -74,6 +83,10 @@ export function createIntegrationHarness(
 
 /**
  * Standard paginated response wrapper for integration test fixtures.
+ *
+ * @param data - Array of items for the current page.
+ * @param overrides - Optional pagination field overrides.
+ * @returns A paginated response object.
  */
 export function integrationPage<T>(
   data: T[],
@@ -94,8 +107,10 @@ export function integrationPage<T>(
 }
 
 /**
- * Wraps a response body in the standard `{ data, error }` envelope
- * used by GoTrue-style APIs (auth, potentially others).
+ * Wraps a response body in the standard `{ data, error }` envelope.
+ *
+ * @param payload - The response data to wrap.
+ * @returns An envelope with `data` and `null` error.
  */
 export function dataEnvelope<T>(payload: T) {
   return { data: payload, error: null };

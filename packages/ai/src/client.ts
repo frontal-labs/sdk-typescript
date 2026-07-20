@@ -12,6 +12,14 @@ import {
 import { AISdk } from "./sdk";
 import { env } from "@frontal-labs/core";
 
+/**
+ * Configuration for creating an {@link AISdk} client standalone.
+ *
+ * @property apiKey - Frontal API key.
+ * @property baseUrl - Override the default AI gateway base URL.
+ * @property timeout - Request timeout in milliseconds (default 30_000).
+ * @property maxRetries - Maximum number of retry attempts (default 3).
+ */
 export interface AIClientConfig {
   apiKey: string;
   baseUrl?: string;
@@ -19,6 +27,13 @@ export interface AIClientConfig {
   maxRetries?: number;
 }
 
+/**
+ * Creates an {@link AISdk} from either an existing {@link FrontalClient}
+ * or a plain configuration object.
+ *
+ * @param clientOrConfig - A pre-configured FrontalClient or config options.
+ * @returns A fully-initialized AISdk.
+ */
 export function createAIClient(
   clientOrConfig: FrontalClient | AIClientConfig
 ): AISdk;
@@ -44,6 +59,16 @@ export function createAIClient(
 
 let _aiCache: AISdk | undefined;
 
+/**
+ * Convenience singleton that lazily creates an {@link AISdk} using the
+ * default environment configuration.
+ *
+ * @example
+ * ```ts
+ * import { ai } from "@frontal-labs/ai";
+ * const result = await ai.generateText({ model: "gpt-4o-mini", prompt: "Hello" });
+ * ```
+ */
 export const ai = new Proxy<AISdk>({} as AISdk, {
   get(_t, prop) {
     if (!_aiCache) {

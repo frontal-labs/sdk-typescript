@@ -1,10 +1,16 @@
 import { z } from "zod";
 import { filterConditionsSchema } from "@frontal-labs/core";
 
+/**
+ * Zod schema for ISO datetime or Date objects, transformed to Date instances.
+ */
 export const timestampSchema = z
-  .union([z.string().datetime(), z.date()])
+  .union([z.iso.datetime(), z.date()])
   .transform((value) => (value instanceof Date ? value : new Date(value)));
 
+/**
+ * Zod schema for retry configuration.
+ */
 export const retryConfigSchema = z
   .object({
     maxRetries: z.number().int().min(0).default(3),
@@ -23,13 +29,24 @@ export const retryConfigSchema = z
     retryOn: [408, 409, 425, 429, 500, 502, 503, 504],
   });
 
+/**
+ * Schema for the lifecycle status of an agent.
+ */
 export const AgentStatusSchema = z.enum([
   "draft",
   "active",
   "paused",
   "deprecated",
 ]);
+
+/**
+ * Schema for urgency levels used in escalations.
+ */
 export const UrgencySchema = z.enum(["critical", "high", "medium", "low"]);
+
+/**
+ * Schema for the status of an escalation.
+ */
 export const EscalationStatusSchema = z.enum([
   "pending",
   "resolved",
@@ -38,6 +55,9 @@ export const EscalationStatusSchema = z.enum([
   "expired",
 ]);
 
+/**
+ * Schema for defining an agent trigger (event + optional filter + debounce).
+ */
 export const TriggerDefinitionSchema = z
   .object({
     event: z.string(),
@@ -46,6 +66,9 @@ export const TriggerDefinitionSchema = z
   })
   .strict();
 
+/**
+ * Schema for an agent's access scope (read/write/action permissions).
+ */
 export const AgentScopeSchema = z
   .object({
     read: z.array(z.string()).default([]),
@@ -64,6 +87,9 @@ export const AgentScopeSchema = z
     invokeFunctions: [],
   });
 
+/**
+ * Schema for confidence threshold configuration (auto-execute, escalate, review).
+ */
 export const ConfidenceConfigSchema = z
   .object({
     autoExecuteAbove: z.number().min(0).max(1).default(0.85),
@@ -76,6 +102,9 @@ export const ConfidenceConfigSchema = z
     requireReviewBetween: true,
   });
 
+/**
+ * Schema for agent memory configuration (type, TTL, token limits).
+ */
 export const MemoryConfigSchema = z
   .object({
     type: z.enum(["working", "persistent", "episodic"]).default("working"),
@@ -84,11 +113,17 @@ export const MemoryConfigSchema = z
   })
   .default({ type: "working" as const });
 
+/**
+ * Schema for rate limiting configuration.
+ */
 export const RateLimitConfigSchema = z.object({
   maxExecutionsPerMinute: z.number().int().positive().optional(),
   maxConcurrent: z.number().int().positive().optional(),
 });
 
+/**
+ * Schema for defining a new agent (triggers, scope, confidence, memory, retry).
+ */
 export const AgentDefinitionSchema = z
   .object({
     name: z.string().min(1),
@@ -104,6 +139,9 @@ export const AgentDefinitionSchema = z
   })
   .strict();
 
+/**
+ * Schema for agent metrics summary (executions today, rates, averages).
+ */
 export const AgentMetricsSummarySchema = z
   .object({
     executionsToday: z.number().int(),
@@ -111,8 +149,11 @@ export const AgentMetricsSummarySchema = z
     avgExecutionMs: z.number().int(),
     successRate: z.number().min(0).max(1),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a full agent resource including runtime state and metrics.
+ */
 export const AgentSchema = AgentDefinitionSchema.omit({
   scope: true,
   confidence: true,
@@ -132,8 +173,11 @@ export const AgentSchema = AgentDefinitionSchema.omit({
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for a single decision step within an agent execution trace.
+ */
 export const DecisionStepSchema = z
   .object({
     step: z.number().int(),
@@ -158,8 +202,11 @@ export const DecisionStepSchema = z
       .optional(),
     durationMs: z.number().int(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for the possible outcomes of an agent simulation.
+ */
 export const SimulationOutcomeSchema = z.enum([
   "would-execute",
   "would-escalate",
@@ -167,6 +214,9 @@ export const SimulationOutcomeSchema = z.enum([
   "would-fail",
 ]);
 
+/**
+ * Schema for the result of an agent simulation run.
+ */
 export const SimulationResultSchema = z
   .object({
     agentId: z.string(),
@@ -185,8 +235,11 @@ export const SimulationResultSchema = z
     escalationReason: z.string().optional(),
     durationMs: z.number().int(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for execution status values.
+ */
 export const ExecutionStatusSchema = z.enum([
   "running",
   "completed",
@@ -194,6 +247,9 @@ export const ExecutionStatusSchema = z.enum([
   "escalated",
 ]);
 
+/**
+ * Schema for an agent execution (run).
+ */
 export const ExecutionSchema = z
   .object({
     id: z.string(),
@@ -211,8 +267,11 @@ export const ExecutionSchema = z
     durationMs: z.number().int().optional(),
     error: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for an escalation record.
+ */
 export const EscalationSchema = z
   .object({
     id: z.string(),
@@ -243,8 +302,11 @@ export const EscalationSchema = z
     createdAt: timestampSchema,
     resolvedAt: timestampSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
+/**
+ * Schema for A/B experiment definition (min 2 variants).
+ */
 export const ExperimentDefinitionSchema = z
   .object({
     name: z.string(),
@@ -266,6 +328,9 @@ export const ExperimentDefinitionSchema = z
   })
   .strict();
 
+/**
+ * Schema for a deployment record.
+ */
 export const DeploymentSchema = z
   .object({
     id: z.string(),
@@ -276,9 +341,11 @@ export const DeploymentSchema = z
     simulationPassed: z.boolean().optional(),
     deployedAt: timestampSchema,
   })
-  .passthrough();
+  .loose();
 
-// Resolve and escalate input schemas (validated before sending)
+/**
+ * Schema for resolving an escalation (decision + optional reasoning).
+ */
 export const ResolveEscalationSchema = z
   .object({
     decision: z.string(),
@@ -287,6 +354,9 @@ export const ResolveEscalationSchema = z
   })
   .strict();
 
+/**
+ * Schema for options when escalating from an agent handler.
+ */
 export const EscalateOptionsSchema = z.object({
   reason: z.string(),
   urgency: UrgencySchema.default("medium"),
@@ -307,7 +377,9 @@ export const EscalateOptionsSchema = z.object({
   deadline: z.string().optional(),
 });
 
-// Shared interfaces
+/**
+ * Summary metrics for an agent's recent performance.
+ */
 export interface AgentMetrics {
   executionsToday: number;
   escalationRate: number;
@@ -315,6 +387,9 @@ export interface AgentMetrics {
   successRate: number;
 }
 
+/**
+ * An A/B experiment with variants and results.
+ */
 export interface Experiment {
   id: string;
   name: string;
@@ -328,17 +403,29 @@ export interface Experiment {
   promoteToProduction?: boolean;
 }
 
-// Inferred types
+/** Input type for agent definition (inferred from AgentDefinitionSchema). */
 export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
+/** Full agent resource type. */
 export type Agent = z.infer<typeof AgentSchema>;
+/** Event trigger definition type. */
 export type TriggerDefinition = z.infer<typeof TriggerDefinitionSchema>;
+/** Agent scope configuration type. */
 export type AgentScope = z.infer<typeof AgentScopeSchema>;
+/** Confidence threshold configuration type. */
 export type ConfidenceConfig = z.infer<typeof ConfidenceConfigSchema>;
+/** Memory configuration type. */
 export type MemoryConfig = z.infer<typeof MemoryConfigSchema>;
+/** Single decision step within an execution trace type. */
 export type DecisionStep = z.infer<typeof DecisionStepSchema>;
+/** Simulation result type. */
 export type SimulationResult = z.infer<typeof SimulationResultSchema>;
+/** Execution (run) type. */
 export type Execution = z.infer<typeof ExecutionSchema>;
+/** Escalation record type. */
 export type Escalation = z.infer<typeof EscalationSchema>;
+/** A/B experiment input type. */
 export type ExperimentDefinition = z.infer<typeof ExperimentDefinitionSchema>;
+/** Deployment record type. */
 export type Deployment = z.infer<typeof DeploymentSchema>;
+/** Raw input type for escalation options (before parsing). */
 export type EscalateOptions = z.input<typeof EscalateOptionsSchema>;

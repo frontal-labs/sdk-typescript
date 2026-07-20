@@ -13,9 +13,14 @@ import type {
   SyncRun,
 } from "./schemas";
 
+/** Client for the Frontal Connectors API. Manages connector catalog, installations, sync runs, and connection tests. */
 export class ConnectorsSdk {
+  /** Namespace for installation operations. */
   readonly installations: InstallationsNamespace;
 
+  /**
+   * @param http - The HTTP client used for API requests.
+   */
   constructor(private readonly http: HttpClient) {
     this.installations = new InstallationsNamespace(http);
   }
@@ -24,6 +29,7 @@ export class ConnectorsSdk {
   // Catalog
   // ---------------------------------------------------------------------------
 
+  /** List all available connector definitions from the catalog. */
   async list(): Promise<ConnectorDefinition[]> {
     const res = await this.http.get<{ connectors: ConnectorDefinition[] }>(
       "/connectors/catalog"
@@ -31,6 +37,7 @@ export class ConnectorsSdk {
     return res.connectors;
   }
 
+  /** Get a connector definition by its slug. */
   async get(slug: string): Promise<ConnectorDefinition> {
     return this.http.get<ConnectorDefinition>(`/connectors/catalog/${slug}`);
   }
@@ -39,6 +46,7 @@ export class ConnectorsSdk {
   // Global operations
   // ---------------------------------------------------------------------------
 
+  /** Replay a sync run. */
   async replay(
     syncRunId: string,
     input?: ReplaySyncRunInput
@@ -49,6 +57,7 @@ export class ConnectorsSdk {
     );
   }
 
+  /** Get diagnostics information. */
   async diagnostics(): Promise<Record<string, unknown>> {
     return this.http.get<Record<string, unknown>>("/diagnostics");
   }
@@ -58,9 +67,14 @@ export class ConnectorsSdk {
 // Installations namespace
 // ---------------------------------------------------------------------------
 
+/** Namespace for connector installation operations. */
 export class InstallationsNamespace {
+  /**
+   * @param http - The HTTP client used for API requests.
+   */
   constructor(private readonly http: HttpClient) {}
 
+  /** List installations matching the query. */
   async list(
     query: ListInstallationsQuery
   ): Promise<PageResult<ConnectorInstallation>> {
@@ -74,6 +88,7 @@ export class InstallationsNamespace {
     });
   }
 
+  /** Create a new connector installation. */
   async create(input: CreateInstallationInput): Promise<Installation> {
     const inst = await this.http.post<ConnectorInstallation>(
       "/connectors/installations",
@@ -95,6 +110,7 @@ export class InstallationsNamespace {
     );
   }
 
+  /** Get a connector installation by ID. */
   async get(id: string): Promise<Installation> {
     const inst = await this.http.get<ConnectorInstallation>(
       `/connectors/installations/${id}`

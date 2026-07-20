@@ -15,12 +15,14 @@ import type { Schedule, ScheduleRun } from "./schemas";
  * already includes it.
  */
 export class SchedulesSdk {
+  /** Cron expression operations. */
   readonly cron: CronNamespace;
 
   constructor(private readonly http: HttpClient) {
     this.cron = new CronNamespace(http);
   }
 
+  /** List schedules with pagination. */
   async list(
     opts: { limit?: number; cursor?: string } = {}
   ): Promise<PageResult<Schedule>> {
@@ -30,6 +32,7 @@ export class SchedulesSdk {
     );
   }
 
+  /** Create a new schedule. */
   async create(input: {
     name: string;
     cron: string;
@@ -40,34 +43,41 @@ export class SchedulesSdk {
     return this.http.post("/workflows/schedules", input);
   }
 
+  /** Get a single schedule by ID. */
   async get(id: string): Promise<Schedule> {
     return this.http.get(`/workflows/schedules/${id}`);
   }
 
+  /** Update an existing schedule. */
   async update(id: string, input: Partial<Schedule>): Promise<Schedule> {
     return this.http.patch(`/workflows/schedules/${id}`, input);
   }
 
+  /** Delete a schedule. */
   async delete(id: string): Promise<void> {
     return this.http.delete(`/workflows/schedules/${id}`);
   }
 
+  /** Pause a schedule. */
   async pause(id: string): Promise<Schedule> {
     return this.http.post(`/workflows/schedules/${id}/pause`, {});
   }
 
+  /** Resume a paused schedule. */
   async resume(id: string): Promise<Schedule> {
     return this.http.post(`/workflows/schedules/${id}/resume`, {});
   }
 
+  /** Trigger an immediate run of a schedule. */
   async trigger(id: string): Promise<ScheduleRun> {
     return this.http.post(`/workflows/schedules/${id}/trigger`, {});
   }
 }
 
+/** Namespace for cron expression operations. */
 export class CronNamespace {
   constructor(private readonly http: HttpClient) {}
-  /** Validate a cron expression. */
+  /** Validate a cron expression against the server. */
   async validate(
     cronExpression: string
   ): Promise<{ valid: boolean; error?: string | null }> {
