@@ -1,6 +1,6 @@
-# Test Suite for @frontal-labs/core
+# Test Suite for frontal/core
 
-This directory contains comprehensive tests for the `@frontal-labs/core` package.
+This directory contains comprehensive tests for the `frontal/core` package.
 
 ## Test Structure
 

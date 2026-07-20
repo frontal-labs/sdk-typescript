@@ -5,13 +5,13 @@ Governance SDK for policy management, RBAC bindings, and policy evaluation.
 ## Installation
 
 ```bash
-bun add @frontal-labs/governance @frontal-labs/core
+bun add @frontal-labs/governance frontal/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createGovernanceClient } from "@frontal-labs/governance";
 
 const client = new FrontalClient({

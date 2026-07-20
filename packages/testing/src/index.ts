@@ -3,11 +3,7 @@
  * Shared testing utilities for all Frontal Core packages
  */
 
-import {
-  FrontalClient,
-  HttpClient,
-  deepSnakeToCamel,
-} from "@frontal-labs/core";
+import { FrontalClient, HttpClient, deepSnakeToCamel } from "frontal/core";
 import { vi } from "vitest";
 
 // ============================================================================

@@ -1,5 +1,5 @@
 /**
- * Integration tests for the complete @frontal-labs/core package
+ * Integration tests for the complete frontal/core package
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

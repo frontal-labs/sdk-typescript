@@ -5,13 +5,13 @@ Dataset management SDK with versioning, data operations, and statistics.
 ## Installation
 
 ```bash
-bun add @frontal-labs/datasets @frontal-labs/core
+bun add @frontal-labs/datasets frontal/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createDatasetsClient } from "@frontal-labs/datasets";
 
 const client = new FrontalClient({

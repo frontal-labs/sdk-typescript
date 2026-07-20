@@ -1,8 +1,4 @@
-import {
-  FrontalClient,
-  getDefaultClient,
-  HttpClient,
-} from "@frontal-labs/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "frontal/core";
 import {
   DEFAULT_CONNECTORS_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -10,7 +6,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { ConnectorsSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
+import { env } from "frontal/core";
 
 /** Configuration options for creating a Connectors API client. */
 export interface ConnectorsClientConfig {

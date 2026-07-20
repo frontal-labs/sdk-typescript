@@ -1,4 +1,4 @@
-# @frontal-labs/testing
+# frontal/testing
 
 Test utilities for Frontal SDK packages — mock HTTP, test clients, response
 factories, and fixture builders.
@@ -6,13 +6,13 @@ factories, and fixture builders.
 ## Installation
 
 ```bash
-npm install -D @frontal-labs/testing
+npm install -D frontal/testing
 ```
 
 ## Quick Start
 
 ```ts
-import { createTestHttpClient, mockPageResponse } from "@frontal-labs/testing";
+import { createTestHttpClient, mockPageResponse } from "frontal/testing";
 import { GraphService } from "@frontal-labs/graph";
 
 const { http, mock } = createTestHttpClient([
@@ -32,7 +32,7 @@ mock.expectCalled("GET", "/graph/entities/user");
 Creates a mock HTTP client with route matching.
 
 ```ts
-import { createTestHttpClient } from "@frontal-labs/testing";
+import { createTestHttpClient } from "frontal/testing";
 
 const { http, mock } = createTestHttpClient([
   { method: "GET", path: "/v1/health", body: { status: "ok" } },
@@ -48,7 +48,7 @@ mock.expectCallCount(2);
 Creates a full `FrontalClient` with a mock fetch injected.
 
 ```ts
-import { createTestClient } from "@frontal-labs/testing";
+import { createTestClient } from "frontal/testing";
 
 const { client, mock } = createTestClient([
   { method: "GET", path: "/v1/workflows", body: { items: [], total: 0 } },
@@ -65,7 +65,7 @@ import {
   mockErrorResponse,
   mockStreamResponse,
   mockFixture,
-} from "@frontal-labs/testing";
+} from "frontal/testing";
 
 // Paginated response helper
 const page = mockPageResponse([{ id: "a" }, { id: "b" }], { total: 2 });
@@ -86,7 +86,7 @@ const agent = mockFixture("agent", { name: "test-agent" });
 ### Fixture builders
 
 ```ts
-import { buildAgent, buildEntity, buildWorkflow } from "@frontal-labs/testing";
+import { buildAgent, buildEntity, buildWorkflow } from "frontal/testing";
 
 const agent = buildAgent({ name: "order-ops" });
 const entity = buildEntity("customer", { email: "test@frontal.dev" });

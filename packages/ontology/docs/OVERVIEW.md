@@ -272,7 +272,7 @@ Or configure programmatically:
 
 ```typescript
 import { createOntologyClient } from "@frontal-labs/ontology";
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

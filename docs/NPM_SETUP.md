@@ -155,7 +155,7 @@ modify these settings.**
 ```bash
 echo "@frontal-labs:registry=https://npm.pkg.github.com/" >> .npmrc
 echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> .npmrc
-npm install @frontal-labs/core
+npm install frontal/core
 ```
 
 The token needs `read:packages` scope.

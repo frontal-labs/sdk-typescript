@@ -12,7 +12,7 @@ A lightweight testing utilities package for the Frontal Core ecosystem. Provides
 ## Installation
 
 ```bash
-bun add @frontal-labs/testing
+bun add frontal/testing
 ```
 
 ## Quick Start
@@ -22,7 +22,7 @@ import {
   createMockConfig, 
   setupTestEnvironment, 
   cleanupTestEnvironment 
-} from '@frontal-labs/testing';
+} from 'frontal/testing';
 
 // Set up test environment
 setupTestEnvironment();
@@ -41,7 +41,7 @@ cleanupTestEnvironment();
 ### Test Environment Setup
 
 ```typescript
-import { setupTestEnvironment, cleanupTestEnvironment } from '@frontal-labs/testing';
+import { setupTestEnvironment, cleanupTestEnvironment } from 'frontal/testing';
 
 describe('My Tests', () => {
   beforeAll(() => {
@@ -62,12 +62,12 @@ describe('My Tests', () => {
 ### Mock Configuration
 
 ```typescript
-import { createMockConfig } from '@frontal-labs/testing';
+import { createMockConfig } from 'frontal/testing';
 
 const mockConfig = createMockConfig();
 
 // Use with FrontalClient
-import { FrontalClient } from '@frontal-labs/core';
+import { FrontalClient } from 'frontal/core';
 
 const testClient = new FrontalClient({
   apiKey: mockConfig.apiKey,
@@ -81,7 +81,7 @@ const testClient = new FrontalClient({
 ```typescript
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
-import { setupTestEnvironment } from '@frontal-labs/testing';
+import { setupTestEnvironment } from 'frontal/testing';
 
 export default defineConfig({
   test: {
@@ -91,7 +91,7 @@ export default defineConfig({
 });
 
 // tests/setup.ts
-import { setupTestEnvironment } from '@frontal-labs/testing';
+import { setupTestEnvironment } from 'frontal/testing';
 
 setupTestEnvironment();
 ```

@@ -5,7 +5,7 @@ concerns and independent versioning of components.
 
 ## Core Components
 
-### 1. Core (`@frontal-labs/core`)
+### 1. Core (`frontal/core`)
 
 Shared transport primitives and defaults used by all domain SDKs:
 - API key/base URL configuration
@@ -21,7 +21,7 @@ Unified SDK client aggregating all Frontal services into a single `Sdk` class
 with lazy-loaded service accessors. Re-exports every individual service
 singleton.
 
-### 3. Testing (`@frontal-labs/testing`)
+### 3. Testing (`frontal/testing`)
 
 Reusable mock clients, fixtures, and helpers used by package test suites.
 Includes mock fetch with route matching, test client factories, integration

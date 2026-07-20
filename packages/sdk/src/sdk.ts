@@ -12,7 +12,7 @@ import type { BlobSdk } from "@frontal-labs/blob";
 import { createBlobClient } from "@frontal-labs/blob";
 import type { ConnectorsSdk } from "@frontal-labs/connectors";
 import { createConnectorsClient } from "@frontal-labs/connectors";
-import type { FrontalClient } from "@frontal-labs/core";
+import type { FrontalClient } from "frontal/core";
 import type { DataSdk } from "@frontal-labs/data";
 import { createDataClient } from "@frontal-labs/data";
 import type { DatasetsSdk } from "@frontal-labs/datasets";

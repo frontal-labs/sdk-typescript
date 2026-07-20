@@ -9,7 +9,7 @@ We use a modern testing stack to ensure code quality and reliability:
 
 - **Bun Test** - Fast test runner built into Bun, compatible with Vitest APIs
 - **Vitest** - Test utilities (`describe`, `it`, `expect`, `vi`, `mock`, etc.)
-- **@frontal-labs/testing** - Shared mock clients, fixtures, and test harness
+- **frontal/testing** - Shared mock clients, fixtures, and test harness
 - **Biome** - Linting and formatting for consistent code style
 
 ## Test Structure
@@ -30,7 +30,7 @@ packages/
 ### Test Types
 
 1. **Unit Tests** - Test individual functions and service methods in isolation,
-   using mock fetch from `@frontal-labs/testing`
+   using mock fetch from `frontal/testing`
 2. **Integration Tests** - Test interactions with a mocked HTTP transport layer
 3. **Live Compatibility Tests** - Smoke tests against live Frontal API backends
    (`bun run test:live`)
@@ -61,7 +61,7 @@ bun run test:live
 
 ```typescript
 import { describe, it, expect } from "vitest";
-import { createTestHttpClient } from "@frontal-labs/testing";
+import { createTestHttpClient } from "frontal/testing";
 import { AIService } from "../src";
 
 describe("AIService", () => {
@@ -91,10 +91,10 @@ describe("AIService", () => {
 
 ### 2. Mocking and Fixtures
 
-Use `@frontal-labs/testing` for mock HTTP transport and fixtures:
+Use `frontal/testing` for mock HTTP transport and fixtures:
 
 ```typescript
-import { createTestHttpClient, createMockFetch } from "@frontal-labs/testing";
+import { createTestHttpClient, createMockFetch } from "frontal/testing";
 
 // Create a test HTTP client that returns canned responses
 const { http, mock } = createTestHttpClient([
@@ -145,10 +145,10 @@ bun test --coverage
 ### External Service Testing
 
 For packages that interact with external services, use the test HTTP client
-from `@frontal-labs/testing` instead of making real network calls:
+from `frontal/testing` instead of making real network calls:
 
 ```typescript
-import { createTestHttpClient } from "@frontal-labs/testing";
+import { createTestHttpClient } from "frontal/testing";
 
 describe("Service", () => {
   it("should call the API", async () => {
@@ -203,10 +203,10 @@ bun test --reporter=verbose
 
 ### Fixtures
 
-Use `@frontal-labs/testing` for shared fixtures:
+Use `frontal/testing` for shared fixtures:
 
 ```typescript
-import { fixtures, createTestHttpClient } from "@frontal-labs/testing";
+import { fixtures, createTestHttpClient } from "frontal/testing";
 
 // Pre-built fixtures for entity types
 const agent = fixtures.agent({ name: "test-agent" });

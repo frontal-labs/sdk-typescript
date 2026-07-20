@@ -563,7 +563,7 @@ Factory function for creating custom client instances:
 
 ```typescript
 import { createStorageClient } from "@frontal-labs/blob";
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

@@ -34,7 +34,7 @@ TypeScript/JavaScript SDK monorepo for Frontal services. Packages: ai, agents, b
 - Workspace siblings are resolved via `node_modules/` symlinks (workspace protocol), not via `paths`
 - Do NOT add `paths` to package tsconfigs for other workspace packages — it causes `rootDir` violations
 - Only the root `tsconfig.json` has `paths` for all `@frontal-labs/*` packages (for IDE support)
-- If the IDE shows "Cannot find module '@frontal-labs/core'", restart the TypeScript server
+- If the IDE shows "Cannot find module 'frontal/core'", restart the TypeScript server
 
 ## References
 

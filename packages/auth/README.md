@@ -5,13 +5,13 @@ GoTrue-compatible authentication SDK for user sign-up, sign-in, MFA, OAuth, SSO,
 ## Installation
 
 ```bash
-bun add @frontal-labs/auth @frontal-labs/core
+bun add @frontal-labs/auth frontal/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createAuthClient } from "@frontal-labs/auth";
 
 const client = new FrontalClient({

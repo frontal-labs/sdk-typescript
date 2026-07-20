@@ -1,4 +1,4 @@
-import { createTestClient } from "@frontal-labs/testing";
+import { createTestClient } from "frontal/testing";
 import { describe, expect, it } from "vitest";
 import { Sdk } from "../src/sdk";
 

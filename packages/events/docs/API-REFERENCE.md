@@ -62,7 +62,7 @@ interface EventsClientConfig {
 
 ## Error Types
 
-All methods throw typed errors from `@frontal-labs/core`:
+All methods throw typed errors from `frontal/core`:
 
 - `FrontalError` — Base error class
 - `NotFoundError` — Resource not found (404)

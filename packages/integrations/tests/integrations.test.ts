@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTestHttpClient } from "@frontal-labs/testing";
+import { createTestHttpClient } from "frontal/testing";
 import {
   IntegrationsService,
   createIntegrationsClient,

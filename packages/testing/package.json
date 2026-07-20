@@ -1,5 +1,5 @@
 {
-  "name": "@frontal-labs/testing",
+  "name": "frontal/testing",
   "version": "1.0.2",
   "description": "Frontal testing utilities and helpers",
   "type": "module",
@@ -42,7 +42,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@frontal-labs/core": "workspace:*",
+    "frontal/core": "workspace:*",
     "tslib": "^2.8.1",
     "zod": "^4.3.6"
   },

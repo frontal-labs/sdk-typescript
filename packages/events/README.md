@@ -5,13 +5,13 @@ Event bus and pub/sub SDK with topic management, subscriptions, and dead-letter 
 ## Installation
 
 ```bash
-bun add @frontal-labs/events @frontal-labs/core
+bun add @frontal-labs/events frontal/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createEventsClient } from "@frontal-labs/events";
 
 const client = new FrontalClient({

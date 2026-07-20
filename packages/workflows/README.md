@@ -9,7 +9,7 @@ execution tracking.
 npm install @frontal-labs/workflows
 ```
 
-`@frontal-labs/core` is included automatically as a dependency.
+`frontal/core` is included automatically as a dependency.
 
 ## Quick Start
 
@@ -42,7 +42,7 @@ const execution = await workflows.use("wfl_123").trigger({
 ### Shared client (multiple SDKs)
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createWorkflowsClient } from "@frontal-labs/workflows";
 
 const client = new FrontalClient({

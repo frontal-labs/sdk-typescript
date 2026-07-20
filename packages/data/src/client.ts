@@ -1,8 +1,4 @@
-import {
-  FrontalClient,
-  getDefaultClient,
-  HttpClient,
-} from "@frontal-labs/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "frontal/core";
 import {
   DEFAULT_DATA_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -10,7 +6,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { DataSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
+import { env } from "frontal/core";
 
 /**
  * Configuration for creating a standalone Frontal Data client.

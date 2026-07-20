@@ -32,7 +32,7 @@ const client = createEventsClient({
 
 ## Core Concepts
 
-The Events SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createEventsClient`) and a default singleton (`events`).
+The Events SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `frontal/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createEventsClient`) and a default singleton (`events`).
 
 ## Configuration
 
@@ -52,7 +52,7 @@ const client = createEventsClient({
 ### Shared FrontalClient (recommended)
 
 ```typescript
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createEventsClient } from "@frontal-labs/events";
 
 const frontal = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
@@ -67,10 +67,10 @@ const client = createEventsClient(frontal);
 
 ## Error Handling
 
-The Events SDK throws typed errors from `@frontal-labs/core`:
+The Events SDK throws typed errors from `frontal/core`:
 
 ```typescript
-import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/core";
+import { FrontalError, RateLimitError, NotFoundError } from "frontal/core";
 
 try {
   await client.someMethod();
@@ -87,6 +87,6 @@ try {
 
 ## Related Packages
 
-- [@frontal-labs/core](../core/docs/OVERVIEW.md)
+- [frontal/core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/webhooks](../webhooks/docs/OVERVIEW.md)
 - [@frontal-labs/observability](../observability/docs/OVERVIEW.md)

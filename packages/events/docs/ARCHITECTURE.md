@@ -8,7 +8,7 @@ The Events SDK follows the layered architecture shared by all Frontal SDK packag
 ┌─────────────────────────────────────┐
 │  EventsService / Namespaces         │  ← Business logic
 ├─────────────────────────────────────┤
-│  HttpClient (@frontal-labs/core)    │  ← Transport (HTTP, retries, auth)
+│  HttpClient (frontal/core)    │  ← Transport (HTTP, retries, auth)
 ├─────────────────────────────────────┤
 │  Frontal REST API                     │  ← Backend
 └─────────────────────────────────────┘
@@ -67,6 +67,6 @@ import { events } from "@frontal-labs/events";
 
 ## Dependencies
 
-- `@frontal-labs/core` (workspace) — HTTP transport, errors, pagination, polling
+- `frontal/core` (workspace) — HTTP transport, errors, pagination, polling
 - `zod` (^4.3.6) — Runtime schema validation
-- `@frontal-labs/testing` (dev) — Test utilities and mock HTTP
+- `frontal/testing` (dev) — Test utilities and mock HTTP

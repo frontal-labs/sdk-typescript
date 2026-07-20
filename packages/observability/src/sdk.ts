@@ -3,7 +3,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "@frontal-labs/core";
+} from "frontal/core";
 import type {
   AlertRule,
   Dashboard,

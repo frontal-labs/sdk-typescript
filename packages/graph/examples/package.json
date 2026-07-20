@@ -14,7 +14,7 @@
 		"all": "bun run basic-crud.ts && bun run graph-traversal.ts && bun run semantic-search.ts && bun run time-travel-and-history.ts && bun run batch-operations.ts && bun run advanced-querying.ts"
 	},
 	"dependencies": {
-		"@frontal-labs/core": "workspace:*",
+		"frontal/core": "workspace:*",
 		"@frontal-labs/graph": "workspace:*"
 	},
 	"devDependencies": {

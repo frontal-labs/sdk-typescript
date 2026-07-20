@@ -2,7 +2,7 @@ import {
   createTestHttpClient,
   fixtures,
   mockPageResponse,
-} from "@frontal-labs/testing";
+} from "frontal/testing";
 import { describe, expect, it, vi } from "vitest";
 import { WorkflowBuilder, WorkflowsSdk } from "../src/sdk";
 

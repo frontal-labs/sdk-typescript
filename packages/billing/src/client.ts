@@ -1,8 +1,4 @@
-import {
-  FrontalClient,
-  getDefaultClient,
-  HttpClient,
-} from "@frontal-labs/core";
+import { FrontalClient, getDefaultClient, HttpClient } from "frontal/core";
 import {
   DEFAULT_BILLING_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -10,7 +6,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { BillingSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
+import { env } from "frontal/core";
 
 /** Configuration options for creating a Billing API client. */
 export interface BillingClientConfig {

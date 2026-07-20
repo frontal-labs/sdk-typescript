@@ -1,8 +1,8 @@
-# @frontal-labs/core Architecture
+# frontal/core Architecture
 
 ## Package Structure
 
-The `@frontal-labs/core` package follows a modular architecture with clear separation of concerns:
+The `frontal/core` package follows a modular architecture with clear separation of concerns:
 
 ```
 packages/core/src/

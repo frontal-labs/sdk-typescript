@@ -5,13 +5,13 @@ Execute actions in third-party applications.
 ## Installation
 
 ```bash
-bun add @frontal-labs/integrations @frontal-labs/core
+bun add @frontal-labs/integrations frontal/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createIntegrationsClient } from "@frontal-labs/integrations";
 
 const client = new FrontalClient({

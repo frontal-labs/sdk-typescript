@@ -91,8 +91,8 @@ the package was built from this repository.
 
 Changesets resolves the dependency graph and publishes in correct order:
 
-1. `@frontal-labs/core` (no internal dependencies)
-2. `@frontal-labs/testing` (depends on core)
+1. `frontal/core` (no internal dependencies)
+2. `frontal/testing` (depends on core)
 3. All domain SDKs (depend on core):
    `@frontal-labs/ai`, `@frontal-labs/agents`, `@frontal-labs/audit`,
    `@frontal-labs/auth`, `@frontal-labs/billing`, `@frontal-labs/blob`,
@@ -141,7 +141,7 @@ echo "@frontal-labs:registry=https://npm.pkg.github.com/" >> .npmrc
 echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> .npmrc
 
 # Install as usual:
-npm install @frontal-labs/core
+npm install frontal/core
 ```
 
 The GitHub token must have `read:packages` scope for public packages.

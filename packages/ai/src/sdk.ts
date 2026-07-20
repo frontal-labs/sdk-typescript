@@ -1,5 +1,5 @@
-import type { HttpClient } from "@frontal-labs/core";
-import { FrontalError } from "@frontal-labs/core";
+import type { HttpClient } from "frontal/core";
+import { FrontalError } from "frontal/core";
 import { z } from "zod";
 import {
   type ChatCompletionRequest,
@@ -42,7 +42,7 @@ import {
  * @example
  * ```typescript
  * import { createAIClient } from '@frontal-labs/ai'
- * import { FrontalClient } from '@frontal-labs/core'
+ * import { FrontalClient } from 'frontal/core'
  *
  * const client = new FrontalClient({ apiKey: 'frt_...' })
  * const ai = createAIClient(client)

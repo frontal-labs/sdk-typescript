@@ -1,5 +1,5 @@
 /**
- * Test setup and utilities for @frontal-labs/core
+ * Test setup and utilities for frontal/core
  */
 
 import { expect, vi } from "vitest";

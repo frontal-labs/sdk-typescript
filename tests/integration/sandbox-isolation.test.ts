@@ -3,7 +3,7 @@
  * Exercises the real sandbox compile-and-judge API.
  */
 import { describe, expect, it } from "vitest";
-import { createIntegrationHarness } from "@frontal-labs/testing";
+import { createIntegrationHarness } from "frontal/testing";
 import { SandboxService } from "@frontal-labs/sandbox";
 
 describe("Sandbox compile-and-judge", () => {

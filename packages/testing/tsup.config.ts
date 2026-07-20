@@ -5,5 +5,5 @@ export default defineConfig({
 	format: ["esm", "cjs"],
 	dts: false,
 	clean: true,
-	external: ["zod", "vitest", "@frontal-labs/core"],
+	external: ["zod", "vitest", "frontal/core"],
 });

@@ -5,13 +5,13 @@ Webhook endpoint SDK with delivery tracking, retry, secret rotation, and HMAC si
 ## Installation
 
 ```bash
-bun add @frontal-labs/webhooks @frontal-labs/core
+bun add @frontal-labs/webhooks frontal/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "frontal/core";
 import { createWebhooksClient } from "@frontal-labs/webhooks";
 
 const client = new FrontalClient({

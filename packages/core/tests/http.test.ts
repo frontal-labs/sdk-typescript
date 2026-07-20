@@ -55,7 +55,7 @@ describe("HttpClient", () => {
           headers: expect.objectContaining({
             Authorization: "Bearer frt_test1234567890abcdef",
             "Content-Type": "application/json",
-            "User-Agent": expect.stringContaining("@frontal-labs/core"),
+            "User-Agent": expect.stringContaining("frontal/core"),
           }),
         })
       );

@@ -1,4 +1,4 @@
-import { HttpClient } from "@frontal-labs/core";
+import { HttpClient } from "frontal/core";
 import { createMockFetch, type MockRoute, type RequestLog } from "./index";
 
 /** Shared integration test harness with mock state across multiple services. */
