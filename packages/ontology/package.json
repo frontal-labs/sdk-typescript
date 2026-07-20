@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/ontology",
-  "version": "0.0.1",
-  "description": "Frontal Ontology SDK \u2014 semantic model and schema management, migrations, and AI-powered inference",
+  "version": "1.0.0",
+  "description": "Frontal Ontology SDK — semantic model and schema management, migrations, and AI-powered inference",
   "keywords": [
     "javascript",
     "typescript",

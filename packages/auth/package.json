@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/auth",
-  "version": "0.0.2",
-  "description": "Frontal Auth SDK \u2014 GoTrue-compatible authentication with MFA, OAuth, SSO, and admin user management",
+  "version": "1.0.0",
+  "description": "Frontal Auth SDK — GoTrue-compatible authentication with MFA, OAuth, SSO, and admin user management",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

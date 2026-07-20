@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/graph",
-  "version": "0.0.1",
-  "description": "Frontal Graph SDK \u2014 business entity CRUD, traversal, time travel, and semantic search",
+  "version": "0.1.0",
+  "description": "Frontal Graph SDK — business entity CRUD, traversal, time travel, and semantic search",
   "keywords": [
     "javascript",
     "typescript",

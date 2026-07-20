@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/sandbox",
-  "version": "0.0.2",
-  "description": "Frontal Sandbox SDK \u2014 isolated code execution with streaming, snapshots, and file management",
+  "version": "1.0.0",
+  "description": "Frontal Sandbox SDK — isolated code execution with streaming, snapshots, and file management",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

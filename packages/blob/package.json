@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/blob",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Blob storage client for the Frontal Core.",
   "keywords": [
     "javascript",

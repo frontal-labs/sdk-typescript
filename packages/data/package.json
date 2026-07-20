@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/data",
-  "version": "0.0.1",
-  "description": "Frontal Data platform SDK \u2014 aggregations, archival, enrichment, exports, normalization, quality, query, schemas, serving, streams, sync, and transformations",
+  "version": "0.1.0",
+  "description": "Frontal Data platform SDK — aggregations, archival, enrichment, exports, normalization, quality, query, schemas, serving, streams, sync, and transformations",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

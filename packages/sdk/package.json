@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/sdk",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "Unified SDK client for all Frontal services.",
   "keywords": [
     "javascript",

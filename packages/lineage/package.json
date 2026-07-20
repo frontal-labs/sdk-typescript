@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/lineage",
-  "version": "0.0.2",
-  "description": "Frontal Lineage SDK \u2014 data lineage graphs, dependency tracing, and impact analysis",
+  "version": "0.0.3",
+  "description": "Frontal Lineage SDK — data lineage graphs, dependency tracing, and impact analysis",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

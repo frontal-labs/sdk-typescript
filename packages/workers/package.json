@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/workers",
-  "version": "0.0.1",
-  "description": "Frontal Workers SDK \u2014 deploy and invoke serverless workers on the edge runtime",
+  "version": "0.1.0",
+  "description": "Frontal Workers SDK — deploy and invoke serverless workers on the edge runtime",
   "keywords": [
     "javascript",
     "typescript",

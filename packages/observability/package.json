@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/observability",
-  "version": "0.0.2",
-  "description": "Frontal Observability SDK \u2014 logs, metrics, traces, alerts, and dashboards with OTLP export",
+  "version": "0.1.0",
+  "description": "Frontal Observability SDK — logs, metrics, traces, alerts, and dashboards with OTLP export",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

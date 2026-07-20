@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/ai",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "AI client for the Frontal Core.",
   "keywords": [
     "javascript",

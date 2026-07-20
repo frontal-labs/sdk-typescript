@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/schedules",
-  "version": "0.0.2",
-  "description": "Frontal Schedules SDK \u2014 cron-based scheduling with local validation, run history, and manual triggers",
+  "version": "1.0.0",
+  "description": "Frontal Schedules SDK — cron-based scheduling with local validation, run history, and manual triggers",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

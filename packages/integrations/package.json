@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/integrations",
-  "version": "0.0.2",
-  "description": "Frontal Integrations SDK \u2014 execute actions in third-party applications",
+  "version": "0.0.3",
+  "description": "Frontal Integrations SDK — execute actions in third-party applications",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

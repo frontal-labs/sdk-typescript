@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/datasets",
-  "version": "0.0.2",
-  "description": "Frontal Datasets SDK \u2014 dataset CRUD with versioning, data operations, and import/export",
+  "version": "1.0.0",
+  "description": "Frontal Datasets SDK — dataset CRUD with versioning, data operations, and import/export",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

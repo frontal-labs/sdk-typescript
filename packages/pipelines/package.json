@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/pipelines",
-  "version": "0.0.1",
-  "description": "Frontal Pipelines SDK \u2014 declarative data pipelines with substrate orchestration and graph entity awareness",
+  "version": "0.0.2",
+  "description": "Frontal Pipelines SDK — declarative data pipelines with substrate orchestration and graph entity awareness",
   "keywords": [
     "javascript",
     "typescript",

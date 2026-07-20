@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/agents",
-  "version": "0.0.1",
-  "description": "Frontal Agents SDK \u2014 define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI SDK integration",
+  "version": "1.0.0",
+  "description": "Frontal Agents SDK — define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI SDK integration",
   "keywords": [
     "javascript",
     "typescript",

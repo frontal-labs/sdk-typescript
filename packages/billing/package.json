@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/billing",
-  "version": "0.0.2",
-  "description": "Frontal Billing SDK \u2014 plans, subscriptions, invoices, usage metering, and payment methods",
+  "version": "1.0.0",
+  "description": "Frontal Billing SDK — plans, subscriptions, invoices, usage metering, and payment methods",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

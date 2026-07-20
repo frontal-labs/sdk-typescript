@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/events",
-  "version": "0.0.2",
-  "description": "Frontal Events SDK \u2014 pub/sub event bus with client-side buffering, dead-letter queues, and schema registry",
+  "version": "1.0.0",
+  "description": "Frontal Events SDK — pub/sub event bus with client-side buffering, dead-letter queues, and schema registry",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

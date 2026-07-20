@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/governance",
-  "version": "0.0.2",
-  "description": "Frontal Governance SDK \u2014 policy management, RBAC, and data classification",
+  "version": "0.0.3",
+  "description": "Frontal Governance SDK — policy management, RBAC, and data classification",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

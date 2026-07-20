@@ -1,7 +1,7 @@
 {
   "name": "@frontal-labs/workflows",
-  "version": "0.0.1",
-  "description": "Frontal Workflows SDK \u2014 workflow orchestration with approvals and steps",
+  "version": "0.1.0",
+  "description": "Frontal Workflows SDK — workflow orchestration with approvals and steps",
   "keywords": [
     "javascript",
     "typescript",
