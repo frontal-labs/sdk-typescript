@@ -87,9 +87,11 @@ const meta = await blob.getMetadata("bucket", "path/file.pdf");
 console.log(meta.size, meta.contentType, meta.lastModified);
 ```
 
-## Configuration
+## Environment Variables
 
-| Variable | Default |
-|:---|:---|
-| `FRONTAL_API_KEY` | — |
-| `FRONTAL_BLOB_API_URL` | `https://api.frontal.dev/v1` |
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |

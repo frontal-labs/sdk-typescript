@@ -93,7 +93,6 @@ const entity = buildEntity("customer", { email: "test@frontal.dev" });
 const workflow = buildWorkflow({ name: "onboarding" });
 ```
 
-## Configuration
+## Environment Variables
 
-No environment variables are required. The test client operates entirely
-in-memory with no network calls.
+No environment variables are required. The test client operates entirely in-memory with no network calls.
