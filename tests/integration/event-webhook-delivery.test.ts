@@ -33,7 +33,7 @@ describe("Events → Webhooks integration delivery", () => {
       { method: "POST", path: "/v1/events/topics", body: mockTopic },
       { method: "POST", path: "/v1/webhooks", body: mockWebhook },
       {
-        method: "POST", path: "/v1/events/topics/orders.created/publish",
+        method: "POST", path: "/v1/events/publish",
         body: { published: 1, event_ids: ["evt_1"] },
       },
       {
@@ -64,9 +64,7 @@ describe("Events → Webhooks integration delivery", () => {
     expect(pub.published).toBe(1);
 
     // Step 3: Verify delivery was recorded
-    const deliveries = await webhooks.deliveries.list({
-      webhookId: "wh_1",
-    });
+    const deliveries = await webhooks.deliveries.list({ webhookId: "wh_1" });
     expect(deliveries.data.length).toBeGreaterThan(0);
     expect(deliveries.data[0].webhookId).toBe("wh_1");
   });

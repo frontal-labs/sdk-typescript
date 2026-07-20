@@ -1,23 +1,48 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
+const apiKeySchema = z
+  .string()
+  .min(9, "FRONTAL_API_KEY must be at least 9 characters")
+  .max(128, "FRONTAL_API_KEY must be at most 128 characters")
+  .refine(
+    (val: string) =>
+      /^frt_[A-Za-z0-9_]+$/.test(val) || /^fr_typed[A-Za-z0-9_]+$/.test(val),
+    "FRONTAL_API_KEY must start with frt_"
+  );
+
+const debugSchema = z.preprocess((val: string) => {
+  if (typeof val === "boolean") return val;
+  if (typeof val !== "string") return val;
+  const normalized = val.toLowerCase();
+  if (normalized === "true" || normalized === "1") return true;
+  if (normalized === "false" || normalized === "0") return false;
+  return val;
+}, z.boolean().optional().default(false));
+
 /**
  * Parsed runtime environment used by all packages.
  * Access via `import { env } from "@frontal-labs/core"`.
+ *
+ * Validation runs at module import time. Set environment variables
+ * before importing this module.
  */
 export const env = createEnv({
   server: {
-    NODE_ENV: z
+    FRONTAL_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    FRONTAL_API_URL: z.url().optional(),
-    FRONTAL_API_KEY: z.string().min(1).optional(),
-    FRONTAL_DEBUG: z.boolean().optional().default(false),
+
+    FRONTAL_API_KEY: apiKeySchema.optional(),
+
+    FRONTAL_API_URL: z.url("FRONTAL_API_URL must be a valid URL").optional(),
+
+    FRONTAL_DEBUG: debugSchema,
   },
   runtimeEnv: {
-    NODE_ENV: process.env.NODE_ENV,
-    FRONTAL_API_URL: process.env.FRONTAL_API_URL,
+    FRONTAL_ENV: process.env.FRONTAL_ENV,
     FRONTAL_API_KEY: process.env.FRONTAL_API_KEY,
+    FRONTAL_API_URL: process.env.FRONTAL_API_URL,
     FRONTAL_DEBUG: process.env.FRONTAL_DEBUG,
   },
   emptyStringAsUndefined: true,

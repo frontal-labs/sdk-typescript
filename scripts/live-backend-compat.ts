@@ -1,7 +1,6 @@
 import { createAgentsClient } from "../packages/agents/src";
 import { createAIClient } from "../packages/ai/src";
 import { createBlobClient } from "../packages/blob/src";
-import { createFunctionsClient } from "../packages/functions/src";
 import { createGraphClient } from "../packages/graph/src";
 import { createOntologyClient } from "../packages/ontology/src";
 import { createPipelinesClient } from "../packages/pipelines/src";
@@ -31,12 +30,6 @@ const checks: Array<() => Promise<CheckResult>> = [
 		const ai = createAIClient({ apiKey, baseUrl: aiBaseUrl });
 		return runCheck("ai.listModels", async () => {
 			await ai.listModels();
-		});
-	},
-	async () => {
-		const functions = createFunctionsClient({ apiKey, baseUrl: apiBaseUrl });
-		return runCheck("functions.list", async () => {
-			await functions.list();
 		});
 	},
 	async () => {

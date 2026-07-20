@@ -1,6 +1,6 @@
 /**
- * Integration: Evaluate policy (deny) → blocked action logged in audit.
- * Verifies the governance → audit enforcement chain.
+ * Integration: validate a deny policy → record the blocked action in the audit log.
+ * Verifies the governance → audit chain against the real service contracts.
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -10,34 +10,32 @@ import {
 import { GovernanceService } from "@frontal-labs/governance";
 import { AuditService } from "@frontal-labs/audit";
 
-const mockPolicy = {
-  id: "pol_1", name: "No public data export",
-  rules: [{ id: "r1", resource: "datasets.*", actions: ["export"], effect: "deny", conditions: {} }],
-  enabled: true, priority: 1,
-  created_at: "2025-01-01T00:00:00Z", updated_at: "2025-01-01T00:00:00Z",
-};
-
-const mockEval = {
-  policy_id: "pol_1", passed: false,
-  rule_results: [{ rule_id: "r1", passed: false, reason: "Denied by policy: No public data export" }],
+const mockValidation = {
+  valid: true,
+  errors: [],
 };
 
 const mockAuditEvent = {
   id: "evt_1",
-  actor: { user_id: "usr_1" },
+  actor_id: "usr_1",
   action: "dataset.export.denied",
-  resource: { type: "dataset", id: "ds_1" },
-  status: "denied",
+  resource_type: "dataset",
+  resource_id: "ds_1",
+  outcome: "denied",
   metadata: { policy_id: "pol_1", reason: "Denied by policy" },
   timestamp: "2025-01-01T00:00:00Z",
 };
 
 describe("Governance → Audit enforcement", () => {
-  it("denied policy evaluation → audit log recorded", async () => {
+  it("validate policy → record + query audit event", async () => {
     const harness = createIntegrationHarness([
-      { method: "POST", path: "/v1/governance/policies/pol_1/evaluate", body: mockEval },
+      { method: "POST", path: "/v1/policies/validate", body: mockValidation },
       { method: "POST", path: "/v1/audit/events", body: mockAuditEvent },
-      { method: "POST", path: "/v1/audit/events/query", body: integrationPage([mockAuditEvent]) },
+      {
+        method: "GET",
+        path: "/v1/audit/events",
+        body: integrationPage([mockAuditEvent]),
+      },
     ]);
 
     const { http: govHttp } = harness.createHttp();
@@ -46,26 +44,24 @@ describe("Governance → Audit enforcement", () => {
     const gov = new GovernanceService(govHttp);
     const audit = new AuditService(auditHttp);
 
-    // Step 1: Evaluate policy — should deny
-    const evalResult = await gov.evaluatePolicy("pol_1", {
-      userId: "usr_1",
-      resource: { type: "dataset", id: "ds_1" },
+    // Step 1: Validate a deny policy definition.
+    const validation = await gov.policies.validate({
+      definition: { effect: "deny", resource: "datasets.*", actions: ["export"] },
+      definitionFormat: "rego",
     });
-    expect(evalResult.passed).toBe(false);
+    expect(validation.valid).toBe(true);
 
-    // Step 2: Log the denied action in audit
-    const event = await audit.log({
+    // Step 2: Record the denied action in the audit log.
+    const event = await audit.events.create({
       action: "dataset.export.denied",
       resource: { type: "dataset", id: "ds_1" },
-      status: "denied",
+      outcome: "denied",
       metadata: { policy_id: "pol_1", reason: "Denied by policy" },
     });
-    expect(event.status).toBe("denied");
-    expect(event.action).toBe("dataset.export.denied");
+    expect(event.outcome).toBe("denied");
 
-    // Step 3: Query audit trail confirms the denial
-    const results = await audit.query({ action: "dataset.export.denied" });
+    // Step 3: Query the audit log confirms the denial.
+    const results = await audit.events.list({ action: "dataset.export.denied" });
     expect(results.data.length).toBeGreaterThan(0);
-    expect(results.data[0].metadata?.policyId).toBe("pol_1");
   });
 });

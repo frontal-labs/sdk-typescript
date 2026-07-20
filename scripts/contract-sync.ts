@@ -26,12 +26,18 @@ const AI_TARGET = join(
 );
 const MANIFEST_TARGET = join(ROOT, "contracts", "openapi", "manifest.json");
 
+// Location of the private `frontal` backend monorepo (for deriving the AI
+// gateway route table + infra config). Defaults to a sibling checkout
+// (`../frontal`); override the repo root with FRONTAL_REPO_ROOT, or the
+// individual paths with FRONTAL_GATEWAY_ROOT / FRONTAL_INFRA_ROOT. No
+// machine-specific absolute path is baked in.
+const FRONTAL_REPO_ROOT =
+	process.env.FRONTAL_REPO_ROOT ?? join(ROOT, "..", "frontal");
 const GATEWAY_ROOT =
 	process.env.FRONTAL_GATEWAY_ROOT ??
-	"/Volumes/Frontal Labs IP/frontal/inference/backend/gateway";
+	join(FRONTAL_REPO_ROOT, "inference", "backend", "gateway");
 const INFRA_ROOT =
-	process.env.FRONTAL_INFRA_ROOT ??
-	"/Volumes/Frontal Labs IP/frontal/infrastructure";
+	process.env.FRONTAL_INFRA_ROOT ?? join(FRONTAL_REPO_ROOT, "infrastructure");
 
 function sha256File(path: string): string {
 	const buf = readFileSync(path);

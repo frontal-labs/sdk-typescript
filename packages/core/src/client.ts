@@ -140,7 +140,7 @@ export const getDefaultClient = (): FrontalClient => {
     maxRetries: 3,
     retryDelay: 1000,
     headers: {},
-    environment: env.NODE_ENV,
+    environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG,
   });
 };

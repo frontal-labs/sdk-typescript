@@ -45,7 +45,7 @@ export function createWorkflowsClient(
     maxRetries: clientOrConfig.maxRetries ?? DEFAULT_MAX_RETRIES,
     retryDelay: DEFAULT_RETRY_DELAY,
     headers: {},
-    environment: env.NODE_ENV,
+    environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
   });
   return new WorkflowsSdk(http);

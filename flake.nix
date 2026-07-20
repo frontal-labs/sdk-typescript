@@ -62,7 +62,7 @@
           functions = pkgs.stdenv.mkDerivation {
             pname = "@frontal/functions";
             version = "0.0.0";
-            src = ./packages/functions;
+            src = ./packages/workers;
             nativeBuildInputs = [ bun-pkg ];
             buildPhase = ''
               bun install --frozen-lockfile
@@ -70,7 +70,7 @@
             '';
             installPhase = ''
               mkdir -p $out
-              cp -r packages/functions/dist $out/
+              cp -r packages/workers/dist $out/
             '';
           };
 

@@ -20,7 +20,6 @@
 import { createAgentsClient } from "../packages/agents/src";
 import { createAIClient } from "../packages/ai/src";
 import { createBlobClient } from "../packages/blob/src";
-import { createFunctionsClient } from "../packages/functions/src";
 import { createGraphClient } from "../packages/graph/src";
 import { createOntologyClient } from "../packages/ontology/src";
 import { createPipelinesClient } from "../packages/pipelines/src";
@@ -127,7 +126,6 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 // ---------------------------------------------------------------------------
 
 const ai = createAIClient({ apiKey, baseUrl: aiUrl });
-const functions = createFunctionsClient({ apiKey, baseUrl: apiUrl });
 const agents = createAgentsClient({ apiKey, baseUrl: apiUrl });
 const graph = createGraphClient({ apiKey, baseUrl: apiUrl });
 const ontology = createOntologyClient({ apiKey, baseUrl: apiUrl });
@@ -145,14 +143,6 @@ const checks: CheckDef[] = [
   {
     name: "ai.listModels", service: "ai",
     fn: async () => { const m = await ai.listModels(); if (!Array.isArray(m)) throw new Error("not an array"); },
-  },
-  {
-    name: "functions.list", service: "functions",
-    fn: async () => { const r = await functions.list(); if (!Array.isArray(r)) throw new Error("not an array"); },
-  },
-  {
-    name: "functions.lifecycle", service: "functions",
-    fn: async () => { const r = await functions.list(); if (!Array.isArray(r)) throw new Error("not an array"); },
   },
   {
     name: "agents.list", service: "agents",

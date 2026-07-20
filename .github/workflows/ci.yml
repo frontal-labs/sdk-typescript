@@ -50,3 +50,17 @@ jobs:
         run: bun run test
         timeout-minutes: 15
 
+      # Contract gate: fails the build on endpoint-snapshot drift, forbidden
+      # cross-surface calls, or any regression below the committed API coverage
+      # floor (contracts/coverage-floor.json). This is the migration-validation +
+      # coverage-enforcement gate — coverage can only rise, never silently drop.
+      - name: Contract & coverage gate
+        run: bun run contract:endpoints
+
+      # Regenerate the migration matrix and fail if it is not up to date, so the
+      # committed matrix always reflects real SDK↔spec coverage.
+      - name: Migration matrix up to date
+        run: |
+          bun run contract:matrix
+          git diff --exit-code contracts/reports/migration-matrix.md
+

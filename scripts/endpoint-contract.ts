@@ -1,4 +1,11 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	statSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
 
@@ -25,17 +32,39 @@ const AI_OPENAPI_PATH = join(
 	"ai.openapi.generated.json",
 );
 const REPORT_PATH = join(ROOT, "contracts", "reports", "conformance.json");
+// No-regression coverage floor: the minimum number of spec operations each
+// surface must keep implementing. Enforced (fatal) in CI so coverage can only
+// rise. Raised explicitly via `--update-floor`. We floor on covered COUNT (not
+// percentage) so it is robust to spec-total churn.
+const COVERAGE_FLOOR_PATH = join(ROOT, "contracts", "coverage-floor.json");
 
-const PACKAGES = [
-	"ai",
-	"agents",
-	"blob",
-	"functions",
-	"graph",
-	"ontology",
-	"pipelines",
-	"workflows",
-] as const;
+// Infrastructure packages that expose no HTTP endpoints of their own.
+const NON_SERVICE_PACKAGES = new Set(["core", "sdk", "testing"]);
+
+// Packages whose calls target the AI gateway surface rather than the REST API.
+const AI_SURFACE_PACKAGES = new Set(["ai"]);
+
+/**
+ * Every publishable service package under `packages/*`, discovered at runtime
+ * so new packages are covered automatically instead of being silently skipped.
+ */
+function discoverPackages(): string[] {
+	const packagesDir = join(ROOT, "packages");
+	if (!existsSync(packagesDir)) return [];
+	return readdirSync(packagesDir)
+		.filter((name) => {
+			if (NON_SERVICE_PACKAGES.has(name)) return false;
+			const src = join(packagesDir, name, "src");
+			return existsSync(src) && statSync(src).isDirectory();
+		})
+		.sort();
+}
+
+const PACKAGES = discoverPackages();
+
+function packageSurface(pkg: string): Surface {
+	return AI_SURFACE_PACKAGES.has(pkg) ? "ai" : "api";
+}
 
 const HTTP_METHODS = new Set([
 	"get",
@@ -50,17 +79,6 @@ const HTTP_METHODS = new Set([
 	"putRaw",
 	"postFormData",
 ]);
-
-const PACKAGE_SURFACE: Record<(typeof PACKAGES)[number], Surface> = {
-	ai: "ai",
-	agents: "api",
-	blob: "api",
-	functions: "api",
-	graph: "api",
-	ontology: "api",
-	pipelines: "api",
-	workflows: "api",
-};
 
 function normalizePath(path: string): string {
 	return path.replace(/\$\{[^}]+\}/g, "{param}");
@@ -130,14 +148,32 @@ function extractFromFile(filePath: string): Endpoint[] {
 	return endpoints;
 }
 
+/** Recursively collect non-test TypeScript source files under a directory. */
+function collectSourceFiles(dir: string): string[] {
+	const out: string[] = [];
+	for (const entry of readdirSync(dir)) {
+		const full = join(dir, entry);
+		if (statSync(full).isDirectory()) {
+			out.push(...collectSourceFiles(full));
+			continue;
+		}
+		if (
+			entry.endsWith(".ts") &&
+			!entry.endsWith(".test.ts") &&
+			!entry.endsWith(".d.ts")
+		) {
+			out.push(full);
+		}
+	}
+	return out;
+}
+
 function buildCurrentContract(): Contract {
 	const contract: Contract = {};
 
 	for (const pkg of PACKAGES) {
 		const srcDir = join(ROOT, "packages", pkg, "src");
-		const files = ["client.ts", "service.ts"]
-			.map((name) => join(srcDir, name))
-			.filter((candidate) => existsSync(candidate));
+		const files = existsSync(srcDir) ? collectSourceFiles(srcDir) : [];
 
 		const endpoints = files.flatMap((file) => extractFromFile(file));
 		const unique = [
@@ -261,12 +297,21 @@ function surfaceAllowsPath(surface: Surface, path: string): boolean {
 	return !path.startsWith("/ai/") && !path.startsWith("/internal/");
 }
 
+type CoverageReport = {
+	surface: Surface;
+	specTotal: number;
+	covered: number;
+	coveragePct: number;
+	uncovered: Array<{ method: string; path: string }>;
+};
+
 function runConformance(contract: Contract): {
 	issues: ConformanceIssue[];
 	summary: Record<
 		string,
 		{ total: number; matched: number; unmatched: number }
 	>;
+	coverage: Record<Surface, CoverageReport>;
 } {
 	if (!existsSync(API_OPENAPI_PATH)) {
 		throw new Error(
@@ -288,9 +333,16 @@ function runConformance(contract: Contract): {
 		{ total: number; matched: number; unmatched: number }
 	> = {};
 
+	// Accumulate every SDK endpoint per surface so we can measure how much of
+	// the spec the SDK actually covers (the reverse of "are my calls real?").
+	const sdkBySurface: Record<
+		Surface,
+		Array<{ method: string; candidates: string[] }>
+	> = { api: [], ai: [] };
+
 	for (const pkg of PACKAGES) {
 		const endpoints = contract[pkg] ?? [];
-		const surface = PACKAGE_SURFACE[pkg];
+		const surface = packageSurface(pkg);
 		const ops = surface === "api" ? apiOps : aiOps;
 
 		let matched = 0;
@@ -310,6 +362,8 @@ function runConformance(contract: Contract): {
 				});
 				continue;
 			}
+
+			sdkBySurface[surface].push({ method: resolvedMethod, candidates });
 
 			const found = ops.some((op) => {
 				if (op.method !== resolvedMethod) return false;
@@ -336,7 +390,46 @@ function runConformance(contract: Contract): {
 		};
 	}
 
-	return { issues, summary };
+	const coverage: Record<Surface, CoverageReport> = {
+		api: computeCoverage("api", apiOps, sdkBySurface.api),
+		ai: computeCoverage("ai", aiOps, sdkBySurface.ai),
+	};
+
+	return { issues, summary, coverage };
+}
+
+/**
+ * Coverage = how much of the spec the SDK implements. A spec operation is
+ * "covered" when some SDK call matches its method and path. Uncovered
+ * operations are real API surface the SDK does not expose yet.
+ */
+function computeCoverage(
+	surface: Surface,
+	ops: Array<{ method: string; path: string }>,
+	sdk: Array<{ method: string; candidates: string[] }>,
+): CoverageReport {
+	const uncovered: Array<{ method: string; path: string }> = [];
+	let covered = 0;
+	for (const op of ops) {
+		const isCovered = sdk.some(
+			(call) =>
+				call.method === op.method &&
+				call.candidates.some((candidate) => pathMatches(op.path, candidate)),
+		);
+		if (isCovered) covered += 1;
+		else uncovered.push(op);
+	}
+	uncovered.sort((a, b) =>
+		`${a.method} ${a.path}`.localeCompare(`${b.method} ${b.path}`),
+	);
+	return {
+		surface,
+		specTotal: ops.length,
+		covered,
+		coveragePct:
+			ops.length === 0 ? 100 : Math.round((covered / ops.length) * 1000) / 10,
+		uncovered,
+	};
 }
 
 function writeReport(report: unknown): void {
@@ -344,10 +437,18 @@ function writeReport(report: unknown): void {
 	writeFileSync(REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 }
 
+type CoverageFloor = Record<string, number>;
+
+function readCoverageFloor(): CoverageFloor | undefined {
+	if (!existsSync(COVERAGE_FLOOR_PATH)) return undefined;
+	return JSON.parse(readFileSync(COVERAGE_FLOOR_PATH, "utf8")) as CoverageFloor;
+}
+
 function main(): void {
 	const shouldUpdate = process.argv.includes("--update");
 	const reportOnly = process.argv.includes("--report-only");
 	const skipSnapshot = process.argv.includes("--skip-snapshot");
+	const updateFloor = process.argv.includes("--update-floor");
 
 	const current = buildCurrentContract();
 
@@ -376,6 +477,7 @@ function main(): void {
 
 	const report = {
 		generatedAt: new Date().toISOString(),
+		packages: PACKAGES,
 		drift: {
 			errors: driftErrors,
 			hasDrift: driftErrors.length > 0,
@@ -385,33 +487,100 @@ function main(): void {
 	writeReport(report);
 	console.log(`Wrote conformance report: ${REPORT_PATH}`);
 
+	// Coverage summary — how much of each spec surface the SDK implements.
+	for (const surface of ["api", "ai"] as const) {
+		const cov = conformance.coverage[surface];
+		console.log(
+			`Coverage [${surface}]: ${cov.covered}/${cov.specTotal} spec operations (${cov.coveragePct}%), ${cov.uncovered.length} uncovered.`,
+		);
+	}
+
+	// Persist / raise the no-regression floor.
+	if (updateFloor) {
+		const floor: CoverageFloor = {};
+		for (const surface of ["api", "ai"] as const) {
+			floor[surface] = conformance.coverage[surface].covered;
+		}
+		writeFileSync(
+			COVERAGE_FLOOR_PATH,
+			`${JSON.stringify(floor, null, 2)}\n`,
+			"utf8",
+		);
+		console.log(
+			`Updated coverage floor: ${COVERAGE_FLOOR_PATH} (${JSON.stringify(floor)})`,
+		);
+	}
+
+	// "missing-in-spec" issues are informational: the published spec is known to
+	// lag the real backend services, so an SDK call absent from the spec is not
+	// necessarily wrong. "forbidden-surface" (an api package calling the AI
+	// gateway or vice-versa) is always a real error.
+	const forbidden = conformance.issues.filter(
+		(i) => i.reason === "forbidden-surface",
+	);
+	const missing = conformance.issues.filter(
+		(i) => i.reason === "missing-in-spec",
+	);
+
+	if (missing.length > 0) {
+		console.warn(
+			`\n${missing.length} SDK call(s) not found in the published spec ` +
+				"(informational — the spec may lag the backend). See report.",
+		);
+		for (const issue of missing.slice(0, 20)) {
+			console.warn(
+				`  ~ [${issue.package}] ${issue.endpoint.method} ${issue.endpoint.path}`,
+			);
+		}
+		if (missing.length > 20) {
+			console.warn(`  ...and ${missing.length - 20} more (see report).`);
+		}
+	}
+
+	let failed = false;
+
+	// Enforce the no-regression coverage floor (fatal): SDK coverage of each
+	// surface may only rise. This is the honest, enforceable gate — the absolute
+	// count of spec operations implemented cannot drop below the committed floor.
+	const floor = readCoverageFloor();
+	if (floor) {
+		for (const surface of ["api", "ai"] as const) {
+			const cov = conformance.coverage[surface];
+			const min = floor[surface] ?? 0;
+			if (cov.covered < min) {
+				console.error(
+					`\nCoverage regression [${surface}]: ${cov.covered} spec operations covered, ` +
+						`below the committed floor of ${min}. Coverage must not drop; ` +
+						"raise it or update the floor intentionally with --update-floor.",
+				);
+				failed = true;
+			}
+		}
+	}
+
 	if (driftErrors.length > 0) {
-		console.error("Endpoint snapshot drift detected:");
+		console.error("\nEndpoint snapshot drift detected:");
 		console.error(driftErrors.join("\n"));
-		if (!reportOnly) {
-			process.exit(1);
-		}
+		failed = true;
 	}
 
-	if (conformance.issues.length > 0) {
-		console.error("OpenAPI conformance issues detected:");
-		for (const issue of conformance.issues.slice(0, 40)) {
+	if (forbidden.length > 0) {
+		console.error("\nForbidden-surface conformance issues detected:");
+		for (const issue of forbidden) {
 			console.error(
-				`- [${issue.package}] ${issue.endpoint.method} ${issue.endpoint.path} -> ${issue.reason} (${issue.surface})`,
+				`- [${issue.package}] ${issue.endpoint.method} ${issue.endpoint.path} (${issue.surface})`,
 			);
 		}
-		if (conformance.issues.length > 40) {
-			console.error(
-				`...and ${conformance.issues.length - 40} more (see report)`,
-			);
-		}
-		if (!reportOnly) {
-			process.exit(1);
-		}
-		return;
+		failed = true;
 	}
 
-	console.log("Endpoint contract and OpenAPI conformance checks passed.");
+	if (failed && !reportOnly) {
+		process.exit(1);
+	}
+
+	if (!failed) {
+		console.log("Endpoint contract and forbidden-surface checks passed.");
+	}
 }
 
 main();

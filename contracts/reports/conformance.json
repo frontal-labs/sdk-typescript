@@ -1,52 +1,3170 @@
 {
-	"generatedAt": "2026-05-13T18:11:25.961Z",
-	"drift": {
-		"errors": [],
-		"hasDrift": false
-	},
-	"conformance": {
-		"issues": [],
-		"summary": {
-			"ai": {
-				"total": 6,
-				"matched": 6,
-				"unmatched": 0
-			},
-			"agents": {
-				"total": 6,
-				"matched": 6,
-				"unmatched": 0
-			},
-			"blob": {
-				"total": 2,
-				"matched": 2,
-				"unmatched": 0
-			},
-			"functions": {
-				"total": 5,
-				"matched": 5,
-				"unmatched": 0
-			},
-			"graph": {
-				"total": 7,
-				"matched": 7,
-				"unmatched": 0
-			},
-			"ontology": {
-				"total": 7,
-				"matched": 7,
-				"unmatched": 0
-			},
-			"pipelines": {
-				"total": 7,
-				"matched": 7,
-				"unmatched": 0
-			},
-			"workflows": {
-				"total": 7,
-				"matched": 7,
-				"unmatched": 0
-			}
-		}
-	}
+  "generatedAt": "2026-07-20T15:31:39.857Z",
+  "packages": [
+    "agents",
+    "ai",
+    "audit",
+    "auth",
+    "billing",
+    "blob",
+    "connectors",
+    "data",
+    "datasets",
+    "events",
+    "governance",
+    "graph",
+    "integrations",
+    "lineage",
+    "observability",
+    "ontology",
+    "pipelines",
+    "sandbox",
+    "schedules",
+    "webhooks",
+    "workers",
+    "workflows"
+  ],
+  "drift": {
+    "errors": [],
+    "hasDrift": false
+  },
+  "conformance": {
+    "issues": [
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/agents/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "GET",
+          "path": "/agents"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "GET",
+          "path": "/agents/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "GET",
+          "path": "/agents/{param}/runs"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "GET",
+          "path": "/agents/{param}/versions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "GET",
+          "path": "/agents/health"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "GET",
+          "path": "/agents/runs/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "GET",
+          "path": "/agents/runs/{param}/conversation"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "POST",
+          "path": "/agents"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "POST",
+          "path": "/agents/{param}/rollback"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "POST",
+          "path": "/agents/{param}/runs"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/agents/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "agents",
+        "endpoint": {
+          "method": "STREAM",
+          "path": "/agents/runs/{param}/stream"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "audit",
+        "endpoint": {
+          "method": "GET",
+          "path": "/audit/events"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "audit",
+        "endpoint": {
+          "method": "GET",
+          "path": "/audit/events/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "audit",
+        "endpoint": {
+          "method": "POST",
+          "path": "/audit/events"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "audit",
+        "endpoint": {
+          "method": "POST",
+          "path": "/audit/events/batch"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/account/mfa/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/account/profile"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/account/security/api-keys/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/account/security/devices/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/account/sessions/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/admin/users/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/admin/users/{param}/factors/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/factors/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/auth/user/identities/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/audit-log"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/mfa"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/mfa/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/profile"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/security/api-keys"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/security/api-keys/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/security/devices"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/security/devices/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/account/sessions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/admin/users"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/admin/users/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/admin/users/{param}/factors"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/auth/session"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/factors"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/user"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "GET",
+          "path": "/auth/user/identities"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/mfa"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/mfa/{param}/challenge"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/mfa/{param}/verify"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/password"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/security/api-keys"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/security/devices"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/security/devices/{param}/trust"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/account/sessions/{param}/extend"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/admin/generate_link"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/admin/logout"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/admin/users"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/auth/session"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/authorize"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/factors"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/factors/{param}/challenge"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/factors/{param}/verify"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/invite"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/logout"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/otp"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/reauthenticate"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/recover"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/resend"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/sso"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/token?grant_type=id_token"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/token?grant_type=password"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/token?grant_type=pkce"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/token?grant_type=refresh_token"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/user/identities"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "POST",
+          "path": "/auth/verify"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/auth/account/profile"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/auth/account/security/api-keys/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/auth/admin/users/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "auth",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/auth/user"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/addons/{param}/entitlements"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/customers/{param}/entitlements"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/customers/{param}/invoices/summary"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/customers/{param}/usage"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/customers/{param}/wallets"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/customers/portal/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/plans/{param}/entitlements"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/prices/lookup/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/subscriptions/{param}/entitlements"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/wallets/{param}/balance/real-time"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GET",
+          "path": "/billing/wallets/{param}/transactions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "GETRAW",
+          "path": "/billing/invoices/{param}/pdf"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/invoices/{param}/finalize"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/invoices/{param}/void"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/invoices/preview"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/meters/{param}/disable"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/plans/{param}/clone"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/subscriptions/{param}/activate"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/subscriptions/{param}/cancel"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/subscriptions/{param}/pause"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/subscriptions/{param}/resume"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/wallets/{param}/terminate"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "billing",
+        "endpoint": {
+          "method": "POST",
+          "path": "/billing/wallets/{param}/top-up"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/connectors/installations/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "GET",
+          "path": "/connectors/catalog"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "GET",
+          "path": "/connectors/catalog/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "GET",
+          "path": "/connectors/connection-tests/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "GET",
+          "path": "/connectors/installations"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "GET",
+          "path": "/connectors/installations/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "GET",
+          "path": "/diagnostics"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "PATCH",
+          "path": "/connectors/installations/{param}"
+        },
+        "resolvedMethod": "PATCH",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "POST",
+          "path": "/connectors/installations"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "POST",
+          "path": "/connectors/installations/{param}/pause"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "POST",
+          "path": "/connectors/installations/{param}/resume"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "connectors",
+        "endpoint": {
+          "method": "POST",
+          "path": "/connectors/sync-runs/{param}/replay"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/events/subscriptions/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/events/topics/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "GET",
+          "path": "/events/schemas/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "GET",
+          "path": "/events/subscriptions/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "GET",
+          "path": "/events/topics/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "POST",
+          "path": "/events/publish"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "POST",
+          "path": "/events/schemas"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "POST",
+          "path": "/events/schemas/validate"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "POST",
+          "path": "/events/subscriptions"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "POST",
+          "path": "/events/subscriptions/{param}/pause"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "POST",
+          "path": "/events/subscriptions/{param}/resume"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "POST",
+          "path": "/events/topics"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/events/schemas/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/events/subscriptions/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "events",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/events/topics/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/policies/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/roles/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/compliance/assessments"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/compliance/assessments/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/compliance/frameworks"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/compliance/score"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/compliance/violations"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/permissions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/permissions/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/policies"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/policies/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/policies/{param}/versions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/policies/templates"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/roles"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "GET",
+          "path": "/roles/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/access/check"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/compliance/assessments"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/compliance/violations/{param}/resolve"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/permissions"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/policies"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/policies/from-template"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/policies/validate"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "POST",
+          "path": "/roles"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "governance",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/policies/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "graph",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/ontology/graph/entities/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "graph",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/ontology/graph/relationships/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "graph",
+        "endpoint": {
+          "method": "GET",
+          "path": "/ontology/graph/entities"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "graph",
+        "endpoint": {
+          "method": "POST",
+          "path": "/ontology/graph/entities"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "graph",
+        "endpoint": {
+          "method": "POST",
+          "path": "/ontology/graph/entities/{param}/provenance"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "GET",
+          "path": "/diagnostics"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "GET",
+          "path": "/governance/summary"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "GET",
+          "path": "/integrations"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "GET",
+          "path": "/integrations/{param}/metrics"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "GET",
+          "path": "/providers"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "POST",
+          "path": "/action-runs/{param}/replay"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "POST",
+          "path": "/integrations"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "POST",
+          "path": "/integrations/{param}/rotate-secret"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "POST",
+          "path": "/integrations/{param}/validate-configuration"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "POST",
+          "path": "/policy/simulate"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "integrations",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/integrations/{param}/capabilities:bulk"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "lineage",
+        "endpoint": {
+          "method": "GET",
+          "path": "/lineage/edges"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "lineage",
+        "endpoint": {
+          "method": "GET",
+          "path": "/lineage/edges/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "lineage",
+        "endpoint": {
+          "method": "GET",
+          "path": "/lineage/graph"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "lineage",
+        "endpoint": {
+          "method": "GET",
+          "path": "/lineage/nodes"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "lineage",
+        "endpoint": {
+          "method": "GET",
+          "path": "/lineage/nodes/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "lineage",
+        "endpoint": {
+          "method": "GET",
+          "path": "/lineage/nodes/{param}/trace"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "lineage",
+        "endpoint": {
+          "method": "POST",
+          "path": "/lineage/impact"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/observability/alerts/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/observability/dashboards/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/alerts"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/alerts/incidents"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/dashboards"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/dashboards/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/metrics"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/metrics/list"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/traces"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "GET",
+          "path": "/observability/traces/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/alerts"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/alerts/{param}/disable"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/alerts/{param}/enable"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/dashboards"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/dashboards/{param}/share"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/logs/ingest"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/logs/query"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/metrics/ingest"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "POST",
+          "path": "/observability/traces/query"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/observability/alerts/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/observability/dashboards/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "observability",
+        "endpoint": {
+          "method": "STREAM",
+          "path": "/observability/logs/stream"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "sandbox",
+        "endpoint": {
+          "method": "GET",
+          "path": "/sandbox/languages"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "sandbox",
+        "endpoint": {
+          "method": "POST",
+          "path": "/sandbox/self-test"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "sandbox",
+        "endpoint": {
+          "method": "POST",
+          "path": "/sandbox/submit"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/workflows/schedules/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "GET",
+          "path": "/workflows/schedules"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "PATCH",
+          "path": "/workflows/schedules/{param}"
+        },
+        "resolvedMethod": "PATCH",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/cron/parse"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/cron/validate"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/schedules"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/schedules/{param}/pause"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/schedules/{param}/resume"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "schedules",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/schedules/{param}/trigger"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/webhooks/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "GET",
+          "path": "/webhooks"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "GET",
+          "path": "/webhooks/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "GET",
+          "path": "/webhooks/deliveries"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "GET",
+          "path": "/webhooks/deliveries/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "GET",
+          "path": "/webhooks/stats"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "POST",
+          "path": "/webhooks"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "POST",
+          "path": "/webhooks/{param}/rotate-secret"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "POST",
+          "path": "/webhooks/deliveries/{param}/retry"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "webhooks",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/webhooks/{param}"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/workflows"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "GET",
+          "path": "/workflows"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "PATCH",
+          "path": "/workflows"
+        },
+        "resolvedMethod": "PATCH",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "PUT",
+          "path": "/workflows"
+        },
+        "resolvedMethod": "PUT",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      }
+    ],
+    "summary": {
+      "agents": {
+        "total": 13,
+        "matched": 0,
+        "unmatched": 13
+      },
+      "ai": {
+        "total": 9,
+        "matched": 9,
+        "unmatched": 0
+      },
+      "audit": {
+        "total": 4,
+        "matched": 0,
+        "unmatched": 4
+      },
+      "auth": {
+        "total": 59,
+        "matched": 1,
+        "unmatched": 58
+      },
+      "billing": {
+        "total": 23,
+        "matched": 0,
+        "unmatched": 23
+      },
+      "blob": {
+        "total": 0,
+        "matched": 0,
+        "unmatched": 0
+      },
+      "connectors": {
+        "total": 12,
+        "matched": 0,
+        "unmatched": 12
+      },
+      "data": {
+        "total": 45,
+        "matched": 45,
+        "unmatched": 0
+      },
+      "datasets": {
+        "total": 11,
+        "matched": 11,
+        "unmatched": 0
+      },
+      "events": {
+        "total": 18,
+        "matched": 3,
+        "unmatched": 15
+      },
+      "governance": {
+        "total": 24,
+        "matched": 0,
+        "unmatched": 24
+      },
+      "graph": {
+        "total": 21,
+        "matched": 16,
+        "unmatched": 5
+      },
+      "integrations": {
+        "total": 21,
+        "matched": 10,
+        "unmatched": 11
+      },
+      "lineage": {
+        "total": 7,
+        "matched": 0,
+        "unmatched": 7
+      },
+      "observability": {
+        "total": 25,
+        "matched": 3,
+        "unmatched": 22
+      },
+      "ontology": {
+        "total": 82,
+        "matched": 82,
+        "unmatched": 0
+      },
+      "pipelines": {
+        "total": 11,
+        "matched": 11,
+        "unmatched": 0
+      },
+      "sandbox": {
+        "total": 3,
+        "matched": 0,
+        "unmatched": 3
+      },
+      "schedules": {
+        "total": 10,
+        "matched": 1,
+        "unmatched": 9
+      },
+      "webhooks": {
+        "total": 10,
+        "matched": 0,
+        "unmatched": 10
+      },
+      "workers": {
+        "total": 0,
+        "matched": 0,
+        "unmatched": 0
+      },
+      "workflows": {
+        "total": 10,
+        "matched": 5,
+        "unmatched": 5
+      }
+    },
+    "coverage": {
+      "api": {
+        "surface": "api",
+        "specTotal": 383,
+        "covered": 184,
+        "coveragePct": 48,
+        "uncovered": [
+          {
+            "method": "DELETE",
+            "path": "/v1/observability/alerts/rules/{ruleId}"
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/webhook-endpoints/{id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/auth/mfa/status"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/aggregations/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/aggregations/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/aggregations/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/aggregations/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/aggregations/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/archival/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/archival/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/archival/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/archival/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/archival/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/enrichment/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/enrichment/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/enrichment/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/enrichment/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/enrichment/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/exports/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/exports/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/exports/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/exports/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/exports/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/normalization/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/normalization/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/normalization/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/normalization/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/normalization/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/pipelines/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/quality/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/quality/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/quality/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/quality/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/quality/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/query/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/query/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/query/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/query/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/query/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/schemas/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/schemas/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/schemas/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/schemas/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/schemas/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/serving/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/serving/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/serving/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/serving/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/serving/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/streams/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/streams/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/streams/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/streams/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/streams/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/sync/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/sync/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/sync/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/sync/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/sync/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/transformations/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/transformations/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/transformations/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/transformations/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/transformations/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/events"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/events/monitoring"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/integrations/{integrationId}/action-runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/integrations/{integrationId}/connection-tests"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/observability/alerts/rules"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/observability/alerts/rules/{ruleId}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/engine/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/engine/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/engine/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/engine/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/engine/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/events/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/events/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/events/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/events/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/events/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/extract/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/extract/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/extract/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/extract/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/extract/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/graph/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/objects/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/objects/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/objects/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/objects/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/objects/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/reasoning/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/reasoning/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/reasoning/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/reasoning/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/reasoning/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/relationships/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/relationships/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/relationships/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/relationships/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/relationships/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollouts/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollouts/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollouts/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollouts/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollouts/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollups/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollups/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollups/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollups/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/rollups/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/schemas/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/schemas/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/schemas/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/schemas/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/schemas/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/transformations/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/transformations/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/transformations/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/transformations/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/transformations/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/validation/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/validation/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/validation/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/validation/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/validation/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/versions/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/versions/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/versions/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/versions/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/versions/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/webhook-endpoints"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/webhook-endpoints/{id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/webhook-endpoints/{id}/deliveries"
+          },
+          {
+            "method": "PATCH",
+            "path": "/v1/webhook-endpoints/{id}"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/login"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/mfa/backup-codes/regenerate"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/mfa/disable"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/mfa/enable"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/mfa/setup"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/mfa/verify"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/aggregations/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/archival/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/catalog/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/enrichment/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/exports/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/ingest/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/normalization/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/quality/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/query/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/schemas/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/serving/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/streams/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/sync/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/transformations/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/analytics"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/analytics-v2"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/benchmark/v1"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/benchmark/v2"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/bulk"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/huggingface-billing"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/query"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/raw/reprocess/all"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/raw/reprocess/pending"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/reprocess"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/reprocess/internal"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/usage"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/events/usage/meter"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/integrations/{integrationId}/action-runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/integrations/{integrationId}/connection-tests"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/invocations"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/observability/alerts/rules"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/observability/alerts/rules/{ruleId}/toggle"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/engine/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/events/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/extract/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/objects/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/reasoning/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/relationships/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/rollouts/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/rollups/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/schemas/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/transformations/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/validation/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/versions/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/webhook-endpoints"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/webhook-endpoints/{id}/rotate-secret"
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/observability/alerts/rules/{ruleId}"
+          }
+        ]
+      },
+      "ai": {
+        "surface": "ai",
+        "specTotal": 7,
+        "covered": 7,
+        "coveragePct": 100,
+        "uncovered": []
+      }
+    }
+  }
 }

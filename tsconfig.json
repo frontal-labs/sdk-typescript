@@ -13,7 +13,7 @@
 			"path": "./packages/blob"
 		},
 		{
-			"path": "./packages/functions"
+			"path": "./packages/workers"
 		},
 		{
 			"path": "./packages/agents"
@@ -34,19 +34,16 @@
 			"path": "./packages/testing"
 		},
 		{ "path": "./packages/auth" },
-		{ "path": "./packages/organization" },
 		{ "path": "./packages/observability" },
 		{ "path": "./packages/events" },
-		{ "path": "./packages/flags" },
 		{ "path": "./packages/audit" },
 		{ "path": "./packages/governance" },
 		{ "path": "./packages/billing" },
 		{ "path": "./packages/webhooks" },
-		{ "path": "./packages/queues" },
 		{ "path": "./packages/schedules" },
 		{ "path": "./packages/sandbox" },
 		{ "path": "./packages/datasets" },
-		{ "path": "./packages/vectors" },
+		{ "path": "./packages/data" },
 		{ "path": "./packages/lineage" },
 	{ "path": "./packages/sdk" }
 	],
@@ -55,7 +52,7 @@
 		"paths": {
       "@frontal-labs/core": ["./packages/core/src"],
 			"@frontal-labs/ai": ["./packages/ai/src"],
-			"@frontal-labs/functions": ["./packages/functions/src"],
+			"@frontal-labs/workers": ["./packages/workers/src"],
 			"@frontal-labs/blob": ["./packages/blob/src"],
 			"@frontal-labs/agents": ["./packages/agents/src"],
 			"@frontal-labs/graph": ["./packages/graph/src"],
@@ -64,19 +61,16 @@
 			"@frontal-labs/workflows": ["./packages/workflows/src"],
       "@frontal-labs/testing": ["./packages/testing/src"],
       "@frontal-labs/auth": ["./packages/auth/src"],
-      "@frontal-labs/organization": ["./packages/organization/src"],
       "@frontal-labs/observability": ["./packages/observability/src"],
       "@frontal-labs/events": ["./packages/events/src"],
-      "@frontal-labs/flags": ["./packages/flags/src"],
       "@frontal-labs/audit": ["./packages/audit/src"],
       "@frontal-labs/governance": ["./packages/governance/src"],
       "@frontal-labs/billing": ["./packages/billing/src"],
       "@frontal-labs/webhooks": ["./packages/webhooks/src"],
-      "@frontal-labs/queues": ["./packages/queues/src"],
       "@frontal-labs/schedules": ["./packages/schedules/src"],
       "@frontal-labs/sandbox": ["./packages/sandbox/src"],
       "@frontal-labs/datasets": ["./packages/datasets/src"],
-      "@frontal-labs/vectors": ["./packages/vectors/src"],
+      "@frontal-labs/data": ["./packages/data/src"],
       "@frontal-labs/lineage": ["./packages/lineage/src"],
       "@frontal-labs/sdk": ["./packages/sdk/src"]
 		}

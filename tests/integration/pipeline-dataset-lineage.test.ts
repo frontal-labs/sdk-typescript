@@ -42,8 +42,12 @@ const mockGraph = {
 describe("Pipeline → Dataset → Lineage integration", () => {
   it("create dataset → trigger pipeline → verify lineage", async () => {
     const harness = createIntegrationHarness([
-      { method: "POST", path: "/v1/datasets", body: mockDataset },
-      { method: "POST", path: "/v1/datasets/ds_1/data", body: { inserted: 3 } },
+      {
+        method: "POST",
+        path: "/v1/data/ingest/datasets/ingest",
+        body: { runId: "ing_1" },
+      },
+      { method: "GET", path: "/v1/data/ingest/datasets/ds_1", body: mockDataset },
       {
         method: "POST", path: "/data/pipelines/pipelines",
         body: mockPipeline,
@@ -63,15 +67,13 @@ describe("Pipeline → Dataset → Lineage integration", () => {
     const datasets = new DatasetsService(datasetsHttp);
     const lineage = new LineageService(lineageHttp);
 
-    // Step 1: Create dataset
-    const ds = await datasets.create({ name: "users" });
-    expect(ds.id).toBe("ds_1");
+    // Step 1: Ingest data to create/populate the dataset
+    const ingestRun = await datasets.ingest({ dataset: "users" });
+    expect(ingestRun.runId).toBe("ing_1");
 
-    // Step 2: Insert data into dataset
-    const inserted = await datasets.data.insert(ds.id, [
-      { name: "Alice" }, { name: "Bob" },
-    ]);
-    expect(inserted.inserted).toBe(3);
+    // Step 2: Read the resulting dataset from the ingest service
+    const ds = await datasets.get("ds_1");
+    expect(ds.id).toBe("ds_1");
 
     // Step 3: Create pipeline that produces this dataset
     const ppl = await pipelines.define("data-ingest")
