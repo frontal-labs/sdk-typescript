@@ -1,5 +1,34 @@
 # @frontal-labs/sdk
 
+## 1.0.1
+
+### Patch Changes
+
+- Bundle `@frontal-labs/core` into the published JS output instead of leaving it as an external dependency. Replace `workspace:*` protocol with proper `^` semver ranges so packages can be installed from npm without errors.
+- Updated dependencies
+  - @frontal-labs/agents@1.0.1
+  - @frontal-labs/ai@0.1.1
+  - @frontal-labs/audit@0.0.4
+  - @frontal-labs/auth@1.0.1
+  - @frontal-labs/billing@1.0.1
+  - @frontal-labs/blob@1.0.1
+  - @frontal-labs/connectors@0.0.4
+  - @frontal-labs/data@0.1.1
+  - @frontal-labs/datasets@1.0.1
+  - @frontal-labs/events@1.0.1
+  - @frontal-labs/governance@0.0.4
+  - @frontal-labs/graph@0.1.1
+  - @frontal-labs/integrations@0.0.4
+  - @frontal-labs/lineage@0.0.4
+  - @frontal-labs/observability@0.1.1
+  - @frontal-labs/ontology@1.0.1
+  - @frontal-labs/pipelines@0.0.3
+  - @frontal-labs/sandbox@1.0.1
+  - @frontal-labs/schedules@1.0.1
+  - @frontal-labs/webhooks@0.0.4
+  - @frontal-labs/workers@0.1.1
+  - @frontal-labs/workflows@0.1.1
+
 ## 1.0.0
 
 ### Major Changes
