@@ -1,0 +1,26 @@
+pre-commit:
+  parallel: true
+  commands:
+    format-check:
+      glob: "*.{ts,tsx,js,jsx,json,jsonc,css,html,md}"
+      run: bun biome format --staged --files-ignore-unknown=true --no-errors-on-unmatched {staged_files}
+    lint-check:
+      glob: "*.{ts,tsx,js,jsx,json,jsonc,css,html,md}"
+      run: bun biome lint --staged --files-ignore-unknown=true --no-errors-on-unmatched {staged_files}
+
+commit-msg:
+  commands:
+    commitlint:
+      run: bun commitlint --config .commitlintrc.js --edit {1}
+
+pre-push:
+  parallel: true
+  commands:
+    format-check-all:
+      run: bun run format:check
+    lint-all:
+      run: bun biome lint packages/
+    type-check:
+      run: bun run type-check
+    test:
+      run: bun run test

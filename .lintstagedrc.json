@@ -1,0 +1,6 @@
+{
+  "*.{ts,tsx,js,jsx,json,jsonc,css,html,md}": [
+    "bun biome format --write --files-ignore-unknown=true --no-errors-on-unmatched",
+    "bun biome lint --fix --files-ignore-unknown=true --no-errors-on-unmatched"
+  ]
+}
