@@ -32,7 +32,7 @@ const client = createAuditClient({
 
 ## Core Concepts
 
-The Audit SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createAuditClient`) and a default singleton (`audit`).
+The Audit SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/_core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createAuditClient`) and a default singleton (`audit`).
 
 ## Configuration
 
@@ -52,7 +52,7 @@ const client = createAuditClient({
 ### Shared FrontalClient (recommended)
 
 ```typescript
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createAuditClient } from "@frontal-labs/audit";
 
 const frontal = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
@@ -67,10 +67,10 @@ const client = createAuditClient(frontal);
 
 ## Error Handling
 
-The Audit SDK throws typed errors from `@frontal-labs/core`:
+The Audit SDK throws typed errors from `@frontal-labs/_core`:
 
 ```typescript
-import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/core";
+import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/_core";
 
 try {
   await client.someMethod();
@@ -87,6 +87,6 @@ try {
 
 ## Related Packages
 
-- [@frontal-labs/core](../core/docs/OVERVIEW.md)
+- [@frontal-labs/_core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/auth](../auth/docs/OVERVIEW.md)
 - [@frontal-labs/governance](../governance/docs/OVERVIEW.md)

@@ -16,7 +16,7 @@
   ],
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/agents",
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Frontal Labs",
   "files": [
     "dist",
@@ -97,6 +97,6 @@
     "tslib": "^2.8.1",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "@frontal-labs/core": "^1.0.2"
+    "@frontal-labs/_core": "^1.0.2"
   }
 }

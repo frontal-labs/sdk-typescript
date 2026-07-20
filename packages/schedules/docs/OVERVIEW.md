@@ -32,7 +32,7 @@ const client = createSchedulesClient({
 
 ## Core Concepts
 
-The Schedules SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createSchedulesClient`) and a default singleton (`schedules`).
+The Schedules SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/_core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createSchedulesClient`) and a default singleton (`schedules`).
 
 ## Configuration
 
@@ -52,7 +52,7 @@ const client = createSchedulesClient({
 ### Shared FrontalClient (recommended)
 
 ```typescript
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createSchedulesClient } from "@frontal-labs/schedules";
 
 const frontal = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
@@ -65,10 +65,10 @@ const client = createSchedulesClient(frontal);
 
 ## Error Handling
 
-The Schedules SDK throws typed errors from `@frontal-labs/core`:
+The Schedules SDK throws typed errors from `@frontal-labs/_core`:
 
 ```typescript
-import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/core";
+import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/_core";
 
 try {
   await client.someMethod();
@@ -85,6 +85,6 @@ try {
 
 ## Related Packages
 
-- [@frontal-labs/core](../core/docs/OVERVIEW.md)
+- [@frontal-labs/_core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/pipelines](../pipelines/docs/OVERVIEW.md)
 - [@frontal-labs/workflows](../workflows/docs/OVERVIEW.md)

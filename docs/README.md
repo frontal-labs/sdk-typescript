@@ -28,9 +28,9 @@ guides and references for working with the SDK.
 
 Each package in the monorepo contains its own documentation:
 
-- **[@frontal-labs/core](../packages/core/)** - Shared client and utilities
+- **[@frontal-labs/_core](../packages/_core/)** - Shared client and utilities
 - **[@frontal-labs/sdk](../packages/sdk/)** - All Frontal services client
-- **[@frontal-labs/testing](../packages/testing/)** - Test mocks and fixtures
+- **[@frontal-labs/_testing](../packages/_testing/)** - Test mocks and fixtures
 - **[@frontal-labs/ai](../packages/ai/)** - AI inference and embeddings
 - **[@frontal-labs/agents](../packages/agents/)** - Agent integrations
 - **[@frontal-labs/audit](../packages/audit/)** - Audit trails

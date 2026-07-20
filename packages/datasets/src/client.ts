@@ -2,7 +2,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
-} from "@frontal-labs/core";
+} from "@frontal-labs/_core";
 import {
   DEFAULT_DATASETS_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -10,7 +10,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { DatasetsSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
+import { env } from "@frontal-labs/_core";
 
 /** Configuration options for creating a Datasets API client. */
 export interface DatasetsClientConfig {

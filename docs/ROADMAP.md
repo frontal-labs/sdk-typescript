@@ -2,9 +2,9 @@
 
 The following packages are available:
 
-- @frontal-labs/core — Shared transport, auth, retries, pagination
+- @frontal-labs/_core — Shared transport, auth, retries, pagination
 - @frontal-labs/sdk — Unified SDK client for all Frontal services
-- @frontal-labs/testing — Shared test utilities and fixtures
+- @frontal-labs/_testing — Shared test utilities and fixtures
 - @frontal-labs/ai — AI inference, embeddings, and streaming
 - @frontal-labs/agents — AI agent integrations and workflows
 - @frontal-labs/audit — Audit trails and compliance checks

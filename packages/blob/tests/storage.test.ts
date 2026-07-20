@@ -1,4 +1,4 @@
-import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
+import { createTestHttpClient, type MockRoute } from "@frontal-labs/_testing";
 import { describe, expect, it, vi } from "vitest";
 import { BlobSdk } from "../src/sdk";
 import { signedUrlOptionsSchema } from "../src/schemas";

@@ -5,13 +5,13 @@ Data ingestion connectors for enterprise data sources.
 ## Installation
 
 ```bash
-bun add @frontal-labs/connectors @frontal-labs/core
+bun add @frontal-labs/connectors @frontal-labs/_core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createConnectorsClient } from "@frontal-labs/connectors";
 
 const client = new FrontalClient({

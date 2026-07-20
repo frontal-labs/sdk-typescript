@@ -154,7 +154,7 @@ Or configure programmatically:
 
 ```typescript
 import { createGraphClient } from "@frontal-labs/graph";
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

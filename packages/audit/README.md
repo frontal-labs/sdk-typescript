@@ -5,13 +5,13 @@ Audit trail SDK for event logging, querying, compliance checks, and export.
 ## Installation
 
 ```bash
-bun add @frontal-labs/audit @frontal-labs/core
+bun add @frontal-labs/audit @frontal-labs/_core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createAuditClient } from "@frontal-labs/audit";
 
 const client = new FrontalClient({

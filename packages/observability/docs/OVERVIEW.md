@@ -32,7 +32,7 @@ const client = createObservabilityClient({
 
 ## Core Concepts
 
-The Observability SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createObservabilityClient`) and a default singleton (`observability`).
+The Observability SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/_core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createObservabilityClient`) and a default singleton (`observability`).
 
 ## Configuration
 
@@ -52,7 +52,7 @@ const client = createObservabilityClient({
 ### Shared FrontalClient (recommended)
 
 ```typescript
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createObservabilityClient } from "@frontal-labs/observability";
 
 const frontal = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
@@ -68,10 +68,10 @@ const client = createObservabilityClient(frontal);
 
 ## Error Handling
 
-The Observability SDK throws typed errors from `@frontal-labs/core`:
+The Observability SDK throws typed errors from `@frontal-labs/_core`:
 
 ```typescript
-import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/core";
+import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/_core";
 
 try {
   await client.someMethod();
@@ -88,6 +88,6 @@ try {
 
 ## Related Packages
 
-- [@frontal-labs/core](../core/docs/OVERVIEW.md)
+- [@frontal-labs/_core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/audit](../audit/docs/OVERVIEW.md)
 - [@frontal-labs/events](../events/docs/OVERVIEW.md)

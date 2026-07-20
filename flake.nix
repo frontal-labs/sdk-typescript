@@ -107,7 +107,7 @@
           core = pkgs.stdenv.mkDerivation {
             pname = "@frontal/core";
             version = "0.0.0";
-            src = ./packages/core;
+            src = ./packages/_core;
             nativeBuildInputs = [ bun-pkg ];
             buildPhase = ''
               bun install --frozen-lockfile
@@ -115,7 +115,7 @@
             '';
             installPhase = ''
               mkdir -p $out
-              cp -r packages/core/dist $out/
+              cp -r packages/_core/dist $out/
             '';
           };
 
@@ -167,7 +167,7 @@
           testing = pkgs.stdenv.mkDerivation {
             pname = "@frontal/testing";
             version = "0.0.0";
-            src = ./packages/testing;
+            src = ./packages/_testing;
             nativeBuildInputs = [ bun-pkg ];
             buildPhase = ''
               bun install --frozen-lockfile
@@ -175,7 +175,7 @@
             '';
             installPhase = ''
               mkdir -p $out
-              cp -r packages/testing/dist $out/
+              cp -r packages/_testing/dist $out/
             '';
           };
 

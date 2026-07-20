@@ -1,4 +1,4 @@
-import { FrontalClient, getDefaultClient } from "@frontal-labs/core";
+import { FrontalClient, getDefaultClient } from "@frontal-labs/_core";
 import {
   DEFAULT_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -6,7 +6,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { Frontal } from "./sdk";
-import { env } from "@frontal-labs/core";
+import { env } from "@frontal-labs/_core";
 
 /**
  * Configuration for standalone usage without a FrontalClient instance.

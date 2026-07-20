@@ -1,4 +1,4 @@
-import { filterConditionsSchema, timestampSchema } from "@frontal-labs/core";
+import { filterConditionsSchema, timestampSchema } from "@frontal-labs/_core";
 import { z } from "zod";
 
 /**

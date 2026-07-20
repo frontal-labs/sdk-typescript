@@ -227,4 +227,4 @@ To add new examples:
 
 ## License
 
-These examples are part of the Frontal Core and follow the same [MIT License](../../LICENSE.md).
+These examples are part of the Frontal SDK and follow the same [Apache License 2.0](../../LICENSE.md).

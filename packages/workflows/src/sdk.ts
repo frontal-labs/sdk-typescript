@@ -5,7 +5,7 @@ import {
   type PaginationMeta,
   type PollOptions,
   pollUntil,
-} from "@frontal-labs/core";
+} from "@frontal-labs/_core";
 import type { z } from "zod";
 import * as S from "./schemas";
 

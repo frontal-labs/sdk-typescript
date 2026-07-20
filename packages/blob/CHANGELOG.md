@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Bundle `@frontal-labs/core` into the published JS output instead of leaving it as an external dependency. Replace `workspace:*` protocol with proper `^` semver ranges so packages can be installed from npm without errors.
+- Bundle `@frontal-labs/_core` into the published JS output instead of leaving it as an external dependency. Replace `workspace:*` protocol with proper `^` semver ranges so packages can be installed from npm without errors.
 
 ## 1.0.0
 
@@ -29,7 +29,7 @@ destinationKey }` body; `getSignedUrl` returns the `signedURL` from the response
 ### Patch Changes
 
 - Updated dependencies [ca0a261]
-  - @frontal-labs/core@1.0.2
+  - @frontal-labs/_core@1.0.2
 
 ## 0.0.1
 
@@ -40,7 +40,7 @@ destinationKey }` body; `getSignedUrl` returns the `signedURL` from the response
   npm provenance configured, GitHub Actions CI/CD pipeline with Changesets
   integration.
 - Updated dependencies
-  - @frontal-labs/core@1.0.1
+  - @frontal-labs/_core@1.0.1
 
 All notable changes to this project will be documented in this file.
 

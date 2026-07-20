@@ -12,7 +12,7 @@ of independent subdomain services, each exposed as a namespace:
 npm install @frontal-labs/ontology
 ```
 
-`@frontal-labs/core` is included automatically as a dependency.
+`@frontal-labs/_core` is included automatically as a dependency.
 
 ## Quick Start
 
@@ -54,7 +54,7 @@ await ontology.schemas.create({
 ### Shared client (multiple SDKs)
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createOntologyClient } from "@frontal-labs/ontology";
 
 const client = new FrontalClient({

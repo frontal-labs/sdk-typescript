@@ -2,7 +2,7 @@
 
 This guide covers all SDK packages in this repository:
 
-- `@frontal-labs/core`
+- `@frontal-labs/_core`
 - `@frontal-labs/ai`
 - `@frontal-labs/agents`
 - `@frontal-labs/workflows`
@@ -11,7 +11,7 @@ This guide covers all SDK packages in this repository:
 - `@frontal-labs/ontology`
 - `@frontal-labs/blob`
 - `@frontal-labs/workers`
-- `@frontal-labs/testing`
+- `@frontal-labs/_testing`
 - `@frontal-labs/auth`
 - `@frontal-labs/observability`
 - `@frontal-labs/events`
@@ -31,7 +31,7 @@ It includes architecture, setup, usage patterns, and end-to-end examples.
 Install:
 
 ```bash
-bun add @frontal-labs/core @frontal-labs/ai @frontal-labs/agents @frontal-labs/workflows @frontal-labs/pipelines @frontal-labs/graph @frontal-labs/ontology @frontal-labs/blob @frontal-labs/workers
+bun add @frontal-labs/_core @frontal-labs/ai @frontal-labs/agents @frontal-labs/workflows @frontal-labs/pipelines @frontal-labs/graph @frontal-labs/ontology @frontal-labs/blob @frontal-labs/workers
 ```
 
 Typical environment variables:
@@ -45,7 +45,7 @@ FRONTAL_AI_API_URL=https://ai.frontal.dev
 Shared client setup pattern:
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 
 const client = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -55,7 +55,7 @@ const client = new FrontalClient({
 });
 ```
 
-## 2) `@frontal-labs/core`
+## 2) `@frontal-labs/_core`
 
 ### What it does
 
@@ -76,7 +76,7 @@ Core transport/runtime used by all packages:
 ### Example: custom endpoint + polling
 
 ```ts
-import { FrontalClient, pollUntil } from "@frontal-labs/core";
+import { FrontalClient, pollUntil } from "@frontal-labs/_core";
 
 const core = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -469,7 +469,7 @@ const res = await workers.invoke("score-lead", {
 const result = await res.json();
 ```
 
-## 11) `@frontal-labs/testing`
+## 11) `@frontal-labs/_testing`
 
 ### What it does
 
@@ -489,7 +489,7 @@ Testing toolkit for SDK consumers and package maintainers:
 ### Example
 
 ```ts
-import { createTestHttpClient, mockPageResponse } from "@frontal-labs/testing";
+import { createTestHttpClient, mockPageResponse } from "@frontal-labs/_testing";
 import { WorkflowsService } from "@frontal-labs/workflows/src/service";
 
 const { http, mock } = createTestHttpClient([
@@ -1118,7 +1118,7 @@ A common high-value orchestration flow:
 ## 24) Error Handling Pattern
 
 ```ts
-import { FrontalError } from "@frontal-labs/core";
+import { FrontalError } from "@frontal-labs/_core";
 
 try {
   // any SDK call
@@ -1137,5 +1137,5 @@ try {
 - Keep API keys scoped and rotated.
 - Use streaming APIs for user-facing latency-sensitive generation.
 - Use idempotency/request IDs where available for retried mutations.
-- Keep tests pinned to SDK route/payload contracts (`@frontal-labs/testing`).
+- Keep tests pinned to SDK route/payload contracts (`@frontal-labs/_testing`).
 

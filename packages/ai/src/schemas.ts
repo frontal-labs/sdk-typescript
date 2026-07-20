@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import type { APIResponse } from "@frontal-labs/core";
-export type { ErrorResponse, APIResponse } from "@frontal-labs/core";
+import type { APIResponse } from "@frontal-labs/_core";
+export type { ErrorResponse, APIResponse } from "@frontal-labs/_core";
 
 /**
  * Zod schema for a message in a conversation.

@@ -8,7 +8,7 @@ The Lineage SDK follows the layered architecture shared by all Frontal SDK packa
 ┌─────────────────────────────────────┐
 │  LineageService / Namespaces         │  ← Business logic
 ├─────────────────────────────────────┤
-│  HttpClient (@frontal-labs/core)    │  ← Transport (HTTP, retries, auth)
+│  HttpClient (@frontal-labs/_core)    │  ← Transport (HTTP, retries, auth)
 ├─────────────────────────────────────┤
 │  Frontal REST API                     │  ← Backend
 └─────────────────────────────────────┘
@@ -67,6 +67,6 @@ import { lineage } from "@frontal-labs/lineage";
 
 ## Dependencies
 
-- `@frontal-labs/core` (workspace) — HTTP transport, errors, pagination, polling
+- `@frontal-labs/_core` (workspace) — HTTP transport, errors, pagination, polling
 - `zod` (^4.3.6) — Runtime schema validation
-- `@frontal-labs/testing` (dev) — Test utilities and mock HTTP
+- `@frontal-labs/_testing` (dev) — Test utilities and mock HTTP

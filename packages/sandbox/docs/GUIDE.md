@@ -13,7 +13,7 @@ export FRONTAL_API_KEY=frt_your_api_key_here
 ### Client Initialization
 
 ```typescript
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createSandboxClient } from "@frontal-labs/sandbox";
 
 // Option A: Shared client (recommended for multi-package apps)
@@ -50,7 +50,7 @@ const client = createSandboxClient({
 For high-availability services, use the circuit breaker from core:
 
 ```typescript
-import { CircuitBreaker } from "@frontal-labs/core";
+import { CircuitBreaker } from "@frontal-labs/_core";
 
 const breaker = new CircuitBreaker({
   failureThreshold: 5,
@@ -71,7 +71,7 @@ try {
 Rate limit errors include retry-after and quota information:
 
 ```typescript
-import { RateLimitError } from "@frontal-labs/core";
+import { RateLimitError } from "@frontal-labs/_core";
 
 try {
   await client.someMethod();
@@ -104,10 +104,10 @@ const all = await result.all();
 
 ## Testing
 
-Use `@frontal-labs/testing` to mock HTTP:
+Use `@frontal-labs/_testing` to mock HTTP:
 
 ```typescript
-import { createTestHttpClient } from "@frontal-labs/testing";
+import { createTestHttpClient } from "@frontal-labs/_testing";
 
 const { http, mock } = createTestHttpClient([
   { method: "GET", path: "/v1/sandbox/resource", body: { data: [...] } }

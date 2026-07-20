@@ -1,0 +1,492 @@
+import type { z } from "zod";
+import { CircuitBreaker, CircuitBreakerOpenError } from "./circuit-breaker";
+import type { ClientConfigOutput } from "./config";
+import { SDK_VERSION } from "./constants";
+import { NetworkError, parseFrontalError } from "./errors";
+import { calculateDelay } from "./retry";
+import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
+
+/**
+ * Low-level HTTP client for the Frontal API.
+ * Handles request/response transformation (snake_case ↔ camelCase),
+ * retry logic, circuit breaker integration, SSE streaming, and
+ * response schema validation.
+ */
+export class HttpClient {
+  private readonly breaker?: CircuitBreaker;
+
+  constructor(private readonly config: ClientConfigOutput) {
+    if (config.circuitBreaker) {
+      this.breaker = new CircuitBreaker({
+        failureThreshold: config.circuitBreaker.failureThreshold,
+        resetTimeoutMs: config.circuitBreaker.resetTimeoutMs,
+      });
+    }
+  }
+
+  /**
+   * Sends a GET request.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @param schema - Optional Zod schema for response validation.
+   */
+  async get<T>(
+    path: string,
+    params?: Record<string, unknown>,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("GET", path, undefined, params, schema);
+  }
+
+  /**
+   * Sends a POST request with a JSON body.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @param schema - Optional Zod schema for response validation.
+   */
+  async post<T>(
+    path: string,
+    body?: unknown,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("POST", path, body ?? {}, undefined, schema);
+  }
+
+  /**
+   * Sends a PUT request with a JSON body.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @param schema - Optional Zod schema for response validation.
+   */
+  async put<T>(
+    path: string,
+    body?: unknown,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("PUT", path, body ?? {}, undefined, schema);
+  }
+
+  /**
+   * Sends a PATCH request with a JSON body.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @param schema - Optional Zod schema for response validation.
+   */
+  async patch<T>(
+    path: string,
+    body?: unknown,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("PATCH", path, body ?? {}, undefined, schema);
+  }
+
+  /**
+   * Sends a DELETE request.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @param schema - Optional Zod schema for response validation.
+   */
+  async delete<T = void>(
+    path: string,
+    params?: Record<string, unknown>,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("DELETE", path, {}, params, schema);
+  }
+
+  /**
+   * Sends a raw PUT request with a binary/stream body.
+   * @param path - API endpoint path.
+   * @param body - Binary buffer or readable stream.
+   * @param contentType - MIME type of the body.
+   * @param headers - Additional request headers.
+   * @returns The parsed JSON response with keys converted to camelCase.
+   */
+  async putRaw(
+    path: string,
+    body: Buffer | ReadableStream,
+    contentType: string,
+    headers: Record<string, string> = {}
+  ): Promise<unknown> {
+    const url = this.buildUrl(path);
+    const res = await this.fetchWithTimeout(url, {
+      method: "PUT",
+      headers: this.buildHeaders({ "Content-Type": contentType, ...headers }),
+      body: body as ReadableStream | Buffer | string,
+    });
+    if (!res.ok) await this.throwError(res);
+    if (res.status === 204) return undefined;
+    const json = await res.json();
+    return typeof json === "object" && json !== null
+      ? deepSnakeToCamel(json)
+      : json;
+  }
+
+  /**
+   * Opens a GET SSE stream, yielding parsed server-sent events.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @yields SSE event objects with `type`, `data`, and optional `id` fields.
+   */
+  async *stream(
+    path: string,
+    params?: Record<string, string>
+  ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
+    const url = this.buildUrl(path, params);
+    const res = await this.fetchWithTimeout(url, {
+      method: "GET",
+      headers: this.buildHeaders({ Accept: "text/event-stream" }),
+    });
+    if (!res.ok) await this.throwError(res);
+    yield* this.parseSSEResponse(res);
+  }
+
+  /**
+   * Sends a POST request that returns an SSE stream.
+   * @param path - API endpoint path.
+   * @param body - Request payload (converted to snake_case automatically).
+   * @yields SSE event objects with `type`, `data`, and optional `id` fields.
+   */
+  async *postStream(
+    path: string,
+    body?: unknown
+  ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
+    const url = this.buildUrl(path);
+    const res = await this.fetchWithTimeout(url, {
+      method: "POST",
+      headers: this.buildHeaders({ Accept: "text/event-stream" }),
+      body: JSON.stringify(body ?? {}),
+    });
+    if (!res.ok) await this.throwError(res);
+    yield* this.parseSSEResponse(res);
+  }
+
+  /**
+   * Sends a POST request and returns the raw Response object.
+   * @param path - API endpoint path.
+   * @param body - Request payload.
+   * @param headers - Additional request headers.
+   * @returns The raw fetch Response (caller must handle parsing).
+   */
+  async postRaw(
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
+    const url = this.buildUrl(path);
+    const res = await this.fetchWithTimeout(url, {
+      method: "POST",
+      headers: new Headers(this.buildHeaders(headers)),
+      body: JSON.stringify(body ?? {}),
+    });
+    if (!res.ok) await this.throwError(res);
+    return res;
+  }
+
+  /**
+   * Sends a POST request with a FormData body (multipart/form-data).
+   * Automatically removes the Content-Type header so the browser sets the
+   * correct multipart boundary.
+   * @param path - API endpoint path.
+   * @param formData - FormData payload.
+   * @param headers - Additional request headers.
+   * @returns The parsed JSON response with keys converted to camelCase.
+   */
+  async postFormData<T>(
+    path: string,
+    formData: FormData,
+    headers: Record<string, string> = {}
+  ): Promise<T> {
+    const url = this.buildUrl(path);
+    const merged = new Headers(this.buildHeaders(headers));
+    merged.delete("Content-Type");
+
+    const res = await this.fetchWithTimeout(url, {
+      method: "POST",
+      headers: merged,
+      body: formData,
+    });
+    if (!res.ok) await this.throwError(res);
+    const json = await res.json();
+    return deepSnakeToCamel(json) as T;
+  }
+
+  /**
+   * Sends a raw GET request and returns the Response object directly.
+   * @param path - API endpoint path.
+   * @param params - Optional query parameters.
+   * @param headers - Additional request headers.
+   * @returns The raw fetch Response (caller must handle parsing).
+   */
+  async getRaw(
+    path: string,
+    params?: Record<string, unknown>,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
+    const url = this.buildUrl(path, params);
+    const res = await this.fetchWithTimeout(url, {
+      method: "GET",
+      headers: this.buildHeaders(headers),
+    });
+    if (!res.ok) await this.throwError(res);
+    return res;
+  }
+
+  private async *parseSSEResponse(
+    res: Response
+  ): AsyncGenerator<{ type: string; data: unknown; id?: string }> {
+    if (!res.body) return;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      let event: { type: string; data: unknown; id?: string } = {
+        type: "message",
+        data: null,
+      };
+
+      for (const rawLine of lines) {
+        const line = rawLine.trimEnd();
+        if (line.startsWith("id:")) {
+          event.id = line.slice(3).trim();
+        } else if (line.startsWith("event:")) {
+          event.type = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          const payload = line.slice(5).trim();
+          try {
+            const parsed = JSON.parse(payload);
+            event.data =
+              typeof parsed === "object" && parsed !== null
+                ? deepSnakeToCamel(parsed)
+                : parsed;
+          } catch {
+            event.data = payload;
+          }
+        } else if (line === "") {
+          if (event.data !== null) yield event;
+          event = { type: "message", data: null };
+        }
+      }
+    }
+  }
+
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    params?: Record<string, unknown>,
+    schema?: z.ZodType<T>,
+    attempt = 0
+  ): Promise<T> {
+    const url = this.buildUrl(path, params);
+    const requestId = crypto.randomUUID();
+
+    const transformedBody =
+      body !== undefined && body !== null ? deepCamelToSnake(body) : body;
+
+    const reqInit: RequestInit = {
+      method,
+      headers: this.buildHeaders({ "X-Request-Id": requestId }),
+      ...(method !== "GET"
+        ? { body: JSON.stringify(transformedBody ?? {}) }
+        : { body: undefined }),
+    };
+
+    this.config.logger?.request?.(method, url, reqInit);
+
+    const executeRequest = async (): Promise<Response> => {
+      try {
+        return await this.fetchWithTimeout(url, reqInit);
+      } catch (error) {
+        this.config.logger?.error?.(error);
+        throw new NetworkError(error);
+      }
+    };
+
+    let res: Response;
+    try {
+      res = this.breaker
+        ? await this.breaker.execute(executeRequest)
+        : await executeRequest();
+    } catch (error) {
+      if (error instanceof CircuitBreakerOpenError) {
+        throw new Error(
+          `Circuit breaker is open. Retry after ${Math.ceil(error.retryAfterMs / 1000)}s.`
+        );
+      }
+      throw error;
+    }
+
+    this.config.logger?.response?.(res);
+
+    if (!res.ok) {
+      const shouldRetry =
+        [429, 500, 502, 503, 504].includes(res.status) &&
+        attempt < this.config.maxRetries;
+
+      if (shouldRetry) {
+        const retryAfterValue = res.headers.get("Retry-After");
+        const retryAfterSeconds = retryAfterValue
+          ? Number.parseInt(retryAfterValue, 10)
+          : Number.NaN;
+        const delay = Number.isFinite(retryAfterSeconds)
+          ? retryAfterSeconds * 1000
+          : calculateDelay(
+              attempt,
+              "exponential",
+              this.config.retryDelay,
+              true
+            );
+
+        await sleep(delay);
+        return this.request(method, path, body, params, schema, attempt + 1);
+      }
+
+      await this.throwError(res);
+    }
+
+    if (res.status === 204) return undefined as T;
+
+    const contentType = (res.headers.get("content-type") || "").toLowerCase();
+    const payload = contentType.includes("application/json")
+      ? await res.json()
+      : await res.text();
+
+    const transformedPayload =
+      typeof payload === "object" && payload !== null
+        ? deepSnakeToCamel(payload)
+        : payload;
+
+    if (schema) {
+      try {
+        const parsed = schema.safeParse(transformedPayload);
+        if (!parsed.success) {
+          this.config.logger?.error?.(parsed.error);
+          throw parsed.error;
+        }
+        return parsed.data;
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("_zod")) {
+          return transformedPayload as T;
+        }
+        throw error;
+      }
+    }
+
+    return transformedPayload as T;
+  }
+
+  private parseRateLimit(res: Response) {
+    const limit = res.headers.get("X-RateLimit-Limit");
+    const remaining = res.headers.get("X-RateLimit-Remaining");
+    const reset = res.headers.get("X-RateLimit-Reset");
+    if (limit && remaining && reset) {
+      return {
+        limit: Number.parseInt(limit, 10),
+        remaining: Number.parseInt(remaining, 10),
+        reset: Number.parseInt(reset, 10),
+      };
+    }
+    return undefined;
+  }
+
+  private async throwError(res: Response): Promise<never> {
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch {
+      body = {};
+    }
+    const retryAfter = res.headers.get("Retry-After") ?? undefined;
+    const rateLimit = this.parseRateLimit(res);
+    throw parseFrontalError(body, res.status, retryAfter, rateLimit);
+  }
+
+  private buildUrl(path: string, params?: Record<string, unknown>): string {
+    const base = this.config.baseUrl.replace(/\/$/, "");
+    let normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    // The base URL already includes the "/v1" version segment. If a route also
+    // starts with "/v1/" the two would concatenate into ".../v1/v1/..." (a 404).
+    // Strip the duplicate so packages are robust regardless of whether they
+    // prefix paths with the version segment or the base URL is overridden.
+    if (base.endsWith("/v1") && normalizedPath.startsWith("/v1/")) {
+      if (this.config.debug) {
+        console.warn(
+          "[SDK] Double /v1/ prefix detected and normalized. " +
+            `The base URL already includes "/v1" but the route "${normalizedPath}" ` +
+            'also starts with "/v1/". Write routes without a leading "/v1".'
+        );
+      }
+      normalizedPath = normalizedPath.slice("/v1".length);
+    }
+
+    const url = `${base}${normalizedPath}`;
+
+    const transformedParams = params
+      ? (deepCamelToSnake(params) as Record<string, unknown>)
+      : params;
+
+    if (!transformedParams || Object.keys(transformedParams).length === 0) {
+      return url;
+    }
+
+    const query = Object.entries(transformedParams)
+      .filter(([, value]) => value !== undefined && value !== null)
+      .map(
+        ([key, value]) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
+      )
+      .join("&");
+
+    return query ? `${url}?${query}` : url;
+  }
+
+  private buildHeaders(
+    extra: Record<string, string> = {}
+  ): Record<string, string> {
+    return {
+      // The opaque API key (`frt_…`) is the sole public credential. The platform
+      // edge validates it and exchanges it for a short-lived JWT before reaching
+      // any service — the SDK never sees or sends a JWT.
+      Authorization: `Bearer ${this.config.apiKey}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "User-Agent": "@frontal-labs/_core",
+      "X-Frontal-Core": `typescript@${SDK_VERSION}`,
+      "X-Frontal-Environment": this.config.environment,
+      ...this.config.headers,
+      ...extra,
+    };
+  }
+
+  private async fetchWithTimeout(
+    url: string,
+    init: RequestInit
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.config.timeout);
+    try {
+      return await (this.config.fetch ?? fetch)(url, {
+        ...init,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+}
+
+const sleep = async (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });

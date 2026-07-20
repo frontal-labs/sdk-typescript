@@ -5,13 +5,13 @@ Cron scheduling SDK for recurring jobs with local validation and run tracking.
 ## Installation
 
 ```bash
-bun add @frontal-labs/schedules @frontal-labs/core
+bun add @frontal-labs/schedules @frontal-labs/_core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/_core";
 import { createSchedulesClient } from "@frontal-labs/schedules";
 
 const client = new FrontalClient({

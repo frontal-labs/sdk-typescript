@@ -17,7 +17,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-labs/core`
+## `@frontal-labs/_core`
 
 ### ✨ New Features
 -
@@ -94,7 +94,7 @@ This release includes the following changes across our packages.
 ### 💥 Breaking Changes
 -
 
-## `@frontal-labs/testing`
+## `@frontal-labs/_testing`
 
 ### ✨ New Features
 -

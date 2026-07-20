@@ -2,7 +2,7 @@ import {
   createTestHttpClient,
   fixtures,
   mockPageResponse,
-} from "@frontal-labs/testing";
+} from "@frontal-labs/_testing";
 import { describe, expect, it, vi } from "vitest";
 import { PipelineBuilder, PipelinesSdk } from "../src/sdk";
 

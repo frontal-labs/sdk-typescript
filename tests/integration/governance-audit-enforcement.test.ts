@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   createIntegrationHarness,
   integrationPage,
-} from "@frontal-labs/testing";
+} from "@frontal-labs/_testing";
 import { GovernanceService } from "@frontal-labs/governance";
 import { AuditService } from "@frontal-labs/audit";
 

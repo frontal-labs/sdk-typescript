@@ -20,20 +20,60 @@
         "vitest": "^4.1.8",
       },
     },
+    "packages/_core": {
+      "name": "@frontal-labs/_core",
+      "version": "1.0.2",
+      "bin": {
+        "frontal": "./dist/index.js",
+      },
+      "dependencies": {
+        "@t3-oss/env-core": "^0.13.10",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/node": "^25.9.1",
+        "tsup": "^8.0.0",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.8",
+      },
+      "peerDependencies": {
+        "zod": "^4.3.6",
+      },
+    },
+    "packages/_testing": {
+      "name": "@frontal-labs/_testing",
+      "version": "1.0.2",
+      "bin": {
+        "frontal-testing": "./dist/index.js",
+      },
+      "dependencies": {
+        "@frontal-labs/_core": "workspace:*",
+        "tslib": "^2.8.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.3.8",
+        "@types/node": "^25.2.1",
+        "tsup": "^8.0.0",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.8",
+      },
+      "peerDependencies": {
+        "vitest": ">=1.0.0",
+      },
+    },
     "packages/agents": {
       "name": "@frontal-labs/agents",
-      "version": "0.0.1",
+      "version": "1.0.1",
       "bin": {
         "frontal-agents": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tslib": "^2.8.1",
@@ -55,18 +95,16 @@
     },
     "packages/ai": {
       "name": "@frontal-labs/ai",
-      "version": "0.0.1",
+      "version": "0.1.1",
       "bin": {
         "frontal-ai": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -75,15 +113,13 @@
     },
     "packages/audit": {
       "name": "@frontal-labs/audit",
-      "version": "0.0.2",
+      "version": "0.0.4",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -93,15 +129,13 @@
     },
     "packages/auth": {
       "name": "@frontal-labs/auth",
-      "version": "0.0.2",
+      "version": "1.0.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -111,15 +145,13 @@
     },
     "packages/billing": {
       "name": "@frontal-labs/billing",
-      "version": "0.0.2",
+      "version": "1.0.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -129,18 +161,16 @@
     },
     "packages/blob": {
       "name": "@frontal-labs/blob",
-      "version": "0.0.1",
+      "version": "1.0.1",
       "bin": {
         "frontal-blob": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -149,15 +179,13 @@
     },
     "packages/connectors": {
       "name": "@frontal-labs/connectors",
-      "version": "0.0.2",
+      "version": "0.0.4",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -165,38 +193,15 @@
         "vitest": "^4.1.8",
       },
     },
-    "packages/core": {
-      "name": "@frontal-labs/core",
-      "version": "1.0.1",
-      "bin": {
-        "frontal": "./dist/index.js",
-      },
-      "dependencies": {
-        "@t3-oss/env-core": "^0.13.10",
-        "tslib": "^2.8.1",
-        "zod": "^4.3.6",
-      },
-      "devDependencies": {
-        "@types/node": "^25.9.1",
-        "tsup": "^8.0.0",
-        "typescript": "^6.0.3",
-        "vitest": "^4.1.8",
-      },
-      "peerDependencies": {
-        "zod": "^4.3.6",
-      },
-    },
     "packages/data": {
       "name": "@frontal-labs/data",
-      "version": "0.0.1",
+      "version": "0.1.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -206,15 +211,13 @@
     },
     "packages/datasets": {
       "name": "@frontal-labs/datasets",
-      "version": "0.0.2",
+      "version": "1.0.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -224,15 +227,13 @@
     },
     "packages/events": {
       "name": "@frontal-labs/events",
-      "version": "0.0.2",
+      "version": "1.0.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -242,15 +243,13 @@
     },
     "packages/governance": {
       "name": "@frontal-labs/governance",
-      "version": "0.0.2",
+      "version": "0.0.4",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -260,18 +259,16 @@
     },
     "packages/graph": {
       "name": "@frontal-labs/graph",
-      "version": "0.0.1",
+      "version": "0.1.1",
       "bin": {
         "frontal-graph": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -280,15 +277,13 @@
     },
     "packages/integrations": {
       "name": "@frontal-labs/integrations",
-      "version": "0.0.2",
+      "version": "0.0.4",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -298,15 +293,13 @@
     },
     "packages/lineage": {
       "name": "@frontal-labs/lineage",
-      "version": "0.0.2",
+      "version": "0.0.4",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -316,15 +309,13 @@
     },
     "packages/observability": {
       "name": "@frontal-labs/observability",
-      "version": "0.0.2",
+      "version": "0.1.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -334,18 +325,16 @@
     },
     "packages/ontology": {
       "name": "@frontal-labs/ontology",
-      "version": "0.0.1",
+      "version": "1.0.1",
       "bin": {
         "frontal-ontology": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -354,18 +343,16 @@
     },
     "packages/pipelines": {
       "name": "@frontal-labs/pipelines",
-      "version": "0.0.1",
+      "version": "0.0.3",
       "bin": {
         "frontal-pipelines": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -374,15 +361,13 @@
     },
     "packages/sandbox": {
       "name": "@frontal-labs/sandbox",
-      "version": "0.0.2",
+      "version": "1.0.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -392,15 +377,13 @@
     },
     "packages/schedules": {
       "name": "@frontal-labs/schedules",
-      "version": "0.0.2",
+      "version": "1.0.1",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -410,40 +393,38 @@
     },
     "packages/sdk": {
       "name": "@frontal-labs/sdk",
-      "version": "0.0.3",
+      "version": "1.0.1",
       "bin": {
         "frontal-sdk": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/agents": "workspace:*",
-        "@frontal-labs/ai": "workspace:*",
-        "@frontal-labs/audit": "workspace:*",
-        "@frontal-labs/auth": "workspace:*",
-        "@frontal-labs/billing": "workspace:*",
-        "@frontal-labs/blob": "workspace:*",
-        "@frontal-labs/connectors": "workspace:*",
-        "@frontal-labs/core": "workspace:*",
-        "@frontal-labs/data": "workspace:*",
-        "@frontal-labs/datasets": "workspace:*",
-        "@frontal-labs/events": "workspace:*",
-        "@frontal-labs/governance": "workspace:*",
-        "@frontal-labs/graph": "workspace:*",
-        "@frontal-labs/integrations": "workspace:*",
-        "@frontal-labs/lineage": "workspace:*",
-        "@frontal-labs/observability": "workspace:*",
-        "@frontal-labs/ontology": "workspace:*",
-        "@frontal-labs/pipelines": "workspace:*",
-        "@frontal-labs/sandbox": "workspace:*",
-        "@frontal-labs/schedules": "workspace:*",
-        "@frontal-labs/webhooks": "workspace:*",
-        "@frontal-labs/workers": "workspace:*",
-        "@frontal-labs/workflows": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
+        "@frontal-labs/agents": "^1.0.1",
+        "@frontal-labs/ai": "^0.1.1",
+        "@frontal-labs/audit": "^0.0.4",
+        "@frontal-labs/auth": "^1.0.1",
+        "@frontal-labs/billing": "^1.0.1",
+        "@frontal-labs/blob": "^1.0.1",
+        "@frontal-labs/connectors": "^0.0.4",
+        "@frontal-labs/data": "^0.1.1",
+        "@frontal-labs/datasets": "^1.0.1",
+        "@frontal-labs/events": "^1.0.1",
+        "@frontal-labs/governance": "^0.0.4",
+        "@frontal-labs/graph": "^0.1.1",
+        "@frontal-labs/integrations": "^0.0.4",
+        "@frontal-labs/lineage": "^0.0.4",
+        "@frontal-labs/observability": "^0.1.1",
+        "@frontal-labs/ontology": "^1.0.1",
+        "@frontal-labs/pipelines": "^0.0.3",
+        "@frontal-labs/sandbox": "^1.0.1",
+        "@frontal-labs/schedules": "^1.0.1",
+        "@frontal-labs/webhooks": "^0.0.4",
+        "@frontal-labs/workers": "^0.1.1",
+        "@frontal-labs/workflows": "^0.1.1",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -451,39 +432,15 @@
         "vitest": "^4.1.8",
       },
     },
-    "packages/testing": {
-      "name": "@frontal-labs/testing",
-      "version": "1.0.1",
-      "bin": {
-        "frontal-testing": "./dist/index.js",
-      },
-      "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "tslib": "^2.8.1",
-        "zod": "^4.3.6",
-      },
-      "devDependencies": {
-        "@types/bun": "^1.3.8",
-        "@types/node": "^25.2.1",
-        "tsup": "^8.0.0",
-        "typescript": "^6.0.3",
-        "vitest": "^4.1.8",
-      },
-      "peerDependencies": {
-        "vitest": ">=1.0.0",
-      },
-    },
     "packages/webhooks": {
       "name": "@frontal-labs/webhooks",
-      "version": "0.0.2",
+      "version": "0.0.4",
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -493,18 +450,16 @@
     },
     "packages/workers": {
       "name": "@frontal-labs/workers",
-      "version": "0.0.1",
+      "version": "0.1.1",
       "bin": {
         "frontal-workers": "./dist/index.js",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -514,18 +469,16 @@
     },
     "packages/workflows": {
       "name": "@frontal-labs/workflows",
-      "version": "0.0.1",
+      "version": "0.1.1",
       "bin": {
         "frontal-workflows": "./dist/index.mjs",
       },
       "dependencies": {
-        "@frontal-labs/core": "workspace:*",
-        "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.8.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
-        "@frontal-labs/testing": "workspace:*",
+        "@frontal-labs/_core": "^1.0.2",
         "@types/bun": "^1.3.8",
         "@types/node": "^25.2.1",
         "tsup": "^8.5.1",
@@ -698,6 +651,10 @@
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.27.3", "", { "os": "win32", "cpu": "x64" }, "sha512-4uJGhsxuptu3OcpVAzli+/gWusVGwZZHTlS63hh++ehExkVT8SgiEf7/uC/PclrPPkLhZqGgCTjd0VWLo6xMqA=="],
 
+    "@frontal-labs/_core": ["@frontal-labs/_core@workspace:packages/_core"],
+
+    "@frontal-labs/_testing": ["@frontal-labs/_testing@workspace:packages/_testing"],
+
     "@frontal-labs/agents": ["@frontal-labs/agents@workspace:packages/agents"],
 
     "@frontal-labs/ai": ["@frontal-labs/ai@workspace:packages/ai"],
@@ -711,8 +668,6 @@
     "@frontal-labs/blob": ["@frontal-labs/blob@workspace:packages/blob"],
 
     "@frontal-labs/connectors": ["@frontal-labs/connectors@workspace:packages/connectors"],
-
-    "@frontal-labs/core": ["@frontal-labs/core@workspace:packages/core"],
 
     "@frontal-labs/data": ["@frontal-labs/data@workspace:packages/data"],
 
@@ -739,8 +694,6 @@
     "@frontal-labs/schedules": ["@frontal-labs/schedules@workspace:packages/schedules"],
 
     "@frontal-labs/sdk": ["@frontal-labs/sdk@workspace:packages/sdk"],
-
-    "@frontal-labs/testing": ["@frontal-labs/testing@workspace:packages/testing"],
 
     "@frontal-labs/webhooks": ["@frontal-labs/webhooks@workspace:packages/webhooks"],
 
@@ -1306,6 +1259,10 @@
 
     "@babel/parser/@babel/types": ["@babel/types@7.29.7", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA=="],
 
+    "@frontal-labs/_core/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
+
+    "@frontal-labs/_testing/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
+
     "@frontal-labs/agents/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
 
     "@frontal-labs/ai/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
@@ -1319,8 +1276,6 @@
     "@frontal-labs/blob/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
 
     "@frontal-labs/connectors/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
-
-    "@frontal-labs/core/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
 
     "@frontal-labs/data/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
 
@@ -1347,8 +1302,6 @@
     "@frontal-labs/schedules/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
 
     "@frontal-labs/sdk/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
-
-    "@frontal-labs/testing/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
 
     "@frontal-labs/webhooks/@types/node": ["@types/node@25.9.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="],
 
@@ -1390,6 +1343,10 @@
 
     "@babel/parser/@babel/types/@babel/helper-validator-identifier": ["@babel/helper-validator-identifier@7.29.7", "", {}, "sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg=="],
 
+    "@frontal-labs/_core/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
+
+    "@frontal-labs/_testing/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
+
     "@frontal-labs/agents/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
 
     "@frontal-labs/ai/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
@@ -1403,8 +1360,6 @@
     "@frontal-labs/blob/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
 
     "@frontal-labs/connectors/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
-
-    "@frontal-labs/core/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
 
     "@frontal-labs/data/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
 
@@ -1431,8 +1386,6 @@
     "@frontal-labs/schedules/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
 
     "@frontal-labs/sdk/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
-
-    "@frontal-labs/testing/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
 
     "@frontal-labs/webhooks/@types/node/undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
 
