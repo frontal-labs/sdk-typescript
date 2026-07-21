@@ -41,36 +41,44 @@ jobs:
         with:
           bun-version: latest
 
+      # npm CLI >= 11.5.1 and Node >= 22.14 are required for OIDC trusted
+      # publishing. changeset publish shells out to `npm publish`, so the
+      # `npm` on PATH must be recent enough.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Upgrade npm to a trusted-publishing-capable version
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       - name: Build all packages
         run: bun run build
 
-      - name: Authenticate with npm
-        run: |
-          if [ -n "$NPM_TOKEN" ]; then
-            npm config set //registry.npmjs.org/:_authToken="$NPM_TOKEN"
-          fi
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
+      # No npm auth step: authentication is handled via GitHub OIDC (trusted
+      # publishing). changesets/action auto-detects OIDC when NPM_TOKEN is
+      # absent and the id-token env vars are present. Each package must have a
+      # trusted publisher configured on npmjs.com pointing at this repo +
+      # publish.yml — see docs/PUBLISHING.md.
       - name: Create Release Pull Request or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          publish: bun run release
-          version: bun run version-packages
+          publish-script: bun run release
+          version-script: bun run version-packages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          create-github-releases: true
+          push-git-tags: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
 
       - name: Publish to GitHub Packages
         if: steps.changesets.outputs.published == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.published-packages }}
         run: bun run publish:github
 
   docs:
