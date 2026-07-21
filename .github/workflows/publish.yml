@@ -64,13 +64,10 @@ jobs:
       # publish.yml — see docs/PUBLISHING.md.
       - name: Create Release Pull Request or Publish
         id: changesets
-        uses: changesets/action@v2
+        uses: changesets/action@v1.9.0
         with:
-          publish-script: bun run release
-          version-script: bun run version-packages
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          create-github-releases: true
-          push-git-tags: true
+          publish: bun run release
+          version: bun run version-packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -78,7 +75,7 @@ jobs:
         if: steps.changesets.outputs.published == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.published-packages }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: bun run publish:github
 
   docs:
