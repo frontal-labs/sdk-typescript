@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/auth",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Frontal Auth SDK — GoTrue-compatible authentication with MFA, OAuth, SSO, and admin user management",
   "type": "module",
   "main": "dist/index.cjs",
@@ -32,7 +32,7 @@
   },
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/auth",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Frontal Labs",
   "publishConfig": {
     "access": "public",
@@ -47,7 +47,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@frontal-labs/core": "^1.0.3",
+    "@frontal-labs/core": "^1.0.4",
     "tslib": "^2.8.1",
     "zod": "^4.3.6"
   },

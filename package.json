@@ -13,7 +13,7 @@
   ],
   "homepage": "https://github.com/frontal-labs/sdk-typescript",
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Frontal Labs",
   "repository": {
     "type": "git",

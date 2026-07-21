@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/agents",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Frontal Agents SDK — define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI SDK integration",
   "keywords": [
     "javascript",
@@ -16,7 +16,7 @@
   ],
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/agents",
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Frontal Labs",
   "files": [
     "dist",
@@ -69,7 +69,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@frontal-labs/core": "^1.0.3",
+    "@frontal-labs/core": "^1.0.4",
     "zod": "^4.3.6"
   },
   "peerDependencies": {

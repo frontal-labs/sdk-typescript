@@ -1,5 +1,13 @@
 # @frontal-labs/testing
 
+## 1.0.4
+
+### Patch Changes
+
+- Relicense all packages under Apache-2.0 (previously MIT).
+- Updated dependencies
+  - @frontal-labs/core@1.0.4
+
 ## 1.0.3
 
 ### Patch Changes

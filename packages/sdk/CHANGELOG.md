@@ -1,5 +1,35 @@
 # @frontal-labs/sdk
 
+## 1.0.4
+
+### Patch Changes
+
+- Relicense all packages under Apache-2.0 (previously MIT).
+- Updated dependencies
+  - @frontal-labs/core@1.0.4
+  - @frontal-labs/agents@1.0.4
+  - @frontal-labs/ai@0.1.3
+  - @frontal-labs/audit@0.0.7
+  - @frontal-labs/auth@1.0.3
+  - @frontal-labs/billing@1.0.3
+  - @frontal-labs/blob@1.0.3
+  - @frontal-labs/connectors@0.0.6
+  - @frontal-labs/data@0.1.3
+  - @frontal-labs/datasets@1.0.3
+  - @frontal-labs/events@1.0.3
+  - @frontal-labs/governance@0.0.6
+  - @frontal-labs/graph@0.1.3
+  - @frontal-labs/integrations@0.0.6
+  - @frontal-labs/lineage@0.0.6
+  - @frontal-labs/observability@0.1.4
+  - @frontal-labs/ontology@1.0.3
+  - @frontal-labs/pipelines@0.0.5
+  - @frontal-labs/sandbox@1.0.3
+  - @frontal-labs/schedules@1.0.3
+  - @frontal-labs/webhooks@0.0.6
+  - @frontal-labs/workers@0.1.3
+  - @frontal-labs/workflows@0.1.3
+
 ## 1.0.3
 
 ### Patch Changes

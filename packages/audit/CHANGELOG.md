@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.7
+
+### Patch Changes
+
+- Relicense all packages under Apache-2.0 (previously MIT).
+- Updated dependencies
+  - @frontal-labs/core@1.0.4
+
 ## 0.0.6
 
 ### Patch Changes

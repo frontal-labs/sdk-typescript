@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/core",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Frontal platform — shared client, schemas, and utilities",
   "type": "module",
   "main": "dist/index.cjs",
@@ -33,7 +33,7 @@
   },
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/core",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Frontal Labs",
   "publishConfig": {
     "access": "public",

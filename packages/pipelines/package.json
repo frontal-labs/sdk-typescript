@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/pipelines",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Frontal Pipelines SDK — declarative data pipelines with substrate orchestration and graph entity awareness",
   "keywords": [
     "javascript",
@@ -15,7 +15,7 @@
   ],
   "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/pipelines",
   "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Frontal Labs",
   "files": [
     "dist",
@@ -68,7 +68,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@frontal-labs/core": "^1.0.3",
+    "@frontal-labs/core": "^1.0.4",
     "tslib": "^2.8.1",
     "zod": "^4.3.6"
   },
