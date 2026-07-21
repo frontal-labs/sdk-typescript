@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Unified SDK client for all Frontal services.",
   "keywords": [
     "javascript",
@@ -64,9 +64,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@frontal-labs/agents": "^1.0.1",
+    "@frontal-labs/agents": "^1.0.2",
     "@frontal-labs/ai": "^0.1.1",
-    "@frontal-labs/audit": "^0.0.4",
+    "@frontal-labs/audit": "^0.0.5",
     "@frontal-labs/auth": "^1.0.1",
     "@frontal-labs/billing": "^1.0.1",
     "@frontal-labs/blob": "^1.0.1",
@@ -79,7 +79,7 @@
     "@frontal-labs/graph": "^0.1.1",
     "@frontal-labs/integrations": "^0.0.4",
     "@frontal-labs/lineage": "^0.0.4",
-    "@frontal-labs/observability": "^0.1.1",
+    "@frontal-labs/observability": "^0.1.2",
     "@frontal-labs/ontology": "^1.0.1",
     "@frontal-labs/pipelines": "^0.0.3",
     "@frontal-labs/sandbox": "^1.0.1",

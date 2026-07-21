@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/audit",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Frontal Audit SDK — audit trails, event logging, compliance checks, and CSV/JSON export",
   "type": "module",
   "main": "dist/index.cjs",

@@ -1,5 +1,14 @@
 # @frontal-labs/sdk
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [e88cf11]
+  - @frontal-labs/agents@1.0.2
+  - @frontal-labs/audit@0.0.5
+  - @frontal-labs/observability@0.1.2
+
 ## 1.0.1
 
 ### Patch Changes
