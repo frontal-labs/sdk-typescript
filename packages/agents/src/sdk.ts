@@ -7,7 +7,7 @@ import {
 } from "@frontal-labs/core";
 import type { z } from "zod";
 import type { AgentHandler } from "./context";
-import * as S from "./schemas";
+import * as Schemas from "./schemas";
 
 const asPagePayload = <T>(raw: unknown) =>
   raw as {
@@ -58,15 +58,16 @@ export class AgentsSdk {
    */
   async list(
     opts: {
-      status?: z.infer<typeof S.AgentStatusSchema>;
+      status?: z.infer<typeof Schemas.AgentStatusSchema>;
       trigger?: string;
       limit?: number;
       cursor?: string;
     } = {}
-  ): Promise<PageResult<S.Agent>> {
+  ): Promise<PageResult<Schemas.Agent>> {
     const raw = await this.http.get("/agents", opts);
-    return createPageResult(asPagePayload<S.Agent>(raw), (cursor: string) =>
-      this.list({ ...opts, cursor })
+    return createPageResult(
+      asPagePayload<Schemas.Agent>(raw),
+      (cursor: string) => this.list({ ...opts, cursor })
     );
   }
 
@@ -74,8 +75,8 @@ export class AgentsSdk {
    * Creates a new agent from a definition.
    * @param definition - The agent definition (validated before sending).
    */
-  async create(definition: S.AgentDefinition): Promise<S.Agent> {
-    const body = S.AgentDefinitionSchema.parse(definition);
+  async create(definition: Schemas.AgentDefinition): Promise<Schemas.Agent> {
+    const body = Schemas.AgentDefinitionSchema.parse(definition);
     return this.http.post("/agents", body);
   }
 
@@ -89,7 +90,9 @@ export class AgentsSdk {
  * Fluent builder for defining and creating agents.
  */
 export class AgentBuilder {
-  private _definition: Partial<z.input<typeof S.AgentDefinitionSchema>> & {
+  private _definition: Partial<
+    z.input<typeof Schemas.AgentDefinitionSchema>
+  > & {
     name: string;
   };
   private _handlers: Map<string, AgentHandler> = new Map();
@@ -131,7 +134,7 @@ export class AgentBuilder {
    * Sets the full scope configuration for the agent.
    * @param scope - The scope object (read/write/action permissions).
    */
-  scope(scope: z.input<typeof S.AgentScopeSchema>): this {
+  scope(scope: z.input<typeof Schemas.AgentScopeSchema>): this {
     this._definition.scope = scope;
     return this;
   }
@@ -188,7 +191,7 @@ export class AgentBuilder {
    * Sets the confidence threshold configuration.
    * @param config - Confidence thresholds for auto-execute, escalate, review.
    */
-  confidence(config: z.input<typeof S.ConfidenceConfigSchema>): this {
+  confidence(config: z.input<typeof Schemas.ConfidenceConfigSchema>): this {
     this._definition.confidence = config;
     return this;
   }
@@ -221,7 +224,7 @@ export class AgentBuilder {
    * Configures the agent's memory settings.
    * @param config - Memory type, TTL, and token limits.
    */
-  memory(config: z.input<typeof S.MemoryConfigSchema>): this {
+  memory(config: z.input<typeof Schemas.MemoryConfigSchema>): this {
     this._definition.memory = config;
     return this;
   }
@@ -230,7 +233,7 @@ export class AgentBuilder {
    * Configures retry behavior for the agent.
    * @param config - Retry configuration (max retries, backoff, etc.).
    */
-  retry(config: z.input<typeof S.retryConfigSchema>): this {
+  retry(config: z.input<typeof Schemas.retryConfigSchema>): this {
     this._definition.retry = config;
     return this;
   }
@@ -248,7 +251,7 @@ export class AgentBuilder {
    * Configures rate limiting for the agent.
    * @param config - Rate limit configuration.
    */
-  rateLimit(config: z.input<typeof S.RateLimitConfigSchema>): this {
+  rateLimit(config: z.input<typeof Schemas.RateLimitConfigSchema>): this {
     this._definition.rateLimit = config;
     return this;
   }
@@ -277,10 +280,10 @@ export class AgentBuilder {
    * @returns The created agent resource.
    * @throws ZodError if the definition is invalid.
    */
-  async create(): Promise<S.Agent> {
-    const definition = S.AgentDefinitionSchema.parse(this._definition);
+  async create(): Promise<Schemas.Agent> {
+    const definition = Schemas.AgentDefinitionSchema.parse(this._definition);
     const agent = await this.http.post("/agents", definition);
-    return agent as S.Agent;
+    return agent as Schemas.Agent;
   }
 }
 
@@ -297,7 +300,7 @@ export class AgentAccessor {
   /**
    * Fetches the agent definition and current state.
    */
-  async get(): Promise<S.Agent> {
+  async get(): Promise<Schemas.Agent> {
     return this.http.get(`/agents/${this.id}`);
   }
 
@@ -305,7 +308,9 @@ export class AgentAccessor {
    * Partially updates the agent definition.
    * @param definition - Fields to update.
    */
-  async update(definition: Partial<S.AgentDefinition>): Promise<S.Agent> {
+  async update(
+    definition: Partial<Schemas.AgentDefinition>
+  ): Promise<Schemas.Agent> {
     return this.http.put(`/agents/${this.id}`, definition);
   }
 
@@ -317,7 +322,7 @@ export class AgentAccessor {
   }
 
   /** Roll the agent back to a previous version. */
-  async rollback(opts: { toVersion?: number } = {}): Promise<S.Agent> {
+  async rollback(opts: { toVersion?: number } = {}): Promise<Schemas.Agent> {
     return this.http.post(`/agents/${this.id}/rollback`, opts);
   }
 
@@ -340,15 +345,16 @@ export class AgentAccessor {
       limit?: number;
       cursor?: string;
     } = {}
-  ): Promise<PageResult<S.Execution>> {
+  ): Promise<PageResult<Schemas.Execution>> {
     const raw = await this.http.get(`/agents/${this.id}/runs`, opts);
-    return createPageResult(asPagePayload<S.Execution>(raw), (cursor: string) =>
-      this.runs({ ...opts, cursor })
+    return createPageResult(
+      asPagePayload<Schemas.Execution>(raw),
+      (cursor: string) => this.runs({ ...opts, cursor })
     );
   }
 
   /** Fetch a single run by id. */
-  async run(runId: string): Promise<S.Execution> {
+  async run(runId: string): Promise<Schemas.Execution> {
     return this.http.get(`/agents/runs/${runId}`);
   }
 
@@ -364,7 +370,7 @@ export class AgentAccessor {
   async message(
     event: string,
     payload: Record<string, unknown>
-  ): Promise<S.Execution> {
+  ): Promise<Schemas.Execution> {
     return this.http.post(`/agents/${this.id}/runs`, { event, payload });
   }
 
@@ -377,11 +383,14 @@ export class AgentAccessor {
    */
   async waitForCompletion(
     runId: string,
-    options?: Pick<PollOptions<S.Execution>, "interval" | "timeout" | "signal">
-  ): Promise<S.Execution> {
+    options?: Pick<
+      PollOptions<Schemas.Execution>,
+      "interval" | "timeout" | "signal"
+    >
+  ): Promise<Schemas.Execution> {
     return pollUntil(() => this.run(runId), {
       ...options,
-      until: (run: S.Execution) =>
+      until: (run: Schemas.Execution) =>
         ["completed", "failed", "escalated"].includes(run.status),
     });
   }

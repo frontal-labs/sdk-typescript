@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/testing",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Frontal testing utilities and helpers",
   "type": "module",
   "main": "dist/index.cjs",

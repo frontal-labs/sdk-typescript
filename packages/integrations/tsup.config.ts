@@ -5,7 +5,6 @@ export default defineConfig({
   format: ["esm", "cjs"],
   dts: false,
   clean: true,
-  noExternal: ["@frontal-labs/core"],
   external: ["zod"],
   esbuildOptions(options) {
     options.alias = {

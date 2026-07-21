@@ -1,5 +1,19 @@
 # @frontal-labs/data
 
+## 0.1.2
+
+### Patch Changes
+
+- Publish `@frontal-labs/core` as a shared, public dependency instead of bundling
+  it into each package. Previously core's runtime was bundled but its type
+  declarations still imported `@frontal-labs/core`, which was unpublished — so
+  consumers hit `Cannot find module '@frontal-labs/core'`. Core is now a normal
+  dependency of every package, so both runtime and types resolve under any
+  package manager (npm/pnpm/yarn/bun) and runtime, and the `@frontal-labs/sdk`
+  umbrella shares one `FrontalClient` type across sub-packages.
+- Updated dependencies
+  - @frontal-labs/core@1.0.3
+
 ## 0.1.1
 
 ### Patch Changes

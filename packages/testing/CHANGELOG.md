@@ -1,5 +1,12 @@
 # @frontal-labs/testing
 
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @frontal-labs/core@1.0.3
+
 ## 1.0.2
 
 ### Patch Changes
