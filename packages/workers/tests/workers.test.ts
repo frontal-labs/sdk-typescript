@@ -1,4 +1,4 @@
-import { createTestHttpClient } from "frontal/testing";
+import { createTestHttpClient } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
 import { WorkersSdk } from "../src/sdk";
 

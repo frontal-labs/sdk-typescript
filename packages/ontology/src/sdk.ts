@@ -3,7 +3,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "frontal/core";
+} from "@frontal-labs/core";
 
 /**
  * Client for the Frontal OntologySdk API (`/v1/ontology/*`).

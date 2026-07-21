@@ -1,4 +1,4 @@
-# frontal/core
+# @frontal-labs/core
 
 Shared runtime for all Frontal TypeScript SDKs — HTTP client, auth, retries,
 pagination, polling, and typed errors.
@@ -6,13 +6,13 @@ pagination, polling, and typed errors.
 ## Installation
 
 ```bash
-npm install frontal/core
+npm install @frontal-labs/core
 ```
 
 ## Quick Start
 
 ```ts
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -45,7 +45,7 @@ Methods: `get`, `post`, `put`, `patch`, `delete`, `getRaw`, `postRaw`,
 ### Error Handling
 
 ```ts
-import { FrontalError } from "frontal/core";
+import { FrontalError } from "@frontal-labs/core";
 
 try {
   await client.get("/something");
@@ -59,7 +59,7 @@ try {
 ### Polling
 
 ```ts
-import { pollUntil } from "frontal/core";
+import { pollUntil } from "@frontal-labs/core";
 
 const result = await pollUntil(
   () => client.get<{ status: string }>("/jobs", { id }),
@@ -70,7 +70,7 @@ const result = await pollUntil(
 ### Pagination
 
 ```ts
-import { createPageResult } from "frontal/core";
+import { createPageResult } from "@frontal-labs/core";
 
 const page = createPageResult({ items: [...], total: 100, limit: 10, offset: 0 });
 ```

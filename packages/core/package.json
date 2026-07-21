@@ -1,5 +1,5 @@
 {
-  "name": "frontal/core",
+  "name": "@frontal-labs/core",
   "version": "1.0.2",
   "description": "Frontal platform — shared client, schemas, and utilities",
   "type": "module",

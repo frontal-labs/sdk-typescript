@@ -2,7 +2,7 @@ import {
   createTestHttpClient,
   fixtures,
   mockPageResponse,
-} from "frontal/testing";
+} from "@frontal-labs/testing";
 import { describe, expect, it } from "vitest";
 import { AgentBuilder, AgentsSdk } from "../src/sdk";
 

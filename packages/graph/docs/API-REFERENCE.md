@@ -13,12 +13,12 @@ new GraphService(http: HttpClient)
 Creates a new GraphService instance with an HTTP client.
 
 **Parameters:**
-- `http`: HTTP client instance from `frontal/core`
+- `http`: HTTP client instance from `@frontal-labs/core`
 
 **Example:**
 ```typescript
 import { GraphService } from "@frontal-labs/graph";
-import { getDefaultClient } from "frontal/core";
+import { getDefaultClient } from "@frontal-labs/core";
 
 const graph = new GraphService(getDefaultClient()._http);
 ```
@@ -661,7 +661,7 @@ Creates a GraphService instance with a custom FrontalClient.
 **Example:**
 ```typescript
 import { createGraphClient } from "@frontal-labs/graph";
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 
 const client = new FrontalClient({
   apiKey: "your-api-key",

@@ -2,7 +2,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "frontal/core";
+} from "@frontal-labs/core";
 import { Integration } from "./integration";
 import type {
   ActionRun,

@@ -5,13 +5,13 @@ Billing SDK for plans, subscriptions, invoices, usage metering, and payment meth
 ## Installation
 
 ```bash
-bun add @frontal-labs/billing frontal/core
+bun add @frontal-labs/billing @frontal-labs/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createBillingClient } from "@frontal-labs/billing";
 
 const client = new FrontalClient({

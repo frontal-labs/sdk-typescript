@@ -1,11 +1,11 @@
-# frontal/testing
+# @frontal-labs/testing
 
 ## 1.0.2
 
 ### Patch Changes
 
 - Updated dependencies [ca0a261]
-  - frontal/core@1.0.2
+  - @frontal-labs/core@1.0.2
 
 ## 1.0.1
 
@@ -16,4 +16,4 @@
   npm provenance configured, GitHub Actions CI/CD pipeline with Changesets
   integration.
 - Updated dependencies
-  - frontal/core@1.0.1
+  - @frontal-labs/core@1.0.1

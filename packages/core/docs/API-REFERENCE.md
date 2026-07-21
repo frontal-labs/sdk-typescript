@@ -1,4 +1,4 @@
-# frontal/core API Reference
+# @frontal-labs/core API Reference
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ constructor(config: ClientConfigOutput)
 
 **Example**:
 ```typescript
-import { FrontalClient, clientConfigSchema } from 'frontal/core'
+import { FrontalClient, clientConfigSchema } from '@frontal-labs/core'
 
 const config = clientConfigSchema.parse({
   apiKey: 'frt_1234567890abcdef',

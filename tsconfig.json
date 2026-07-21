@@ -50,7 +50,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-      "frontal/core": ["./packages/core/src"],
+      "@frontal-labs/core": ["./packages/core/src"],
 			"@frontal-labs/ai": ["./packages/ai/src"],
 			"@frontal-labs/workers": ["./packages/workers/src"],
 			"@frontal-labs/blob": ["./packages/blob/src"],
@@ -59,7 +59,7 @@
 			"@frontal-labs/ontology": ["./packages/ontology/src"],
 			"@frontal-labs/pipelines": ["./packages/pipelines/src"],
 			"@frontal-labs/workflows": ["./packages/workflows/src"],
-      "frontal/testing": ["./packages/testing/src"],
+      "@frontal-labs/testing": ["./packages/testing/src"],
       "@frontal-labs/auth": ["./packages/auth/src"],
       "@frontal-labs/observability": ["./packages/observability/src"],
       "@frontal-labs/events": ["./packages/events/src"],

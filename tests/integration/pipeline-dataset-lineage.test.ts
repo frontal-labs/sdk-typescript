@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   createIntegrationHarness,
   integrationPage,
-} from "frontal/testing";
+} from "@frontal-labs/testing";
 import { PipelinesSdk as PipelinesService } from "@frontal-labs/pipelines";
 import { DatasetsSdk as DatasetsService } from "@frontal-labs/datasets";
 import { LineageSdk as LineageService } from "@frontal-labs/lineage";

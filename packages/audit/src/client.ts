@@ -1,4 +1,8 @@
-import { FrontalClient, getDefaultClient, HttpClient } from "frontal/core";
+import {
+  FrontalClient,
+  getDefaultClient,
+  HttpClient,
+} from "@frontal-labs/core";
 import {
   DEFAULT_AUDIT_BASE_URL,
   DEFAULT_MAX_RETRIES,
@@ -6,7 +10,7 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { AuditSdk } from "./sdk";
-import { env } from "frontal/core";
+import { env } from "@frontal-labs/core";
 
 /** Configuration options for creating an Audit API client. */
 export interface AuditClientConfig {

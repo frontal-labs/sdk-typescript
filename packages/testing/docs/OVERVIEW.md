@@ -1,4 +1,4 @@
-# frontal/testing
+# @frontal-labs/testing
 
 A lightweight testing utilities package designed specifically for the Frontal Core ecosystem. It provides mock configurations, test environment management, and helper utilities to streamline testing of Frontal Core integrations.
 
@@ -17,7 +17,7 @@ A lightweight testing utilities package designed specifically for the Frontal Co
 The package provides a standardized mock configuration for testing:
 
 ```typescript
-import { createMockConfig } from 'frontal/testing';
+import { createMockConfig } from '@frontal-labs/testing';
 
 const mockConfig = createMockConfig();
 // Returns:
@@ -33,7 +33,7 @@ const mockConfig = createMockConfig();
 Automated environment setup ensures consistent test conditions:
 
 ```typescript
-import { setupTestEnvironment, cleanupTestEnvironment } from 'frontal/testing';
+import { setupTestEnvironment, cleanupTestEnvironment } from '@frontal-labs/testing';
 
 // Setup test environment
 setupTestEnvironment();
@@ -55,8 +55,8 @@ import {
   createMockConfig, 
   setupTestEnvironment, 
   cleanupTestEnvironment 
-} from 'frontal/testing';
-import { FrontalClient } from 'frontal/core';
+} from '@frontal-labs/testing';
+import { FrontalClient } from '@frontal-labs/core';
 
 describe('Frontal Integration Tests', () => {
   let client: FrontalClient;
@@ -96,14 +96,14 @@ export default defineConfig({
 });
 
 // tests/setup.ts
-import { setupTestEnvironment } from 'frontal/testing';
+import { setupTestEnvironment } from '@frontal-labs/testing';
 
 setupTestEnvironment();
 
 // Global test utilities
 import { vi } from 'vitest';
 
-vi.mock('frontal/core', () => ({
+vi.mock('@frontal-labs/core', () => ({
   FrontalClient: vi.fn(),
   getDefaultClient: vi.fn()
 }));
@@ -119,12 +119,12 @@ module.exports = {
 };
 
 // tests/setup.js
-const { setupTestEnvironment } = require('frontal/testing');
+const { setupTestEnvironment } = require('@frontal-labs/testing');
 
 setupTestEnvironment();
 
 // Mock modules
-jest.mock('frontal/core', () => ({
+jest.mock('@frontal-labs/core', () => ({
   FrontalClient: jest.fn(),
   getDefaultClient: jest.fn()
 }));
@@ -133,8 +133,8 @@ jest.mock('frontal/core', () => ({
 ### Mock Service Testing
 
 ```typescript
-import { createMockConfig } from 'frontal/testing';
-import { FrontalClient } from 'frontal/core';
+import { createMockConfig } from '@frontal-labs/testing';
+import { FrontalClient } from '@frontal-labs/core';
 
 class MockFrontalService {
   constructor(private client: FrontalClient) {}
@@ -183,7 +183,7 @@ describe('MockFrontalService', () => {
 ### Integration Testing
 
 ```typescript
-import { createMockConfig, setupTestEnvironment } from 'frontal/testing';
+import { createMockConfig, setupTestEnvironment } from '@frontal-labs/testing';
 import { ai } from '@frontal-labs/ai';
 
 describe('AI Integration Tests', () => {
@@ -241,7 +241,7 @@ The test environment setup configures these environment variables:
 ### Custom Mock Configuration
 
 ```typescript
-import { createMockConfig } from 'frontal/testing';
+import { createMockConfig } from '@frontal-labs/testing';
 
 // Create custom mock config
 const customConfig = {
@@ -259,8 +259,8 @@ const client = new FrontalClient(customConfig);
 
 ```typescript
 // tests/utils/test-helpers.ts
-import { createMockConfig } from 'frontal/testing';
-import { FrontalClient } from 'frontal/core';
+import { createMockConfig } from '@frontal-labs/testing';
+import { FrontalClient } from '@frontal-labs/core';
 
 export function createTestClient(overrides?: Partial<MockConfig>) {
   const config = {
@@ -295,8 +295,8 @@ export function createMockErrorResponse(message: string, statusCode: number) {
 ### End-to-End Testing
 
 ```typescript
-import { setupTestEnvironment, cleanupTestEnvironment } from 'frontal/testing';
-import { ai, blob } from 'frontal/core';
+import { setupTestEnvironment, cleanupTestEnvironment } from '@frontal-labs/testing';
+import { ai, blob } from '@frontal-labs/core';
 
 describe('E2E Tests', () => {
   beforeAll(async () => {
@@ -370,7 +370,7 @@ describe('E2E Tests', () => {
 ### Multi-Package Testing
 
 ```typescript
-import { createMockConfig } from 'frontal/testing';
+import { createMockConfig } from '@frontal-labs/testing';
 import { ai } from '@frontal-labs/ai';
 import { blob } from '@frontal-labs/blob';
 
@@ -398,7 +398,7 @@ describe('Multi-Package Integration', () => {
 ### Performance Testing
 
 ```typescript
-import { createMockConfig } from 'frontal/testing';
+import { createMockConfig } from '@frontal-labs/testing';
 import { performance } from 'perf_hooks';
 
 describe('Performance Tests', () => {

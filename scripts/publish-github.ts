@@ -6,7 +6,7 @@
  * Expected environment variables (set by publish.yml):
  *   GITHUB_TOKEN        — the built-in GitHub Actions token
  *   PUBLISHED_PACKAGES  — JSON array from changesets/action output,
- *                          e.g. [{"name":"frontal/core","version":"1.0.1"}]
+ *                          e.g. [{"name":"@frontal-labs/core","version":"1.0.1"}]
  *
  * Uses CLI flags to override the scope registry so the per-package .npmrc
  * files (which point to npmjs.org) do not need to be touched.

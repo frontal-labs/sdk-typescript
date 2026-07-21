@@ -32,7 +32,7 @@ const client = createBillingClient({
 
 ## Core Concepts
 
-The Billing SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `frontal/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createBillingClient`) and a default singleton (`billing`).
+The Billing SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createBillingClient`) and a default singleton (`billing`).
 
 ## Configuration
 
@@ -52,7 +52,7 @@ const client = createBillingClient({
 ### Shared FrontalClient (recommended)
 
 ```typescript
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createBillingClient } from "@frontal-labs/billing";
 
 const frontal = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
@@ -68,10 +68,10 @@ const client = createBillingClient(frontal);
 
 ## Error Handling
 
-The Billing SDK throws typed errors from `frontal/core`:
+The Billing SDK throws typed errors from `@frontal-labs/core`:
 
 ```typescript
-import { FrontalError, RateLimitError, NotFoundError } from "frontal/core";
+import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/core";
 
 try {
   await client.someMethod();
@@ -88,4 +88,4 @@ try {
 
 ## Related Packages
 
-- [frontal/core](../core/docs/OVERVIEW.md)
+- [@frontal-labs/core](../core/docs/OVERVIEW.md)

@@ -1,5 +1,5 @@
 /**
- * frontal/core
+ * @frontal-labs/core
  *
  * Foundational primitives for the Frontal TypeScript SDK.
  */

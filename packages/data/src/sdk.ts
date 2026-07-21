@@ -3,7 +3,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "frontal/core";
+} from "@frontal-labs/core";
 
 /**
  * Client for the Frontal Data platform's processing subdomains

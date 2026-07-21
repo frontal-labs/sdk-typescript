@@ -32,7 +32,7 @@ const client = createWebhooksClient({
 
 ## Core Concepts
 
-The Webhooks SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `frontal/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createWebhooksClient`) and a default singleton (`webhooks`).
+The Webhooks SDK follows the composition-over-inheritance pattern used across all Frontal SDKs. The service class accepts an `HttpClient` from `@frontal-labs/core` for transport, uses Zod schemas for runtime validation, and provides both a standalone factory function (`createWebhooksClient`) and a default singleton (`webhooks`).
 
 ## Configuration
 
@@ -52,7 +52,7 @@ const client = createWebhooksClient({
 ### Shared FrontalClient (recommended)
 
 ```typescript
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createWebhooksClient } from "@frontal-labs/webhooks";
 
 const frontal = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
@@ -65,10 +65,10 @@ const client = createWebhooksClient(frontal);
 
 ## Error Handling
 
-The Webhooks SDK throws typed errors from `frontal/core`:
+The Webhooks SDK throws typed errors from `@frontal-labs/core`:
 
 ```typescript
-import { FrontalError, RateLimitError, NotFoundError } from "frontal/core";
+import { FrontalError, RateLimitError, NotFoundError } from "@frontal-labs/core";
 
 try {
   await client.someMethod();
@@ -85,5 +85,5 @@ try {
 
 ## Related Packages
 
-- [frontal/core](../core/docs/OVERVIEW.md)
+- [@frontal-labs/core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/events](../events/docs/OVERVIEW.md)

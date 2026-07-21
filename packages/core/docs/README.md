@@ -1,10 +1,10 @@
-# frontal/core
+# @frontal-labs/core
 
 Frontal platform — shared client, schemas, and utilities.
 
 ## Overview
 
-The `frontal/core` package provides the foundational SDK for interacting with the Frontal platform. It includes:
+The `@frontal-labs/core` package provides the foundational SDK for interacting with the Frontal platform. It includes:
 
 - **FrontalClient**: Main SDK client for API interactions
 - **HttpClient**: Low-level HTTP client with retry logic and error handling
@@ -17,15 +17,15 @@ The `frontal/core` package provides the foundational SDK for interacting with th
 ## Installation
 
 ```bash
-bun add frontal/core
+bun add @frontal-labs/core
 # or
-npm install frontal/core
+npm install @frontal-labs/core
 ```
 
 ## Quick Start
 
 ```typescript
-import { FrontalClient } from 'frontal/core'
+import { FrontalClient } from '@frontal-labs/core'
 
 const client = new FrontalClient({
   apiKey: 'frt_1234567890abcdef',

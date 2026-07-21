@@ -28,7 +28,7 @@ export {
   TimeoutError,
   UnauthorizedError,
   ValidationError,
-} from "frontal/core";
+} from "@frontal-labs/core";
 
 // ── Individual singletons (tree-shakeable) ─────────────────────────────
 

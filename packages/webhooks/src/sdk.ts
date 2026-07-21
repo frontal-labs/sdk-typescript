@@ -3,7 +3,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "frontal/core";
+} from "@frontal-labs/core";
 import type { DeliveryAttempt, Webhook, WebhookStats } from "./schemas";
 
 /**

@@ -5,13 +5,13 @@ Data lineage SDK for graph retrieval, node tracing, and impact analysis.
 ## Installation
 
 ```bash
-bun add @frontal-labs/lineage frontal/core
+bun add @frontal-labs/lineage @frontal-labs/core
 ```
 
 ## Usage
 
 ```ts
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createLineageClient } from "@frontal-labs/lineage";
 
 const client = new FrontalClient({

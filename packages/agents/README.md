@@ -9,7 +9,7 @@ AI SDK integration.
 npm install @frontal-labs/agents
 ```
 
-`frontal/core` is included automatically as a dependency.
+`@frontal-labs/core` is included automatically as a dependency.
 
 ## Quick Start
 
@@ -45,7 +45,7 @@ const agent = await agents.create({
 ### Shared client (multiple SDKs)
 
 ```ts
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createAgentsClient } from "@frontal-labs/agents";
 
 const client = new FrontalClient({

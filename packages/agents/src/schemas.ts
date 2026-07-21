@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { filterConditionsSchema } from "frontal/core";
+import { filterConditionsSchema } from "@frontal-labs/core";
 
 /**
  * Zod schema for ISO datetime or Date objects, transformed to Date instances.

@@ -61,7 +61,7 @@ interface BillingClientConfig {
 
 ## Error Types
 
-All methods throw typed errors from `frontal/core`:
+All methods throw typed errors from `@frontal-labs/core`:
 
 - `FrontalError` — Base error class
 - `NotFoundError` — Resource not found (404)

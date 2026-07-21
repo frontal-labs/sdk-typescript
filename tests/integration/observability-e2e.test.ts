@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   createIntegrationHarness,
   integrationPage,
-} from "frontal/testing";
+} from "@frontal-labs/testing";
 import { ObservabilitySdk as ObservabilityService } from "@frontal-labs/observability";
 
 const mockLog = {

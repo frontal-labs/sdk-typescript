@@ -158,7 +158,7 @@ const updateDependencies = async (packageName?: string) => {
   } else {
     // Update all SDK packages
     console.log("Updating all Frontal SDK packages...");
-    await exec("bun update frontal/core @frontal-labs/ai @frontal-labs/workers @frontal-labs/blob");
+    await exec("bun update @frontal-labs/core @frontal-labs/ai @frontal-labs/workers @frontal-labs/blob");
   }
 };
 

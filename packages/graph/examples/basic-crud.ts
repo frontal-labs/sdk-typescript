@@ -1,4 +1,4 @@
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createGraphClient, graph } from "@frontal-labs/graph";
 
 // Initialize client

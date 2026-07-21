@@ -4,7 +4,7 @@
  * The SDK does not bundle OpenTelemetry. To use tracing, install the
  * packages separately and pass a tracer-compatible object:
  *
- *   import { initTracing } from "frontal/core";
+ *   import { initTracing } from "@frontal-labs/core";
  *   const otel = await import("@opentelemetry/api");
  *   const sdk = await import("@opentelemetry/sdk-trace-node");
  *   const provider = new sdk.NodeTracerProvider();
@@ -48,7 +48,7 @@ export function getTracer(): TracerLike | undefined {
  *
  * @example
  * ```ts
- * import { initTracing } from "frontal/core";
+ * import { initTracing } from "@frontal-labs/core";
  * initTracing(otel.trace.getTracer("my-service"));
  * ```
  */

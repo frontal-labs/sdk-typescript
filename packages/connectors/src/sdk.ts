@@ -2,7 +2,7 @@ import {
   createPageResult,
   type HttpClient,
   type PageResult,
-} from "frontal/core";
+} from "@frontal-labs/core";
 import { Installation } from "./installation";
 import type {
   ConnectorDefinition,

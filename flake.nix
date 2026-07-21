@@ -105,7 +105,7 @@
           };
 
           core = pkgs.stdenv.mkDerivation {
-            pname = "@frontal/core";
+            pname = "@@frontal-labs/core";
             version = "0.0.0";
             src = ./packages/core;
             nativeBuildInputs = [ bun-pkg ];
@@ -165,7 +165,7 @@
           };
 
           testing = pkgs.stdenv.mkDerivation {
-            pname = "@frontal/testing";
+            pname = "@@frontal-labs/testing";
             version = "0.0.0";
             src = ./packages/testing;
             nativeBuildInputs = [ bun-pkg ];

@@ -13,7 +13,7 @@ export FRONTAL_API_KEY=frt_your_api_key_here
 ### Client Initialization
 
 ```typescript
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createAuthClient } from "@frontal-labs/auth";
 
 // Option A: Shared client (recommended for multi-package apps)
@@ -50,7 +50,7 @@ const client = createAuthClient({
 For high-availability services, use the circuit breaker from core:
 
 ```typescript
-import { CircuitBreaker } from "frontal/core";
+import { CircuitBreaker } from "@frontal-labs/core";
 
 const breaker = new CircuitBreaker({
   failureThreshold: 5,
@@ -71,7 +71,7 @@ try {
 Rate limit errors include retry-after and quota information:
 
 ```typescript
-import { RateLimitError } from "frontal/core";
+import { RateLimitError } from "@frontal-labs/core";
 
 try {
   await client.someMethod();
@@ -104,10 +104,10 @@ const all = await result.all();
 
 ## Testing
 
-Use `frontal/testing` to mock HTTP:
+Use `@frontal-labs/testing` to mock HTTP:
 
 ```typescript
-import { createTestHttpClient } from "frontal/testing";
+import { createTestHttpClient } from "@frontal-labs/testing";
 
 const { http, mock } = createTestHttpClient([
   { method: "GET", path: "/v1/auth/resource", body: { data: [...] } }

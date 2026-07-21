@@ -23,7 +23,7 @@ const debugSchema = z
 
 /**
  * Parsed runtime environment used by all packages.
- * Access via `import { env } from "frontal/core"`.
+ * Access via `import { env } from "@frontal-labs/core"`.
  *
  * Validation runs at module import time. Set environment variables
  * before importing this module.

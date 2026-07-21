@@ -1,4 +1,4 @@
-import type { HttpClient } from "frontal/core";
+import type { HttpClient } from "@frontal-labs/core";
 import type {
   DeployWorkerInput,
   InvokeWorkerOptions,

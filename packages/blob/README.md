@@ -9,7 +9,7 @@ and copy/move operations.
 npm install @frontal-labs/blob
 ```
 
-`frontal/core` is included automatically as a dependency.
+`@frontal-labs/core` is included automatically as a dependency.
 
 ## Quick Start
 
@@ -55,7 +55,7 @@ await blob.upload({
 ### Shared client (multiple SDKs)
 
 ```ts
-import { FrontalClient } from "frontal/core";
+import { FrontalClient } from "@frontal-labs/core";
 import { createBlobClient } from "@frontal-labs/blob";
 
 const client = new FrontalClient({
