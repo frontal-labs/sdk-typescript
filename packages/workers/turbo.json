@@ -1,60 +1,114 @@
 {
-	"$schema": "https://turborepo.dev/schema.json",
-	"extends": ["//"],
-	"tasks": {
-		"build": {
-			"dependsOn": ["^build"],
-			"outputs": ["dist/**", "lib/**"],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"cache": false
-		},
-		"lint": {
-			"dependsOn": ["^build"],
-			"outputs": [],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"cache": false
-		},
-		"format": {
-			"dependsOn": ["^build"],
-			"outputs": [],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"cache": false
-		},
-		"format:check": {
-			"dependsOn": ["^build"],
-			"outputs": [],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"cache": false
-		},
-		"type-check": {
-			"dependsOn": ["^build"],
-			"outputs": [],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"cache": false
-		},
-		"test": {
-			"dependsOn": ["^build"],
-			"outputs": [],
-			"inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"],
-			"cache": false
-		},
-		"test:watch": {
-			"dependsOn": ["^build"],
-			"outputs": [],
-			"inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"],
-			"cache": false
-		},
-		"test:coverage": {
-			"dependsOn": ["^build"],
-			"outputs": [],
-			"inputs": ["$TURBO_DEFAULT$", "src/**/*.test.ts", "tests/**/*.ts"],
-			"cache": false
-		},
-		"clean": {
-			"dependsOn": ["^build"],
-			"outputs": ["dist/**", "lib/**"],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"cache": false
-		}
-	}
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": [
+    "//"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "lib/**"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    },
+    "lint": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    },
+    "format": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    },
+    "format:check": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    },
+    "type-check": {
+      "dependsOn": [],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.test.ts",
+        "tests/**/*.ts"
+      ],
+      "cache": false
+    },
+    "test:watch": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.test.ts",
+        "tests/**/*.ts"
+      ],
+      "cache": false
+    },
+    "test:coverage": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.test.ts",
+        "tests/**/*.ts"
+      ],
+      "cache": false
+    },
+    "clean": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "lib/**"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    }
+  }
 }
