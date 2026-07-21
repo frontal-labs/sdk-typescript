@@ -48,8 +48,11 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Upgrade npm to a trusted-publishing-capable version
-        run: npm install -g npm@latest
+      # Node 24 already bundles npm >= 11.5.1 (OIDC-capable). Pin to the npm 11
+      # line rather than npm@latest, which is now npm@12 and requires a newer
+      # node minor than setup-node provides (EBADENGINE).
+      - name: Ensure npm is trusted-publishing-capable (>= 11.5.1)
+        run: npm install -g npm@11
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
