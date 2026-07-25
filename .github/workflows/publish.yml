@@ -47,7 +47,7 @@ jobs:
       # npm CLI >= 11.5.1 and Node >= 22.14 are required for OIDC trusted
       # publishing. changeset publish shells out to `npm publish`, so the
       # `npm` on PATH must be recent enough.
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
 
