@@ -6,8 +6,8 @@
 
 export {
   createWorkersClient,
-  workers,
   type WorkersClientConfig,
+  workers,
 } from "./client";
 export { DEFAULT_WORKERS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

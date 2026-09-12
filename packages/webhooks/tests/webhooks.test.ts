@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import { WebhooksSdk, createWebhooksClient, WebhookSchema } from "../src/index";
+import { describe, expect, it } from "vitest";
+import { createWebhooksClient, WebhookSchema, WebhooksSdk } from "../src/index";
 
 function createService(
   routes: {

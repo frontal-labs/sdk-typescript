@@ -4,9 +4,17 @@ import {
   type PageResult,
   type PollOptions,
   pollUntil,
+  type StreamOptions,
+  type StreamPart,
+  type ToolSet,
 } from "@frontal-labs/core";
 import type { z } from "zod";
 import type { AgentHandler } from "./context";
+import {
+  type AgentDefinitionOptions,
+  type AgentRuntimeHints,
+  normalizeTriggers,
+} from "./definition";
 import * as Schemas from "./schemas";
 
 const asPagePayload = <T>(raw: unknown) =>
@@ -37,19 +45,48 @@ export class AgentsSdk {
   constructor(private readonly http: HttpClient) {}
 
   /**
-   * Starts building a new agent definition.
-   * @param name - The name of the agent.
+   * Starts building a new agent definition. Pass an options object for the
+   * typed one-shot form, or chain builder methods; both end with `.create()`.
+   *
+   * @example
+   * ```ts
+   * const triage = agents.define("ticket-triager", {
+   *   triggers: "support.ticket.created",
+   *   stateSchema: z.object({ tier: z.string() }),
+   * });
+   * const agent = await triage.create();
+   * for await (const e of agent.watch(runId)) {
+   *   if (e.type === "state") console.log(e.state.tier);
+   * }
+   * ```
    */
-  define(name: string): AgentBuilder {
-    return new AgentBuilder(name, this.http);
+  define(name: string): AgentBuilder;
+  define<TState extends z.ZodType>(
+    name: string,
+    options: AgentDefinitionOptions<TState>
+  ): AgentBuilder<TState>;
+  define<TState extends z.ZodType>(
+    name: string,
+    options?: AgentDefinitionOptions<TState>
+  ): AgentBuilder<TState> {
+    const builder = new AgentBuilder<TState>(name, this.http);
+    return options ? builder.configure(options) : builder;
   }
 
   /**
-   * Returns an accessor for an existing agent by ID.
-   * @param id - The agent ID.
+   * Returns an accessor for an existing agent by ID. Pass `stateSchema` to
+   * get typed `state` events from `watch()`.
    */
-  use(id: string): AgentAccessor {
-    return new AgentAccessor(id, this.http);
+  use(id: string): AgentAccessor;
+  use<TState extends z.ZodType>(
+    id: string,
+    hints: AgentRuntimeHints<TState>
+  ): AgentAccessor<TState>;
+  use<TState extends z.ZodType>(
+    id: string,
+    hints: AgentRuntimeHints<TState> = {}
+  ): AgentAccessor<TState> {
+    return new AgentAccessor<TState>(id, this.http, hints);
   }
 
   /**
@@ -75,7 +112,9 @@ export class AgentsSdk {
    * Creates a new agent from a definition.
    * @param definition - The agent definition (validated before sending).
    */
-  async create(definition: Schemas.AgentDefinition): Promise<Schemas.Agent> {
+  async create(
+    definition: Schemas.AgentDefinitionInput
+  ): Promise<Schemas.Agent> {
     const body = Schemas.AgentDefinitionSchema.parse(definition);
     return this.http.post("/agents", body);
   }
@@ -89,13 +128,13 @@ export class AgentsSdk {
 /**
  * Fluent builder for defining and creating agents.
  */
-export class AgentBuilder {
+export class AgentBuilder<TState extends z.ZodType = z.ZodType> {
   private _definition: Partial<
     z.input<typeof Schemas.AgentDefinitionSchema>
   > & {
     name: string;
   };
-  private _handlers: Map<string, AgentHandler> = new Map();
+  private _hints: AgentRuntimeHints<TState> = {};
 
   constructor(
     name: string,
@@ -267,35 +306,130 @@ export class AgentBuilder {
 
   /**
    * Registers a behavior handler for a specific event.
-   * @param event - The event name to handle.
-   * @param handler - The handler function.
+   * @deprecated Local handlers are not executed by the hosted runtime and
+   * were never uploaded. This method now throws so the gap is visible;
+   * express behaviour via `tools`, `scope`, and triggers instead.
    */
-  on(event: string, handler: AgentHandler): this {
-    this._handlers.set(event, handler);
+  on(_event: string, _handler: AgentHandler): never {
+    throw new Error(
+      "AgentBuilder.on() is not supported: handlers run on the Frontal runtime, not locally. Use define(name, { tools, triggers }) instead."
+    );
+  }
+
+  /**
+   * Applies a typed options object (the `define(name, options)` form).
+   */
+  configure(options: AgentDefinitionOptions<TState>): this {
+    if (options.description) this.description(options.description);
+    for (const t of normalizeTriggers(options.triggers)) {
+      this._definition.triggers = [...(this._definition.triggers ?? []), t];
+    }
+    if (options.tags?.length) this.tags(...options.tags);
+    if (options.scope) this.scope(options.scope);
+    if (options.confidence) this.confidence(options.confidence);
+    if (options.memory) this.memory(options.memory);
+    if (options.retry) this.retry(options.retry);
+    if (options.timeout) this.timeout(options.timeout);
+    if (options.rateLimit) this.rateLimit(options.rateLimit);
+    this._hints = {
+      stateSchema: options.stateSchema,
+      stateEvent: options.stateEvent,
+      tools: options.tools,
+      approveWhen: options.approveWhen,
+      approvers: options.approvers,
+    };
     return this;
+  }
+
+  /** Attach a state schema so `watch()` yields typed `state` events. */
+  state<TNext extends z.ZodType>(schema: TNext): AgentBuilder<TNext> {
+    const next = this as unknown as AgentBuilder<TNext>;
+    next._hints = {
+      ...this._hints,
+      stateSchema: schema,
+    } as AgentRuntimeHints<TNext>;
+    return next;
+  }
+
+  /** Tools the agent may call. */
+  tools(tools: ToolSet): this {
+    this._hints.tools = tools;
+    return this;
+  }
+
+  /** Human approval contract; see `toApprovalStep()`. */
+  approveWhen(
+    predicate: (state: z.infer<TState>) => boolean,
+    approvers?: string[]
+  ): this {
+    this._hints.approveWhen = predicate;
+    if (approvers) this._hints.approvers = approvers;
+    return this;
+  }
+
+  /** The definition as it will be sent (before defaults). */
+  toJSON(): Schemas.AgentDefinitionInput {
+    return this._definition as Schemas.AgentDefinitionInput;
   }
 
   /**
    * Validates the definition and creates the agent on the API.
-   * @returns The created agent resource.
-   * @throws ZodError if the definition is invalid.
+   * @returns A typed accessor for the created agent (has `.agent` for the
+   * raw resource).
+   * @throws Error listing the invalid fields if the definition is invalid.
    */
-  async create(): Promise<Schemas.Agent> {
-    const definition = Schemas.AgentDefinitionSchema.parse(this._definition);
-    const agent = await this.http.post("/agents", definition);
-    return agent as Schemas.Agent;
+  async create(): Promise<CreatedAgent<TState>> {
+    const parsed = Schemas.AgentDefinitionSchema.safeParse(this._definition);
+    if (!parsed.success) {
+      const fields = parsed.error.issues
+        .map((i) => `${i.path.join(".") || "<root>"}: ${i.message}`)
+        .join("; ");
+      throw new Error(
+        `Invalid agent definition "${this._definition.name}": ${fields}`
+      );
+    }
+    const agent = (await this.http.post(
+      "/agents",
+      parsed.data
+    )) as Schemas.Agent;
+    // Accessor first so resource fields (id, name, status, ...) win on read,
+    // and `.agent` keeps the untouched resource for serialization.
+    const accessor = new AgentAccessor<TState>(
+      agent.id,
+      this.http,
+      this._hints
+    );
+    return Object.assign(accessor, agent, { agent }) as CreatedAgent<TState>;
   }
 }
+
+/**
+ * Return type of `AgentBuilder.create()`: the agent resource's fields
+ * (`id`, `name`, `status`, ...) plus every accessor method
+ * (`message`, `watch`, `waitForCompletion`, ...), and `.agent` for the raw
+ * resource.
+ */
+export type CreatedAgent<TState extends z.ZodType = z.ZodType> =
+  AgentAccessor<TState> & Schemas.Agent & { readonly agent: Schemas.Agent };
 
 /**
  * Accessor for a single agent resource. Provides get/update/delete operations,
  * run management, version history, and streaming.
  */
-export class AgentAccessor {
+export class AgentAccessor<TState extends z.ZodType = z.ZodType> {
   constructor(
-    private readonly id: string,
-    private readonly http: HttpClient
+    readonly id: string,
+    private readonly http: HttpClient,
+    readonly hints: AgentRuntimeHints<TState> = {}
   ) {}
+
+  /**
+   * Whether a run state requires human approval per the definition's
+   * `approveWhen`. Always `false` when no predicate was given.
+   */
+  requiresApproval(state: z.infer<TState>): boolean {
+    return this.hints.approveWhen?.(state) ?? false;
+  }
 
   /**
    * Fetches the agent definition and current state.
@@ -396,13 +530,62 @@ export class AgentAccessor {
   }
 
   /**
-   * Watches a run via SSE, yielding events as they occur.
+   * Watches a run via SSE. Yields {@link AgentRunEvent} parts: server events
+   * as `{ type: "event", event, data }`, failures as `{ type: "error" }`
+   * (with `error.retryable`), `{ type: "abort" }` when `signal` fires, and a
+   * final `{ type: "done" }`. Never throws mid-stream.
+   *
    * @param runId - The run to watch.
-   * @returns AsyncIterable of SSE events.
+   * @param options - `signal` to abort the stream.
+   *
+   * @example
+   * ```ts
+   * for await (const e of agent.watch(run.id)) {
+   *   if (e.type === "event") console.log(e.event, e.data);
+   *   if (e.type === "error" && e.error.retryable) console.log("retry");
+   * }
+   * ```
    */
   async *watch(
-    runId: string
-  ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-    yield* this.http.stream(`/agents/runs/${runId}/stream`);
+    runId: string,
+    options: StreamOptions = {}
+  ): AsyncIterable<AgentRunEvent<z.infer<TState>>> {
+    const schema = this.hints.stateSchema;
+    const stateEvent = this.hints.stateEvent ?? DEFAULT_STATE_EVENT;
+    for await (const part of this.http.streamParts(
+      `/agents/runs/${runId}/stream`,
+      undefined,
+      options
+    )) {
+      if (part.type !== "data") {
+        yield part;
+        continue;
+      }
+      if (schema && part.event === stateEvent) {
+        const parsed = schema.safeParse(part.data);
+        if (parsed.success) {
+          yield {
+            type: "state",
+            state: parsed.data as z.infer<TState>,
+            id: part.id,
+          };
+          continue;
+        }
+      }
+      yield { type: "event", event: part.event, data: part.data, id: part.id };
+    }
   }
 }
+
+/** Default SSE event name that carries the run's state snapshot. */
+const DEFAULT_STATE_EVENT = "state";
+
+/**
+ * A part of an agent run stream. `event` carries a server-sent event;
+ * `state` is a typed snapshot (only when a `stateSchema` was given);
+ * the rest are control parts (see {@link StreamPart}).
+ */
+export type AgentRunEvent<TState = unknown> =
+  | { type: "event"; event: string; data: unknown; id?: string }
+  | { type: "state"; state: TState; id?: string }
+  | Exclude<StreamPart, { type: "data" }>;

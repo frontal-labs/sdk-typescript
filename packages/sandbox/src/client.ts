@@ -1,16 +1,16 @@
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
 import {
-  DEFAULT_SANDBOX_BASE_URL,
   DEFAULT_MAX_RETRIES,
   DEFAULT_RETRY_DELAY,
+  DEFAULT_SANDBOX_BASE_URL,
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { SandboxSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a standalone Frontal Sandbox client.

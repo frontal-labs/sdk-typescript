@@ -16,7 +16,7 @@ Thank you for your interest in contributing to the Frontal SDK! We want to make 
 
 1. **Fork the repo** and create your branch from the default branch
 2. **Install dependencies**: `bun install`
-3. **Run setup**: `bun run setup` to build packages
+3. **Build**: `bun run build` to build all packages
 4. **Make your changes** following our code style guidelines
 5. **Ensure tests pass**: `bun run test`
 6. **Type check**: `bun run type-check`
@@ -51,7 +51,7 @@ cd sdk-typescript
 bun install
 
 # Initial setup (builds all packages)
-bun run setup
+bun run build
 
 # Verify setup
 bun run test

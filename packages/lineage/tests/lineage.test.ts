@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
+import { describe, expect, it } from "vitest";
 import {
-  LineageSdk,
   createLineageClient,
   LineageGraphSchema,
+  LineageSdk,
 } from "../src/index";
 
 function createService(

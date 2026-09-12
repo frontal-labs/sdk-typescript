@@ -6,10 +6,10 @@
 
 export {
   createWebhooksClient,
-  webhooks,
   type WebhooksClientConfig,
+  webhooks,
 } from "./client";
 export { DEFAULT_WEBHOOKS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";
 export { WebhooksSdk } from "./sdk";
-export { verifyWebhookSignature, extractWebhookEvent } from "./verify";
+export { extractWebhookEvent, verifyWebhookSignature } from "./verify";

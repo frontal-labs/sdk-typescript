@@ -1,7 +1,7 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
 import { describe, expect, it, vi } from "vitest";
-import { BlobSdk } from "../src/sdk";
 import { signedUrlOptionsSchema } from "../src/schemas";
+import { BlobSdk } from "../src/sdk";
 
 function createService(routes: MockRoute[] = []) {
   const { http, mock } = createTestHttpClient(routes);

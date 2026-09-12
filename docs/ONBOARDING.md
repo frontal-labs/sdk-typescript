@@ -23,7 +23,7 @@ Install all the required dependencies and run the initial setup script.
 
 ```bash
 bun install
-bun run setup
+bun run build
 ```
 
 This ensures that all packages are built and ready for development.

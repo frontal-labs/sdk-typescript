@@ -1,8 +1,7 @@
 import { FrontalClient } from "@frontal-labs/core";
 import { createMockFetch, mockPageResponse } from "@frontal-labs/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AgentsSdk } from "../src";
-import { createAgentsClient } from "../src";
+import { AgentsSdk, createAgentsClient } from "../src";
 
 describe("createAgentsClient", () => {
   afterEach(() => {

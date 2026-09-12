@@ -6,6 +6,9 @@
       "packages/*/src/**/*.ts",
       "packages/*/tests/**/*.ts",
       "packages/*/package.json",
+      "scripts/extract-examples.ts",
+      "scripts/generate-llms.ts",
+      "tests/examples/**/*.ts",
       "biome.jsonc",
       "package.json"
     ]

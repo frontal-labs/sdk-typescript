@@ -4,6 +4,14 @@ import type { ClientConfigOutput } from "./config";
 import { SDK_VERSION } from "./constants";
 import { NetworkError, parseFrontalError } from "./errors";
 import { calculateDelay } from "./retry";
+import { type StreamOptions, type StreamPart, toStreamParts } from "./stream";
+import {
+  createHttpSpan,
+  finishSpan,
+  getTelemetry,
+  type TelemetryEvent,
+  tagRequestId,
+} from "./tracing";
 import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
 
 /**
@@ -112,7 +120,8 @@ export class HttpClient {
     const res = await this.fetchWithTimeout(url, {
       method: "PUT",
       headers: this.buildHeaders({ "Content-Type": contentType, ...headers }),
-      body: body as ReadableStream | Buffer | string,
+      // Buffer is a Uint8Array subclass; cast keeps DOM-lib consumers happy.
+      body: body as unknown as RequestInit["body"],
     });
     if (!res.ok) await this.throwError(res);
     if (res.status === 204) return undefined;
@@ -130,15 +139,32 @@ export class HttpClient {
    */
   async *stream(
     path: string,
-    params?: Record<string, string>
+    params?: Record<string, string>,
+    options: StreamOptions = {}
   ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
     const url = this.buildUrl(path, params);
-    const res = await this.fetchWithTimeout(url, {
-      method: "GET",
-      headers: this.buildHeaders({ Accept: "text/event-stream" }),
-    });
+    const res = await this.fetchWithTimeout(
+      url,
+      {
+        method: "GET",
+        headers: this.buildHeaders({ Accept: "text/event-stream" }),
+      },
+      options.signal
+    );
     if (!res.ok) await this.throwError(res);
-    yield* this.parseSSEResponse(res);
+    yield* this.parseSSEResponse(res, options.signal);
+  }
+
+  /**
+   * Like {@link stream}, but never throws: transport and HTTP failures are
+   * yielded as `{ type: "error" }` parts and the stream ends with `done`.
+   */
+  streamParts(
+    path: string,
+    params?: Record<string, string>,
+    options: StreamOptions = {}
+  ): AsyncIterable<StreamPart> {
+    return toStreamParts(this.stream(path, params, options), options);
   }
 
   /**
@@ -149,16 +175,33 @@ export class HttpClient {
    */
   async *postStream(
     path: string,
-    body?: unknown
+    body?: unknown,
+    options: StreamOptions = {}
   ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
     const url = this.buildUrl(path);
-    const res = await this.fetchWithTimeout(url, {
-      method: "POST",
-      headers: this.buildHeaders({ Accept: "text/event-stream" }),
-      body: JSON.stringify(body ?? {}),
-    });
+    const res = await this.fetchWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: this.buildHeaders({ Accept: "text/event-stream" }),
+        body: JSON.stringify(body ?? {}),
+      },
+      options.signal
+    );
     if (!res.ok) await this.throwError(res);
-    yield* this.parseSSEResponse(res);
+    yield* this.parseSSEResponse(res, options.signal);
+  }
+
+  /**
+   * Like {@link postStream}, but never throws: failures become
+   * `{ type: "error" }` parts and the stream ends with `done`.
+   */
+  postStreamParts(
+    path: string,
+    body?: unknown,
+    options: StreamOptions = {}
+  ): AsyncIterable<StreamPart> {
+    return toStreamParts(this.postStream(path, body, options), options);
   }
 
   /**
@@ -233,49 +276,61 @@ export class HttpClient {
   }
 
   private async *parseSSEResponse(
-    res: Response
+    res: Response,
+    signal?: AbortSignal
   ): AsyncGenerator<{ type: string; data: unknown; id?: string }> {
     if (!res.body) return;
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    const onAbort = () => {
+      void reader.cancel();
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
 
-      let event: { type: string; data: unknown; id?: string } = {
-        type: "message",
-        data: null,
-      };
+        let event: { type: string; data: unknown; id?: string } = {
+          type: "message",
+          data: null,
+        };
 
-      for (const rawLine of lines) {
-        const line = rawLine.trimEnd();
-        if (line.startsWith("id:")) {
-          event.id = line.slice(3).trim();
-        } else if (line.startsWith("event:")) {
-          event.type = line.slice(6).trim();
-        } else if (line.startsWith("data:")) {
-          const payload = line.slice(5).trim();
-          try {
-            const parsed = JSON.parse(payload);
-            event.data =
-              typeof parsed === "object" && parsed !== null
-                ? deepSnakeToCamel(parsed)
-                : parsed;
-          } catch {
-            event.data = payload;
+        for (const rawLine of lines) {
+          const line = rawLine.trimEnd();
+          if (line.startsWith("id:")) {
+            event.id = line.slice(3).trim();
+          } else if (line.startsWith("event:")) {
+            event.type = line.slice(6).trim();
+          } else if (line.startsWith("data:")) {
+            const payload = line.slice(5).trim();
+            try {
+              const parsed = JSON.parse(payload);
+              event.data =
+                typeof parsed === "object" && parsed !== null
+                  ? deepSnakeToCamel(parsed)
+                  : parsed;
+            } catch {
+              event.data = payload;
+            }
+          } else if (line === "") {
+            if (event.data !== null) yield event;
+            event = { type: "message", data: null };
           }
-        } else if (line === "") {
-          if (event.data !== null) yield event;
-          event = { type: "message", data: null };
         }
       }
+    } finally {
+      signal?.removeEventListener("abort", onAbort);
+      // Release the response body if the consumer stopped early; a no-op
+      // once the stream has been fully read.
+      void reader.cancel().catch(() => undefined);
     }
   }
 
@@ -289,6 +344,39 @@ export class HttpClient {
   ): Promise<T> {
     const url = this.buildUrl(path, params);
     const requestId = crypto.randomUUID();
+    const telemetry = getTelemetry();
+    const span = createHttpSpan(method, path);
+    span?.setAttribute("frontal.request_id", requestId);
+    if (telemetry?.recordInputs && body !== undefined) {
+      span?.setAttribute("frontal.request.body", safeJson(body));
+    }
+    telemetry?.onRequest?.({ method, path, requestId, attempt });
+    const startedAt = Date.now();
+    const report = (
+      status: number | undefined,
+      error?: unknown,
+      serverRequestId?: string
+    ) => {
+      const event: TelemetryEvent = {
+        method,
+        path,
+        requestId,
+        serverRequestId,
+        status,
+        durationMs: Date.now() - startedAt,
+        error,
+        attempt,
+      };
+      if (status !== undefined) span?.setAttribute("http.status_code", status);
+      if (error) {
+        span?.setStatus({ code: 2 });
+        span?.end();
+        telemetry?.onError?.(event);
+      } else {
+        finishSpan(span, status ?? 0);
+        telemetry?.onResponse?.(event);
+      }
+    };
 
     const transformedBody =
       body !== undefined && body !== null ? deepCamelToSnake(body) : body;
@@ -318,6 +406,7 @@ export class HttpClient {
         ? await this.breaker.execute(executeRequest)
         : await executeRequest();
     } catch (error) {
+      report(undefined, error);
       if (error instanceof CircuitBreakerOpenError) {
         throw new Error(
           `Circuit breaker is open. Retry after ${Math.ceil(error.retryAfterMs / 1000)}s.`
@@ -325,6 +414,7 @@ export class HttpClient {
       }
       throw error;
     }
+    const serverRequestId = res.headers.get("x-request-id") ?? undefined;
 
     this.config.logger?.response?.(res);
 
@@ -347,13 +437,20 @@ export class HttpClient {
               true
             );
 
+        report(res.status, undefined, serverRequestId);
         await sleep(delay);
         return this.request(method, path, body, params, schema, attempt + 1);
       }
 
-      await this.throwError(res);
+      try {
+        await this.throwError(res);
+      } catch (error) {
+        report(res.status, error, serverRequestId);
+        throw error;
+      }
     }
 
+    report(res.status, undefined, serverRequestId);
     if (res.status === 204) return undefined as T;
 
     const contentType = (res.headers.get("content-type") || "").toLowerCase();
@@ -366,6 +463,10 @@ export class HttpClient {
         ? deepSnakeToCamel(payload)
         : payload;
 
+    const tagId = serverRequestId ?? requestId;
+    if (telemetry?.recordOutputs) {
+      span?.setAttribute("frontal.response.body", safeJson(transformedPayload));
+    }
     if (schema) {
       try {
         const parsed = schema.safeParse(transformedPayload);
@@ -373,16 +474,16 @@ export class HttpClient {
           this.config.logger?.error?.(parsed.error);
           throw parsed.error;
         }
-        return parsed.data;
+        return tagRequestId(parsed.data, tagId);
       } catch (error) {
         if (error instanceof Error && error.message.includes("_zod")) {
-          return transformedPayload as T;
+          return tagRequestId(transformedPayload as T, tagId);
         }
         throw error;
       }
     }
 
-    return transformedPayload as T;
+    return tagRequestId(transformedPayload as T, tagId);
   }
 
   private parseRateLimit(res: Response) {
@@ -471,10 +572,13 @@ export class HttpClient {
 
   private async fetchWithTimeout(
     url: string,
-    init: RequestInit
+    init: RequestInit,
+    signal?: AbortSignal
   ): Promise<Response> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.config.timeout);
+    const forward = () => controller.abort();
+    signal?.addEventListener("abort", forward, { once: true });
     try {
       return await (this.config.fetch ?? fetch)(url, {
         ...init,
@@ -482,6 +586,7 @@ export class HttpClient {
       });
     } finally {
       clearTimeout(timer);
+      signal?.removeEventListener("abort", forward);
     }
   }
 }
@@ -490,3 +595,11 @@ const sleep = async (ms: number): Promise<void> =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+
+const safeJson = (value: unknown): string => {
+  try {
+    return JSON.stringify(value).slice(0, 4096);
+  } catch {
+    return "[unserializable]";
+  }
+};

@@ -53,3 +53,7 @@ bun-debug.log*
 # IDE
 .cursor
 *.tsbuildinfo
+
+# Extracted README examples (generated)
+.examples-build
+.examples-quickstart

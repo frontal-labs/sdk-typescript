@@ -13,14 +13,15 @@ npm install @frontal-labs/pipelines
 
 ## Quick Start
 
-```ts
-import { pipelines } from "@frontal-labs/pipelines";
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const pipelines = f.pipelines;
 
 const list = await pipelines.list({ limit: 10 });
 ```
 
-The `pipelines` singleton reads `FRONTAL_API_KEY` and
-`FRONTAL_PIPELINES_API_URL` from the environment.
 
 ## Usage
 
@@ -68,10 +69,11 @@ await pipelines.use(pipeline.id).trigger({ dryRun: false });
 ### Backfills and lineage
 
 ```ts
-const backfill = await pipelines.use("ppl_123").backfill({
-  from: "2026-01-01",
-  to: "2026-06-01",
-});
+const backfill = await pipelines.use("ppl_123").backfill(
+  "2026-01-01",
+  "2026-06-01",
+  { strategy: "incremental" }
+);
 
 const health = await pipelines.use("ppl_123").health();
 ```

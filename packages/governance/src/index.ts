@@ -5,9 +5,9 @@
  */
 
 export {
-  governance,
   createGovernanceClient,
   type GovernanceClientConfig,
+  governance,
 } from "./client";
 export { DEFAULT_GOVERNANCE_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

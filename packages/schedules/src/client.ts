@@ -1,16 +1,16 @@
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
 import {
-  DEFAULT_SCHEDULE_BASE_URL,
   DEFAULT_MAX_RETRIES,
   DEFAULT_RETRY_DELAY,
+  DEFAULT_SCHEDULE_BASE_URL,
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { SchedulesSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a standalone Frontal Schedules client.

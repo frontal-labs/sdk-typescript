@@ -1,13 +1,13 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
+import { describe, expect, it } from "vitest";
 import {
-  IntegrationsSdk,
-  createIntegrationsClient,
-  Integration,
-  providerSlugSchema,
-  installedIntegrationSchema,
   actionRunSchema,
   connectionTestSchema,
+  createIntegrationsClient,
+  Integration,
+  IntegrationsSdk,
+  installedIntegrationSchema,
+  providerSlugSchema,
 } from "../src/index";
 
 function createService(

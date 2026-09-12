@@ -1,4 +1,5 @@
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
@@ -10,7 +11,6 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { BlobSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a {@link BlobSdk} client standalone.

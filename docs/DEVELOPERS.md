@@ -12,7 +12,7 @@
 git clone https://github.com/frontal-labs/sdk-typescript.git
 cd sdk-typescript
 bun install
-bun run setup
+bun run build
 ```
 
 ## Monorepo Structure

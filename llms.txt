@@ -1,0 +1,48 @@
+# Frontal TypeScript SDK
+
+> One typed client for Frontal: AI inference, agents, durable workflows, pipelines, knowledge graph, storage and 15 more services. Install `@frontal-labs/sdk`, construct `new Frontal({ apiKey })`, and every service is a lazy getter (`f.ai`, `f.agents`, `f.workflows`, ...).
+
+Version: @frontal-labs/sdk@1.0.4. TypeScript-first, ESM + CJS, Node 18+, Bun and edge runtimes. Zod v4 schemas. Every API error is a `FrontalError` subclass with `code`, `requestId`, `statusCode` and an optional `docs` URL.
+
+Rules for code generation: verify the installed version before writing code (`bun pm ls @frontal-labs/sdk`), prefer `new Frontal({ apiKey })` over the deprecated env-driven singletons, and use `@frontal-labs/testing` mocks instead of real keys in tests. Every code block in these docs is type-checked in CI.
+
+## Start here
+
+- [@frontal-labs/sdk](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/sdk/README.md): The one-package entry point to Frontal: AI inference, agents, workflows, pipelines, knowledge graph, ontology, blob storage and 15 more services behind a single typed client.
+- [Frontal SDK](https://github.com/frontal-labs/sdk-typescript/blob/main/SKILL.md): How to write correct code against the Frontal TypeScript SDK: setup, service map, model choice, error taxonomy, testing, and the checklist to run before returning code.
+- [@frontal-labs/core](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/core/README.md): Shared runtime for all Frontal TypeScript SDKs — HTTP client, auth, retries, pagination, polling, and typed errors.
+
+## Services
+
+- [@frontal-labs/ai](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/ai/README.md): AI inference SDK — text generation, streaming, embeddings, structured output, speech, transcription, and image/video generation.
+- [@frontal-labs/agents](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/agents/README.md): Define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI SDK integration.
+- [@frontal-labs/workflows](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/workflows/README.md): Workflow orchestration SDK — triggers, steps, approvals, templates, and execution tracking.
+- [@frontal-labs/pipelines](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/pipelines/README.md): Declarative data pipeline SDK — ingest, transform, enrich, validate, and orchestrate with substrate awareness.
+- [@frontal-labs/graph](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/graph/README.md): Graph entities, relationships, query, traversal, time travel, and semantic search.
+- [@frontal-labs/ontology](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/ontology/README.md): Client for the Frontal Ontology platform (`/v1/ontology/*`). The API is composed of independent subdomain services, each exposed as a namespace: `engine`, `objects`, `relationships`, `schemas`, `versions`, `validation`, `transformations`, `reasoning`, `rollouts`, `rollups`, `extract`, and `events`. (The `graph` subdomain is served by `@frontal-labs/graph`.)
+- [@frontal-labs/blob](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/blob/README.md): Object storage SDK — upload, download, streaming, metadata, signed URLs, and copy/move operations.
+- [@frontal-labs/datasets](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/datasets/README.md): Dataset catalog — list datasets, read artifacts, browse schemas and sources, and ingest data.
+- [@frontal-labs/data](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/data/README.md): Data platform sub-domains — aggregations, archival, enrichment, exports, normalization, quality, serving, streams, sync, transformations, federated query and schema registry — behind one client.
+- [@frontal-labs/lineage](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/lineage/README.md): Data lineage — traverse the lineage graph, inspect nodes and edges, and analyze the impact of a change before you make it.
+- [@frontal-labs/observability](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/observability/README.md): Logs, metrics, traces, alerts and dashboards — query and ingest.
+- [@frontal-labs/audit](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/audit/README.md): Append-only audit events — log who did what to which resource, and query the trail.
+- [@frontal-labs/governance](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/governance/README.md): Policies, compliance, roles, permissions and access checks.
+- [@frontal-labs/auth](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/auth/README.md): Authentication — sign up/in, MFA, account self-service, and an admin surface for user management.
+- [@frontal-labs/billing](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/billing/README.md): Customers, plans, subscriptions, invoices, wallets, meters, prices and add-ons.
+- [@frontal-labs/events](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/events/README.md): Event bus — topics, subscriptions, schemas, publish/subscribe and replays.
+- [@frontal-labs/webhooks](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/webhooks/README.md): Outbound webhooks — register endpoints, inspect and retry deliveries, rotate secrets, and read delivery stats.
+- [@frontal-labs/schedules](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/schedules/README.md): Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions.
+- [@frontal-labs/workers](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/workers/README.md): Deploy and invoke edge workers.
+- [@frontal-labs/sandbox](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/sandbox/README.md): Isolated code execution with a judge — run snippets, self-test, or submit against test cases.
+- [@frontal-labs/connectors](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/connectors/README.md): Source connectors — discover connector definitions, install them per tenant, and replay or diagnose sync runs.
+- [@frontal-labs/integrations](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/integrations/README.md): Third-party integrations — install providers with scoped credentials, run and replay actions, test connections and simulate policy.
+- [@frontal-labs/react](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/react/README.md): React hooks for the Frontal SDK. Thin, transport-agnostic, no framework lock-in: `useChat` talks to any route that returns `toUIMessageStreamResponse(...)`; the other hooks take objects from `new Frontal(...)`.
+
+## Reference
+
+- [@frontal-labs/testing](https://github.com/frontal-labs/sdk-typescript/blob/main/packages/testing/README.md): Test utilities for every Frontal SDK: a fetch-level mock with route matching and request assertions, pre-wired test clients, response builders and fixtures. No network, no real API key.
+- [Testing Guide](https://github.com/frontal-labs/sdk-typescript/blob/main/docs/TESTING.md): This guide covers testing strategies, tools, and best practices for the Frontal SDK monorepo.
+- [Frontal SDKs: Comprehensive Guide, Use Cases, and Examples](https://github.com/frontal-labs/sdk-typescript/blob/main/examples/SDKS_GUIDE.md): This guide covers all SDK packages in this repository:
+- [Full docs in one file](https://github.com/frontal-labs/sdk-typescript/blob/main/llms-full.txt): everything above, concatenated.
+- [OpenAPI contract](https://github.com/frontal-labs/sdk-typescript/blob/main/contracts/openapi/api.openapi.json): the backend API the SDK targets.
+- [MCP manifest](https://github.com/frontal-labs/sdk-typescript/blob/main/docs/mcp.json): docs + headline operations for tool builders.

@@ -1,7 +1,14 @@
+import type {
+  APIResponse,
+  SdkError,
+  ToolCall,
+  ToolSet,
+} from "@frontal-labs/core";
 import { z } from "zod";
+import type { TextStreamPart } from "./stream";
+import type { ToolChoice } from "./tool";
 
-import type { APIResponse } from "@frontal-labs/core";
-export type { ErrorResponse, APIResponse } from "@frontal-labs/core";
+export type { APIResponse, ErrorResponse } from "@frontal-labs/core";
 
 /**
  * Zod schema for a message in a conversation.
@@ -29,12 +36,29 @@ export const generateTextOptionsSchema = z.object({
   frequencyPenalty: z.number().min(-2).max(2).optional(),
   presencePenalty: z.number().min(-2).max(2).optional(),
   stopSequences: z.array(z.string()).optional(),
+  /**
+   * Tools the model may call, keyed by name. Build with `tool()`; input
+   * schemas are sent as JSON Schema. Calls come back in `toolCalls`
+   * (`generateText`) or as `tool-call` parts (`streamText().fullStream`).
+   */
+  tools: z.custom<ToolSet>().optional(),
+  /** `"auto"` (default), `"none"`, `"required"`, or `{ toolName }`. */
+  toolChoice: z.custom<ToolChoice>().optional(),
+  /**
+   * Tool loop budget. When > 1 and the model requests tools that have an
+   * `execute`, the SDK runs them, appends the results, and asks the model
+   * again — up to this many model calls. Default 1 (no loop; calls are
+   * returned in `toolCalls` for you to run).
+   */
+  maxSteps: z.number().int().min(1).max(50).optional(),
+  /** Called after each step of the tool loop. */
+  onStepFinish: z.custom<(step: ToolLoopStep) => void>().optional(),
 });
 
 /**
  * Generation options.
  */
-export type GenerateTextOptions = z.infer<typeof generateTextOptionsSchema>;
+export type GenerateTextOptions = z.input<typeof generateTextOptionsSchema>;
 
 /**
  * Result of a text generation.
@@ -54,7 +78,43 @@ export const generateTextResultSchema = z.object({
     completionTokens: z.number(),
     totalTokens: z.number(),
   }),
+  /** Tool calls requested by the model (empty when none). */
+  toolCalls: z.array(z.custom<ToolCall>()).default([]),
+  /** Results of tools the SDK executed during a `maxSteps` loop. */
+  toolResults: z.array(z.custom<ToolResult>()).default([]),
+  /** One entry per model call when `maxSteps` > 1 (otherwise a single step). */
+  steps: z.array(z.custom<ToolLoopStep>()).default([]),
 });
+
+/** Output of one executed tool call. */
+export interface ToolResult<TOutput = unknown> {
+  id?: string;
+  toolName: string;
+  input: unknown;
+  output?: TOutput;
+  /** Set when `execute` threw; the loop reports it to the model. */
+  error?: string;
+}
+
+/** One model call inside a tool loop. */
+export interface ToolLoopStep {
+  step: number;
+  text: string;
+  finishReason:
+    | "stop"
+    | "length"
+    | "content-filter"
+    | "tool-calls"
+    | "error"
+    | "other";
+  toolCalls: ToolCall[];
+  toolResults: ToolResult[];
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+}
 
 /**
  * Generation result.
@@ -68,21 +128,40 @@ export const streamTextOptionsSchema = generateTextOptionsSchema.extend({
   onChunk: z
     .function({ input: z.tuple([z.string()]), output: z.void() })
     .optional(),
+  /** Abort the stream early. */
+  signal: z.custom<AbortSignal>().optional(),
+  /** Called for every error part (errors are data, not exceptions). */
+  onError: z.custom<(error: SdkError) => void>().optional(),
+  /** Called when `signal` aborts the stream. */
+  onAbort: z.custom<() => void>().optional(),
+  /** Retry the request if it fails before the first byte. Default 0. */
+  streamRetries: z.number().int().min(0).max(5).optional(),
 });
 
 /**
  * Streaming options.
  */
-export type StreamTextOptions = z.infer<typeof streamTextOptionsSchema>;
+export type StreamTextOptions = z.input<typeof streamTextOptionsSchema>;
 
 /**
  * Result of a streaming generation.
  */
 export interface StreamTextResult {
   /**
-   * The stream of text chunks.
+   * The stream of text chunks. Errors surface as stream errors here; use
+   * `fullStream` to receive them as data.
+   *
+   * `textStream` and `fullStream` are two views of one request: read the
+   * one you need from the start. Breaking out of either cancels the request
+   * unless the other is still being read.
    */
   textStream: ReadableStream<string>;
+  /**
+   * Every part: `text`, `tool-call`, `finish`, `error`, `abort`, `done`.
+   */
+  fullStream: ReadableStream<TextStreamPart>;
+  /** Resolves with the normalized finish reason. */
+  finishReason: Promise<GenerateTextResult["finishReason"]>;
   /**
    * Promise that resolves to the final usage statistics.
    */
@@ -104,7 +183,7 @@ export const embedOptionsSchema = z.object({
 /**
  * Embedding options.
  */
-export type EmbedOptions = z.infer<typeof embedOptionsSchema>;
+export type EmbedOptions = z.input<typeof embedOptionsSchema>;
 
 /**
  * Result of an embedding generation.
@@ -248,7 +327,7 @@ export const generateSpeechOptionsSchema = z.object({
 /**
  * Options for text-to-speech generation.
  */
-export type GenerateSpeechOptions = z.infer<typeof generateSpeechOptionsSchema>;
+export type GenerateSpeechOptions = z.input<typeof generateSpeechOptionsSchema>;
 
 /**
  * Zod schema for image generation options.
@@ -265,7 +344,7 @@ export const generateImageOptionsSchema = z.object({
 /**
  * Options for image generation.
  */
-export type GenerateImageOptions = z.infer<typeof generateImageOptionsSchema>;
+export type GenerateImageOptions = z.input<typeof generateImageOptionsSchema>;
 
 /**
  * Result of an image generation request.
@@ -292,7 +371,7 @@ export const generateVideoOptionsSchema = z.object({
 /**
  * Options for video generation.
  */
-export type GenerateVideoOptions = z.infer<typeof generateVideoOptionsSchema>;
+export type GenerateVideoOptions = z.input<typeof generateVideoOptionsSchema>;
 
 /**
  * Result of a video generation request.
@@ -351,6 +430,8 @@ export const chatMessageSchema = z.object({
   content: z.union([z.string(), z.null()]).optional(),
   name: z.string().optional(),
   toolCalls: z.array(z.any()).optional(),
+  /** For `role: "tool"` messages: the call this result answers. */
+  toolCallId: z.string().optional(),
 });
 
 /**
@@ -507,7 +588,7 @@ export const transcriptionOptionsSchema = z.object({
 /**
  * Options for audio transcription.
  */
-export type TranscriptionOptions = z.infer<typeof transcriptionOptionsSchema>;
+export type TranscriptionOptions = z.input<typeof transcriptionOptionsSchema>;
 
 /**
  * Result of an audio transcription.
@@ -527,7 +608,7 @@ export const moderationOptionsSchema = z.object({
 /**
  * Options for content moderation.
  */
-export type ModerationOptions = z.infer<typeof moderationOptionsSchema>;
+export type ModerationOptions = z.input<typeof moderationOptionsSchema>;
 
 /**
  * Result of a content moderation check.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateCronLocal, nextCronRunsLocal } from "../src/cron";
+import { nextCronRunsLocal, validateCronLocal } from "../src/cron";
 
 describe("validateCronLocal", () => {
   it("validates standard cron expressions", () => {

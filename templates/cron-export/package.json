@@ -1,0 +1,10 @@
+{
+  "name": "frontal-cron-export",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Nightly dataset export to blob storage with a signed download URL.",
+  "type": "module",
+  "scripts": { "start": "bun src/index.ts" },
+  "dependencies": { "@frontal-labs/sdk": "workspace:*" },
+  "devDependencies": { "typescript": "^6.0.3" }
+}

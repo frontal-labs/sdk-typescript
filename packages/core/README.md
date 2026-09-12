@@ -11,16 +11,16 @@ npm install @frontal-labs/core
 
 ## Quick Start
 
-```ts
+```ts prelude
 import { FrontalClient } from "@frontal-labs/core";
 
-const client = new FrontalClient({
-  apiKey: process.env.FRONTAL_API_KEY!,
-  baseUrl: "https://api.frontal.dev/v1",
-});
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
 
 const data = await client.get("/health");
 ```
+
+Only `apiKey` is required; everything else is defaulted and validated at
+construction time (an API key without the `frt_` prefix throws a `ZodError`).
 
 ## API
 
@@ -28,7 +28,7 @@ const data = await client.get("/health");
 
 ```ts
 const client = new FrontalClient({
-  apiKey: "frt_...",          // required
+  apiKey: process.env.FRONTAL_API_KEY!, // required, `frt_...`
   baseUrl: "https://...",     // defaults to https://api.frontal.dev/v1
   timeout: 30_000,            // request timeout in ms
   maxRetries: 3,              // max retry attempts on transient errors
@@ -62,7 +62,7 @@ try {
 import { pollUntil } from "@frontal-labs/core";
 
 const result = await pollUntil(
-  () => client.get<{ status: string }>("/jobs", { id }),
+  () => client.get<{ status: string }>("/jobs/job_123"),
   { interval: 2_000, timeout: 120_000, until: (r) => r.status === "completed" }
 );
 ```
@@ -72,7 +72,11 @@ const result = await pollUntil(
 ```ts
 import { createPageResult } from "@frontal-labs/core";
 
-const page = createPageResult({ items: [...], total: 100, limit: 10, offset: 0 });
+const page = createPageResult(
+  [{ id: "ent_1" }, { id: "ent_2" }],
+  { hasMore: true, cursor: "next_cursor" }
+);
+console.log(page.data.length, page.pagination.hasMore);
 ```
 
 ## Environment Variables

@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { filterConditionsSchema } from "@frontal-labs/core";
+import { z } from "zod";
 
 /**
  * Zod schema for ISO datetime or Date objects, transformed to Date instances.
@@ -405,6 +405,10 @@ export interface Experiment {
 
 /** Input type for agent definition (inferred from AgentDefinitionSchema). */
 export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
+/** Input shape for creating an agent — defaulted fields are optional. */
+export type AgentDefinitionInput = z.input<typeof AgentDefinitionSchema>;
+/** Input shape for a trigger. */
+export type TriggerDefinitionInput = z.input<typeof TriggerDefinitionSchema>;
 /** Full agent resource type. */
 export type Agent = z.infer<typeof AgentSchema>;
 /** Event trigger definition type. */

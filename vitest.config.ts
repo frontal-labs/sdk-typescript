@@ -23,12 +23,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "html"],
       reportsDirectory: "coverage",
-      include: [
-        "packages/**/*.ts",
-        "packages/**/*.tsx",
-        "packages/**/*.js",
-        "packages/**/*.jsx",
-      ],
+      include: ["packages/*/src/**/*.ts", "packages/*/src/**/*.tsx"],
       exclude: [
         "packages/**/*.d.ts",
         "packages/**/*.test.{ts,tsx,js,jsx}",
@@ -37,12 +32,10 @@ export default defineConfig({
         "packages/**/node_modules/**",
       ],
       thresholds: {
-        global: {
-          branches: 80,
+        branches: 80,
           functions: 80,
           lines: 80,
           statements: 80,
-        },
       },
     },
     testTimeout: 10000,

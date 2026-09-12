@@ -13,8 +13,11 @@ npm install @frontal-labs/ai
 
 ## Quick Start
 
-```ts
-import { ai } from "@frontal-labs/ai";
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const ai = f.ai;
 
 const result = await ai.generateText({
   model: "gpt-4o-mini",
@@ -22,8 +25,6 @@ const result = await ai.generateText({
 });
 ```
 
-The `ai` singleton reads `FRONTAL_API_KEY` and `FRONTAL_AI_API_URL` from the
-environment.
 
 ## Usage
 
@@ -68,7 +69,67 @@ const stream = ai.streamText({
 for await (const chunk of stream.textStream) {
   process.stdout.write(chunk);
 }
+console.log(await stream.usage, await stream.finishReason);
 ```
+
+`textStream` and `fullStream` are two views of the same request — read one of
+them from the start. Breaking out of the loop cancels the request.
+
+`fullStream` yields every part — `text`, `tool-call`, `finish`, `error`,
+`abort`, `done` — so errors are data you can render and retry, not exceptions
+that tear down the UI:
+
+```ts
+const ctl = new AbortController();
+const stream = ai.streamText({
+  model: "gpt-4o-mini",
+  prompt: "Write a haiku about databases",
+  signal: ctl.signal,
+  streamRetries: 2, // retry 429/5xx/network failures before the first byte
+  onError: (err) => console.error(err.code, err.fix),
+});
+
+for await (const part of stream.fullStream) {
+  if (part.type === "text") process.stdout.write(part.text);
+  if (part.type === "tool-call") console.log(part.toolName, part.input);
+  if (part.type === "error" && !part.error.retryable) ctl.abort();
+}
+```
+
+### Tools
+
+Define tools with `tool()` (Zod input schema → JSON Schema on the wire) and
+pass them to `generateText` / `streamText`. The SDK returns the model's calls;
+you execute them — there is no hidden loop.
+
+```ts
+import { parseToolInput, tool } from "@frontal-labs/ai";
+import { z } from "zod";
+
+const tools = {
+  weather: tool({
+    description: "Current weather for a city",
+    inputSchema: z.object({ city: z.string() }),
+    execute: async ({ city }) => ({ city, tempC: 21 }),
+  }),
+};
+
+const result = await ai.generateText({
+  model: "gpt-4o-mini",
+  prompt: "What's the weather in Lisbon?",
+  tools,
+  toolChoice: "auto",
+});
+
+for (const call of result.toolCalls) {
+  if (call.toolName === "weather") {
+    const input = parseToolInput(tools, "weather", call.input);
+    console.log(await tools.weather.execute?.(input));
+  }
+}
+```
+
+The same `ToolSet` type is accepted by `agents.define(name, { tools })`.
 
 ### Embeddings
 

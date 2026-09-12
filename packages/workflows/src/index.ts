@@ -6,8 +6,8 @@
 
 export {
   createWorkflowsClient,
-  workflows,
   type WorkflowsClientConfig,
+  workflows,
 } from "./client";
 export { DEFAULT_WORKFLOWS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

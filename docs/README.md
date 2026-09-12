@@ -15,7 +15,6 @@ guides and references for working with the SDK.
 ### Development Resources
 
 - [**Testing Guide**](./TESTING.md) - Testing strategies and best practices
-- [**JSR Publishing**](./JSR_PUBLISHING.md) - Publishing to JavaScript Registry
 - [**Roadmap**](./ROADMAP.md) - Project roadmap and future plans
 
 ### External Documentation

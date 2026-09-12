@@ -13,14 +13,15 @@ npm install @frontal-labs/workflows
 
 ## Quick Start
 
-```ts
-import { workflows } from "@frontal-labs/workflows";
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const workflows = f.workflows;
 
 const list = await workflows.list({ limit: 10 });
 ```
 
-The `workflows` singleton reads `FRONTAL_API_KEY` and
-`FRONTAL_WORKFLOWS_API_URL` from the environment.
 
 ## Usage
 
@@ -73,16 +74,14 @@ const done = await workflows.use(wf.id).waitForCompletion(run.id);
 
 ```ts
 const pending = await workflows.approvals.list({ status: "pending" });
-await workflows.approvals.approve("apr_123", { comment: "LGTM" });
+await workflows.approvals.approve("apr_123", "LGTM");
 ```
 
 ### Templates
 
 ```ts
 const template = await workflows.templates.get("onboarding-v2");
-const wf = await workflows.createFromTemplate(template.id, {
-  name: "Customer Onboarding - Acme",
-});
+const wf = await workflows.templates.use(template.id, "Customer Onboarding - Acme");
 ```
 
 ## Environment Variables

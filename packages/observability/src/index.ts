@@ -6,8 +6,8 @@
 
 export {
   createObservabilityClient,
-  observability,
   type ObservabilityClientConfig,
+  observability,
 } from "./client";
 export { DEFAULT_OBSERVABILITY_BASE_URL, VERSION } from "./constants";
 export type {

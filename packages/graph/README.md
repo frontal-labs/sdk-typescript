@@ -13,14 +13,15 @@ npm install @frontal-labs/graph
 
 ## Quick Start
 
-```ts
-import { graph } from "@frontal-labs/graph";
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const graph = f.graph;
 
 const users = await graph.query({ entityType: "user", limit: 10 });
 ```
 
-The `graph` singleton reads `FRONTAL_API_KEY` and `FRONTAL_GRAPH_API_URL`
-from the environment.
 
 ## Usage
 
@@ -80,13 +81,13 @@ await graph.use("customer").addRelationship(
   "cust_123", "ticket_456", "opened_ticket", { weight: 1 }
 );
 
-const related = await graph.use("customer").getRelationships("cust_123");
+const related = await graph.use("customer").relationships("cust_123");
 ```
 
 ### Semantic search
 
 ```ts
-const results = await graph.search({
+const results = await graph.semanticSearch({
   entityType: "document",
   query: "quarterly revenue reports",
   limit: 5,

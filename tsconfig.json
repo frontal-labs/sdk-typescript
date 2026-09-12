@@ -33,6 +33,9 @@
 		{
 			"path": "./packages/testing"
 		},
+		{
+			"path": "./packages/react"
+		},
 		{ "path": "./packages/auth" },
 		{ "path": "./packages/observability" },
 		{ "path": "./packages/events" },
@@ -60,6 +63,7 @@
 			"@frontal-labs/pipelines": ["./packages/pipelines/src"],
 			"@frontal-labs/workflows": ["./packages/workflows/src"],
       "@frontal-labs/testing": ["./packages/testing/src"],
+      "@frontal-labs/react": ["./packages/react/src"],
       "@frontal-labs/auth": ["./packages/auth/src"],
       "@frontal-labs/observability": ["./packages/observability/src"],
       "@frontal-labs/events": ["./packages/events/src"],

@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { createTestHttpClient } from "@frontal-labs/testing";
-import { DatasetsSdk, createDatasetsClient, DatasetSchema } from "../src/index";
+import { describe, expect, it } from "vitest";
+import { createDatasetsClient, DatasetSchema, DatasetsSdk } from "../src/index";
 
 function createService(
   routes: {

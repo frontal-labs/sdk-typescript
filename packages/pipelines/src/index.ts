@@ -6,8 +6,8 @@
 
 export {
   createPipelinesClient,
-  pipelines,
   type PipelinesClientConfig,
+  pipelines,
 } from "./client";
 export { DEFAULT_PIPELINES_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

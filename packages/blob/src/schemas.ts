@@ -1,7 +1,7 @@
+import type { APIResponse } from "@frontal-labs/core";
 import { z } from "zod";
 
-import type { APIResponse } from "@frontal-labs/core";
-export type { ErrorResponse, APIResponse } from "@frontal-labs/core";
+export type { APIResponse, ErrorResponse } from "@frontal-labs/core";
 
 /**
  * Zod schema for bucket configuration.
@@ -63,7 +63,7 @@ export const signedUrlOptionsSchema = z.object({
 /**
  * Signed URL options.
  */
-export type SignedUrlOptions = z.infer<typeof signedUrlOptionsSchema>;
+export type SignedUrlOptions = z.input<typeof signedUrlOptionsSchema>;
 
 /**
  * Configuration for Blob client.

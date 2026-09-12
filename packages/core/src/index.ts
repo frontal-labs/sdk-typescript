@@ -4,6 +4,9 @@
  * Foundational primitives for the Frontal TypeScript SDK.
  */
 
+export type { CircuitBreakerConfig, CircuitState } from "./circuit-breaker";
+// Circuit breaker
+export { CircuitBreaker, CircuitBreakerOpenError } from "./circuit-breaker";
 export { FrontalClient, getDefaultClient } from "./client";
 export type { ClientConfigInput, ClientConfigOutput } from "./config";
 // Configuration schemas
@@ -17,11 +20,14 @@ export {
   EXPONENTIAL_BASE,
   JITTER_MAX,
 } from "./constants";
+export type { RateLimitInfo, SdkError, SerializedFrontalError } from "./errors";
 // Error handling
 export {
   ConflictError,
   ForbiddenError,
   FrontalError,
+  isFrontalError,
+  isRetryableError,
   NetworkError,
   NotFoundError,
   parseFrontalError,
@@ -31,7 +37,6 @@ export {
   UnauthorizedError,
   ValidationError,
 } from "./errors";
-export type { RateLimitInfo } from "./errors";
 // HTTP client for API requests
 export { HttpClient } from "./http";
 // Environment variable management
@@ -45,20 +50,10 @@ export {
 export type { PollOptions } from "./polling";
 // Polling utilities
 export { pollUntil, withTimeout } from "./polling";
-// Key case transformation
-export {
-  camelToSnake,
-  deepCamelToSnake,
-  deepSnakeToCamel,
-  snakeToCamel,
-} from "./transform";
 // Retry logic
 export { calculateDelay } from "./retry";
-
-// Circuit breaker
-export { CircuitBreaker, CircuitBreakerOpenError } from "./circuit-breaker";
-export type { CircuitBreakerConfig, CircuitState } from "./circuit-breaker";
-
+// Route builder utility
+export { route } from "./route-builder";
 export type {
   ErrorField,
   ErrorResponse,
@@ -79,15 +74,41 @@ export {
   retryConfigSchema,
   timestampSchema,
 } from "./schemas";
-// Route builder utility
-export { route } from "./route-builder";
-
+export type { SseEvent, StreamOptions, StreamPart } from "./stream";
+// Streaming parts (errors as data)
+export { dataParts, toSdkError, toStreamParts } from "./stream";
+export type { ChatToolSpec, ToolCall, ToolDefinition, ToolSet } from "./tools";
+// Shared tool definitions (ai + agents)
+export { parseToolInput, tool, toolSetToRequest } from "./tools";
+export type {
+  SpanLike,
+  TelemetryEvent,
+  TelemetryProvider,
+  TracerLike,
+} from "./tracing";
+export {
+  createHttpSpan,
+  finishSpan,
+  getTelemetry,
+  getTracer,
+  initTracing,
+  registerTelemetry,
+  requestIdOf,
+  resetTelemetry,
+  tagRequestId,
+} from "./tracing";
+export type { RawValue } from "./transform";
+// Key case transformation
+export {
+  camelToSnake,
+  deepCamelToSnake,
+  deepSnakeToCamel,
+  raw,
+  snakeToCamel,
+} from "./transform";
 // Core types and interfaces
 export type {
   APIResponse,
   PageResult,
   QueryBuilder,
 } from "./types";
-
-export { getTracer, initTracing, createHttpSpan, finishSpan } from "./tracing";
-export type { TracerLike, SpanLike } from "./tracing";

@@ -1,4 +1,5 @@
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
@@ -10,7 +11,6 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { AuthSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /** Configuration options for creating an Auth API client. */
 export interface AuthClientConfig {

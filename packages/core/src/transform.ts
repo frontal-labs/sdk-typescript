@@ -33,6 +33,36 @@ const _SKIP_TYPES = new Set([
 
 const NEVER_TRANSFORM_KEYS = new Set(["$ref", "$schema", "$id"]);
 
+const RAW: unique symbol = Symbol.for("frontal.raw");
+
+/** A value the key transform must pass through verbatim (see {@link raw}). */
+export interface RawValue<T = unknown> {
+  readonly [RAW]: true;
+  readonly value: T;
+}
+
+/**
+ * Marks a subtree as opaque so `deepCamelToSnake` / `deepSnakeToCamel`
+ * leave its keys untouched. Use for user-defined shapes whose keys are
+ * meaningful as written — JSON Schema, free-form metadata, tool arguments.
+ *
+ * @example
+ * ```ts
+ * client.post("/x", { name: "n", parameters: raw({ additionalProperties: false }) });
+ * ```
+ */
+export function raw<T>(value: T): RawValue<T> {
+  return { [RAW]: true, value };
+}
+
+function isRaw(obj: unknown): obj is RawValue {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    (obj as Record<symbol, unknown>)[RAW] === true
+  );
+}
+
 function isStream(obj: unknown): boolean {
   return (
     typeof obj === "object" &&
@@ -53,6 +83,7 @@ export function deepTransformKeys<T>(
 ): T {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj !== "object") return obj;
+  if (isRaw(obj)) return obj.value as T;
   if (
     obj instanceof Date ||
     (typeof Buffer !== "undefined" && obj instanceof Buffer) ||

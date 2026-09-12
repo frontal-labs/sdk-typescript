@@ -74,6 +74,8 @@ const HTTP_METHODS = new Set([
 	"delete",
 	"stream",
 	"postStream",
+	"streamParts",
+	"postStreamParts",
 	"getRaw",
 	"postRaw",
 	"putRaw",
@@ -132,8 +134,11 @@ function extractFromFile(filePath: string): Endpoint[] {
 				if (firstArg) {
 					const rawPath = extractPath(firstArg);
 					if (rawPath && rawPath.startsWith("/")) {
+						// `streamParts` / `postStreamParts` are the errors-as-data
+						// variants of `stream` / `postStream`; same wire call.
+						const canonical = method.replace(/Parts$/, "");
 						endpoints.push({
-							method: method.toUpperCase(),
+							method: canonical.toUpperCase(),
 							path: normalizePath(rawPath),
 						});
 					}

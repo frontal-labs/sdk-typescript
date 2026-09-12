@@ -1,6 +1,6 @@
 import { createTestHttpClient } from "@frontal-labs/testing";
 import { describe, expect, it } from "vitest";
-import { AuditSdkEventSchema, AuditSdk, createAuditClient } from "../src/index";
+import { AuditSdk, AuditSdkEventSchema, createAuditClient } from "../src/index";
 
 function createService(
   routes: {
