@@ -62,7 +62,7 @@ export const AuditSdkEventSchema = AuditEventSchema;
 /** A stored audit event. */
 export type AuditEvent = z.infer<typeof AuditEventSchema>;
 /** Input for recording a new audit event. */
-export type AuditEventInput = z.infer<typeof AuditEventInputSchema>;
+export type AuditEventInput = z.input<typeof AuditEventInputSchema>;
 /** Filters for querying audit events. */
 export type AuditQuery = z.infer<typeof AuditQuerySchema>;
 /** An audit report definition. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { verifyWebhookSignature, extractWebhookEvent } from "../src/verify";
+import { extractWebhookEvent, verifyWebhookSignature } from "../src/verify";
 
 const secret = "whsec_test_12345";
 const payload = JSON.stringify({ event: "test", id: 1 });

@@ -4,23 +4,30 @@
  * Unified Frontal SDK — access all services from a single client.
  */
 
+export { createFrontalClient, frontal } from "./client";
 export {
-  createFrontalClient,
-  frontal,
   type FrontalClientConfig,
-} from "./client";
+  type FrontalEnvironment,
+  resolveSdkConfig,
+  type SdkConfig,
+  sdkConfigSchema,
+} from "./config";
 export { DEFAULT_BASE_URL, VERSION } from "./constants";
 export { Frontal } from "./sdk";
 
 // ── Core primitives ────────────────────────────────────────────────────
 
 export {
+  type ClientConfigInput,
+  type ClientConfigOutput,
   ConflictError,
+  clientConfigSchema,
   ForbiddenError,
   FrontalClient,
   FrontalError,
   getDefaultClient,
   HttpClient,
+  initTracing,
   NetworkError,
   NotFoundError,
   RateLimitError,
@@ -30,7 +37,38 @@ export {
   ValidationError,
 } from "@frontal-labs/core";
 
+// ── Commonly needed helpers ────────────────────────────────────────────
+
+export {
+  type AgentDefinitionOptions,
+  toApprovalStep,
+} from "@frontal-labs/agents";
+export {
+  parseToolInput,
+  type ToolCall,
+  type ToolDefinition,
+  type ToolSet,
+  tool,
+  toUIMessageStreamResponse,
+  type UIMessage,
+  type UIMessagePart,
+} from "@frontal-labs/ai";
+export {
+  isFrontalError,
+  isRetryableError,
+  registerTelemetry,
+  requestIdOf,
+  type SdkError,
+  type StreamPart,
+  type TelemetryEvent,
+  type TelemetryProvider,
+} from "@frontal-labs/core";
+
 // ── Individual singletons (tree-shakeable) ─────────────────────────────
+//
+// @deprecated These env-driven Proxy singletons are kept for back-compat.
+// Prefer `new Frontal({ apiKey })` or `createXClient(f.client)` so config
+// is explicit. They will not be removed without a major version bump.
 
 export { agents } from "@frontal-labs/agents";
 export { ai } from "@frontal-labs/ai";

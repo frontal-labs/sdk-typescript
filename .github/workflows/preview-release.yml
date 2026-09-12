@@ -35,15 +35,6 @@ jobs:
 
       - name: Publish preview packages
         run: |
-          npx pkg-pr-new@latest publish --compact \
-            ./packages/agents \
-            ./packages/ai \
-            ./packages/blob \
-            ./packages/core \
-            ./packages/functions \
-            ./packages/graph \
-            ./packages/ontology \
-            ./packages/pipelines \
-            ./packages/testing \
-            ./packages/workflows || \
+          # Publish every workspace package so PR previews cover the full SDK.
+          npx pkg-pr-new@latest publish --compact ./packages/* || \
             echo "Preview publish skipped (pkg-pr-new app not installed)"

@@ -5,9 +5,9 @@
  */
 
 export {
-  createConnectorsClient,
-  connectors,
   type ConnectorsClientConfig,
+  connectors,
+  createConnectorsClient,
 } from "./client";
 export { DEFAULT_CONNECTORS_BASE_URL, VERSION } from "./constants";
 export { Installation } from "./installation";

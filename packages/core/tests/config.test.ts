@@ -295,7 +295,8 @@ describe("Configuration", () => {
 
     describe("Retry Delay validation", () => {
       it("should accept valid retry delay values", () => {
-        const validDelays = [1, 100, 1000, 5000, 10_000];
+        // 0 is allowed so tests can disable backoff entirely.
+        const validDelays = [0, 1, 100, 1000, 5000, 10_000];
 
         validDelays.forEach((retryDelay) => {
           const input = {
@@ -308,7 +309,6 @@ describe("Configuration", () => {
 
       it("should reject invalid retry delay values", () => {
         const invalidDelays = [
-          0,
           -1,
           -1000,
           3.14,
@@ -524,7 +524,7 @@ describe("Configuration", () => {
         baseUrl: "not-a-url",
         timeout: -1,
         maxRetries: 15,
-        retryDelay: 0,
+        retryDelay: -1,
         headers: { "": "invalid" },
       } as ClientConfigInput;
 

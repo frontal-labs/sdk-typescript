@@ -17,15 +17,35 @@ Shared transport primitives and defaults used by all domain SDKs:
 
 ### 2. SDK (`@frontal-labs/sdk`)
 
-Unified SDK client aggregating all Frontal services into a single `Sdk` class
-with lazy-loaded service accessors. Re-exports every individual service
-singleton.
+Unified SDK client: `new Frontal({ apiKey })` (or `new Frontal(client)`) with
+lazy-loaded, cached service getters (`f.ai`, `f.agents`, …). Validates config
+at construction. Re-exports the (deprecated) env-driven service singletons
+for back-compat and the most-used helpers (`tool`, `toUIMessageStreamResponse`,
+`toApprovalStep`, error guards).
 
 ### 3. Testing (`@frontal-labs/testing`)
 
-Reusable mock clients, fixtures, and helpers used by package test suites.
-Includes mock fetch with route matching, test client factories, integration
-harnesses, and entity fixtures.
+Reusable mocks used by package test suites and by consumers. Three levels, all
+at the `fetch` boundary so real SDK code runs: route mocks (`createMockFetch`,
+`createTestClient`, SSE via `simulateStream`, `{param}` wildcards, sequencing
+via `times`), a model mock (`mockLanguageModel` — scripted OpenAI-format
+responses), and scenarios (`createScenario` — ordered multi-step scripts with
+`assertAllHit()`).
+
+### 3a. React (`@frontal-labs/react`)
+
+Thin hooks over the SDK: `useChat` (UI message stream protocol from
+`@frontal-labs/ai/ui`), `useAgentRun`, `useWorkflowApprovals`. No framework
+dependency beyond `react`.
+
+### 3b. Docs as runtime
+
+Every ```ts block in `README.md`, `packages/*/README.md`, `SKILL.md`,
+`docs/TESTING.md`, `templates/*/README.md` and `examples/SDKS_GUIDE.md` is
+extracted by `scripts/extract-examples.ts` and type-checked in CI
+(`bun run test:examples`); the sdk quickstart also runs against mocks.
+`llms.txt`, `llms-full.txt` and `docs/mcp.json` are generated from the same
+sources by `scripts/generate-llms.ts` and checked for freshness.
 
 ### 4. AI (`@frontal-labs/ai`)
 

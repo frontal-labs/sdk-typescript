@@ -3,18 +3,18 @@
  */
 
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
 import {
-  DEFAULT_WORKFLOWS_BASE_URL,
   DEFAULT_MAX_RETRIES,
   DEFAULT_RETRY_DELAY,
   DEFAULT_TIMEOUT,
+  DEFAULT_WORKFLOWS_BASE_URL,
 } from "./constants";
 import { WorkflowsSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a {@link WorkflowsSdk} client standalone.

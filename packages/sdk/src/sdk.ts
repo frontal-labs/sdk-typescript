@@ -12,7 +12,7 @@ import type { BlobSdk } from "@frontal-labs/blob";
 import { createBlobClient } from "@frontal-labs/blob";
 import type { ConnectorsSdk } from "@frontal-labs/connectors";
 import { createConnectorsClient } from "@frontal-labs/connectors";
-import type { FrontalClient } from "@frontal-labs/core";
+import { FrontalClient } from "@frontal-labs/core";
 import type { DataSdk } from "@frontal-labs/data";
 import { createDataClient } from "@frontal-labs/data";
 import type { DatasetsSdk } from "@frontal-labs/datasets";
@@ -43,6 +43,7 @@ import type { WorkersSdk } from "@frontal-labs/workers";
 import { createWorkersClient } from "@frontal-labs/workers";
 import type { WorkflowsSdk } from "@frontal-labs/workflows";
 import { createWorkflowsClient } from "@frontal-labs/workflows";
+import { resolveSdkConfig, type SdkConfig } from "./config";
 
 /**
  * Unified Frontal SDK client providing lazy access to all service namespaces.
@@ -207,9 +208,30 @@ export class Frontal {
   }
 
   /**
-   * @param frontal - The underlying {@link FrontalClient} instance to use for all API calls.
+   * The underlying {@link FrontalClient} transport. Use it to share one
+   * connection with standalone service packages
+   * (`createBlobClient(f.client)`).
    */
-  constructor(frontal: FrontalClient) {
-    this.#frontal = frontal;
+  get client(): FrontalClient {
+    return this.#frontal;
+  }
+
+  /**
+   * Create a unified SDK client.
+   *
+   * @param configOrClient - An {@link SdkConfig} (`{ apiKey, ... }`) or an
+   * existing {@link FrontalClient} to share with other packages.
+   *
+   * @example
+   * ```ts
+   * const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+   * const { text } = await f.ai.generateText({ model: "claude-sonnet-4-6", prompt: "Hi" });
+   * ```
+   */
+  constructor(configOrClient: SdkConfig | FrontalClient) {
+    this.#frontal =
+      configOrClient instanceof FrontalClient
+        ? configOrClient
+        : new FrontalClient(resolveSdkConfig(configOrClient));
   }
 }

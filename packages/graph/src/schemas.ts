@@ -168,6 +168,6 @@ export type TraversalRequest = z.infer<typeof TraversalRequestSchema>;
 /** Path finding request type. */
 export type PathRequest = z.infer<typeof PathRequestSchema>;
 /** Semantic search options type. */
-export type SemanticSearchOptions = z.infer<typeof SemanticSearchOptionsSchema>;
+export type SemanticSearchOptions = z.input<typeof SemanticSearchOptionsSchema>;
 /** Batch operation result type. */
 export type BatchResult = z.infer<typeof BatchResultSchema>;

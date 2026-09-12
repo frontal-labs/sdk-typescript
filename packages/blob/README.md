@@ -13,8 +13,12 @@ npm install @frontal-labs/blob
 
 ## Quick Start
 
-```ts
-import { blob } from "@frontal-labs/blob";
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const blob = f.blob;
+const file = new Uint8Array([137, 80, 78, 71]);
 
 await blob.upload({
   bucket: "assets",
@@ -29,8 +33,6 @@ const url = await blob.getSignedUrl({
 });
 ```
 
-The `blob` singleton reads `FRONTAL_API_KEY` and `FRONTAL_BLOB_API_URL` from
-the environment.
 
 ## Usage
 
@@ -47,7 +49,7 @@ const blob = createBlobClient({
 await blob.upload({
   bucket: "bucket",
   key: "path/file.pdf",
-  data: buffer,
+  data: Buffer.from("%PDF-1.4"),
   contentType: "application/pdf",
 });
 ```
@@ -83,7 +85,7 @@ for await (const chunk of stream) {
 ### Metadata
 
 ```ts
-const meta = await blob.getMetadata("bucket", "path/file.pdf");
+const meta = await blob.getMetadata({ bucket: "bucket", key: "path/file.pdf" });
 console.log(meta.size, meta.contentType, meta.lastModified);
 ```
 

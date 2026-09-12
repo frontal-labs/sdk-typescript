@@ -1,4 +1,5 @@
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
@@ -10,7 +11,6 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { DatasetsSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /** Configuration options for creating a Datasets API client. */
 export interface DatasetsClientConfig {

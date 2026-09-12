@@ -60,23 +60,23 @@ bun run test:live
 ### Test Structure Example
 
 ```typescript
-import { describe, it, expect } from "vitest";
-import { createTestHttpClient } from "@frontal-labs/testing";
-import { AIService } from "../src";
+import { describe, expect, it } from "vitest";
+import { AISdk } from "@frontal-labs/ai";
+import { createTestClient, mockLanguageModel } from "@frontal-labs/testing";
 
-describe("AIService", () => {
-  it("should send a generate text request", async () => {
-    const { http } = createTestHttpClient([
-      { method: "POST", path: "/v1/generate", body: { text: "Hello from AI" } },
-    ]);
-    const service = new AIService(http);
+describe("AISdk", () => {
+  it("sends a chat completion request", async () => {
+    const model = mockLanguageModel({ doGenerate: () => ({ text: "Hello from AI" }) });
+    const { client, mock } = createTestClient(model.routes);
+    const ai = new AISdk(client.httpClient);
 
-    const result = await service.generateText({
+    const result = await ai.generateText({
       model: "claude-sonnet-4-6",
-      messages: [{ role: "user", content: "Hello" }],
+      prompt: "Hello",
     });
 
     expect(result.text).toBe("Hello from AI");
+    mock.expectCalled("POST", "/ai/chat/completions");
   });
 });
 ```
@@ -91,25 +91,99 @@ describe("AIService", () => {
 
 ### 2. Mocking and Fixtures
 
-Use `@frontal-labs/testing` for mock HTTP transport and fixtures:
+`@frontal-labs/testing` mocks at three levels. All of them run the *real* SDK
+code (retries, snake/camel transforms, typed errors) — only `fetch` is faked.
 
-```typescript
-import { createTestHttpClient, createMockFetch } from "@frontal-labs/testing";
+#### Recipe A — fetch mock (any endpoint)
 
-// Create a test HTTP client that returns canned responses
-const { http, mock } = createTestHttpClient([
-  { method: "GET", path: "/v1/data", body: { data: "test response" } },
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { createTestClient, mockPageResponse } from "@frontal-labs/testing";
+
+const { client, mock } = createTestClient([
+  { method: "GET", path: "/agents", body: mockPageResponse([{ id: "agt_1" }]) },
+  // `{param}` wildcards use the same vocabulary as contracts/sdk-endpoints.json
+  { method: "GET", path: "/agents/{param}", status: 404, body: { code: "NOT_FOUND", message: "nope" } },
+  // Serve SSE for streaming endpoints
+  { method: "GET", path: "/agents/runs/{param}/stream", stream: { chunks: [{ event: "completed", data: {} }] } },
 ]);
 
-// Or use mock fetch with route matching
-const mockFetch = createMockFetch([
-  { method: "GET", path: "/api/items", body: { items: [] } },
-]);
+const f = new Frontal(client);
+await f.agents.list({ limit: 1 });
+mock.expectCalled("GET", "/agents");
 ```
+
+Routes also accept `handler(request)` for dynamic responses and `times` to
+answer only N calls (so several routes for one path answer in order).
+
+#### Recipe B — model mock (AI without a gateway)
+
+`mockLanguageModel` scripts what the model says; the SDK's request building
+and response parsing still run end to end.
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { tool } from "@frontal-labs/ai";
+import { createTestClient, mockLanguageModel } from "@frontal-labs/testing";
+import { z } from "zod";
+
+const model = mockLanguageModel({
+  doGenerate: (call) => ({
+    text: `You said: ${call.messages.at(-1)?.content}`,
+    toolCalls: [{ toolName: "classify", input: { text: "hi" } }],
+  }),
+  doStream: () => ["Hel", "lo", { toolCall: { toolName: "classify", input: { text: "hi" } } }],
+});
+
+const f = new Frontal(createTestClient(model.routes).client);
+
+const result = await f.ai.generateText({
+  model: "claude-sonnet-5",
+  prompt: "hi",
+  tools: { classify: tool({ description: "c", inputSchema: z.object({ text: z.string() }) }) },
+});
+console.log(result.text, result.toolCalls);        // parsed by the real SDK
+console.log(model.calls[0]?.tools?.[0]?.function); // what the SDK sent
+```
+
+#### Recipe C — scenario (multi-step, sequenced)
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { MockFrontal } from "@frontal-labs/testing";
+
+const s = MockFrontal.scenario("refund-approved", [
+  { on: "agents.message", return: { id: "run_1", status: "running" } },
+  { on: "agents.run", return: { id: "run_1", status: "running" } },
+  { on: "agents.run", return: { id: "run_1", status: "completed" } },
+  { on: "agents.watch", stream: { chunks: [{ event: "state", data: { tier: "enterprise" } }] } },
+  { on: "workflows.approvals.approve", return: { id: "apr_1", status: "approved" } },
+]);
+
+const f = new Frontal(s.client);
+const agent = f.agents.use("agt_1");
+const run = await agent.message("support.ticket.created", { ticketId: "t_1" });
+await agent.waitForCompletion(run.id, { interval: 1 });
+for await (const part of agent.watch(run.id)) {
+  if (part.type === "event" && part.event === "state") {
+    await f.workflows.approvals.approve("apr_1", "LGTM");
+  }
+}
+s.assertAllHit(); // throws listing any step that was never reached
+```
+
+`on` accepts an alias (`agents.message`, `ai.generateText`, … see
+`scenarioAliases`) or an explicit `"METHOD /path/{param}"`.
+
+#### Streams in isolation
+
+`simulateStream({ chunks, chunkDelayMs, done })` returns a `Response` you can
+hand to any mock `fetch` — useful for UI tests that consume `fullStream`.
 
 ### 3. Async Testing
 
-```typescript
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
 it("should handle async operations", async () => {
   const result = await service.query();
   expect(result).toBeDefined();
@@ -118,7 +192,8 @@ it("should handle async operations", async () => {
 
 ### 4. Error Handling
 
-```typescript
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
 it("should throw appropriate errors", () => {
   expect(() => invalidOperation()).toThrow("Expected error message");
 });
@@ -147,7 +222,8 @@ bun test --coverage
 For packages that interact with external services, use the test HTTP client
 from `@frontal-labs/testing` instead of making real network calls:
 
-```typescript
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
 import { createTestHttpClient } from "@frontal-labs/testing";
 
 describe("Service", () => {
@@ -234,7 +310,8 @@ beforeEach(() => {
 
 Clean up resources properly:
 
-```typescript
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
 afterEach(async () => {
   await cleanupResources();
 });

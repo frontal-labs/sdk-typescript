@@ -1,16 +1,16 @@
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
 import {
-  DEFAULT_WEBHOOKS_BASE_URL,
   DEFAULT_MAX_RETRIES,
   DEFAULT_RETRY_DELAY,
   DEFAULT_TIMEOUT,
+  DEFAULT_WEBHOOKS_BASE_URL,
 } from "./constants";
 import { WebhooksSdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a standalone Frontal Webhooks client.

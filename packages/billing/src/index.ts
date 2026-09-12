@@ -5,9 +5,9 @@
  */
 
 export {
-  createBillingClient,
-  billing,
   type BillingClientConfig,
+  billing,
+  createBillingClient,
 } from "./client";
 export { DEFAULT_BILLING_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

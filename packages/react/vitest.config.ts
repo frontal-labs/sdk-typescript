@@ -1,0 +1,29 @@
+import { defineConfig } from "vitest/config";
+import { resolveAliases } from "../../vitest.preset";
+
+export default defineConfig({
+  test: {
+    environment: "jsdom",
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    exclude: ["node_modules", "dist", "**/*.d.ts"],
+    testTimeout: 5000,
+    hookTimeout: 5000,
+    isolate: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json"],
+      reportsDirectory: "../../coverage/packages/react",
+      include: ["src/**/*.ts"],
+      exclude: ["src/**/*.d.ts", "dist/**"],
+      thresholds: {
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80,
+      },
+    },
+  },
+  resolve: {
+    alias: resolveAliases,
+  },
+});

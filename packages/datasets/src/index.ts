@@ -6,8 +6,8 @@
 
 export {
   createDatasetsClient,
-  datasets,
   type DatasetsClientConfig,
+  datasets,
 } from "./client";
 export { DEFAULT_DATASETS_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

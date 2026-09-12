@@ -1,0 +1,256 @@
+{
+  "$schema": "https://frontal.dev/schemas/mcp-manifest.v1.json",
+  "name": "frontal-sdk",
+  "version": "1.0.4",
+  "description": "Docs and headline operations of the Frontal TypeScript SDK, for MCP servers and agent tooling.",
+  "install": "bun add @frontal-labs/sdk",
+  "entry": {
+    "import": "@frontal-labs/sdk",
+    "symbol": "Frontal",
+    "init": "new Frontal({ apiKey })"
+  },
+  "openapi": "contracts/openapi/api.openapi.json",
+  "llms": {
+    "index": "llms.txt",
+    "full": "llms-full.txt",
+    "skill": "SKILL.md"
+  },
+  "docs": [
+    {
+      "id": "packages-sdk-README-md",
+      "path": "packages/sdk/README.md",
+      "title": "@frontal-labs/sdk",
+      "summary": "The one-package entry point to Frontal: AI inference, agents, workflows, pipelines, knowledge graph, ontology, blob storage and 15 more services behind a single typed client."
+    },
+    {
+      "id": "SKILL-md",
+      "path": "SKILL.md",
+      "title": "Frontal SDK",
+      "summary": "How to write correct code against the Frontal TypeScript SDK: setup, service map, model choice, error taxonomy, testing, and the checklist to run before returning code."
+    },
+    {
+      "id": "packages-core-README-md",
+      "path": "packages/core/README.md",
+      "title": "@frontal-labs/core",
+      "summary": "Shared runtime for all Frontal TypeScript SDKs — HTTP client, auth, retries, pagination, polling, and typed errors."
+    },
+    {
+      "id": "packages-ai-README-md",
+      "path": "packages/ai/README.md",
+      "title": "@frontal-labs/ai",
+      "summary": "AI inference SDK — text generation, streaming, embeddings, structured output, speech, transcription, and image/video generation."
+    },
+    {
+      "id": "packages-agents-README-md",
+      "path": "packages/agents/README.md",
+      "title": "@frontal-labs/agents",
+      "summary": "Define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel AI SDK integration."
+    },
+    {
+      "id": "packages-workflows-README-md",
+      "path": "packages/workflows/README.md",
+      "title": "@frontal-labs/workflows",
+      "summary": "Workflow orchestration SDK — triggers, steps, approvals, templates, and execution tracking."
+    },
+    {
+      "id": "packages-pipelines-README-md",
+      "path": "packages/pipelines/README.md",
+      "title": "@frontal-labs/pipelines",
+      "summary": "Declarative data pipeline SDK — ingest, transform, enrich, validate, and orchestrate with substrate awareness."
+    },
+    {
+      "id": "packages-graph-README-md",
+      "path": "packages/graph/README.md",
+      "title": "@frontal-labs/graph",
+      "summary": "Graph entities, relationships, query, traversal, time travel, and semantic search."
+    },
+    {
+      "id": "packages-ontology-README-md",
+      "path": "packages/ontology/README.md",
+      "title": "@frontal-labs/ontology",
+      "summary": "Client for the Frontal Ontology platform (`/v1/ontology/*`). The API is composed of independent subdomain services, each exposed as a namespace: `engine`, `objects`, `relationships`, `schemas`, `versions`, `validation`, `transformations`, `reasoning`, `rollouts`, `rollups`, `extract`, and `events`. (The `graph` subdomain is served by `@frontal-labs/graph`.)"
+    },
+    {
+      "id": "packages-blob-README-md",
+      "path": "packages/blob/README.md",
+      "title": "@frontal-labs/blob",
+      "summary": "Object storage SDK — upload, download, streaming, metadata, signed URLs, and copy/move operations."
+    },
+    {
+      "id": "packages-datasets-README-md",
+      "path": "packages/datasets/README.md",
+      "title": "@frontal-labs/datasets",
+      "summary": "Dataset catalog — list datasets, read artifacts, browse schemas and sources, and ingest data."
+    },
+    {
+      "id": "packages-data-README-md",
+      "path": "packages/data/README.md",
+      "title": "@frontal-labs/data",
+      "summary": "Data platform sub-domains — aggregations, archival, enrichment, exports, normalization, quality, serving, streams, sync, transformations, federated query and schema registry — behind one client."
+    },
+    {
+      "id": "packages-lineage-README-md",
+      "path": "packages/lineage/README.md",
+      "title": "@frontal-labs/lineage",
+      "summary": "Data lineage — traverse the lineage graph, inspect nodes and edges, and analyze the impact of a change before you make it."
+    },
+    {
+      "id": "packages-observability-README-md",
+      "path": "packages/observability/README.md",
+      "title": "@frontal-labs/observability",
+      "summary": "Logs, metrics, traces, alerts and dashboards — query and ingest."
+    },
+    {
+      "id": "packages-audit-README-md",
+      "path": "packages/audit/README.md",
+      "title": "@frontal-labs/audit",
+      "summary": "Append-only audit events — log who did what to which resource, and query the trail."
+    },
+    {
+      "id": "packages-governance-README-md",
+      "path": "packages/governance/README.md",
+      "title": "@frontal-labs/governance",
+      "summary": "Policies, compliance, roles, permissions and access checks."
+    },
+    {
+      "id": "packages-auth-README-md",
+      "path": "packages/auth/README.md",
+      "title": "@frontal-labs/auth",
+      "summary": "Authentication — sign up/in, MFA, account self-service, and an admin surface for user management."
+    },
+    {
+      "id": "packages-billing-README-md",
+      "path": "packages/billing/README.md",
+      "title": "@frontal-labs/billing",
+      "summary": "Customers, plans, subscriptions, invoices, wallets, meters, prices and add-ons."
+    },
+    {
+      "id": "packages-events-README-md",
+      "path": "packages/events/README.md",
+      "title": "@frontal-labs/events",
+      "summary": "Event bus — topics, subscriptions, schemas, publish/subscribe and replays."
+    },
+    {
+      "id": "packages-webhooks-README-md",
+      "path": "packages/webhooks/README.md",
+      "title": "@frontal-labs/webhooks",
+      "summary": "Outbound webhooks — register endpoints, inspect and retry deliveries, rotate secrets, and read delivery stats."
+    },
+    {
+      "id": "packages-schedules-README-md",
+      "path": "packages/schedules/README.md",
+      "title": "@frontal-labs/schedules",
+      "summary": "Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions."
+    },
+    {
+      "id": "packages-workers-README-md",
+      "path": "packages/workers/README.md",
+      "title": "@frontal-labs/workers",
+      "summary": "Deploy and invoke edge workers."
+    },
+    {
+      "id": "packages-sandbox-README-md",
+      "path": "packages/sandbox/README.md",
+      "title": "@frontal-labs/sandbox",
+      "summary": "Isolated code execution with a judge — run snippets, self-test, or submit against test cases."
+    },
+    {
+      "id": "packages-connectors-README-md",
+      "path": "packages/connectors/README.md",
+      "title": "@frontal-labs/connectors",
+      "summary": "Source connectors — discover connector definitions, install them per tenant, and replay or diagnose sync runs."
+    },
+    {
+      "id": "packages-integrations-README-md",
+      "path": "packages/integrations/README.md",
+      "title": "@frontal-labs/integrations",
+      "summary": "Third-party integrations — install providers with scoped credentials, run and replay actions, test connections and simulate policy."
+    },
+    {
+      "id": "packages-react-README-md",
+      "path": "packages/react/README.md",
+      "title": "@frontal-labs/react",
+      "summary": "React hooks for the Frontal SDK. Thin, transport-agnostic, no framework lock-in: `useChat` talks to any route that returns `toUIMessageStreamResponse(...)`; the other hooks take objects from `new Frontal(...)`."
+    },
+    {
+      "id": "packages-testing-README-md",
+      "path": "packages/testing/README.md",
+      "title": "@frontal-labs/testing",
+      "summary": "Test utilities for every Frontal SDK: a fetch-level mock with route matching and request assertions, pre-wired test clients, response builders and fixtures. No network, no real API key."
+    },
+    {
+      "id": "docs-TESTING-md",
+      "path": "docs/TESTING.md",
+      "title": "Testing Guide",
+      "summary": "This guide covers testing strategies, tools, and best practices for the Frontal SDK monorepo."
+    },
+    {
+      "id": "examples-SDKS_GUIDE-md",
+      "path": "examples/SDKS_GUIDE.md",
+      "title": "Frontal SDKs: Comprehensive Guide, Use Cases, and Examples",
+      "summary": "This guide covers all SDK packages in this repository:"
+    }
+  ],
+  "tools": [
+    {
+      "name": "ai.generateText",
+      "docs": "packages/ai/README.md",
+      "package": "@frontal-labs/ai"
+    },
+    {
+      "name": "ai.streamText",
+      "docs": "packages/ai/README.md",
+      "package": "@frontal-labs/ai"
+    },
+    {
+      "name": "agents.define",
+      "docs": "packages/agents/README.md",
+      "package": "@frontal-labs/agents"
+    },
+    {
+      "name": "agents.use(id).message",
+      "docs": "packages/agents/README.md",
+      "package": "@frontal-labs/agents"
+    },
+    {
+      "name": "agents.use(id).watch",
+      "docs": "packages/agents/README.md",
+      "package": "@frontal-labs/agents"
+    },
+    {
+      "name": "workflows.define",
+      "docs": "packages/workflows/README.md",
+      "package": "@frontal-labs/workflows"
+    },
+    {
+      "name": "workflows.approvals.approve",
+      "docs": "packages/workflows/README.md",
+      "package": "@frontal-labs/workflows"
+    },
+    {
+      "name": "pipelines.define",
+      "docs": "packages/pipelines/README.md",
+      "package": "@frontal-labs/pipelines"
+    },
+    {
+      "name": "graph.query",
+      "docs": "packages/graph/README.md",
+      "package": "@frontal-labs/graph"
+    },
+    {
+      "name": "blob.upload",
+      "docs": "packages/blob/README.md",
+      "package": "@frontal-labs/blob"
+    },
+    {
+      "name": "blob.getSignedUrl",
+      "docs": "packages/blob/README.md",
+      "package": "@frontal-labs/blob"
+    },
+    {
+      "name": "observability.logs.query",
+      "docs": "packages/observability/README.md",
+      "package": "@frontal-labs/observability"
+    }
+  ]
+}

@@ -4,11 +4,12 @@
  */
 
 import {
+  deepSnakeToCamel,
   FrontalClient,
   HttpClient,
-  deepSnakeToCamel,
 } from "@frontal-labs/core";
 import { vi } from "vitest";
+import { type SimulateStreamOptions, simulateStream } from "./stream";
 
 // ============================================================================
 // Configuration
@@ -67,6 +68,23 @@ export interface MockRoute {
   body?: unknown;
   /** Optional response headers. */
   headers?: Record<string, string>;
+  /**
+   * Serve a server-sent-event stream instead of a JSON body. Frames are
+   * built with {@link simulateStream}.
+   */
+  stream?: SimulateStreamOptions;
+  /**
+   * Fully dynamic response. Receives the recorded request; return a
+   * `Response` (or `undefined` to fall through to `stream`/`body`).
+   */
+  handler?: (
+    request: RequestLog
+  ) => Response | undefined | Promise<Response | undefined>;
+  /**
+   * Serve this route at most N times, then ignore it (lets several routes
+   * for the same path answer in order — the basis of scenarios).
+   */
+  times?: number;
 }
 
 /** A recorded mock request for test assertions. */
@@ -94,7 +112,29 @@ export interface RequestLog {
  * @param routes - Initial set of mock routes to match against.
  * @returns An object with `fetch`, `requests` array, and assertion helpers.
  */
+/**
+ * Match a route path against a request path. Strings match by suffix, with
+ * `{param}` / `:param` segments acting as single-segment wildcards (the same
+ * vocabulary as `contracts/sdk-endpoints.json`).
+ */
+export function matchPath(pattern: string | RegExp, pathname: string): boolean {
+  if (pattern instanceof RegExp) return pattern.test(pathname);
+  if (!/[{:]/.test(pattern)) return pathname.endsWith(pattern);
+  const re = new RegExp(
+    `${pattern
+      .split("/")
+      .map((seg) =>
+        /^\{[^}]+\}$|^:[^/]+$/.test(seg)
+          ? "[^/]+"
+          : seg.replace(/[.*+?^$()|[\]\\]/g, "\\$&")
+      )
+      .join("/")}$`
+  );
+  return re.test(pathname);
+}
+
 export function createMockFetch(routes: MockRoute[] = []) {
+  const served = new Map<MockRoute, number>();
   const requests: RequestLog[] = [];
 
   const mockFetch = vi.fn(
@@ -133,20 +173,23 @@ export function createMockFetch(routes: MockRoute[] = []) {
         });
       }
 
-      requests.push({
+      const record: RequestLog = {
         method,
         url,
         path: parsedUrl.pathname,
         body: reqBody,
         headers: reqHeaders,
-      });
+      };
+      requests.push(record);
 
       const route = routes.find((r) => {
         if (r.method.toUpperCase() !== method.toUpperCase()) return false;
-        if (typeof r.path === "string")
-          return parsedUrl.pathname.endsWith(r.path);
-        return r.path.test(parsedUrl.pathname);
+        if ((served.get(r) ?? 0) >= (r.times ?? Number.POSITIVE_INFINITY)) {
+          return false;
+        }
+        return matchPath(r.path, parsedUrl.pathname);
       });
+      if (route) served.set(route, (served.get(route) ?? 0) + 1);
 
       if (!route) {
         return new Response(
@@ -160,6 +203,14 @@ export function createMockFetch(routes: MockRoute[] = []) {
             headers: { "Content-Type": "application/json" },
           }
         );
+      }
+
+      if (route.handler) {
+        const dynamic = await route.handler(record);
+        if (dynamic) return dynamic;
+      }
+      if (route.stream) {
+        return simulateStream({ ...route.stream, headers: route.headers });
       }
 
       const status = route.status ?? 200;
@@ -221,6 +272,7 @@ export function createMockFetch(routes: MockRoute[] = []) {
     /** Reset recorded requests */
     reset() {
       requests.length = 0;
+      served.clear();
       mockFetch.mockClear();
     },
   };
@@ -437,9 +489,61 @@ export const fixtures = {
   }),
 };
 
+export type { IntegrationHarness } from "./integration";
 export {
   createIntegrationHarness,
-  integrationPage,
   dataEnvelope,
+  integrationPage,
 } from "./integration";
-export type { IntegrationHarness } from "./integration";
+
+// ============================================================================
+// Streams, model mocks, scenarios
+// ============================================================================
+
+export {
+  type MockLanguageModel,
+  type MockLanguageModelOptions,
+  mockLanguageModel,
+} from "./model";
+export {
+  createScenario,
+  MockFrontal,
+  type Scenario,
+  type ScenarioStep,
+  scenarioAliases,
+} from "./scenario";
+export {
+  mockStreamResponse,
+  type SimulateStreamOptions,
+  simulateStream,
+} from "./stream";
+
+/**
+ * A single route that answers every request with a body that satisfies both
+ * single-resource and paginated readers. Useful for endpoint-contract tests
+ * that only assert *which* request was made.
+ */
+export function catchAllRoute(body: Record<string, unknown> = {}): MockRoute {
+  return {
+    method: "GET",
+    path: /.*/,
+    handler: () =>
+      Response.json({
+        id: "id_1",
+        status: "ok",
+        data: [],
+        pagination: { cursor: null, has_more: false, total: 0 },
+        ...body,
+      }),
+  };
+}
+
+/**
+ * `catchAllRoute()` for every HTTP method.
+ */
+export function catchAllRoutes(body?: Record<string, unknown>): MockRoute[] {
+  return ["GET", "POST", "PUT", "PATCH", "DELETE"].map((method) => ({
+    ...catchAllRoute(body),
+    method,
+  }));
+}

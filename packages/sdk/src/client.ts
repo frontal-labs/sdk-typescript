@@ -1,63 +1,29 @@
-import { FrontalClient, getDefaultClient } from "@frontal-labs/core";
-import {
-  DEFAULT_BASE_URL,
-  DEFAULT_MAX_RETRIES,
-  DEFAULT_RETRY_DELAY,
-  DEFAULT_TIMEOUT,
-} from "./constants";
+import { type FrontalClient, getDefaultClient } from "@frontal-labs/core";
+import type { SdkConfig } from "./config";
 import { Frontal } from "./sdk";
-import { env } from "@frontal-labs/core";
-
-/**
- * Configuration for standalone usage without a FrontalClient instance.
- */
-export interface FrontalClientConfig {
-  /** Frontal API key. */
-  apiKey: string;
-  /** Base URL for the API. Defaults to {@link DEFAULT_BASE_URL}. */
-  baseUrl?: string;
-  /** Request timeout in milliseconds. Defaults to {@link DEFAULT_TIMEOUT}. */
-  timeout?: number;
-  /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
-  maxRetries?: number;
-}
 
 /**
  * Creates a unified {@link Frontal} SDK client from a {@link FrontalClient}
- * instance or a {@link FrontalClientConfig} configuration object.
+ * instance or an {@link SdkConfig} configuration object.
+ *
+ * Equivalent to `new Frontal(config)`.
  *
  * @param config - An existing `FrontalClient` or a config object with `apiKey`.
  * @returns A configured `Frontal` client with access to all service namespaces.
  */
 export function createFrontalClient(
-  config: FrontalClientConfig | FrontalClient
-): Frontal;
-
-export function createFrontalClient(
-  clientOrConfig: FrontalClient | FrontalClientConfig
+  config: SdkConfig | FrontalClient
 ): Frontal {
-  if (clientOrConfig instanceof FrontalClient) {
-    return new Frontal(clientOrConfig);
-  }
-  return new Frontal(
-    new FrontalClient({
-      apiKey: clientOrConfig.apiKey,
-      baseUrl:
-        clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_BASE_URL,
-      timeout: clientOrConfig.timeout ?? DEFAULT_TIMEOUT,
-      maxRetries: clientOrConfig.maxRetries ?? DEFAULT_MAX_RETRIES,
-      retryDelay: DEFAULT_RETRY_DELAY,
-      headers: {},
-      environment: env.FRONTAL_ENV,
-      debug: env.FRONTAL_DEBUG ?? false,
-    })
-  );
+  return new Frontal(config);
 }
 
 /**
  * Convenience singleton proxy for the unified Frontal SDK.
  * Lazily initialises from environment variables on first property access.
- * Provides access to all Frontal service namespaces as lazy getters.
+ *
+ * @deprecated Prefer `new Frontal({ apiKey })` so configuration is explicit
+ * and testable. This export stays for back-compat and will not be removed
+ * without a major version bump.
  */
 let _frontalCache: Frontal | undefined;
 

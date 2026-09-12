@@ -1,0 +1,10 @@
+{
+  "name": "frontal-pipeline-graph",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Define a pipeline that writes to the knowledge graph, trigger it, and trace lineage.",
+  "type": "module",
+  "scripts": { "start": "bun src/index.ts" },
+  "dependencies": { "@frontal-labs/sdk": "workspace:*" },
+  "devDependencies": { "typescript": "^6.0.3" }
+}

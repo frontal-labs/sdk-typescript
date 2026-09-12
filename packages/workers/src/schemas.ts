@@ -28,7 +28,7 @@ export const invokeWorkerOptionsSchema = z.object({
 });
 
 /** Options for invoking a worker. */
-export type InvokeWorkerOptions = z.infer<typeof invokeWorkerOptionsSchema>;
+export type InvokeWorkerOptions = z.input<typeof invokeWorkerOptionsSchema>;
 
 /** A reference to a deployed worker (by name). */
 export const workerRefSchema = z.looseObject({

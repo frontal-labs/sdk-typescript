@@ -1,16 +1,16 @@
 import {
+  env,
   FrontalClient,
   getDefaultClient,
   HttpClient,
 } from "@frontal-labs/core";
 import {
-  DEFAULT_OBSERVABILITY_BASE_URL,
   DEFAULT_MAX_RETRIES,
+  DEFAULT_OBSERVABILITY_BASE_URL,
   DEFAULT_RETRY_DELAY,
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { ObservabilitySdk } from "./sdk";
-import { env } from "@frontal-labs/core";
 
 /**
  * Configuration for creating a standalone Frontal Observability client.

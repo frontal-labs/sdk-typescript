@@ -4,7 +4,7 @@ import {
   type HttpClient,
   type PageResult,
 } from "@frontal-labs/core";
-import type { LineageNode, LineageEdge, LineageGraph } from "./schemas";
+import type { LineageEdge, LineageGraph, LineageNode } from "./schemas";
 
 /**
  * Client for the Frontal Lineage API (`/v1/lineage`).

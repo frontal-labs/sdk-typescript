@@ -6,8 +6,8 @@
 
 export {
   createIntegrationsClient,
-  integrations,
   type IntegrationsClientConfig,
+  integrations,
 } from "./client";
 export { DEFAULT_INTEGRATIONS_BASE_URL, VERSION } from "./constants";
 export { Integration } from "./integration";

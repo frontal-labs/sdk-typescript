@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "types": ["node", "vitest/globals"],
+    "paths": {
+      "@frontal-labs/*": ["../../packages/*/src"]
+    }
+  },
+  "include": [
+    "../../.examples-build/**/*.ts",
+    "../../.examples-build/**/*.tsx",
+    "../../templates/*/src/**/*.ts",
+    "../../templates/*/src/**/*.tsx"
+  ]
+}

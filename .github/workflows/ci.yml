@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
     paths-ignore:
-      - '**/*.md'
-      - '**/docs/**'
       - 'LICENSE'
       - '**/.prettierrc'
       - '**/.prettierignore'
@@ -46,9 +44,21 @@ jobs:
       - name: Type check
         run: bun run type-check
 
-      - name: Run tests
-        run: bun run test
-        timeout-minutes: 15
+      # Coverage thresholds (80% global, vitest.config.ts) are enforced here.
+      - name: Run tests (with coverage gate)
+        run: bun run test:coverage
+        timeout-minutes: 20
+
+      # Docs-as-tests: every ```ts block in README.md, packages/*/README.md and
+      # examples/SDKS_GUIDE.md must type-check, and the sdk quickstart must run
+      # against mocks. A stale example is a red build.
+      - name: README examples
+        run: bun run test:examples
+
+      # llms.txt / llms-full.txt / docs/mcp.json are generated from the READMEs;
+      # fail if they were not regenerated (`bun run docs:llms`).
+      - name: Docs freshness (llms.txt)
+        run: bun run docs:llms:check
 
       # Contract gate: fails the build on endpoint-snapshot drift, forbidden
       # cross-surface calls, or any regression below the committed API coverage

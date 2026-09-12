@@ -6,8 +6,8 @@
 
 export {
   createOntologyClient,
-  ontology,
   type OntologyClientConfig,
+  ontology,
 } from "./client";
 export { DEFAULT_ONTOLOGY_BASE_URL, VERSION } from "./constants";
 export * from "./schemas";

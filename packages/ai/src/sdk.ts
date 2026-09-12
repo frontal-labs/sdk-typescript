@@ -1,5 +1,10 @@
 import type { HttpClient } from "@frontal-labs/core";
-import { FrontalError } from "@frontal-labs/core";
+import {
+  FrontalError,
+  parseToolInput,
+  type ToolCall,
+  toolSetToRequest,
+} from "@frontal-labs/core";
 import { z } from "zod";
 import {
   type ChatCompletionRequest,
@@ -29,11 +34,15 @@ import {
   type StreamTextOptions,
   type StreamTextResult,
   type Tool,
+  type ToolLoopStep,
+  type ToolResult,
   type TranscriptionOptions,
   type TranscriptionResult,
   transcriptionOptionsSchema,
   type VariableDefinition,
 } from "./schemas";
+import { streamChatParts, toStreamTextResult } from "./stream";
+import { toolChoiceToRequest } from "./tool";
 
 /**
  * Service for interacting with Frontal AI.
@@ -66,8 +75,122 @@ export class AISdk {
   async generateText(
     options: GenerateTextOptions
   ): Promise<GenerateTextResult> {
-    const messages = this.buildMessages(options);
+    if ((options.maxSteps ?? 1) > 1 && options.tools) {
+      return this.runToolLoop(options);
+    }
+    return this.generateStep(options, this.buildMessages(options));
+  }
 
+  /**
+   * Executes the tool loop behind `generateText({ maxSteps })`: call the
+   * model, run every requested tool that has an `execute`, feed results
+   * back, repeat. Tools without `execute` end the loop with their calls in
+   * `toolCalls` so the caller can run them.
+   */
+  private async runToolLoop(
+    options: GenerateTextOptions
+  ): Promise<GenerateTextResult> {
+    const maxSteps = options.maxSteps ?? 1;
+    const tools = options.tools ?? {};
+    const messages: ChatMessage[] = this.buildMessages(options);
+    const steps: ToolLoopStep[] = [];
+    const usage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+    let last: GenerateTextResult | undefined;
+
+    for (let step = 1; step <= maxSteps; step++) {
+      const result = await this.generateStep(
+        { ...options, maxSteps: undefined },
+        messages
+      );
+      usage.promptTokens += result.usage.promptTokens;
+      usage.completionTokens += result.usage.completionTokens;
+      usage.totalTokens += result.usage.totalTokens;
+
+      const runnable = result.toolCalls.filter(
+        (c) => tools[c.toolName]?.execute
+      );
+      const toolResults: ToolResult[] = [];
+      for (const call of runnable) {
+        const def = tools[call.toolName];
+        if (!def?.execute) continue;
+        try {
+          const input = parseToolInput(tools, call.toolName, call.input);
+          const output = await def.execute(input);
+          toolResults.push({
+            id: call.id,
+            toolName: call.toolName,
+            input,
+            output,
+          });
+        } catch (err) {
+          toolResults.push({
+            id: call.id,
+            toolName: call.toolName,
+            input: call.input,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+
+      const entry: ToolLoopStep = {
+        step,
+        text: result.text,
+        finishReason: result.finishReason,
+        toolCalls: result.toolCalls,
+        toolResults,
+        usage: result.usage,
+      };
+      steps.push(entry);
+      options.onStepFinish?.(entry);
+      last = { ...result, toolResults, steps: [...steps], usage: { ...usage } };
+
+      // Stop when the model is done, when nothing was runnable (caller's
+      // turn), or when some calls were left for the caller.
+      const allRan =
+        result.toolCalls.length > 0 &&
+        runnable.length === result.toolCalls.length;
+      if (
+        result.finishReason !== "tool-calls" ||
+        !allRan ||
+        step === maxSteps
+      ) {
+        break;
+      }
+
+      // Feed the exchange back in OpenAI format.
+      messages.push({
+        role: "assistant",
+        content: result.text || null,
+        toolCalls: result.toolCalls.map((c) => ({
+          id: c.id,
+          type: "function",
+          function: {
+            name: c.toolName,
+            arguments: JSON.stringify(c.input ?? {}),
+          },
+        })),
+      });
+      for (const r of toolResults) {
+        messages.push({
+          role: "tool",
+          toolCallId: r.id,
+          name: r.toolName,
+          content: JSON.stringify(
+            r.error ? { error: r.error } : (r.output ?? null)
+          ),
+        });
+      }
+    }
+
+    if (!last) throw new Error("generateText: no steps executed");
+    return last;
+  }
+
+  /** One model call. */
+  private async generateStep(
+    options: GenerateTextOptions,
+    messages: ChatMessage[]
+  ): Promise<GenerateTextResult> {
     const requestBody: ChatCompletionRequest = {
       model: options.model,
       messages,
@@ -77,6 +200,8 @@ export class AISdk {
       presencePenalty: options.presencePenalty,
       stop: options.stopSequences,
       maxTokens: options.maxTokens,
+      tools: options.tools ? toolSetToRequest(options.tools) : undefined,
+      toolChoice: toolChoiceToRequest(options.toolChoice),
     };
 
     const response = await this.http.post<ChatCompletionResponse>(
@@ -85,16 +210,28 @@ export class AISdk {
     );
 
     const choice = response.choices[0];
+    const toolCalls = parseToolCalls(choice?.message?.toolCalls);
+    const rawFinish = choice?.finishReason;
+    const finishReason: GenerateTextResult["finishReason"] =
+      rawFinish === "tool_calls" || (toolCalls.length > 0 && !rawFinish)
+        ? "tool-calls"
+        : (rawFinish as GenerateTextResult["finishReason"]) || "other";
 
+    const usage = {
+      promptTokens: response.usage?.promptTokens || 0,
+      completionTokens: response.usage?.completionTokens || 0,
+      totalTokens: response.usage?.totalTokens || 0,
+    };
+    const text = choice?.message?.content || "";
     return {
-      text: choice.message.content || "",
-      finishReason:
-        (choice.finishReason as GenerateTextResult["finishReason"]) || "other",
-      usage: {
-        promptTokens: response.usage?.promptTokens || 0,
-        completionTokens: response.usage?.completionTokens || 0,
-        totalTokens: response.usage?.totalTokens || 0,
-      },
+      text,
+      finishReason,
+      usage,
+      toolCalls,
+      toolResults: [],
+      steps: [
+        { step: 1, text, finishReason, toolCalls, toolResults: [], usage },
+      ],
     };
   }
 
@@ -107,7 +244,6 @@ export class AISdk {
    */
   streamText(options: StreamTextOptions): StreamTextResult {
     const messages = this.buildMessages(options);
-    const { onChunk } = options;
 
     const requestBody: ChatCompletionRequest = {
       model: options.model,
@@ -118,80 +254,19 @@ export class AISdk {
       presencePenalty: options.presencePenalty,
       stop: options.stopSequences,
       maxTokens: options.maxTokens,
+      tools: options.tools ? toolSetToRequest(options.tools) : undefined,
+      toolChoice: toolChoiceToRequest(options.toolChoice),
       stream: true,
     };
 
-    let usageResolve!: (value: {
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-    }) => void;
-    const usagePromise = new Promise<{
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-    }>((resolve) => {
-      usageResolve = resolve;
+    const parts = streamChatParts(this.http, requestBody, {
+      signal: options.signal,
+      onChunk: options.onChunk,
+      onError: options.onError,
+      onAbort: options.onAbort,
+      streamRetries: options.streamRetries,
     });
-
-    const http = this.http;
-
-    const textStream = new ReadableStream<string>({
-      async start(controller) {
-        try {
-          for await (const event of http.postStream(
-            "/ai/chat/completions",
-            requestBody
-          )) {
-            if (event.data === "[DONE]") {
-              break;
-            }
-            const data = event.data as Record<string, unknown> | null;
-            if (!data) continue;
-
-            const choices = data.choices as
-              | {
-                  delta: { content?: string | null };
-                  finishReason?: string | null;
-                }[]
-              | undefined;
-            const content = choices?.[0]?.delta?.content;
-            if (content) {
-              if (onChunk) onChunk(content);
-              controller.enqueue(content);
-            }
-
-            const usage = data.usage as
-              | {
-                  promptTokens?: number;
-                  completionTokens?: number;
-                  totalTokens?: number;
-                }
-              | undefined;
-            if (usage) {
-              usageResolve({
-                promptTokens: usage.promptTokens || 0,
-                completionTokens: usage.completionTokens || 0,
-                totalTokens: usage.totalTokens || 0,
-              });
-            }
-          }
-        } catch (error) {
-          controller.error(
-            error instanceof Error ? error : new Error(String(error))
-          );
-        } finally {
-          usageResolve({
-            promptTokens: 0,
-            completionTokens: 0,
-            totalTokens: 0,
-          });
-          controller.close();
-        }
-      },
-    });
-
-    return { textStream, usage: usagePromise };
+    return toStreamTextResult(parts);
   }
 
   // ── Embeddings ────────────────────────────────────────────────────────
@@ -636,12 +711,18 @@ export class AISdk {
     return { prompts };
   }
 
-  // ── Tool System ──────────────────────────────────────────────────────
+  // ── Tool System (legacy) ─────────────────────────────────────────────
+  //
+  // These methods keep an in-memory registry that is never sent to the
+  // model. Prefer `tool()` from "@frontal-labs/ai" and pass `tools` to
+  // `generateText` / `streamText`.
 
   private tools: Map<string, Tool> = new Map();
 
   /**
    * Defines a tool (does not register it).
+   * @deprecated Use `tool({ description, inputSchema, execute })` and pass
+   * it in `generateText({ tools })`.
    * @param options - Tool definition.
    * @returns The tool definition.
    */
@@ -656,6 +737,7 @@ export class AISdk {
 
   /**
    * Registers a tool for later execution.
+   * @deprecated Pass `tools` to `generateText` / `streamText` instead.
    * @param tool - The tool to register.
    */
   registerTool(tool: Tool): void {
@@ -667,6 +749,7 @@ export class AISdk {
 
   /**
    * Returns all registered tools.
+   * @deprecated See {@link AISdk.registerTool}.
    */
   getTools(): Tool[] {
     return Array.from(this.tools.values());
@@ -674,6 +757,8 @@ export class AISdk {
 
   /**
    * Executes a registered tool by name.
+   * @deprecated Run `tools[name].execute(parseToolInput(tools, name, input))`
+   * on the `toolCalls` you get back from `generateText`.
    * @param name - The tool name.
    * @param params - Parameters to pass to the tool.
    * @returns The tool execution result.
@@ -711,4 +796,26 @@ export class AISdk {
     }
     return messages;
   }
+}
+
+interface RawToolCall {
+  id?: string;
+  function?: { name?: string; arguments?: string };
+}
+
+/** Normalizes OpenAI-shaped `tool_calls` into {@link ToolCall}s. */
+function parseToolCalls(raw: unknown): ToolCall[] {
+  if (!Array.isArray(raw)) return [];
+  return (raw as RawToolCall[]).map((call) => {
+    const args = call.function?.arguments ?? "";
+    let input: unknown = {};
+    if (args) {
+      try {
+        input = JSON.parse(args);
+      } catch {
+        input = args;
+      }
+    }
+    return { id: call.id, toolName: call.function?.name ?? "", input };
+  });
 }

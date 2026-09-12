@@ -23,6 +23,9 @@ This guide covers all SDK packages in this repository:
 - `@frontal-labs/sandbox`
 - `@frontal-labs/datasets`
 - `@frontal-labs/lineage`
+- `@frontal-labs/connectors`
+- `@frontal-labs/data`
+- `@frontal-labs/integrations`
 
 It includes architecture, setup, usage patterns, and end-to-end examples.
 
@@ -31,7 +34,7 @@ It includes architecture, setup, usage patterns, and end-to-end examples.
 Install:
 
 ```bash
-bun add @frontal-labs/core @frontal-labs/ai @frontal-labs/agents @frontal-labs/workflows @frontal-labs/pipelines @frontal-labs/graph @frontal-labs/ontology @frontal-labs/blob @frontal-labs/workers
+bun add @frontal-labs/sdk
 ```
 
 Typical environment variables:
@@ -39,21 +42,34 @@ Typical environment variables:
 ```bash
 FRONTAL_API_KEY=frt_...
 FRONTAL_API_URL=https://api.frontal.dev/v1
-FRONTAL_AI_API_URL=https://ai.frontal.dev
+FRONTAL_ENV=development
 ```
 
-Shared client setup pattern:
+One client, every service. All examples in this guide assume this setup:
 
-```ts
-import { FrontalClient } from "@frontal-labs/core";
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
 
-const client = new FrontalClient({
+const f = new Frontal({
   apiKey: process.env.FRONTAL_API_KEY!,
   baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1",
   timeout: 30_000,
-  maxRetries: 2
+  maxRetries: 2,
 });
+
+// Service handles used throughout the guide.
+const {
+  ai, agents, workflows, pipelines, graph, ontology, blob, workers, auth,
+  observability, events, audit, governance, billing, webhooks, schedules,
+  sandbox, datasets, lineage, connectors, data, integrations,
+} = f;
+const obs = observability;
+const client = f.client; // underlying FrontalClient for raw calls
 ```
+
+Prefer a single package? Every service is also published standalone
+(`@frontal-labs/ai`, `@frontal-labs/agents`, ...) with a `createXClient()`
+factory that accepts either `{ apiKey }` or a shared `FrontalClient`.
 
 ## 2) `@frontal-labs/core`
 
@@ -89,7 +105,7 @@ const run = await core.post<{ runId: string }>("/workflows/batch", {
 });
 
 const final = await pollUntil(
-  () => core.get<{ status: string; output?: unknown }>("/workflows", { runId: run.runId }),
+  () => core.get<{ status: string; output?: unknown }>(`/workflows/runs/${run.runId}`),
   {
     interval: 2000,
     timeout: 120_000,
@@ -186,37 +202,78 @@ Agent lifecycle and execution SDK:
 ### Example: define an agent
 
 ```ts
-import { createAgentsClient } from "@frontal-labs/agents";
-
-const agents = createAgentsClient({
-  apiKey: process.env.FRONTAL_API_KEY!,
-  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
-});
-
 const agent = await agents
   .define("ticket-triager")
   .description("Classifies and routes tickets")
   .trigger("support.ticket.created")
   .tags("support", "triage")
   .create();
+
+console.log(agent.id, agent.status); // resource fields + accessor methods
 ```
+
+### Example: typed agent (state, tools, approval)
+
+`define(name, options)` is the one-shot form. `stateSchema` types the run
+stream, `tools` share the `ToolSet` type with `ai.generateText`, and
+`approveWhen` declares when a human must sign off. These three are
+client-side contracts — they are not sent to the agents API.
+
+```ts
+import { tool, toApprovalStep } from "@frontal-labs/agents";
+import { z } from "zod";
+
+const triage = agents.define("ticket-triager", {
+  description: "Classifies and routes tickets",
+  triggers: "support.ticket.created",
+  stateSchema: z.object({ tier: z.string(), score: z.number() }),
+  tools: {
+    classify: tool({ description: "Classify a ticket", inputSchema: z.object({ text: z.string() }) }),
+    route: tool({ description: "Route to a queue", inputSchema: z.object({ queue: z.string() }) }),
+  },
+  approveWhen: (s) => s.tier === "enterprise",
+  approvers: ["support-leads"],
+});
+
+const created = await triage.create();
+const run = await created.message("support.ticket.created", { ticketId: "t_987" });
+
+for await (const e of created.watch(run.id)) {
+  if (e.type === "state" && created.requiresApproval(e.state)) {
+    console.log("needs a human:", e.state.tier);
+  }
+}
+
+// The approval contract maps 1:1 onto a workflow approval step.
+const step = toApprovalStep("ticket-triager", created.hints);
+await workflows
+  .define("triage-review")
+  .manual()
+  .approval(step.id, step.config.approvers, { name: step.name })
+  .create();
+```
+
+Re-attach to an existing agent with the same typing:
+`agents.use("agt_123", { stateSchema })`.
 
 ### Example: run + watch
 
 ```ts
 // Starting a run returns the run object; watch it via SSE.
-const run = await agents.use(agent.id).message("support.ticket.created", {
+const agent = agents.use("agt_ticket_triager");
+const run = await agent.message("support.ticket.created", {
   ticketId: "t_987",
   text: "Payment failed after plan upgrade"
 });
 
-for await (const event of agents.use(agent.id).watch(run.id)) {
-  console.log(event.type, event.data);
+for await (const event of agent.watch(run.id)) {
+  if (event.type === "event") console.log(event.event, event.data);
+  if (event.type === "error") console.error(event.error.code, event.error.retryable);
 }
 
 // Or poll to completion, then read the transcript.
-const done = await agents.use(agent.id).waitForCompletion(run.id);
-const transcript = await agents.use(agent.id).conversation(run.id);
+const done = await agent.waitForCompletion(run.id);
+const transcript = await agent.conversation(run.id);
 ```
 
 ## 5) `@frontal-labs/workflows`
@@ -410,20 +467,19 @@ const blob = createBlobClient({
   baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
 });
 
-await blob.upload(
-  "contracts",
-  "2026/q2/master.pdf",
-  Buffer.from("...binary..."),
-  "application/pdf"
-);
-
-const url = await blob.getSignedUrl("contracts", {
+await blob.upload({
+  bucket: "contracts",
   key: "2026/q2/master.pdf",
-  operation: "read",
-  expiresIn: 900
+  data: Buffer.from("...binary..."),
+  contentType: "application/pdf",
 });
 
-const meta = await blob.getMetadata("contracts", "2026/q2/master.pdf");
+const url = await blob.getSignedUrl({
+  bucket: "contracts",
+  options: { key: "2026/q2/master.pdf", operation: "read", expiresIn: 900 },
+});
+
+const meta = await blob.getMetadata({ bucket: "contracts", key: "2026/q2/master.pdf" });
 ```
 
 ## 10) `@frontal-labs/workers`
@@ -489,17 +545,16 @@ Testing toolkit for SDK consumers and package maintainers:
 ### Example
 
 ```ts
-import { createTestHttpClient, mockPageResponse } from "@frontal-labs/testing";
-import { WorkflowsService } from "@frontal-labs/workflows/src/service";
+import { createTestClient, mockPageResponse } from "@frontal-labs/testing";
 
-const { http, mock } = createTestHttpClient([
-  { method: "GET", path: "/v1/workflows", body: mockPageResponse([]) }
+const { client, mock } = createTestClient([
+  { method: "GET", path: "/workflows", body: mockPageResponse([]) }
 ]);
 
-const service = new WorkflowsService(http);
-await service.list({ limit: 1 });
+const f = new Frontal(client);
+await f.workflows.list({ limit: 1 });
 
-mock.expectCalled("GET", "/v1/workflows");
+mock.expectCalled("GET", "/workflows");
 ```
 
 ## 12) `@frontal-labs/auth`
@@ -541,9 +596,12 @@ const signIn = await auth.signInWithPassword({
 });
 
 const session = signIn.data.session;
-const refreshed = await auth.refreshSession({
-  refresh_token: session!.refresh_token
-});
+if (session) {
+  const refreshed = await auth.refreshSession({
+    refreshToken: session.refreshToken
+  });
+  console.log(refreshed.data.user?.id);
+}
 
 await auth.signOut();
 ```
@@ -551,6 +609,8 @@ await auth.signOut();
 ### Example: admin user management
 
 ```ts
+import { createAuthClient } from "@frontal-labs/auth";
+
 const admin = createAuthClient({
   apiKey: process.env.FRONTAL_SERVICE_ROLE_KEY!
 });
@@ -558,8 +618,8 @@ const admin = createAuthClient({
 const user = await admin.admin.createUser({
   email: "new-dev@example.com",
   password: "temp-password-123",
-  email_confirm: true,
-  user_metadata: { department: "engineering" }
+  emailConfirm: true,
+  userMetadata: { department: "engineering" }
 });
 
 const users = await admin.admin.listUsers({ page: 1, perPage: 20 });
@@ -569,16 +629,19 @@ await admin.admin.inviteUserByEmail("colleague@example.com");
 ### Example: MFA enrollment and verification
 
 ```ts
-const enroll = await auth.mfa.enroll({
+// MFA responses are untyped today; narrow them yourself.
+const enroll = (await auth.mfa.enroll({
   factorType: "totp",
   friendlyName: "Auth app",
   issuer: "Frontal"
-});
+})) as { data: { id: string } };
 
-const challenge = await auth.mfa.challenge({ factorId: enroll.data.id });
+const challenge = (await auth.mfa.challenge({ factorId: enroll.data.id })) as {
+  data: { id: string };
+};
 const verify = await auth.mfa.verify({
   factorId: enroll.data.id,
-  challengeId: challenge.data!.id,
+  challengeId: challenge.data.id,
   code: "123456"
 });
 ```
@@ -613,8 +676,8 @@ const obs = createObservabilityClient({
 
 const logs = await obs.logs.query({
   query: "level:error",
-  time_from: new Date(Date.now() - 3600000).toISOString(),
-  time_to: new Date().toISOString(),
+  timeFrom: new Date(Date.now() - 3600000).toISOString(),
+  timeTo: new Date().toISOString(),
   limit: 50
 });
 
@@ -651,7 +714,7 @@ const dash = await obs.dashboards.create({
   ]
 });
 
-const shared = await obs.dashboards.share(dash.id, { expires_in: "24h" });
+const shared = await obs.dashboards.share(dash.id, { expiresIn: "24h" });
 ```
 
 ## 14) `@frontal-labs/events`
@@ -692,7 +755,7 @@ await events.publish("orders.created", [{
   source: "orders-service",
   type: "order.created",
   data: { order_id: "ord_1234", amount: 99.99, currency: "USD" },
-  metadata: { user_id: "usr_abc" }
+  metadata: { userId: "usr_abc" }
 }]);
 
 const sub = await events.subscribe("orders.created", {
@@ -751,13 +814,11 @@ await audit.log({
   status: "success"
 });
 
-const results = await audit.query({
+const results = await audit.events.list({
   action: "pipeline.triggered",
-  time_from: new Date(Date.now() - 86400000).toISOString(),
-  time_to: new Date().toISOString()
+  resourceType: "pipeline",
 });
-
-const csv = await audit.export({ format: "csv" });
+for (const event of results.data) console.log(event.id, event.action);
 ```
 
 ## 16) `@frontal-labs/governance`
@@ -896,7 +957,7 @@ const endpoint = await webhooks.endpoints.create({
 const rotated = await webhooks.endpoints.rotateSecret(endpoint.id);
 
 const deliveries = await webhooks.deliveries.list({
-  webhook_id: endpoint.id,
+  webhookId: endpoint.id,
   status: "failed"
 });
 
@@ -904,10 +965,8 @@ for await (const del of deliveries) {
   await webhooks.deliveries.retry(del.id);
 }
 
-const stats = await webhooks.stats.getStats({
-  webhook_id: endpoint.id
-});
-console.log(`Success rate: ${(stats.success_rate * 100).toFixed(1)}%`);
+const stats = await webhooks.stats.get({ webhookId: endpoint.id });
+console.log(stats);
 ```
 
 ## 19) `@frontal-labs/schedules`
@@ -939,9 +998,9 @@ const schedules = createSchedulesClient({
 });
 
 const valid = await schedules.cron.validate("0 9 * * 1-5");
-const next = await schedules.cron.nextRuns("0 */6 * * *", 5);
+const parsed = await schedules.cron.parse("0 */6 * * *");
 
-const schedule = await schedules.schedules.create({
+const schedule = await schedules.create({
   name: "Nightly Data Export",
   cron: "0 2 * * *",
   timezone: "America/New_York",
@@ -949,12 +1008,8 @@ const schedule = await schedules.schedules.create({
   payload: { format: "parquet", destination: "s3://data-lake/exports/" }
 });
 
-const run = await schedules.schedules.trigger(schedule.id);
-
-const runs = await schedules.runs.list(schedule.id);
-for await (const r of runs) {
-  console.log(`${r.id}: ${r.status}`);
-}
+const run = await schedules.trigger(schedule.id);
+console.log(run.id, run.status);
 ```
 
 ## 20) `@frontal-labs/sandbox`
@@ -1087,9 +1142,81 @@ const impact = await lineage.impact.analyzeChange("ds_sales", {
   type: "update",
   field: "amount"
 });
-for (const r of impact.affected_resources) {
+for (const r of impact.affectedResources) {
   console.log(`${r.name} (${r.type}): ${r.impact} impact`);
 }
+```
+
+## 22a) `@frontal-labs/connectors`
+
+### What it does
+
+Source connectors: discover connector definitions, install them per tenant,
+replay or diagnose sync runs.
+
+### Example: install and list
+
+```ts
+const definitions = await connectors.list();
+
+const installation = await connectors.installations.create({
+  connectorSlug: "postgres",
+  tenantId: "tn_acme",
+  datasetNamespace: "acme.crm",
+  displayName: "Acme CRM",
+  auth: { mode: "connection_string", secretRef: "secret://acme/pg" },
+});
+
+const installed = await connectors.installations.list({ tenantId: "tn_acme" });
+console.log(definitions.length, installation.id, installed.data.length);
+```
+
+## 22b) `@frontal-labs/data`
+
+### What it does
+
+Data platform sub-domains — aggregations, archival, enrichment, exports,
+normalization, quality, serving, streams, sync, transformations, federated
+query and schema registry. Every sub-domain also exposes `capabilities()`,
+`health()`, `runs()` and `createRun()`.
+
+### Example: aggregation + federated query
+
+```ts
+const agg = await data.aggregations.create({
+  name: "daily-revenue",
+  source: "acme.billing.invoices",
+  groupBy: ["day"],
+});
+await data.aggregations.execute(agg.id as string);
+
+const rows = await data.query.federated({
+  sql: "SELECT day, sum(amount) FROM acme.billing.invoices GROUP BY day",
+});
+console.log(rows);
+```
+
+## 22c) `@frontal-labs/integrations`
+
+### What it does
+
+Third-party integrations: install providers with scoped credentials, run and
+replay actions, test connections and simulate policy scopes.
+
+### Example: install, test, simulate
+
+```ts
+const integration = await integrations.create({
+  provider: "slack",
+  tenantId: "tn_acme",
+  displayName: "Acme Slack",
+  config: { defaultChannel: "#alerts" },
+  auth: { scheme: "bearer", secretRef: "secret://acme/slack" },
+});
+
+const check = await integrations.test(integration.id);
+const sim = await integrations.policy.simulate(["chat:write"], ["chat:write"]);
+console.log(check, sim);
 ```
 
 ## 23) End-to-End Production Pattern
@@ -1117,19 +1244,71 @@ A common high-value orchestration flow:
 
 ## 24) Error Handling Pattern
 
+Every API failure is a typed `FrontalError` subclass. Beyond `code`,
+`statusCode` and `requestId`, each error carries:
+
+- `retryable` — `true` for 429, transient 5xx, network and timeout errors
+- `fix` — a one-line remediation when the SDK knows one
+- `docs` — a link to the relevant docs page, when the API provides one
+
+`NetworkError` (`code: "NETWORK_ERROR"`) and `TimeoutError` (`code: "TIMEOUT"`)
+are not `FrontalError`s (the request never got a response) but share the same
+`code` / `retryable` / `fix` fields, so `SdkError` is uniform.
+
 ```ts
-import { FrontalError } from "@frontal-labs/core";
+import {
+  FrontalError,
+  isRetryableError,
+  RateLimitError,
+  ValidationError,
+} from "@frontal-labs/core";
 
 try {
-  // any SDK call
+  await ai.generateText({ model: "claude-sonnet-4-6", prompt: "hi" });
 } catch (e) {
-  if (e instanceof FrontalError) {
-    console.error("code:", e.code, "status:", e.statusCode, "request:", e.requestId);
+  if (RateLimitError.isInstance(e)) {
+    await new Promise((r) => setTimeout(r, e.retryAfter * 1000));
+  } else if (ValidationError.isInstance(e)) {
+    console.error(e.fields);
+  } else if (FrontalError.isInstance(e)) {
+    console.error(e.code, e.statusCode, e.requestId, e.fix);
+  } else if (isRetryableError(e)) {
+    console.error("transient transport error, retry later");
   } else {
-    console.error("transport/runtime error", e);
+    throw e;
   }
 }
 ```
+
+`X.isInstance(e)` is a structural check that works even when two copies of
+`@frontal-labs/core` are loaded (monorepos, bundlers); `instanceof` works too
+in the common case.
+
+### Streams: errors as data
+
+Streaming methods (`ai.streamText().fullStream`, `agents.use(id).watch()`)
+never throw mid-stream. They yield discriminated parts so a UI or agent can
+render the failure and offer a retry:
+
+```ts
+const run = await agents.use("agt_1").message("support.ticket.created", { ticketId: "t_1" });
+
+for await (const part of agents.use("agt_1").watch(run.id)) {
+  switch (part.type) {
+    case "event":
+      console.log(part.event, part.data);
+      break;
+    case "error":
+      console.error(part.error.code, part.error.retryable ? "retry" : "give up");
+      break;
+    case "abort":
+    case "done":
+      break;
+  }
+}
+```
+
+Correlate any `requestId` with `observability.logs.query({ query: `requestId:"..."` , ... })`.
 
 ## 25) Operational Notes
 

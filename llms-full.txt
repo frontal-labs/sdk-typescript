@@ -1,0 +1,4630 @@
+# Frontal TypeScript SDK — full documentation
+
+Generated from the package READMEs by scripts/generate-llms.ts. Do not edit by hand.
+
+
+
+# ===== packages/sdk/README.md =====
+
+# @frontal-labs/sdk
+
+The one-package entry point to Frontal: AI inference, agents, workflows,
+pipelines, knowledge graph, ontology, blob storage and 15 more services behind
+a single typed client.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+Works with `npm`, `pnpm` and `yarn` too. TypeScript-first; ESM and CJS builds
+are included.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const { text } = await f.ai.generateText({
+  model: "claude-sonnet-4-6",
+  prompt: "Summarize this incident report in one line.",
+});
+
+const agent = f.agents.use("agt_ticket_triager");
+const run = await agent.message("support.ticket.created", { ticketId: "t_987" });
+
+for await (const event of agent.watch(run.id)) {
+  if (event.type === "event") console.log(event.event, event.data);
+  if (event.type === "error") console.error(event.error.code, event.error.retryable);
+}
+```
+
+That is the whole setup: one import, one `apiKey`. Every service is a lazy,
+cached getter on the `Frontal` instance:
+
+| Getter | Service |
+| --- | --- |
+| `f.ai` | Text generation, streaming, embeddings, structured output |
+| `f.agents` | Define, run and observe agents |
+| `f.workflows` | Durable workflows with approval steps |
+| `f.pipelines` | Data pipelines |
+| `f.graph` / `f.ontology` | Knowledge graph and ontology |
+| `f.blob` / `f.datasets` / `f.data` | Storage and data access |
+| `f.lineage` / `f.observability` / `f.audit` | Tracing, logs, lineage, audit trail |
+| `f.workers` / `f.sandbox` / `f.schedules` | Compute and scheduling |
+| `f.events` / `f.webhooks` / `f.connectors` / `f.integrations` | Eventing and external systems |
+| `f.auth` / `f.governance` / `f.billing` | Identity, policy, billing |
+
+## Configuration
+
+```ts
+const f = new Frontal({
+  apiKey: process.env.FRONTAL_API_KEY!,   // required, starts with `frt_`
+  baseUrl: "https://api.frontal.dev/v1",  // default; or FRONTAL_API_URL
+  env: "development",                     // "development" | "test" | "production"; or FRONTAL_ENV
+  debug: false,                           // or FRONTAL_DEBUG=1
+  timeout: 30_000,
+  maxRetries: 3,
+});
+```
+
+Invalid config (for example an API key without the `frt_` prefix) throws at
+construction time, not on the first request.
+
+| Variable | Purpose |
+| --- | --- |
+| `FRONTAL_API_KEY` | API key (`frt_...`) |
+| `FRONTAL_API_URL` | Override the base URL |
+| `FRONTAL_ENV` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | `1` / `true` enables verbose logging |
+
+`SdkConfig` is also the shape a future `frontal.jsonc` will use; the SDK never
+reads files itself.
+
+## Error handling
+
+Every API failure is a typed `FrontalError` subclass carrying `code`,
+`requestId`, `statusCode` and an optional `docs` link:
+
+```ts
+import { Frontal, RateLimitError, ValidationError } from "@frontal-labs/sdk";
+
+try {
+  await f.ai.generateText({ model: "claude-sonnet-4-6", prompt: "hi" });
+} catch (err) {
+  if (err instanceof RateLimitError) console.log("retry in", err.retryAfter, "s");
+  if (err instanceof ValidationError) console.log(err.fields);
+}
+```
+
+## Advanced
+
+### Share one connection with standalone packages
+
+`f.client` is the underlying `FrontalClient`. Pass it to any
+`createXClient` factory to reuse the same transport, retries and headers:
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { createBlobClient } from "@frontal-labs/blob";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const blob = createBlobClient(f.client);
+```
+
+### Install a single package
+
+If you only need one service, each is published on its own
+(`@frontal-labs/ai`, `@frontal-labs/agents`, ...). Same API, smaller install:
+
+```ts
+import { createAIClient } from "@frontal-labs/ai";
+
+const ai = createAIClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Env-driven singletons (deprecated)
+
+`import { frontal, ai } from "@frontal-labs/sdk"` still works and reads
+`FRONTAL_API_KEY` on first use, but it is deprecated in favour of the explicit
+constructor above. It will not be removed without a major version bump.
+
+## Testing
+
+`@frontal-labs/testing` provides a fetch-level mock and a pre-wired client:
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { createTestClient } from "@frontal-labs/testing";
+
+const { client, mock } = createTestClient([
+  { method: "GET", path: "/internal/models", body: { data: [] } },
+]);
+const f = new Frontal(client);
+await f.ai.listModels();
+mock.expectCalled("GET", "/internal/models");
+```
+
+See [`docs/TESTING.md`](../../docs/TESTING.md) for model mocks and scenarios.
+
+
+# ===== SKILL.md =====
+
+---
+name: frontal-sdk
+description: Write, review and test TypeScript that uses the Frontal SDK (@frontal-labs/sdk and the per-service @frontal-labs/* packages). Use whenever code calls Frontal AI, agents, workflows, pipelines, graph, blob or any other Frontal service.
+---
+
+# Frontal SDK
+
+How to write correct code against the Frontal TypeScript SDK: setup, service map, model choice, error taxonomy, testing, and the checklist to run before returning code.
+
+## Rule zero
+
+Never write Frontal SDK code from memory. Check the installed version and read
+the matching README before generating code:
+
+```bash
+bun pm ls @frontal-labs/sdk        # or: npm ls @frontal-labs/sdk
+cat node_modules/@frontal-labs/sdk/README.md
+```
+
+Every code block in this repository's READMEs is type-checked in CI, so the
+README for the installed version is the ground truth. `llms.txt` at the repo
+root indexes all of them.
+
+## Canonical setup
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+- `apiKey` must start with `frt_`; invalid config throws a `ZodError` at
+  construction, not on the first call.
+- Optional: `baseUrl`, `env` (`"development" | "test" | "production"`),
+  `debug`, `timeout`, `maxRetries`, `headers`, `fetch`, `logger`.
+- Env fallbacks: `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`.
+- Do **not** use the env-driven singletons (`import { ai } from "@frontal-labs/ai"`,
+  `import { frontal } from "@frontal-labs/sdk"`). They still work but are
+  deprecated; explicit construction is testable and unambiguous.
+
+## Service map
+
+Every service is a lazy, cached getter on `Frontal`:
+
+| Getter | Package | Use for |
+| --- | --- | --- |
+| `f.ai` | `@frontal-labs/ai` | `generateText`, `streamText`, `embed`, `generateObject`, speech/image/video |
+| `f.agents` | `@frontal-labs/agents` | `define(name)` builder, `use(id).message/watch/waitForCompletion/conversation` |
+| `f.workflows` | `@frontal-labs/workflows` | `define(name)` builder with `.task/.approval/.condition/.parallel`, `approvals.approve/reject` |
+| `f.pipelines` | `@frontal-labs/pipelines` | `define`, `use(id).trigger/backfill/health` |
+| `f.graph` | `@frontal-labs/graph` | `query`, `semanticSearch`, `use(type).create/list/addRelationship` |
+| `f.ontology` | `@frontal-labs/ontology` | `engine.generate`, `objects`, `versions`, `rollouts` |
+| `f.blob` | `@frontal-labs/blob` | `upload`, `download`, `getSignedUrl`, `getMetadata`, `list` |
+| `f.datasets` / `f.data` | `@frontal-labs/datasets`, `@frontal-labs/data` | catalog + ingestion; aggregations/quality/exports/query |
+| `f.lineage` | `@frontal-labs/lineage` | `graph.get`, `nodes.trace`, `impact.analyzeChange` |
+| `f.observability` | `@frontal-labs/observability` | `logs.query`, `metrics`, `traces.get`, `alerts`, `dashboards` |
+| `f.audit` | `@frontal-labs/audit` | `log`, `events.list` |
+| `f.governance` | `@frontal-labs/governance` | `policies`, `compliance`, `roles`, `permissions`, `access.check` |
+| `f.auth` | `@frontal-labs/auth` | `signInWithPassword`, `mfa`, `account`, `admin` |
+| `f.billing` | `@frontal-labs/billing` | `customers`, `plans`, `subscriptions`, `invoices`, `meters` |
+| `f.events` / `f.webhooks` | `@frontal-labs/events`, `@frontal-labs/webhooks` | `publish`, `topics`, `subscriptions`; `endpoints`, `deliveries` |
+| `f.schedules` / `f.workers` / `f.sandbox` | respective packages | cron; `deploy`/`invoke`; `selfTest`/`submit` |
+| `f.connectors` / `f.integrations` | respective packages | source connectors; third-party integrations |
+
+React UIs: `@frontal-labs/react` — `useChat({ api })` over a route that returns
+`toUIMessageStreamResponse(f.ai.streamText(...))`; `useAgentRun(agent)`;
+`useWorkflowApprovals(f.workflows)`. Agents are event-driven, not chat.
+
+Single-package usage: `import { createAIClient } from "@frontal-labs/ai"` then
+`createAIClient({ apiKey })` or `createAIClient(f.client)` to share one
+transport.
+
+## Model switch
+
+| Task | Model id |
+| --- | --- |
+| Default, best quality | `claude-opus-5` |
+| Fast, cheap, most tasks | `claude-sonnet-5` |
+| Cheapest / classification | `claude-haiku-4-5-20251001` |
+
+Pass `model` on every `f.ai.*` call. `f.ai.listModels()` returns what the
+gateway currently serves — prefer it over a hard-coded list in long-lived code.
+
+## Error taxonomy
+
+All API failures throw a `FrontalError` subclass from `@frontal-labs/core`
+(re-exported by `@frontal-labs/sdk`):
+
+| Class | Status | Extra fields |
+| --- | --- | --- |
+| `ValidationError` | 400 | `fields: { field, message }[]` |
+| `UnauthorizedError` | 401 | — |
+| `ForbiddenError` | 403 | — |
+| `NotFoundError` | 404 | — |
+| `ConflictError` | 409 | — |
+| `RateLimitError` | 429 | `retryAfter` (seconds), `rateLimit` |
+| `ServiceError` | 5xx | — |
+| `NetworkError` | — | `cause` (not a `FrontalError`; request never reached the API) |
+| `TimeoutError` | — | — |
+
+Every `FrontalError` has `code`, `message`, `requestId`, `statusCode`,
+`retryable`, an optional `fix` hint and an optional `docs` URL. Streams
+(`ai.streamText().fullStream`, `agents.use(id).watch()`) never throw
+mid-stream: they yield `{ type: "error", error }` parts, then `done`. Log `requestId`; it correlates with
+`f.observability.logs.query({ query: \`requestId:"..."\` })`.
+
+```ts
+import { Frontal, RateLimitError, ValidationError } from "@frontal-labs/sdk";
+
+try {
+  await f.ai.generateText({ model: "claude-sonnet-5", prompt: "hi" });
+} catch (err) {
+  if (err instanceof RateLimitError) {
+    await new Promise((r) => setTimeout(r, err.retryAfter * 1000));
+  } else if (err instanceof ValidationError) {
+    console.error(err.fields);
+  } else {
+    throw err;
+  }
+}
+```
+
+Client-side schema failures (bad options) throw `ZodError`, not `FrontalError`.
+
+## Testing
+
+Mock at the `fetch` layer with `@frontal-labs/testing`; never use a real key
+in tests. `FRONTAL_API_KEY=frt_test_key` satisfies validation.
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { createTestClient, mockPageResponse } from "@frontal-labs/testing";
+
+const { client, mock } = createTestClient([
+  { method: "GET", path: "/agents", body: mockPageResponse([{ id: "agt_1" }]) },
+]);
+const f = new Frontal(client);
+await f.agents.list({ limit: 1 });
+mock.expectCalled("GET", "/agents");
+```
+
+See `docs/TESTING.md` for streaming and multi-service recipes.
+
+## Conventions
+
+- Request/response keys are camelCase in TypeScript; the SDK converts to
+  snake_case on the wire. Never hand-write `snake_case` keys.
+- Options types derive from Zod with `z.input`, so defaulted fields are optional.
+- Paginated methods return `PageResult<T>` with `data`, `pagination.hasMore`,
+  `pagination.cursor` and `nextPage()`; they are also async-iterable.
+- Long-running operations: prefer `use(id).waitForCompletion(runId)` or
+  `pollUntil` from `@frontal-labs/core` over hand-rolled loops.
+- Streams (`agents.use(id).watch`, `ai.streamText`) are `for await`-able and
+  yield discriminated parts; switch on `part.type`.
+- Tools: `tool({ description, inputSchema, execute })` from `@frontal-labs/ai`;
+  pass as `tools` to `generateText`/`streamText` or `agents.define(name, { tools })`.
+  With `maxSteps > 1` the SDK runs tools that have `execute` and loops;
+  otherwise it returns `toolCalls` for you to run (`parseToolInput` validates).
+- Observability: `registerTelemetry({ tracer, onError })` once at startup;
+  `requestIdOf(result)` gives the id to search logs/traces with.
+
+## Checklist before returning code
+
+1. `new Frontal({ apiKey })`, not a singleton.
+2. Method names verified against the installed package's README or `.d.ts`.
+3. Errors handled by class, `requestId` surfaced.
+4. Tests use `createTestClient`, no network.
+
+
+# ===== packages/core/README.md =====
+
+# @frontal-labs/core
+
+Shared runtime for all Frontal TypeScript SDKs — HTTP client, auth, retries,
+pagination, polling, and typed errors.
+
+## Installation
+
+```bash
+npm install @frontal-labs/core
+```
+
+## Quick Start
+
+```ts prelude
+import { FrontalClient } from "@frontal-labs/core";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const data = await client.get("/health");
+```
+
+Only `apiKey` is required; everything else is defaulted and validated at
+construction time (an API key without the `frt_` prefix throws a `ZodError`).
+
+## API
+
+### FrontalClient
+
+```ts
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!, // required, `frt_...`
+  baseUrl: "https://...",     // defaults to https://api.frontal.dev/v1
+  timeout: 30_000,            // request timeout in ms
+  maxRetries: 3,              // max retry attempts on transient errors
+  retryDelay: 1_000,          // delay between retries in ms
+  headers: {},                // extra headers sent with every request
+  environment: "production",  // "development" | "test" | "production"
+  debug: false,               // enable debug logging
+});
+```
+
+Methods: `get`, `post`, `put`, `patch`, `delete`, `getRaw`, `postRaw`,
+`putRaw`, `postFormData`, `stream`, `postStream`.
+
+### Error Handling
+
+```ts
+import { FrontalError } from "@frontal-labs/core";
+
+try {
+  await client.get("/something");
+} catch (e) {
+  if (e instanceof FrontalError) {
+    console.error(e.code, e.statusCode, e.requestId);
+  }
+}
+```
+
+### Polling
+
+```ts
+import { pollUntil } from "@frontal-labs/core";
+
+const result = await pollUntil(
+  () => client.get<{ status: string }>("/jobs/job_123"),
+  { interval: 2_000, timeout: 120_000, until: (r) => r.status === "completed" }
+);
+```
+
+### Pagination
+
+```ts
+import { createPageResult } from "@frontal-labs/core";
+
+const page = createPageResult(
+  [{ id: "ent_1" }, { id: "ent_2" }],
+  { hasMore: true, cursor: "next_cursor" }
+);
+console.log(page.data.length, page.pagination.hasMore);
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+The `FRONTAL_API_KEY` and `FRONTAL_API_URL` variables are read automatically by `getDefaultClient()`.
+
+
+# ===== packages/ai/README.md =====
+
+# @frontal-labs/ai
+
+AI inference SDK — text generation, streaming, embeddings, structured output,
+speech, transcription, and image/video generation.
+
+## Installation
+
+```bash
+npm install @frontal-labs/ai
+```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const ai = f.ai;
+
+const result = await ai.generateText({
+  model: "gpt-4o-mini",
+  prompt: "Summarize this incident report",
+});
+```
+
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createAIClient } from "@frontal-labs/ai";
+
+const ai = createAIClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://ai.frontal.dev",
+});
+
+const result = await ai.generateText({
+  model: "gpt-4o-mini",
+  prompt: "Hello",
+});
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createAIClient } from "@frontal-labs/ai";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const ai = createAIClient(client);
+```
+
+### Streaming
+
+```ts
+const stream = ai.streamText({
+  model: "gpt-4o-mini",
+  prompt: "Write a haiku about databases",
+});
+
+for await (const chunk of stream.textStream) {
+  process.stdout.write(chunk);
+}
+console.log(await stream.usage, await stream.finishReason);
+```
+
+`textStream` and `fullStream` are two views of the same request — read one of
+them from the start. Breaking out of the loop cancels the request.
+
+`fullStream` yields every part — `text`, `tool-call`, `finish`, `error`,
+`abort`, `done` — so errors are data you can render and retry, not exceptions
+that tear down the UI:
+
+```ts
+const ctl = new AbortController();
+const stream = ai.streamText({
+  model: "gpt-4o-mini",
+  prompt: "Write a haiku about databases",
+  signal: ctl.signal,
+  streamRetries: 2, // retry 429/5xx/network failures before the first byte
+  onError: (err) => console.error(err.code, err.fix),
+});
+
+for await (const part of stream.fullStream) {
+  if (part.type === "text") process.stdout.write(part.text);
+  if (part.type === "tool-call") console.log(part.toolName, part.input);
+  if (part.type === "error" && !part.error.retryable) ctl.abort();
+}
+```
+
+### Tools
+
+Define tools with `tool()` (Zod input schema → JSON Schema on the wire) and
+pass them to `generateText` / `streamText`. The SDK returns the model's calls;
+you execute them — there is no hidden loop.
+
+```ts
+import { parseToolInput, tool } from "@frontal-labs/ai";
+import { z } from "zod";
+
+const tools = {
+  weather: tool({
+    description: "Current weather for a city",
+    inputSchema: z.object({ city: z.string() }),
+    execute: async ({ city }) => ({ city, tempC: 21 }),
+  }),
+};
+
+const result = await ai.generateText({
+  model: "gpt-4o-mini",
+  prompt: "What's the weather in Lisbon?",
+  tools,
+  toolChoice: "auto",
+});
+
+for (const call of result.toolCalls) {
+  if (call.toolName === "weather") {
+    const input = parseToolInput(tools, "weather", call.input);
+    console.log(await tools.weather.execute?.(input));
+  }
+}
+```
+
+The same `ToolSet` type is accepted by `agents.define(name, { tools })`.
+
+### Embeddings
+
+```ts
+const emb = await ai.embed({
+  model: "text-embedding-3-small",
+  input: "How to reset account password",
+});
+```
+
+### Structured output
+
+```ts
+const parsed = await ai.generateObject({
+  model: "gpt-4o-mini",
+  prompt: "Extract severity and service from this report: ...",
+  schema: {
+    type: "object",
+    properties: {
+      severity: { type: "string" },
+      service: { type: "string" },
+    },
+    required: ["severity", "service"],
+  },
+});
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/agents/README.md =====
+
+# @frontal-labs/agents
+
+Define, deploy, and observe AI agents with LangChain, LangGraph, and Vercel
+AI SDK integration.
+
+## Installation
+
+```bash
+npm install @frontal-labs/agents
+```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const agents = f.agents;
+
+const page = await agents.list({ limit: 10 });
+```
+
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createAgentsClient } from "@frontal-labs/agents";
+
+const agents = createAgentsClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const created = await agents.create({
+  name: "order-ops",
+  triggers: [{ event: "order.created" }],
+  confidence: { autoExecuteAbove: 0.9, escalateBelow: 0.6 },
+  memory: { type: "working" },
+});
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createAgentsClient } from "@frontal-labs/agents";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const agents = createAgentsClient(client);
+```
+
+### Builder API
+
+```ts
+const agent = await agents
+  .define("ticket-triager")
+  .description("Classifies and routes support tickets")
+  .trigger("support.ticket.created")
+  .tags("support", "triage")
+  .create();
+```
+
+### Typed agent (state, tools, approval)
+
+`define(name, options)` is the one-shot form. `stateSchema` types the run
+stream, `tools` share the `ToolSet` type with `ai.generateText`, and
+`approveWhen` declares when a human must sign off. These three are
+client-side contracts — they are not sent to the agents API.
+
+```ts
+import { tool, toApprovalStep } from "@frontal-labs/agents";
+import { z } from "zod";
+
+const triage = agents.define("ticket-triager", {
+  description: "Classifies and routes tickets",
+  triggers: "support.ticket.created",
+  stateSchema: z.object({ tier: z.string(), score: z.number() }),
+  tools: {
+    classify: tool({ description: "Classify a ticket", inputSchema: z.object({ text: z.string() }) }),
+    route: tool({ description: "Route to a queue", inputSchema: z.object({ queue: z.string() }) }),
+  },
+  approveWhen: (s) => s.tier === "enterprise",
+  approvers: ["support-leads"],
+});
+
+const created = await triage.create();
+const run = await created.message("support.ticket.created", { ticketId: "t_987" });
+
+for await (const e of created.watch(run.id)) {
+  if (e.type === "state" && created.requiresApproval(e.state)) {
+    console.log("needs a human:", e.state.tier);
+  }
+}
+
+// The approval contract maps 1:1 onto a workflow approval step:
+const step = toApprovalStep("ticket-triager", created.hints);
+await f.workflows
+  .define("triage-review")
+  .manual()
+  .approval(step.id, step.config.approvers, { name: step.name })
+  .create();
+```
+
+Re-attach to an existing agent with the same typing:
+`agents.use("agt_123", { stateSchema })`.
+
+### Run and watch
+
+```ts
+// Starting a run returns the run; watch it via SSE.
+const agent = agents.use("agt_ticket_triager");
+const run = await agent.message("support.ticket.created", {
+  ticketId: "t_987",
+  text: "Payment failed after plan upgrade",
+});
+
+for await (const event of agent.watch(run.id)) {
+  if (event.type === "event") console.log(event.event, event.data);
+  if (event.type === "error") console.error(event.error.code, event.error.retryable);
+}
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/workflows/README.md =====
+
+# @frontal-labs/workflows
+
+Workflow orchestration SDK — triggers, steps, approvals, templates, and
+execution tracking.
+
+## Installation
+
+```bash
+npm install @frontal-labs/workflows
+```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const workflows = f.workflows;
+
+const list = await workflows.list({ limit: 10 });
+```
+
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createWorkflowsClient } from "@frontal-labs/workflows";
+
+const workflows = createWorkflowsClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const execution = await workflows.use("wfl_123").trigger({
+  source: "manual",
+});
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createWorkflowsClient } from "@frontal-labs/workflows";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const workflows = createWorkflowsClient(client);
+```
+
+### Builder API
+
+```ts
+const wf = await workflows
+  .define("invoice-approval")
+  .manual()
+  .task("validate", { ruleset: "invoice-v1" })
+  .approval("manager-approval", ["finance@acme.com"])
+  .task("post-ledger", { system: "erp" })
+  .notification("notify-requester", "Invoice approved", ["email"])
+  .create();
+
+const run = await workflows.use(wf.id).trigger({ invoiceId: "inv_001" });
+const done = await workflows.use(wf.id).waitForCompletion(run.id);
+```
+
+### Approvals
+
+```ts
+const pending = await workflows.approvals.list({ status: "pending" });
+await workflows.approvals.approve("apr_123", "LGTM");
+```
+
+### Templates
+
+```ts
+const template = await workflows.templates.get("onboarding-v2");
+const wf = await workflows.templates.use(template.id, "Customer Onboarding - Acme");
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/pipelines/README.md =====
+
+# @frontal-labs/pipelines
+
+Declarative data pipeline SDK — ingest, transform, enrich, validate, and
+orchestrate with substrate awareness.
+
+## Installation
+
+```bash
+npm install @frontal-labs/pipelines
+```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const pipelines = f.pipelines;
+
+const list = await pipelines.list({ limit: 10 });
+```
+
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createPipelinesClient } from "@frontal-labs/pipelines";
+
+const pipelines = createPipelinesClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const run = await pipelines.use("ppl_123").trigger({ source: "manual" });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createPipelinesClient } from "@frontal-labs/pipelines";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const pipelines = createPipelinesClient(client);
+```
+
+### Builder API
+
+```ts
+const pipeline = await pipelines
+  .define("crm-sync")
+  .fromSchedule("0 * * * *")
+  .collect("fetch-crm", { source: "salesforce" })
+  .transform("normalize", { mapping: { company_name: "companyName" } })
+  .write("upsert-graph", { target: "graph" })
+  .create();
+
+await pipelines.use(pipeline.id).trigger({ dryRun: false });
+```
+
+### Backfills and lineage
+
+```ts
+const backfill = await pipelines.use("ppl_123").backfill(
+  "2026-01-01",
+  "2026-06-01",
+  { strategy: "incremental" }
+);
+
+const health = await pipelines.use("ppl_123").health();
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/graph/README.md =====
+
+# @frontal-labs/graph
+
+Graph entities, relationships, query, traversal, time travel, and semantic
+search.
+
+## Installation
+
+```bash
+npm install @frontal-labs/graph
+```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const graph = f.graph;
+
+const users = await graph.query({ entityType: "user", limit: 10 });
+```
+
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createGraphClient } from "@frontal-labs/graph";
+
+const graph = createGraphClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const customer = await graph.use("customer").create({
+  email: "a@frontal.dev",
+  name: "Acme Corp",
+});
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createGraphClient } from "@frontal-labs/graph";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const graph = createGraphClient(client);
+```
+
+### Entity CRUD
+
+```ts
+// Create
+const entity = await graph.use("customer").create({ name: "Acme" });
+
+// Read
+const customer = await graph.use("customer").get(entity.id);
+
+// Update
+await graph.use("customer").update(entity.id, { name: "Acme Corp" });
+
+// Delete
+await graph.use("customer").delete(entity.id);
+
+// List
+const page = await graph.use("customer").list({ limit: 25 });
+```
+
+### Relationships
+
+```ts
+await graph.use("customer").addRelationship(
+  "cust_123", "ticket_456", "opened_ticket", { weight: 1 }
+);
+
+const related = await graph.use("customer").relationships("cust_123");
+```
+
+### Semantic search
+
+```ts
+const results = await graph.semanticSearch({
+  entityType: "document",
+  query: "quarterly revenue reports",
+  limit: 5,
+});
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/ontology/README.md =====
+
+# @frontal-labs/ontology
+
+Client for the Frontal Ontology platform (`/v1/ontology/*`). The API is composed
+of independent subdomain services, each exposed as a namespace:
+`engine`, `objects`, `relationships`, `schemas`, `versions`, `validation`,
+`transformations`, `reasoning`, `rollouts`, `rollups`, `extract`, and `events`.
+(The `graph` subdomain is served by `@frontal-labs/graph`.)
+
+## Installation
+
+```bash
+npm install @frontal-labs/ontology
+```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const ontology = f.ontology;
+
+// Generate an ontology with the engine, then browse object types.
+const proposal = await ontology.engine.generate({
+  description: "Model a billing dispute lifecycle with SLA states.",
+});
+const objectTypes = await ontology.objects.listObjectTypes({ limit: 10 });
+```
+
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createOntologyClient } from "@frontal-labs/ontology";
+
+const ontology = createOntologyClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+// Define/validate a schema via the schemas subdomain.
+await ontology.schemas.create({
+  name: "Invoice",
+  fields: [
+    { name: "amount", type: "number", required: true },
+    { name: "currency", type: "string", required: true },
+  ],
+});
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createOntologyClient } from "@frontal-labs/ontology";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const ontology = createOntologyClient(client);
+```
+
+### Validate a payload
+
+```ts
+await ontology.validation.validatePayload({
+  objectType: "Incident",
+  payload: { severity: "high" },
+});
+```
+
+### AI-powered generation & inference
+
+```ts
+const proposal = await ontology.engine.generate({
+  description: "Model a billing dispute lifecycle with ownership and SLA states.",
+  substrates: ["billing", "support"],
+});
+const inferred = await ontology.engine.inferClasses({ samples: [] });
+```
+
+### Versions & rollouts
+
+```ts
+const bundle = await ontology.versions.createReleaseBundle({ version: "2.0.0" });
+const rollout = await ontology.rollouts.create({ bundleId: bundle.id });
+const rolloutId = rollout.id as string;
+await ontology.rollouts.start(rolloutId);
+const status = await ontology.rollouts.status(rolloutId);
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/blob/README.md =====
+
+# @frontal-labs/blob
+
+Object storage SDK — upload, download, streaming, metadata, signed URLs,
+and copy/move operations.
+
+## Installation
+
+```bash
+npm install @frontal-labs/blob
+```
+
+`@frontal-labs/core` is included automatically as a dependency.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const blob = f.blob;
+const file = new Uint8Array([137, 80, 78, 71]);
+
+await blob.upload({
+  bucket: "assets",
+  key: "logo.png",
+  data: file,
+  contentType: "image/png",
+});
+
+const url = await blob.getSignedUrl({
+  bucket: "assets",
+  options: { key: "logo.png", operation: "read", expiresIn: 3_600 },
+});
+```
+
+
+## Usage
+
+### Explicit config
+
+```ts
+import { createBlobClient } from "@frontal-labs/blob";
+
+const blob = createBlobClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+await blob.upload({
+  bucket: "bucket",
+  key: "path/file.pdf",
+  data: Buffer.from("%PDF-1.4"),
+  contentType: "application/pdf",
+});
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createBlobClient } from "@frontal-labs/blob";
+
+const client = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1",
+});
+
+const blob = createBlobClient(client);
+```
+
+### Download and stream
+
+```ts
+const data = await blob.download({ bucket: "bucket", key: "path/file.pdf" });
+
+const stream = await blob.downloadStream({
+  bucket: "bucket",
+  key: "large-file.bin",
+});
+for await (const chunk of stream) {
+  // process chunk
+}
+```
+
+### Metadata
+
+```ts
+const meta = await blob.getMetadata({ bucket: "bucket", key: "path/file.pdf" });
+console.log(meta.size, meta.contentType, meta.lastModified);
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API authentication key |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | Runtime environment (`development`, `test`, `production`) |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/datasets/README.md =====
+
+# @frontal-labs/datasets
+
+Dataset catalog — list datasets, read artifacts, browse schemas and sources, and ingest data.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.datasets`. To install only this
+package: `bun add @frontal-labs/datasets`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const page = await f.datasets.list({ limit: 20 });
+for (const ds of page.data) console.log(ds.id);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createDatasetsClient } from "@frontal-labs/datasets";
+
+const datasets = createDatasetsClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createDatasetsClient } from "@frontal-labs/datasets";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const datasets = createDatasetsClient(client);
+```
+
+### Ingest a record
+
+```ts
+const { runId } = await f.datasets.ingest({
+  dataset: "acme.crm.contacts",
+  payload: { email: "a@example.com", name: "Ada" },
+});
+console.log(runId);
+```
+
+### Browse the catalog
+
+```ts
+const sources = await f.datasets.catalog.sources.list({ limit: 10 });
+const schema = await f.datasets.schemas.get("acme.crm.contacts@v1");
+console.log(sources.data, schema);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/data/README.md =====
+
+# @frontal-labs/data
+
+Data platform sub-domains — aggregations, archival, enrichment, exports, normalization, quality, serving, streams, sync, transformations, federated query and schema registry — behind one client.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.data`. To install only this
+package: `bun add @frontal-labs/data`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const jobs = await f.data.transformations.list({ limit: 10 });
+console.log(jobs.data.length);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createDataClient } from "@frontal-labs/data";
+
+const data = createDataClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createDataClient } from "@frontal-labs/data";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const data = createDataClient(client);
+```
+
+### Run a federated query
+
+```ts
+const result = await f.data.query.federated({
+  sql: "SELECT count(*) FROM acme.crm.contacts",
+});
+console.log(result);
+```
+
+### Create and execute an aggregation
+
+```ts
+const agg = await f.data.aggregations.create({
+  name: "daily-revenue",
+  source: "acme.billing.invoices",
+  groupBy: ["day"],
+});
+const run = await f.data.aggregations.execute(agg.id as string);
+console.log(run);
+```
+
+### Sub-domain health
+
+```ts
+const health = await f.data.quality.health();
+console.log(health);
+```
+Every sub-domain namespace exposes `capabilities()`, `health()`, `info()`,
+`runs()`, `createRun()` and `run(id)` in addition to its resource methods.
+
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/lineage/README.md =====
+
+# @frontal-labs/lineage
+
+Data lineage — traverse the lineage graph, inspect nodes and edges, and analyze the impact of a change before you make it.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.lineage`. To install only this
+package: `bun add @frontal-labs/lineage`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const graph = await f.lineage.graph.get("ds_orders", { depth: 2 });
+console.log(graph.nodes.length, graph.edges.length);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createLineageClient } from "@frontal-labs/lineage";
+
+const lineage = createLineageClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createLineageClient } from "@frontal-labs/lineage";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const lineage = createLineageClient(client);
+```
+
+### Trace a node upstream
+
+```ts
+const trace = await f.lineage.nodes.trace("ds_orders");
+console.log(trace.nodes.map((n) => n.id));
+```
+
+### Impact analysis
+
+```ts
+const impact = await f.lineage.impact.analyzeChange("ds_orders", {
+  field: "customer_id",
+  type: "update",
+});
+for (const r of impact.affectedResources) console.log(r.name, r.impact);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/observability/README.md =====
+
+# @frontal-labs/observability
+
+Logs, metrics, traces, alerts and dashboards — query and ingest.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.observability`. To install only this
+package: `bun add @frontal-labs/observability`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const logs = await f.observability.logs.query({
+  query: 'level:error AND service:"agents"',
+  timeFrom: "2025-01-01T00:00:00Z",
+  timeTo: "2025-01-02T00:00:00Z",
+  limit: 50,
+});
+console.log(logs.data.length);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createObservabilityClient } from "@frontal-labs/observability";
+
+const observability = createObservabilityClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createObservabilityClient } from "@frontal-labs/observability";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const observability = createObservabilityClient(client);
+```
+
+### Correlate by requestId
+
+```ts
+import { FrontalError } from "@frontal-labs/core";
+
+try {
+  await f.ai.generateText({ model: "claude-sonnet-4-6", prompt: "hi" });
+} catch (err) {
+  if (err instanceof FrontalError) {
+    const logs = await f.observability.logs.query({
+      query: `requestId:"${err.requestId}"`,
+      timeFrom: "2025-01-01T00:00:00Z",
+      timeTo: "2025-01-02T00:00:00Z",
+    });
+    console.log(logs.data);
+  }
+}
+```
+
+### One-line telemetry for every SDK call
+
+`registerTelemetry` gives every request a span (OpenTelemetry-compatible) and
+optional hooks; `requestIdOf()` reads the id off any response so you can join
+it with logs, traces and lineage.
+
+```ts
+import { registerTelemetry, requestIdOf } from "@frontal-labs/sdk";
+
+registerTelemetry({
+  // tracer: otel.trace.getTracer("my-app"),   // optional OTel tracer
+  onError: (e) => console.error(e.method, e.path, e.requestId, e.error),
+  onResponse: (e) => console.log(`${e.method} ${e.path} ${e.status} ${e.durationMs}ms`),
+});
+
+const agent = await f.agents.use("agt_1").get();
+const rid = requestIdOf(agent);
+if (rid) {
+  const logs = await f.observability.logs.query({
+    query: `requestId:"${rid}"`,
+    timeFrom: "2025-01-01T00:00:00Z",
+    timeTo: "2025-01-02T00:00:00Z",
+  });
+  console.log(logs.data.length);
+}
+```
+
+### Fetch a trace
+
+```ts
+const trace = await f.observability.traces.get("trc_123");
+console.log(trace);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/audit/README.md =====
+
+# @frontal-labs/audit
+
+Append-only audit events — log who did what to which resource, and query the trail.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.audit`. To install only this
+package: `bun add @frontal-labs/audit`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+await f.audit.log({
+  action: "dataset.export",
+  resource: { type: "dataset", id: "ds_orders" },
+  metadata: { format: "csv" },
+});
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createAuditClient } from "@frontal-labs/audit";
+
+const audit = createAuditClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createAuditClient } from "@frontal-labs/audit";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const audit = createAuditClient(client);
+```
+
+### Query the trail
+
+```ts
+const page = await f.audit.events.list({
+  action: "dataset.export",
+  resourceType: "dataset",
+});
+for (const e of page.data) console.log(e.id, e.action);
+```
+
+### Batch logging
+
+```ts
+await f.audit.events.createBatch([
+  { action: "user.login", resource: { type: "user", id: "usr_1" } },
+  { action: "user.logout", resource: { type: "user", id: "usr_1" } },
+]);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/governance/README.md =====
+
+# @frontal-labs/governance
+
+Policies, compliance, roles, permissions and access checks.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.governance`. To install only this
+package: `bun add @frontal-labs/governance`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const { allowed } = await f.governance.access.check({
+  userId: "usr_1",
+  roleNames: ["editor"],
+  action: "dataset:read",
+});
+console.log(allowed);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createGovernanceClient } from "@frontal-labs/governance";
+
+const governance = createGovernanceClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createGovernanceClient } from "@frontal-labs/governance";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const governance = createGovernanceClient(client);
+```
+
+### Create a policy
+
+```ts
+const policy = await f.governance.policies.create({
+  name: "pii-readonly",
+  description: "PII datasets are read-only for analysts",
+  rules: [
+    {
+      id: "r1",
+      resource: "dataset:pii/*",
+      actions: ["write", "delete"],
+      effect: "deny",
+    },
+  ],
+});
+console.log(policy.id);
+```
+
+### Run a compliance assessment
+
+```ts
+const assessment = await f.governance.compliance.runAssessment({
+  framework: "soc2",
+});
+console.log(assessment);
+```
+
+### List roles
+
+```ts
+const roles = await f.governance.roles.list({ limit: 20 });
+console.log(roles.data);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/auth/README.md =====
+
+# @frontal-labs/auth
+
+Authentication — sign up/in, MFA, account self-service, and an admin surface for user management.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.auth`. To install only this
+package: `bun add @frontal-labs/auth`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const session = await f.auth.signInWithPassword({
+  email: "ada@example.com",
+  password: process.env.DEMO_PASSWORD!,
+});
+console.log(session);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createAuthClient } from "@frontal-labs/auth";
+
+const auth = createAuthClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createAuthClient } from "@frontal-labs/auth";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const auth = createAuthClient(client);
+```
+
+### Admin: invite a user
+
+```ts
+const invited = await f.auth.admin.inviteUserByEmail("grace@example.com");
+console.log(invited);
+```
+
+### Account self-service
+
+```ts
+const profile = await f.auth.account.getProfile();
+console.log(profile);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/billing/README.md =====
+
+# @frontal-labs/billing
+
+Customers, plans, subscriptions, invoices, wallets, meters, prices and add-ons.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.billing`. To install only this
+package: `bun add @frontal-labs/billing`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const plans = await f.billing.plans.list({ limit: 10 });
+console.log(plans.data.map((p) => p.id));
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createBillingClient } from "@frontal-labs/billing";
+
+const billing = createBillingClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createBillingClient } from "@frontal-labs/billing";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const billing = createBillingClient(client);
+```
+
+### Subscription lifecycle
+
+```ts
+const sub = await f.billing.subscriptions.get("sub_1");
+console.log(sub.status, sub.currentPeriodEnd);
+await f.billing.subscriptions.pause("sub_1");
+await f.billing.subscriptions.resume("sub_1");
+```
+
+### Customer usage and entitlements
+
+```ts
+const usage = await f.billing.customers.usage("cus_1");
+const entitlements = await f.billing.customers.entitlements("cus_1");
+console.log(usage, entitlements);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/events/README.md =====
+
+# @frontal-labs/events
+
+Event bus — topics, subscriptions, schemas, publish/subscribe and replays.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.events`. To install only this
+package: `bun add @frontal-labs/events`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+await f.events.publish("orders", [
+  { source: "checkout", type: "order.created", data: { orderId: "ord_1" } },
+]);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createEventsClient } from "@frontal-labs/events";
+
+const events = createEventsClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createEventsClient } from "@frontal-labs/events";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const events = createEventsClient(client);
+```
+
+### Topics and subscriptions
+
+```ts
+const topic = await f.events.topics.create({ name: "orders" });
+const sub = await f.events.subscriptions.create({
+  topic: topic.name,
+  endpoint: "https://example.com/events",
+});
+console.log(sub.id);
+```
+
+### Validate against a schema
+
+```ts
+const ok = await f.events.schemas.validate("order.created", {
+  orderId: "ord_1",
+});
+console.log(ok);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/webhooks/README.md =====
+
+# @frontal-labs/webhooks
+
+Outbound webhooks — register endpoints, inspect and retry deliveries, rotate secrets, and read delivery stats.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.webhooks`. To install only this
+package: `bun add @frontal-labs/webhooks`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const endpoint = await f.webhooks.endpoints.create({
+  url: "https://example.com/hooks/frontal",
+  events: ["agent.run.completed", "workflow.approval.requested"],
+});
+console.log(endpoint.id);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createWebhooksClient } from "@frontal-labs/webhooks";
+
+const webhooks = createWebhooksClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createWebhooksClient } from "@frontal-labs/webhooks";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const webhooks = createWebhooksClient(client);
+```
+
+### Inspect and retry deliveries
+
+```ts
+const deliveries = await f.webhooks.deliveries.list({ webhookId: "wh_1" });
+for (const d of deliveries.data) {
+  if (d.status === "failed") await f.webhooks.deliveries.retry(d.id);
+}
+```
+
+### Rotate a signing secret
+
+```ts
+const { secret } = await f.webhooks.endpoints.rotateSecret("wh_1");
+console.log(secret);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/schedules/README.md =====
+
+# @frontal-labs/schedules
+
+Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.schedules`. To install only this
+package: `bun add @frontal-labs/schedules`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const schedule = await f.schedules.create({
+  name: "nightly-export",
+  cron: "0 2 * * *",
+  timezone: "UTC",
+  target: { type: "workflow", id: "wf_export" },
+});
+console.log(schedule.id);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createSchedulesClient } from "@frontal-labs/schedules";
+
+const schedules = createSchedulesClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createSchedulesClient } from "@frontal-labs/schedules";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const schedules = createSchedulesClient(client);
+```
+
+### Pause, resume, trigger
+
+```ts
+await f.schedules.pause("sch_1");
+await f.schedules.resume("sch_1");
+const run = await f.schedules.trigger("sch_1");
+console.log(run.id);
+```
+
+### Validate a cron expression
+
+```ts
+const check = await f.schedules.cron.validate("0 2 * * *");
+console.log(check);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/workers/README.md =====
+
+# @frontal-labs/workers
+
+Deploy and invoke edge workers.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.workers`. To install only this
+package: `bun add @frontal-labs/workers`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+await f.workers.deploy({
+  name: "hello",
+  code: "export default { fetch: () => new Response('hi') }",
+});
+
+const res = await f.workers.invoke("hello", { path: "/", method: "GET" });
+console.log(await res.text());
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createWorkersClient } from "@frontal-labs/workers";
+
+const workers = createWorkersClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createWorkersClient } from "@frontal-labs/workers";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const workers = createWorkersClient(client);
+```
+
+### Invoke with a JSON body
+
+```ts
+const echo = await f.workers.invoke("hello", {
+  method: "POST",
+  path: "/echo",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ ping: true }),
+});
+console.log(echo.status, await echo.json());
+```
+`invoke()` returns the raw `Response` so you control how the body is read.
+
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/sandbox/README.md =====
+
+# @frontal-labs/sandbox
+
+Isolated code execution with a judge — run snippets, self-test, or submit against test cases.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.sandbox`. To install only this
+package: `bun add @frontal-labs/sandbox`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const result = await f.sandbox.selfTest({
+  language: "python",
+  code: "print(sum(range(10)))",
+});
+console.log(result);
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createSandboxClient } from "@frontal-labs/sandbox";
+
+const sandbox = createSandboxClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createSandboxClient } from "@frontal-labs/sandbox";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const sandbox = createSandboxClient(client);
+```
+
+### Submit against test cases
+
+```ts
+const verdict = await f.sandbox.submit({
+  language: "python",
+  code: "print(int(input()) * 2)",
+  judge: { judgeType: "classic" },
+  task: { cases: [{ caseId: 1, score: 1, input: "21", answer: "42" }] },
+  resourceLimits: { timeLimitMs: 2000 },
+});
+console.log(verdict);
+```
+
+### Supported languages
+
+```ts
+const languages = await f.sandbox.languages();
+console.log(languages);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/connectors/README.md =====
+
+# @frontal-labs/connectors
+
+Source connectors — discover connector definitions, install them per tenant, and replay or diagnose sync runs.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.connectors`. To install only this
+package: `bun add @frontal-labs/connectors`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const definitions = await f.connectors.list();
+console.log(definitions.map((d) => d.slug));
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createConnectorsClient } from "@frontal-labs/connectors";
+
+const connectors = createConnectorsClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createConnectorsClient } from "@frontal-labs/connectors";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const connectors = createConnectorsClient(client);
+```
+
+### Install a connector for a tenant
+
+```ts
+const installation = await f.connectors.installations.create({
+  connectorSlug: "postgres",
+  tenantId: "tn_acme",
+  datasetNamespace: "acme.crm",
+  displayName: "Acme CRM",
+  auth: { mode: "connection_string", secretRef: "secret://acme/pg" },
+});
+console.log(installation.id);
+```
+
+### List installations
+
+```ts
+const page = await f.connectors.installations.list({ tenantId: "tn_acme" });
+for (const inst of page.data) console.log(inst.id, inst.connectorSlug);
+```
+
+### Diagnostics
+
+```ts
+const diag = await f.connectors.diagnostics();
+console.log(diag);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/integrations/README.md =====
+
+# @frontal-labs/integrations
+
+Third-party integrations — install providers with scoped credentials, run and replay actions, test connections and simulate policy.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+The unified SDK exposes this service as `f.integrations`. To install only this
+package: `bun add @frontal-labs/integrations`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const providers = await f.integrations.providers.list();
+console.log(providers.map((p) => p.slug));
+```
+
+## Usage
+
+### Standalone client
+
+```ts
+import { createIntegrationsClient } from "@frontal-labs/integrations";
+
+const integrations = createIntegrationsClient({ apiKey: process.env.FRONTAL_API_KEY! });
+```
+
+### Shared client (multiple SDKs)
+
+```ts
+import { FrontalClient } from "@frontal-labs/core";
+import { createIntegrationsClient } from "@frontal-labs/integrations";
+
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const integrations = createIntegrationsClient(client);
+```
+
+### Create an integration
+
+```ts
+const integration = await f.integrations.create({
+  provider: "slack",
+  tenantId: "tn_acme",
+  displayName: "Acme Slack",
+  config: { defaultChannel: "#alerts" },
+  auth: { scheme: "bearer", secretRef: "secret://acme/slack" },
+});
+console.log(integration.id);
+```
+
+### Test a connection
+
+```ts
+const result = await f.integrations.test("int_123");
+console.log(result);
+```
+
+### Simulate policy scopes
+
+```ts
+const sim = await f.integrations.policy.simulate(
+  ["chat:write", "channels:read"],
+  ["chat:write"]
+);
+console.log(sim);
+```
+## Error handling
+
+All failures throw a typed `FrontalError` subclass (`NotFoundError`,
+`ValidationError`, `RateLimitError`, ...) carrying `code`, `requestId` and
+`statusCode`. See [`@frontal-labs/core`](../core/README.md#error-handling).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | Yes | — | Frontal API key (`frt_...`) |
+| `FRONTAL_API_URL` | No | `https://api.frontal.dev/v1` | Base URL for the Frontal API |
+| `FRONTAL_ENV` | No | `development` | `development` \| `test` \| `production` |
+| `FRONTAL_DEBUG` | No | `false` | Enable debug logging |
+
+
+# ===== packages/react/README.md =====
+
+# @frontal-labs/react
+
+React hooks for the Frontal SDK. Thin, transport-agnostic, no framework
+lock-in: `useChat` talks to any route that returns
+`toUIMessageStreamResponse(...)`; the other hooks take objects from
+`new Frontal(...)`.
+
+## Installation
+
+```bash
+bun add @frontal-labs/sdk @frontal-labs/react
+```
+
+Peer dependency: `react >= 18`.
+
+## Chat in two files (Next.js App Router)
+
+**`app/api/chat/route.ts`** — the server side. `toUIMessageStreamResponse`
+turns `ai.streamText` into a streaming `Response`; model errors arrive as
+frames the UI can render and retry, not as broken connections.
+
+```ts
+import { Frontal, toUIMessageStreamResponse } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+
+export async function POST(req: Request) {
+  const { messages } = (await req.json()) as {
+    messages: Array<{ role: string; content: string }>;
+  };
+  // Never trust roles from the browser: keep the system prompt server-side.
+  const history = messages
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+  return toUIMessageStreamResponse(
+    f.ai.streamText({
+      model: "claude-sonnet-5",
+      prompt: [{ role: "system", content: "You are a helpful assistant." }, ...history],
+      streamRetries: 1,
+    })
+  );
+}
+```
+
+**`app/page.tsx`** — the client side.
+
+```tsx
+"use client";
+import { useChat } from "@frontal-labs/react";
+import { useState } from "react";
+
+export default function Chat() {
+  const { messages, send, status, error, retry, stop } = useChat({ api: "/api/chat" });
+  const [input, setInput] = useState("");
+
+  return (
+    <main>
+      {messages.map((m) => (
+        <div key={m.id}>
+          <b>{m.role}:</b>{" "}
+          {m.parts.map((p, i) =>
+            p.type === "text" ? (
+              <span key={i}>{p.text}</span>
+            ) : p.type === "tool-call" ? (
+              <code key={i}>{p.toolName}({JSON.stringify(p.input)})</code>
+            ) : (
+              <em key={i}>{p.error.message}{p.error.retryable ? " (retryable)" : ""}</em>
+            )
+          )}
+        </div>
+      ))}
+      {error?.retryable && <button onClick={() => retry()}>Retry</button>}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void send(input);
+          setInput("");
+        }}
+      >
+        <input value={input} onChange={(e) => setInput(e.target.value)} />
+        <button disabled={status === "streaming"}>Send</button>
+        {status === "streaming" && <button type="button" onClick={stop}>Stop</button>}
+      </form>
+    </main>
+  );
+}
+```
+
+That is the whole chatbot. A copy-paste version lives in
+[`templates/chatbot`](../../templates/chatbot).
+
+## Hooks
+
+### `useChat(options)`
+
+| Option | Purpose |
+| --- | --- |
+| `api` | Route URL (default `/api/chat`) **or** a `(messages, { signal }) => Promise<Response>` transport |
+| `id`, `body`, `headers` | Sent with every request |
+| `fetch` | Custom fetch (tests, auth) |
+| `onError(err)` | Every error frame (`err.code`, `err.retryable`, `err.fix`) |
+| `onFinish(message)` | When the assistant message completes |
+
+Returns `{ messages, status, error, send, stop, retry, setMessages }`.
+`messages[i].parts` is a discriminated union of `text`, `tool-call`
+(`state: "pending" | "done" | "error"`) and `error`.
+
+### `useAgentRun(agent, options)`
+
+Agents are event-driven, not chat: `trigger(event, payload)` starts a run and
+streams it. With a `stateSchema` on the accessor, `state` is typed.
+
+```tsx
+import { Frontal } from "@frontal-labs/sdk";
+import { useAgentRun } from "@frontal-labs/react";
+import { z } from "zod";
+
+const f = new Frontal({ apiKey: process.env.NEXT_PUBLIC_FRONTAL_API_KEY! });
+const triage = f.agents.use("agt_ticket_triager", {
+  stateSchema: z.object({ tier: z.string(), score: z.number() }),
+});
+
+export function TriagePanel() {
+  const { trigger, events, state, status, error } = useAgentRun(triage);
+  return (
+    <div>
+      <button onClick={() => trigger("support.ticket.created", { ticketId: "t_987" })}>
+        Run
+      </button>
+      <p>{status}{state ? ` — tier ${state.tier} (${state.score})` : ""}</p>
+      {error && <p>{error.code}: {error.fix ?? error.message}</p>}
+      <ul>{events.map((e, i) => <li key={i}>{e.type === "event" ? e.event : e.type}</li>)}</ul>
+    </div>
+  );
+}
+```
+
+### `useWorkflowApprovals(workflows, options)`
+
+The human side of an agent's `approveWhen` contract.
+
+```tsx
+import { Frontal } from "@frontal-labs/sdk";
+import { useWorkflowApprovals } from "@frontal-labs/react";
+
+const f = new Frontal({ apiKey: process.env.NEXT_PUBLIC_FRONTAL_API_KEY! });
+
+export function Inbox() {
+  const { approvals, approve, reject, loading } = useWorkflowApprovals(f.workflows, {
+    pollIntervalMs: 5_000,
+  });
+  if (loading && approvals.length === 0) return <p>Loading…</p>;
+  return (
+    <ul>
+      {approvals.map((a) => (
+        <li key={a.id}>
+          {a.stepId}
+          <button onClick={() => approve(a.id, "LGTM")}>Approve</button>
+          <button onClick={() => reject(a.id)}>Reject</button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Testing
+
+Everything runs against mocks — no gateway, no key:
+
+```ts
+import { AISdk, toUIMessageStreamResponse } from "@frontal-labs/ai";
+import { createTestClient, mockLanguageModel } from "@frontal-labs/testing";
+
+const model = mockLanguageModel({ doGenerate: () => ({ text: "Hello!" }) });
+const ai = new AISdk(createTestClient(model.routes).client.httpClient);
+
+// A fake /api/chat for useChat({ fetch })
+const fetchImpl: typeof fetch = async () =>
+  toUIMessageStreamResponse(ai.streamText({ model: "m", prompt: "hi" }));
+```
+
+See `tests/` in this package for `renderHook` examples.
+
+## Environment Variables
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `FRONTAL_API_KEY` | Server routes | API key (`frt_...`); never ship it to the browser |
+| `NEXT_PUBLIC_FRONTAL_API_KEY` | Client hooks | A browser-scoped key, if your deployment issues them |
+
+
+# ===== packages/testing/README.md =====
+
+# @frontal-labs/testing
+
+Test utilities for every Frontal SDK: a fetch-level mock with route matching
+and request assertions, pre-wired test clients, response builders and
+fixtures. No network, no real API key.
+
+## Installation
+
+```bash
+bun add -d @frontal-labs/testing
+```
+
+Peer dependency: `vitest >= 1`.
+
+## Quick Start
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+import { createTestClient, mockPageResponse } from "@frontal-labs/testing";
+
+const { client, mock } = createTestClient([
+  {
+    method: "GET",
+    path: "/agents",
+    body: mockPageResponse([{ id: "agt_1", name: "triage" }]),
+  },
+]);
+
+const f = new Frontal(client);
+const page = await f.agents.list({ limit: 10 });
+
+mock.expectCalled("GET", "/agents");
+```
+
+`createTestClient(routes)` returns a real `FrontalClient` whose `fetch` is the
+mock, so everything downstream (retries, snake/camel transforms, typed errors)
+behaves exactly as in production.
+
+## API
+
+### `createMockFetch(routes)`
+
+The core primitive. Matches requests by method and path (string substring or
+`RegExp`) and returns JSON responses.
+
+```ts
+import { createMockFetch } from "@frontal-labs/testing";
+
+const mock = createMockFetch([
+  { method: "POST", path: "/ai/chat/completions", body: { choices: [] } },
+  { method: "GET", path: /\/agents\/agt_\w+$/, status: 404, body: { code: "NOT_FOUND" } },
+]);
+
+// Hand `mock.fetch` to any client.
+const res = await mock.fetch("https://api.test/v1/agents/agt_1");
+console.log(res.status); // 404
+
+mock.expectCalled("GET", "/agents/agt_1");
+mock.expectCalledWith("POST", "/ai/chat/completions", { model: "x" }); // asserts body subset
+console.log(mock.callCount("GET", "/agents"));
+console.log(mock.requests); // [{ method, url, path, body, headers }]
+mock.reset();
+```
+
+Unmatched routes return a `404` with a `NOT_FOUND` body, so a typo in a path
+surfaces as a `NotFoundError` rather than a hang.
+
+### `createTestClient(routes)` / `createTestHttpClient(routes)`
+
+```ts
+import { createTestClient, createTestHttpClient } from "@frontal-labs/testing";
+import { createAIClient } from "@frontal-labs/ai";
+
+const { client } = createTestClient();       // FrontalClient
+const { http } = createTestHttpClient();     // HttpClient (what *Sdk classes take)
+
+const ai = createAIClient(client);
+```
+
+### Response builders
+
+```ts
+import { mockErrorResponse, mockPageResponse } from "@frontal-labs/testing";
+
+const page = mockPageResponse([{ id: "a" }, { id: "b" }], {
+  cursor: "next",
+  hasMore: true,
+  total: 42,
+});
+
+const err = mockErrorResponse("RATE_LIMITED", "Slow down");
+```
+
+Use `status` on the route to control the HTTP status:
+
+```ts
+import { createTestClient, mockErrorResponse } from "@frontal-labs/testing";
+import { RateLimitError } from "@frontal-labs/core";
+
+const { client } = createTestClient([
+  {
+    method: "GET",
+    path: "/health",
+    status: 429,
+    body: mockErrorResponse("RATE_LIMITED", "Slow down"),
+    headers: { "retry-after": "5" },
+  },
+]);
+
+try {
+  await client.get("/health");
+} catch (e) {
+  if (e instanceof RateLimitError) console.log(e.retryAfter); // 5
+}
+```
+
+### Fixtures
+
+```ts
+import { fixtures } from "@frontal-labs/testing";
+
+const agent = fixtures.agent({ name: "triage" });
+const entity = fixtures.entity({ type: "customer" });
+const workflow = fixtures.workflow();
+const pipeline = fixtures.pipeline();
+```
+
+Every factory accepts an `overrides` object.
+
+### Integration harness (multi-service)
+
+```ts
+import { createIntegrationHarness, integrationPage } from "@frontal-labs/testing";
+import { EventsSdk } from "@frontal-labs/events";
+import { WebhooksSdk } from "@frontal-labs/webhooks";
+
+const harness = createIntegrationHarness([
+  { method: "GET", path: "/events/topics", body: integrationPage([{ id: "tpc_1" }]) },
+]);
+
+const events = new EventsSdk(harness.createHttp().http);
+const webhooks = new WebhooksSdk(harness.createHttp().http);
+
+await events.topics.list();
+harness.expectCalled("GET", "/events/topics");
+```
+
+### Streams
+
+```ts
+import { createTestClient, simulateStream } from "@frontal-labs/testing";
+
+// As a standalone Response…
+const res = simulateStream({
+  chunks: [{ event: "step", data: { name: "classify" } }, "[DONE]"],
+  chunkDelayMs: 5,
+});
+
+// …or on a route
+const { client } = createTestClient([
+  {
+    method: "GET",
+    path: "/agents/runs/{param}/stream",
+    stream: { chunks: [{ event: "completed", data: {} }] },
+  },
+]);
+```
+
+### Model mock
+
+```ts
+import { createTestClient, mockLanguageModel } from "@frontal-labs/testing";
+import { createAIClient } from "@frontal-labs/ai";
+
+const model = mockLanguageModel({ doGenerate: () => ({ text: "Hello" }) });
+const ai = createAIClient(createTestClient(model.routes).client);
+
+const { text } = await ai.generateText({ model: "any", prompt: "hi" });
+console.log(text, model.calls.length); // "Hello", 1
+```
+
+`doStream` scripts `streamText` (text deltas and tool calls); by default it
+streams `doGenerate().text` word by word.
+
+### Scenarios
+
+```ts
+import { MockFrontal } from "@frontal-labs/testing";
+
+const s = MockFrontal.scenario("happy-path", [
+  { on: "agents.message", return: { id: "run_1", status: "running" } },
+  { on: "agents.run", return: { id: "run_1", status: "completed" } },
+]);
+// use s.client, then:
+s.assertAllHit();
+```
+
+Steps for the same endpoint answer in order. `on` is an alias from
+`scenarioAliases` or `"METHOD /path/{param}"`.
+
+### Vitest setup
+
+`@frontal-labs/testing/src/setup.ts` stubs `globalThis.fetch` and sets
+`FRONTAL_API_KEY`/`FRONTAL_ENV=test` for you:
+
+```ts
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: { setupFiles: ["@frontal-labs/testing/src/setup.ts"] },
+});
+```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `FRONTAL_API_KEY` | No | `frt_test-api-key-...` | Set automatically by `setupTestEnvironment()` |
+| `FRONTAL_ENV` | No | `test` | Set automatically by `setupTestEnvironment()` |
+
+
+# ===== docs/TESTING.md =====
+
+# Testing Guide
+
+This guide covers testing strategies, tools, and best practices for the Frontal
+SDK monorepo.
+
+## Testing Stack
+
+We use a modern testing stack to ensure code quality and reliability:
+
+- **Bun Test** - Fast test runner built into Bun, compatible with Vitest APIs
+- **Vitest** - Test utilities (`describe`, `it`, `expect`, `vi`, `mock`, etc.)
+- **@frontal-labs/testing** - Shared mock clients, fixtures, and test harness
+- **Biome** - Linting and formatting for consistent code style
+
+## Test Structure
+
+### Directory Layout
+
+```text
+packages/
+├── ai/
+│   ├── src/
+│   ├── tests/
+│   │   ├── ai.test.ts
+│   │   └── ...
+│   └── package.json
+└── ...
+```
+
+### Test Types
+
+1. **Unit Tests** - Test individual functions and service methods in isolation,
+   using mock fetch from `@frontal-labs/testing`
+2. **Integration Tests** - Test interactions with a mocked HTTP transport layer
+3. **Live Compatibility Tests** - Smoke tests against live Frontal API backends
+   (`bun run test:live`)
+
+## Running Tests
+
+### Basic Commands
+
+```bash
+# Run all tests at the root level (vitest)
+bun run test
+
+# Run tests for a specific package
+cd packages/ai
+bun test
+
+# Run live backend compatibility checks
+bun run test:live
+```
+
+## Writing Tests
+
+### Test File Naming
+
+- Tests: `*.test.ts` at the package level
+
+### Test Structure Example
+
+```typescript
+import { describe, expect, it } from "vitest";
+import { AISdk } from "@frontal-labs/ai";
+import { createTestClient, mockLanguageModel } from "@frontal-labs/testing";
+
+describe("AISdk", () => {
+  it("sends a chat completion request", async () => {
+    const model = mockLanguageModel({ doGenerate: () => ({ text: "Hello from AI" }) });
+    const { client, mock } = createTestClient(model.routes);
+    const ai = new AISdk(client.httpClient);
+
+    const result = await ai.generateText({
+      model: "claude-sonnet-4-6",
+      prompt: "Hello",
+    });
+
+    expect(result.text).toBe("Hello from AI");
+    mock.expectCalled("POST", "/ai/chat/completions");
+  });
+});
+```
+
+## Best Practices
+
+### 1. Test Organization
+
+- Group related tests with `describe` blocks
+- Use clear, descriptive test names
+- Arrange-Act-Assert pattern for test structure
+
+### 2. Mocking and Fixtures
+
+`@frontal-labs/testing` mocks at three levels. All of them run the *real* SDK
+code (retries, snake/camel transforms, typed errors) — only `fetch` is faked.
+
+#### Recipe A — fetch mock (any endpoint)
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { createTestClient, mockPageResponse } from "@frontal-labs/testing";
+
+const { client, mock } = createTestClient([
+  { method: "GET", path: "/agents", body: mockPageResponse([{ id: "agt_1" }]) },
+  // `{param}` wildcards use the same vocabulary as contracts/sdk-endpoints.json
+  { method: "GET", path: "/agents/{param}", status: 404, body: { code: "NOT_FOUND", message: "nope" } },
+  // Serve SSE for streaming endpoints
+  { method: "GET", path: "/agents/runs/{param}/stream", stream: { chunks: [{ event: "completed", data: {} }] } },
+]);
+
+const f = new Frontal(client);
+await f.agents.list({ limit: 1 });
+mock.expectCalled("GET", "/agents");
+```
+
+Routes also accept `handler(request)` for dynamic responses and `times` to
+answer only N calls (so several routes for one path answer in order).
+
+#### Recipe B — model mock (AI without a gateway)
+
+`mockLanguageModel` scripts what the model says; the SDK's request building
+and response parsing still run end to end.
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { tool } from "@frontal-labs/ai";
+import { createTestClient, mockLanguageModel } from "@frontal-labs/testing";
+import { z } from "zod";
+
+const model = mockLanguageModel({
+  doGenerate: (call) => ({
+    text: `You said: ${call.messages.at(-1)?.content}`,
+    toolCalls: [{ toolName: "classify", input: { text: "hi" } }],
+  }),
+  doStream: () => ["Hel", "lo", { toolCall: { toolName: "classify", input: { text: "hi" } } }],
+});
+
+const f = new Frontal(createTestClient(model.routes).client);
+
+const result = await f.ai.generateText({
+  model: "claude-sonnet-5",
+  prompt: "hi",
+  tools: { classify: tool({ description: "c", inputSchema: z.object({ text: z.string() }) }) },
+});
+console.log(result.text, result.toolCalls);        // parsed by the real SDK
+console.log(model.calls[0]?.tools?.[0]?.function); // what the SDK sent
+```
+
+#### Recipe C — scenario (multi-step, sequenced)
+
+```ts
+import { Frontal } from "@frontal-labs/sdk";
+import { MockFrontal } from "@frontal-labs/testing";
+
+const s = MockFrontal.scenario("refund-approved", [
+  { on: "agents.message", return: { id: "run_1", status: "running" } },
+  { on: "agents.run", return: { id: "run_1", status: "running" } },
+  { on: "agents.run", return: { id: "run_1", status: "completed" } },
+  { on: "agents.watch", stream: { chunks: [{ event: "state", data: { tier: "enterprise" } }] } },
+  { on: "workflows.approvals.approve", return: { id: "apr_1", status: "approved" } },
+]);
+
+const f = new Frontal(s.client);
+const agent = f.agents.use("agt_1");
+const run = await agent.message("support.ticket.created", { ticketId: "t_1" });
+await agent.waitForCompletion(run.id, { interval: 1 });
+for await (const part of agent.watch(run.id)) {
+  if (part.type === "event" && part.event === "state") {
+    await f.workflows.approvals.approve("apr_1", "LGTM");
+  }
+}
+s.assertAllHit(); // throws listing any step that was never reached
+```
+
+`on` accepts an alias (`agents.message`, `ai.generateText`, … see
+`scenarioAliases`) or an explicit `"METHOD /path/{param}"`.
+
+#### Streams in isolation
+
+`simulateStream({ chunks, chunkDelayMs, done })` returns a `Response` you can
+hand to any mock `fetch` — useful for UI tests that consume `fullStream`.
+
+### 3. Async Testing
+
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
+it("should handle async operations", async () => {
+  const result = await service.query();
+  expect(result).toBeDefined();
+});
+```
+
+### 4. Error Handling
+
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
+it("should throw appropriate errors", () => {
+  expect(() => invalidOperation()).toThrow("Expected error message");
+});
+```
+
+## Coverage Requirements
+
+We maintain high code quality with comprehensive coverage:
+
+- **Target Coverage**: 90%+ for all packages
+- **Critical Paths**: 100% coverage required
+- **New Features**: Must include tests before merging
+
+### Running with Coverage
+
+```bash
+# Coverage in a package
+cd packages/<name>
+bun test --coverage
+```
+
+## Integration Testing
+
+### External Service Testing
+
+For packages that interact with external services, use the test HTTP client
+from `@frontal-labs/testing` instead of making real network calls:
+
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
+import { createTestHttpClient } from "@frontal-labs/testing";
+
+describe("Service", () => {
+  it("should call the API", async () => {
+    const { http } = createTestHttpClient([
+      { method: "GET", path: "/v1/items/1", body: { id: "1", name: "Test" } },
+    ]);
+    const service = new MyService(http);
+
+    const result = await service.get("1");
+
+    expect(result.name).toBe("Test");
+  });
+});
+```
+
+### Environment Configuration
+
+Use environment variables for integration tests:
+
+```bash
+# .env.test
+FRONTAL_API_KEY=test_key
+TEST_ENDPOINT=https://api.test.com
+```
+
+## Continuous Integration
+
+### GitHub Actions
+
+Our CI pipeline runs tests automatically:
+
+- **Unit Tests** on every push and PR
+- **Format and Lint checks** on every push and PR
+- **Build and Type Check** on every push to main branches
+
+### Test Environment
+
+We test across:
+
+- **Runtime**: Node.js (v18, v20, v22), Bun (latest)
+- **OS**: Ubuntu, macOS
+
+## Debugging Tests
+
+Enable verbose output for debugging:
+
+```bash
+bun test --reporter=verbose
+```
+
+## Test Data Management
+
+### Fixtures
+
+Use `@frontal-labs/testing` for shared fixtures:
+
+```typescript
+import { fixtures, createTestHttpClient } from "@frontal-labs/testing";
+
+// Pre-built fixtures for entity types
+const agent = fixtures.agent({ name: "test-agent" });
+const workflow = fixtures.workflow({ name: "test-workflow" });
+
+// Custom test HTTP client
+const { http } = createTestHttpClient([
+  { method: "GET", path: "/v1/data", body: { data: "response" } },
+]);
+```
+
+## Common Pitfalls
+
+### 1. Test Isolation
+
+Ensure tests don't depend on each other:
+
+```typescript
+beforeEach(() => {
+  // Reset state before each test
+});
+```
+
+### 2. Async Cleanup
+
+Clean up resources properly:
+
+```typescript skip
+// TODO(example): illustrative pseudo-code with placeholder names; not compiled.
+afterEach(async () => {
+  await cleanupResources();
+});
+```
+
+### 3. Time-Based Tests
+
+Use fake timers for time-dependent tests:
+
+```typescript
+import { vi } from 'vitest';
+
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+```
+
+## Resources
+
+- [Vitest Documentation](https://vitest.dev/)
+- [Bun Testing](https://bun.sh/docs/test)
+- [Testing Best Practices][tbp]
+
+[tbp]: https://github.com/goldbergyoni/javascript-testing-best-practices
+
+## Contributing
+
+When contributing:
+
+1. Write tests for new features
+2. Maintain existing test coverage
+3. Update documentation for test changes
+4. Ensure all tests pass before submitting PRs
+
+
+# ===== examples/SDKS_GUIDE.md =====
+
+# Frontal SDKs: Comprehensive Guide, Use Cases, and Examples
+
+This guide covers all SDK packages in this repository:
+
+- `@frontal-labs/core`
+- `@frontal-labs/ai`
+- `@frontal-labs/agents`
+- `@frontal-labs/workflows`
+- `@frontal-labs/pipelines`
+- `@frontal-labs/graph`
+- `@frontal-labs/ontology`
+- `@frontal-labs/blob`
+- `@frontal-labs/workers`
+- `@frontal-labs/testing`
+- `@frontal-labs/auth`
+- `@frontal-labs/observability`
+- `@frontal-labs/events`
+- `@frontal-labs/audit`
+- `@frontal-labs/governance`
+- `@frontal-labs/billing`
+- `@frontal-labs/webhooks`
+- `@frontal-labs/schedules`
+- `@frontal-labs/sandbox`
+- `@frontal-labs/datasets`
+- `@frontal-labs/lineage`
+- `@frontal-labs/connectors`
+- `@frontal-labs/data`
+- `@frontal-labs/integrations`
+
+It includes architecture, setup, usage patterns, and end-to-end examples.
+
+## 1) Global Setup
+
+Install:
+
+```bash
+bun add @frontal-labs/sdk
+```
+
+Typical environment variables:
+
+```bash
+FRONTAL_API_KEY=frt_...
+FRONTAL_API_URL=https://api.frontal.dev/v1
+FRONTAL_ENV=development
+```
+
+One client, every service. All examples in this guide assume this setup:
+
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1",
+  timeout: 30_000,
+  maxRetries: 2,
+});
+
+// Service handles used throughout the guide.
+const {
+  ai, agents, workflows, pipelines, graph, ontology, blob, workers, auth,
+  observability, events, audit, governance, billing, webhooks, schedules,
+  sandbox, datasets, lineage, connectors, data, integrations,
+} = f;
+const obs = observability;
+const client = f.client; // underlying FrontalClient for raw calls
+```
+
+Prefer a single package? Every service is also published standalone
+(`@frontal-labs/ai`, `@frontal-labs/agents`, ...) with a `createXClient()`
+factory that accepts either `{ apiKey }` or a shared `FrontalClient`.
+
+## 2) `@frontal-labs/core`
+
+### What it does
+
+Core transport/runtime used by all packages:
+
+- request methods: `get`, `post`, `put`, `patch`, `delete`
+- raw/form support: `getRaw`, `postRaw`, `putRaw`, `postFormData`
+- SSE streaming: `stream`, `postStream`
+- retries, timeout, typed errors
+- pagination and polling helpers
+
+### Use cases
+
+- Build your own internal SDK on top of Frontal APIs
+- Access non-modeled routes while keeping consistent auth/retry/error behavior
+- Implement long-running operation polling and SSE consumers
+
+### Example: custom endpoint + polling
+
+```ts
+import { FrontalClient, pollUntil } from "@frontal-labs/core";
+
+const core = new FrontalClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: "https://api.frontal.dev/v1"
+});
+
+const run = await core.post<{ runId: string }>("/workflows/batch", {
+  operation: "custom.start",
+  payload: { tenant: "acme" }
+});
+
+const final = await pollUntil(
+  () => core.get<{ status: string; output?: unknown }>(`/workflows/runs/${run.runId}`),
+  {
+    interval: 2000,
+    timeout: 120_000,
+    until: (x) => ["completed", "failed", "cancelled"].includes(x.status)
+  }
+);
+```
+
+## 3) `@frontal-labs/ai`
+
+### What it does
+
+Inference SDK for `ai.frontal.dev`:
+
+- text generation (`generateText`)
+- streaming text (`streamText`)
+- embeddings (`embed`)
+- structured outputs (`generateObject`)
+- media helpers (speech/transcription/image/video/moderation)
+- model listing
+
+### Use cases
+
+- customer support copilots
+- extraction and classification pipelines
+- semantic search + retrieval
+- prompt templates and tool execution loops
+
+### Example: generate + stream + embeddings
+
+```ts
+import { createAIClient } from "@frontal-labs/ai";
+
+const ai = createAIClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_AI_API_URL ?? "https://ai.frontal.dev"
+});
+
+const summary = await ai.generateText({
+  model: "gpt-4o-mini",
+  prompt: "Summarize this support ticket in 4 bullet points."
+});
+
+const stream = ai.streamText({
+  model: "gpt-4o-mini",
+  prompt: "Draft a response email from the summary.",
+  onChunk: (chunk) => process.stdout.write(chunk)
+});
+
+for await (const _chunk of stream.textStream as any) {}
+
+const emb = await ai.embed({
+  model: "text-embedding-3-small",
+  input: "How to reset account password"
+});
+```
+
+### Example: structured object generation
+
+```ts
+const incident = await ai.generateObject({
+  model: "gpt-4o-mini",
+  prompt: "Extract severity, service, customerImpact from this report: ...",
+  schema: {
+    type: "object",
+    properties: {
+      severity: { type: "string" },
+      service: { type: "string" },
+      customerImpact: { type: "string" }
+    },
+    required: ["severity", "service", "customerImpact"]
+  }
+});
+```
+
+## 4) `@frontal-labs/agents`
+
+### What it does
+
+Agent lifecycle and execution SDK:
+
+- builder-based definition (`define(...)`)
+- create/list/get/update/delete
+- deploy/pause/resume/rollback/simulate
+- executions, escalations, experiments
+- timeline/event watching
+
+### Use cases
+
+- policy-aware autonomous assistants
+- delegated decision workflows
+- controlled rollout/experimentation for agent strategies
+
+### Example: define an agent
+
+```ts
+const agent = await agents
+  .define("ticket-triager")
+  .description("Classifies and routes tickets")
+  .trigger("support.ticket.created")
+  .tags("support", "triage")
+  .create();
+
+console.log(agent.id, agent.status); // resource fields + accessor methods
+```
+
+### Example: typed agent (state, tools, approval)
+
+`define(name, options)` is the one-shot form. `stateSchema` types the run
+stream, `tools` share the `ToolSet` type with `ai.generateText`, and
+`approveWhen` declares when a human must sign off. These three are
+client-side contracts — they are not sent to the agents API.
+
+```ts
+import { tool, toApprovalStep } from "@frontal-labs/agents";
+import { z } from "zod";
+
+const triage = agents.define("ticket-triager", {
+  description: "Classifies and routes tickets",
+  triggers: "support.ticket.created",
+  stateSchema: z.object({ tier: z.string(), score: z.number() }),
+  tools: {
+    classify: tool({ description: "Classify a ticket", inputSchema: z.object({ text: z.string() }) }),
+    route: tool({ description: "Route to a queue", inputSchema: z.object({ queue: z.string() }) }),
+  },
+  approveWhen: (s) => s.tier === "enterprise",
+  approvers: ["support-leads"],
+});
+
+const created = await triage.create();
+const run = await created.message("support.ticket.created", { ticketId: "t_987" });
+
+for await (const e of created.watch(run.id)) {
+  if (e.type === "state" && created.requiresApproval(e.state)) {
+    console.log("needs a human:", e.state.tier);
+  }
+}
+
+// The approval contract maps 1:1 onto a workflow approval step.
+const step = toApprovalStep("ticket-triager", created.hints);
+await workflows
+  .define("triage-review")
+  .manual()
+  .approval(step.id, step.config.approvers, { name: step.name })
+  .create();
+```
+
+Re-attach to an existing agent with the same typing:
+`agents.use("agt_123", { stateSchema })`.
+
+### Example: run + watch
+
+```ts
+// Starting a run returns the run object; watch it via SSE.
+const agent = agents.use("agt_ticket_triager");
+const run = await agent.message("support.ticket.created", {
+  ticketId: "t_987",
+  text: "Payment failed after plan upgrade"
+});
+
+for await (const event of agent.watch(run.id)) {
+  if (event.type === "event") console.log(event.event, event.data);
+  if (event.type === "error") console.error(event.error.code, event.error.retryable);
+}
+
+// Or poll to completion, then read the transcript.
+const done = await agent.waitForCompletion(run.id);
+const transcript = await agent.conversation(run.id);
+```
+
+## 5) `@frontal-labs/workflows`
+
+### What it does
+
+Workflow orchestration SDK:
+
+- workflow builder DSL (manual/schedule/event/webhook triggers)
+- workflow steps (task, approval, condition, parallel, delay, notification)
+- create/update/delete/activate/pause
+- trigger and query executions
+- approvals/templates/steps APIs
+
+### Use cases
+
+- approvals and governance flows
+- incident management playbooks
+- multi-step customer onboarding
+
+### Example: approval workflow
+
+```ts
+import { createWorkflowsClient } from "@frontal-labs/workflows";
+
+const workflows = createWorkflowsClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
+});
+
+const wf = await workflows
+  .define("invoice-approval")
+  .manual()
+  .task("validate", { ruleset: "invoice-v1" })
+  .approval("manager-approval", ["finance@acme.com"])
+  .task("post-ledger", { system: "erp" })
+  .notification("notify-requester", "Invoice approved", ["email"])
+  .create();
+
+const run = await workflows.use(wf.id).trigger({ invoiceId: "inv_001" });
+const done = await workflows.use(wf.id).waitForCompletion(run.id);
+```
+
+## 6) `@frontal-labs/pipelines`
+
+### What it does
+
+Data pipeline orchestration SDK:
+
+- pipeline builder (`collect`, `transform`, `enrich`, `validate`, `write`, `notify`)
+- source definitions (`fromManual`, `fromSchedule`, `fromWebhook`, `fromGraph`)
+- create/update/delete/list/get
+- run management, backfills, health, lineage
+
+### Use cases
+
+- CRM-to-graph synchronization
+- daily data quality and normalization jobs
+- historical reprocessing and backfills
+
+### Example: scheduled ingest pipeline
+
+```ts
+import { createPipelinesClient } from "@frontal-labs/pipelines";
+
+const pipelines = createPipelinesClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
+});
+
+const pipeline = await pipelines
+  .define("crm-sync")
+  .fromSchedule("0 * * * *")
+  .collect("fetch-crm", { source: "salesforce" })
+  .transform("normalize", { mapping: { company_name: "companyName" } })
+  .write("upsert-graph", { target: "graph" })
+  .create();
+
+const run = await pipelines.use(pipeline.id).trigger({ dryRun: false });
+const final = await pipelines.use(pipeline.id).waitForRun(run.id);
+```
+
+## 7) `@frontal-labs/graph`
+
+### What it does
+
+Graph operations SDK:
+
+- query/analyze/neighborhood/path/build
+- entity accessor (`use(entityType).get/create/update/delete/list`)
+- relationships add/remove
+- history/provenance and revert-like run patterns
+
+### Use cases
+
+- entity lookups and graph traversal
+- knowledge graph enrichment
+- provenance-aware debugging of state changes
+
+### Example: query + relationships
+
+```ts
+import { createGraphClient } from "@frontal-labs/graph";
+
+const graph = createGraphClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
+});
+
+const entities = await graph.query({
+  entityType: "customer",
+  conditions: { tier: "enterprise" },
+  limit: 25
+});
+
+await graph.use("customer").addRelationship(
+  "cust_123",
+  "ticket_456",
+  "opened_ticket",
+  { weight: 1 }
+);
+```
+
+## 8) `@frontal-labs/ontology`
+
+### What it does
+
+Ontology/modeling SDK:
+
+- model lifecycle accessor
+- ontology validation/generation/inference operations
+- migrations namespace
+- rules and mixins namespaces
+- suggestions acceptance/rejection flows
+
+### Use cases
+
+- domain schema evolution
+- automated ontology proposal generation
+- controlled migration planning and rollout
+
+### Example: validate + generate
+
+```ts
+import { createOntologyClient } from "@frontal-labs/ontology";
+
+const ontology = createOntologyClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
+});
+
+await ontology.validation.validatePayload({
+  objectType: "Incident",
+  payload: { severity: "high" }
+});
+
+const proposal = await ontology.engine.generate({
+  description: "Model a billing dispute lifecycle with ownership and SLA states.",
+  substrates: ["billing", "support"]
+});
+
+// Browse the resulting object and relationship types.
+const objectTypes = await ontology.objects.listObjectTypes();
+const relTypes = await ontology.relationships.listTypes();
+```
+
+## 9) `@frontal-labs/blob`
+
+### What it does
+
+Blob/object storage SDK:
+
+- upload/download/downloadStream
+- list/getMetadata/delete
+- signed URLs
+- copy/move object operations
+
+### Use cases
+
+- artifact storage for workflows and pipelines
+- document ingestion for AI
+- signed temporary access for client uploads/downloads
+
+### Example: upload + sign + metadata
+
+```ts
+import { createBlobClient } from "@frontal-labs/blob";
+
+const blob = createBlobClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
+});
+
+await blob.upload({
+  bucket: "contracts",
+  key: "2026/q2/master.pdf",
+  data: Buffer.from("...binary..."),
+  contentType: "application/pdf",
+});
+
+const url = await blob.getSignedUrl({
+  bucket: "contracts",
+  options: { key: "2026/q2/master.pdf", operation: "read", expiresIn: 900 },
+});
+
+const meta = await blob.getMetadata({ bucket: "contracts", key: "2026/q2/master.pdf" });
+```
+
+## 10) `@frontal-labs/workers`
+
+### What it does
+
+Serverless Workers SDK for the Frontal edge runtime (`/v1/workers`):
+
+- `deploy` a worker from source
+- `invoke` a deployed worker by path (returns the raw `Response`)
+
+> Renamed from `@frontal-labs/functions` — the backend edge runtime calls these
+> **workers**.
+
+### Use cases
+
+- internal automation hooks
+- lightweight per-request computation at the edge
+- reusable callable business actions
+
+### Example: deploy + invoke
+
+```ts
+import { createWorkersClient } from "@frontal-labs/workers";
+
+const workers = createWorkersClient({
+  apiKey: process.env.FRONTAL_API_KEY!,
+  baseUrl: process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1"
+});
+
+await workers.deploy({
+  name: "score-lead",
+  entrypoint: "default",
+  code: "export default () => Response.json({ score: 42 })",
+  envVars: { MODEL: "v2" }
+});
+
+const res = await workers.invoke("score-lead", {
+  method: "POST",
+  path: "/",
+  body: JSON.stringify({ leadId: "l_123" })
+});
+const result = await res.json();
+```
+
+## 11) `@frontal-labs/testing`
+
+### What it does
+
+Testing toolkit for SDK consumers and package maintainers:
+
+- mock HTTP routes and fetch
+- capture/assert requests
+- create test clients quickly
+- mock pagination payload helper
+
+### Use cases
+
+- unit tests for services using Frontal SDKs
+- integration-style tests without network calls
+- regression tests for payload shape and route mapping
+
+### Example
+
+```ts
+import { createTestClient, mockPageResponse } from "@frontal-labs/testing";
+
+const { client, mock } = createTestClient([
+  { method: "GET", path: "/workflows", body: mockPageResponse([]) }
+]);
+
+const f = new Frontal(client);
+await f.workflows.list({ limit: 1 });
+
+mock.expectCalled("GET", "/workflows");
+```
+
+## 12) `@frontal-labs/auth`
+
+### What it does
+
+GoTrue-compatible authentication SDK under `api.frontal.dev/v1`:
+
+- client-side: signUp, signInWithPassword, signInWithOAuth, signInWithOtp, signInWithSSO, signInAnonymously
+- session management: getSession, getUser, updateUser, refreshSession, signOut
+- MFA: enroll (TOTP/phone/webauthn), challenge, verify, unenroll, listFactors
+- OAuth 2.1 server API, Web3 auth, PKCE code exchange
+- admin operations (service_role key): createUser, listUsers, getUserById, updateUserById, deleteUser, inviteUserByEmail, generateLink
+
+### Use cases
+
+- user authentication for web/mobile apps
+- enterprise SSO integration
+- multi-factor enrollment and verification
+- server-side user administration and invitation
+
+### Example: sign-up, sign-in, and session refresh
+
+```ts
+import { createAuthClient } from "@frontal-labs/auth";
+
+const auth = createAuthClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const signUp = await auth.signUp({
+  email: "dev@example.com",
+  password: "super-secret-123"
+});
+
+const signIn = await auth.signInWithPassword({
+  email: "dev@example.com",
+  password: "super-secret-123"
+});
+
+const session = signIn.data.session;
+if (session) {
+  const refreshed = await auth.refreshSession({
+    refreshToken: session.refreshToken
+  });
+  console.log(refreshed.data.user?.id);
+}
+
+await auth.signOut();
+```
+
+### Example: admin user management
+
+```ts
+import { createAuthClient } from "@frontal-labs/auth";
+
+const admin = createAuthClient({
+  apiKey: process.env.FRONTAL_SERVICE_ROLE_KEY!
+});
+
+const user = await admin.admin.createUser({
+  email: "new-dev@example.com",
+  password: "temp-password-123",
+  emailConfirm: true,
+  userMetadata: { department: "engineering" }
+});
+
+const users = await admin.admin.listUsers({ page: 1, perPage: 20 });
+await admin.admin.inviteUserByEmail("colleague@example.com");
+```
+
+### Example: MFA enrollment and verification
+
+```ts
+// MFA responses are untyped today; narrow them yourself.
+const enroll = (await auth.mfa.enroll({
+  factorType: "totp",
+  friendlyName: "Auth app",
+  issuer: "Frontal"
+})) as { data: { id: string } };
+
+const challenge = (await auth.mfa.challenge({ factorId: enroll.data.id })) as {
+  data: { id: string };
+};
+const verify = await auth.mfa.verify({
+  factorId: enroll.data.id,
+  challengeId: challenge.data.id,
+  code: "123456"
+});
+```
+
+## 13) `@frontal-labs/observability`
+
+### What it does
+
+Monitoring and telemetry SDK:
+
+- logs: query (paginated), stream (SSE), ingest
+- metrics: query time series, list available metrics, ingest data points
+- traces: get by ID, list and query with filters
+- alerts: CRUD, enable/disable, incident listing
+- dashboards: CRUD with widgets, share with expiry
+
+### Use cases
+
+- centralized log aggregation and search
+- real-time metric dashboards
+- distributed tracing for microservices
+- alerting and incident management
+
+### Example: logs and metrics
+
+```ts
+import { createObservabilityClient } from "@frontal-labs/observability";
+
+const obs = createObservabilityClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const logs = await obs.logs.query({
+  query: "level:error",
+  timeFrom: new Date(Date.now() - 3600000).toISOString(),
+  timeTo: new Date().toISOString(),
+  limit: 50
+});
+
+for await (const entry of logs) {
+  console.log(`[${entry.level}] ${entry.service}: ${entry.message}`);
+}
+
+const metrics = await obs.metrics.query("cpu_usage", {
+  from: new Date(Date.now() - 3600000).toISOString(),
+  to: new Date().toISOString(),
+  granularity: "1m"
+});
+```
+
+### Example: alerts and dashboards
+
+```ts
+const alert = await obs.alerts.create({
+  name: "High Error Rate",
+  metric: "http_errors",
+  condition: ">=",
+  threshold: 0.05,
+  severity: "critical",
+  duration: "5m",
+  channels: ["email", "slack"],
+  enabled: true
+});
+
+const dash = await obs.dashboards.create({
+  name: "API Overview",
+  widgets: [
+    { id: "w1", type: "line", title: "Request Rate", metric: "http_requests", width: 12, height: 3 },
+    { id: "w2", type: "stat", title: "P99 Latency", metric: "http_latency_p99", width: 6, height: 2 }
+  ]
+});
+
+const shared = await obs.dashboards.share(dash.id, { expiresIn: "24h" });
+```
+
+## 14) `@frontal-labs/events`
+
+### What it does
+
+Event bus and pub/sub SDK:
+
+- publish events to topics with CloudEvents-compatible envelope
+- subscribe/unsubscribe with endpoint and filter configuration
+- topic CRUD and listing
+- subscription lifecycle (pause/resume)
+- dead-letter queue inspection, replay, and purge
+- event schema registry (validate event payloads)
+
+### Use cases
+
+- service-to-service asynchronous communication
+- webhook delivery fan-out
+- event sourcing and CQRS patterns
+- dead-letter recovery and replay
+
+### Example: publish and subscribe
+
+```ts
+import { createEventsClient } from "@frontal-labs/events";
+
+const events = createEventsClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const topic = await events.topics.create({
+  name: "orders.created",
+  description: "Fired when a new order is placed"
+});
+
+await events.publish("orders.created", [{
+  source: "orders-service",
+  type: "order.created",
+  data: { order_id: "ord_1234", amount: 99.99, currency: "USD" },
+  metadata: { userId: "usr_abc" }
+}]);
+
+const sub = await events.subscribe("orders.created", {
+  endpoint: "https://hooks.myapp.com/orders",
+  filter: "event.data.amount > 50"
+});
+
+await events.subscriptions.pause(sub.id);
+await events.subscriptions.resume(sub.id);
+```
+
+### Example: replays and consumers
+
+```ts
+// Replay previously-published (e.g. failed) events.
+await events.replays.create({ topic: "orders.created" });
+const replays = await events.replays.list({ limit: 25 });
+
+// Inspect consumers and routing.
+const consumers = await events.consumers.list();
+const routes = await events.routes.list();
+```
+
+## 15) `@frontal-labs/audit`
+
+### What it does
+
+Audit trail and compliance SDK:
+
+- log audit events with actor, action, resource, and status
+- query events with time range, action, and status filters
+- export audit logs as CSV or JSON
+- audit trail management (create named filters)
+- compliance check execution and result retrieval
+
+### Use cases
+
+- SOC 2 / ISO 27001 compliance logging
+- change tracking across the platform
+- security incident investigation
+- automated compliance reporting
+
+### Example: logging and querying
+
+```ts
+import { createAuditClient } from "@frontal-labs/audit";
+
+const audit = createAuditClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+await audit.log({
+  action: "pipeline.triggered",
+  resource: { type: "pipeline", id: "ppl_abc" },
+  metadata: { triggered_by: "schedule", schedule_id: "sch_1" },
+  status: "success"
+});
+
+const results = await audit.events.list({
+  action: "pipeline.triggered",
+  resourceType: "pipeline",
+});
+for (const event of results.data) console.log(event.id, event.action);
+```
+
+## 16) `@frontal-labs/governance`
+
+### What it does
+
+Policy and RBAC governance SDK:
+
+- policy CRUD with rules (resource, actions, effect, conditions)
+- policy evaluation with context
+- RBAC binding management (user → role → resource)
+- access check queries
+
+### Use cases
+
+- attribute-based access control (ABAC)
+- compliance policy enforcement
+- least-privilege access management
+- policy-as-code workflows
+
+### Example: policies and RBAC
+
+```ts
+import { createGovernanceClient } from "@frontal-labs/governance";
+
+const gov = createGovernanceClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const policy = await gov.policies.create({
+  name: "No public dataset access",
+  category: "data_protection",
+  definition: { effect: "deny", resource: "datasets.*", actions: ["read", "export"] },
+  definitionFormat: "rego"
+});
+
+// Validate a definition without saving, and browse templates.
+const validation = await gov.policies.validate({
+  definition: policy.definition,
+  definitionFormat: "rego"
+});
+const templates = await gov.policies.templates();
+
+// Compliance: run an assessment and read the score.
+const assessment = await gov.compliance.runAssessment({ framework: "soc2" });
+const score = await gov.compliance.score({ framework: "soc2" });
+
+// RBAC: roles, permissions, and access checks.
+const access = await gov.access.check({
+  userId: "usr_abc",
+  roleNames: ["pipeline-operator"],
+  action: "update",
+  resourceType: "pipeline"
+});
+```
+
+## 17) `@frontal-labs/billing`
+
+### What it does
+
+Billing and subscription management SDK:
+
+- plan listing and retrieval
+- subscription lifecycle (create, update, change plan, cancel)
+- invoice history with payment
+- usage metering and reporting
+- payment method management
+
+### Use cases
+
+- SaaS subscription management
+- usage-based billing
+- invoice retrieval for accounting
+- plan upgrade/downgrade flows
+
+### Example: subscription and usage
+
+```ts
+import { createBillingClient } from "@frontal-labs/billing";
+
+const billing = createBillingClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const customer = await billing.customers.create({ name: "Acme", externalId: "acme" });
+const plans = await billing.plans.list();
+
+const sub = await billing.subscriptions.create({
+  customerId: customer.id,
+  planId: plans.data[0].id
+});
+await billing.subscriptions.update(sub.id, { planId: "plan_pro" });
+
+const invoices = await billing.invoices.list();
+for await (const inv of invoices) {
+  console.log(`${inv.id}: [${inv.status}]`);
+}
+
+// Meters, prices, wallets, addons are first-class resources too.
+const meter = await billing.meters.create({ name: "api_calls", aggregation: "sum" });
+const balance = await billing.wallets.realTimeBalance("wal_123");
+```
+
+## 18) `@frontal-labs/webhooks`
+
+### What it does
+
+Webhook endpoint management SDK:
+
+- endpoint CRUD with event type filtering
+- secret rotation for security
+- delivery attempt tracking with retry
+- delivery statistics (success rate, latency, error rate)
+
+### Use cases
+
+- third-party integration notification delivery
+- custom webhook receiver setup
+- delivery monitoring and debugging
+- automatic retry for failed deliveries
+
+### Example: endpoint management
+
+```ts
+import { createWebhooksClient } from "@frontal-labs/webhooks";
+
+const webhooks = createWebhooksClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const endpoint = await webhooks.endpoints.create({
+  url: "https://hooks.myapp.com/frontal-events",
+  events: ["order.created", "payment.completed"]
+});
+
+const rotated = await webhooks.endpoints.rotateSecret(endpoint.id);
+
+const deliveries = await webhooks.deliveries.list({
+  webhookId: endpoint.id,
+  status: "failed"
+});
+
+for await (const del of deliveries) {
+  await webhooks.deliveries.retry(del.id);
+}
+
+const stats = await webhooks.stats.get({ webhookId: endpoint.id });
+console.log(stats);
+```
+
+## 19) `@frontal-labs/schedules`
+
+### What it does
+
+Cron scheduling SDK:
+
+- schedule CRUD with cron expressions and timezone
+- run history and manual triggering
+- cron expression validation and next-run preview
+- pause/resume schedule
+- target any pipeline, workflow, function, or webhook
+
+### Use cases
+
+- nightly data exports and reports
+- periodic health checks
+- recurring pipeline execution
+- time-based workflow triggers
+
+### Example: create and trigger cron
+
+```ts
+import { createSchedulesClient } from "@frontal-labs/schedules";
+
+const schedules = createSchedulesClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const valid = await schedules.cron.validate("0 9 * * 1-5");
+const parsed = await schedules.cron.parse("0 */6 * * *");
+
+const schedule = await schedules.create({
+  name: "Nightly Data Export",
+  cron: "0 2 * * *",
+  timezone: "America/New_York",
+  target: { type: "pipeline", id: "ppl_export" },
+  payload: { format: "parquet", destination: "s3://data-lake/exports/" }
+});
+
+const run = await schedules.trigger(schedule.id);
+console.log(run.id, run.status);
+```
+
+## 20) `@frontal-labs/sandbox`
+
+### What it does
+
+Compile-and-judge code execution SDK:
+
+- `languages()` — list supported languages
+- `selfTest()` — compile and run once against a single stdin input
+- `submit()` — compile and judge against a set of test cases (scored)
+- sandbox tiers and per-request resource limits
+
+### Use cases
+
+- secure execution of user-submitted code
+- automated grading / judging against test cases
+- AI agent tool execution with isolation
+
+### Example: self-test and judge
+
+```ts
+import { createSandboxClient } from "@frontal-labs/sandbox";
+
+const sandbox = createSandboxClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const languages = await sandbox.languages();
+
+const test = await sandbox.selfTest({
+  language: "Python",
+  code: "print('hello')",
+  stdin: ""
+});
+console.log(test.summary?.stdout);
+
+const result = await sandbox.submit({
+  language: "Python",
+  code: "print(input())",
+  task: {
+    cases: [{ caseId: 1, score: 100, input: "ok\n", answer: "ok\n" }]
+  }
+});
+console.log(result.summary.result, result.summary.score);
+```
+
+## 21) `@frontal-labs/datasets`
+
+### What it does
+
+Dataset management SDK:
+
+- dataset CRUD with schema definition
+- row-level data insert, query, upsert, and delete
+- version management (create, compare, rollback)
+- dataset statistics (row count, storage size)
+- data preview and sampling
+
+### Use cases
+
+- structured data storage for analytics
+- training data preparation for ML
+- data versioning and rollback
+- ETL source/sink for pipelines
+
+### Example: ingest, read, and browse the catalog
+
+```ts
+import { createDatasetsClient } from "@frontal-labs/datasets";
+
+const datasets = createDatasetsClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+// Submit an ingestion request (ingest service).
+const run = await datasets.ingest({
+  dataset: "user_events",
+  source: "events-topic"
+});
+
+// List and read datasets.
+const page = await datasets.list({ limit: 20 });
+const ds = await datasets.get("user_events");
+
+// Resolve schemas.
+const schemas = await datasets.schemas.list();
+
+// Browse the catalog.
+const catalogDatasets = await datasets.catalog.datasets.list();
+const sources = await datasets.catalog.sources.list();
+```
+
+## 22) `@frontal-labs/lineage`
+
+### What it does
+
+Data lineage tracking SDK:
+
+- lineage graph retrieval with configurable depth
+- node and edge listing with filtering
+- full trace of resource dependencies
+- impact analysis for schema/data changes
+
+### Use cases
+
+- data provenance and audit
+- impact analysis before schema migrations
+- dependency visualization for data pipelines
+- compliance reporting for data flows
+
+### Example: graph and impact analysis
+
+```ts
+import { createLineageClient } from "@frontal-labs/lineage";
+
+const lineage = createLineageClient({
+  apiKey: process.env.FRONTAL_API_KEY!
+});
+
+const graph = await lineage.graph.get("ds_sales", { depth: 3 });
+for (const edge of graph.edges) {
+  console.log(`${edge.source_id} → [${edge.type}] → ${edge.target_id}`);
+}
+
+const nodes = await lineage.nodes.list({ type: "dataset" });
+const trace = await lineage.nodes.trace("ds_sales");
+
+const impact = await lineage.impact.analyzeChange("ds_sales", {
+  type: "update",
+  field: "amount"
+});
+for (const r of impact.affectedResources) {
+  console.log(`${r.name} (${r.type}): ${r.impact} impact`);
+}
+```
+
+## 22a) `@frontal-labs/connectors`
+
+### What it does
+
+Source connectors: discover connector definitions, install them per tenant,
+replay or diagnose sync runs.
+
+### Example: install and list
+
+```ts
+const definitions = await connectors.list();
+
+const installation = await connectors.installations.create({
+  connectorSlug: "postgres",
+  tenantId: "tn_acme",
+  datasetNamespace: "acme.crm",
+  displayName: "Acme CRM",
+  auth: { mode: "connection_string", secretRef: "secret://acme/pg" },
+});
+
+const installed = await connectors.installations.list({ tenantId: "tn_acme" });
+console.log(definitions.length, installation.id, installed.data.length);
+```
+
+## 22b) `@frontal-labs/data`
+
+### What it does
+
+Data platform sub-domains — aggregations, archival, enrichment, exports,
+normalization, quality, serving, streams, sync, transformations, federated
+query and schema registry. Every sub-domain also exposes `capabilities()`,
+`health()`, `runs()` and `createRun()`.
+
+### Example: aggregation + federated query
+
+```ts
+const agg = await data.aggregations.create({
+  name: "daily-revenue",
+  source: "acme.billing.invoices",
+  groupBy: ["day"],
+});
+await data.aggregations.execute(agg.id as string);
+
+const rows = await data.query.federated({
+  sql: "SELECT day, sum(amount) FROM acme.billing.invoices GROUP BY day",
+});
+console.log(rows);
+```
+
+## 22c) `@frontal-labs/integrations`
+
+### What it does
+
+Third-party integrations: install providers with scoped credentials, run and
+replay actions, test connections and simulate policy scopes.
+
+### Example: install, test, simulate
+
+```ts
+const integration = await integrations.create({
+  provider: "slack",
+  tenantId: "tn_acme",
+  displayName: "Acme Slack",
+  config: { defaultChannel: "#alerts" },
+  auth: { scheme: "bearer", secretRef: "secret://acme/slack" },
+});
+
+const check = await integrations.test(integration.id);
+const sim = await integrations.policy.simulate(["chat:write"], ["chat:write"]);
+console.log(check, sim);
+```
+
+## 23) End-to-End Production Pattern
+
+A common high-value orchestration flow:
+
+1. Authenticate users with `@frontal-labs/auth` (GoTrue)
+3. Ingest files with `@frontal-labs/blob`
+4. Extract and classify with `@frontal-labs/ai`
+6. Normalize through `@frontal-labs/pipelines`
+7. Store structured data in `@frontal-labs/datasets`
+8. Persist relationships via `@frontal-labs/graph`
+9. Enforce taxonomy via `@frontal-labs/ontology`
+10. Track provenance with `@frontal-labs/lineage`
+11. Communicate across services with `@frontal-labs/events`
+16. Schedule recurring work with `@frontal-labs/schedules`
+17. Execute isolated code in `@frontal-labs/sandbox`
+18. Coordinate approvals with `@frontal-labs/workflows`
+19. Delegate decisions with `@frontal-labs/agents`
+20. Execute specialized logic in `@frontal-labs/workers`
+21. Monitor everything with `@frontal-labs/observability`
+22. Log compliance with `@frontal-labs/audit`
+23. Enforce policies with `@frontal-labs/governance`
+24. Track costs with `@frontal-labs/billing`
+
+## 24) Error Handling Pattern
+
+Every API failure is a typed `FrontalError` subclass. Beyond `code`,
+`statusCode` and `requestId`, each error carries:
+
+- `retryable` — `true` for 429, transient 5xx, network and timeout errors
+- `fix` — a one-line remediation when the SDK knows one
+- `docs` — a link to the relevant docs page, when the API provides one
+
+`NetworkError` (`code: "NETWORK_ERROR"`) and `TimeoutError` (`code: "TIMEOUT"`)
+are not `FrontalError`s (the request never got a response) but share the same
+`code` / `retryable` / `fix` fields, so `SdkError` is uniform.
+
+```ts
+import {
+  FrontalError,
+  isRetryableError,
+  RateLimitError,
+  ValidationError,
+} from "@frontal-labs/core";
+
+try {
+  await ai.generateText({ model: "claude-sonnet-4-6", prompt: "hi" });
+} catch (e) {
+  if (RateLimitError.isInstance(e)) {
+    await new Promise((r) => setTimeout(r, e.retryAfter * 1000));
+  } else if (ValidationError.isInstance(e)) {
+    console.error(e.fields);
+  } else if (FrontalError.isInstance(e)) {
+    console.error(e.code, e.statusCode, e.requestId, e.fix);
+  } else if (isRetryableError(e)) {
+    console.error("transient transport error, retry later");
+  } else {
+    throw e;
+  }
+}
+```
+
+`X.isInstance(e)` is a structural check that works even when two copies of
+`@frontal-labs/core` are loaded (monorepos, bundlers); `instanceof` works too
+in the common case.
+
+### Streams: errors as data
+
+Streaming methods (`ai.streamText().fullStream`, `agents.use(id).watch()`)
+never throw mid-stream. They yield discriminated parts so a UI or agent can
+render the failure and offer a retry:
+
+```ts
+const run = await agents.use("agt_1").message("support.ticket.created", { ticketId: "t_1" });
+
+for await (const part of agents.use("agt_1").watch(run.id)) {
+  switch (part.type) {
+    case "event":
+      console.log(part.event, part.data);
+      break;
+    case "error":
+      console.error(part.error.code, part.error.retryable ? "retry" : "give up");
+      break;
+    case "abort":
+    case "done":
+      break;
+  }
+}
+```
+
+Correlate any `requestId` with `observability.logs.query({ query: `requestId:"..."` , ... })`.
+
+## 25) Operational Notes
+
+- Prefer explicit `baseUrl` in production services.
+- Keep API keys scoped and rotated.
+- Use streaming APIs for user-facing latency-sensitive generation.
+- Use idempotency/request IDs where available for retried mutations.
+- Keep tests pinned to SDK route/payload contracts (`@frontal-labs/testing`).

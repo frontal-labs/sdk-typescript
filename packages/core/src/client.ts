@@ -1,9 +1,14 @@
 import type { z } from "zod";
-import type { ClientConfigOutput } from "./config";
+import {
+  type ClientConfigInput,
+  type ClientConfigOutput,
+  clientConfigSchema,
+} from "./config";
 import { DEFAULT_BASE_URL } from "./constants";
 import { NetworkError } from "./errors";
 import { HttpClient } from "./http";
 import { env } from "./keys";
+import type { StreamOptions, StreamPart } from "./stream";
 
 const unwrapClientError = (error: unknown): never => {
   if (error instanceof NetworkError) {
@@ -25,9 +30,24 @@ export class FrontalClient {
   readonly _http!: HttpClient;
 
   /**
-   * @param config - Validated client configuration output from clientConfigSchema.
+   * @param input - Client configuration. Only `apiKey` is required; every
+   * other field is defaulted and validated via {@link clientConfigSchema}.
+   * Throws a `ZodError` on invalid input (e.g. a key without `frt_`).
+   *
+   * @example
+   * ```ts
+   * const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+   * ```
    */
-  constructor(config: ClientConfigOutput) {
+  constructor(input: ClientConfigInput) {
+    // Same env fallbacks as every `createXClient()` factory, so all entry
+    // points agree on defaults (FRONTAL_ENV defaults to "development").
+    const config: ClientConfigOutput = clientConfigSchema.parse({
+      ...input,
+      baseUrl: input.baseUrl ?? env.FRONTAL_API_URL,
+      environment: input.environment ?? env.FRONTAL_ENV,
+      debug: input.debug ?? env.FRONTAL_DEBUG,
+    });
     Object.defineProperty(this, "config", {
       value: config,
       writable: false,
@@ -145,13 +165,54 @@ export class FrontalClient {
    */
   async *stream(
     path: string,
-    params?: Record<string, string>
+    params?: Record<string, string>,
+    options: StreamOptions = {}
   ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
     try {
-      yield* this._http.stream(path, params);
+      yield* this._http.stream(path, params, options);
     } catch (error) {
       throw unwrapClientError(error);
     }
+  }
+
+  /**
+   * Opens a POST-initiated SSE stream. Throws on transport/HTTP failure.
+   * @param path - API endpoint path.
+   * @param body - JSON body (converted to snake_case).
+   * @param options - `signal` to abort.
+   */
+  async *postStream(
+    path: string,
+    body?: unknown,
+    options: StreamOptions = {}
+  ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
+    try {
+      yield* this._http.postStream(path, body, options);
+    } catch (error) {
+      throw unwrapClientError(error);
+    }
+  }
+
+  /**
+   * Like {@link stream}, but errors are yielded as `{ type: "error" }` parts
+   * and the iterable always ends with `{ type: "done" }`. Prefer this in UIs
+   * and agents that need to render or retry on failure.
+   */
+  streamParts(
+    path: string,
+    params?: Record<string, string>,
+    options: StreamOptions = {}
+  ): AsyncIterable<StreamPart> {
+    return this._http.streamParts(path, params, options);
+  }
+
+  /** POST variant of {@link streamParts}. */
+  postStreamParts(
+    path: string,
+    body?: unknown,
+    options: StreamOptions = {}
+  ): AsyncIterable<StreamPart> {
+    return this._http.postStreamParts(path, body, options);
   }
 
   /**

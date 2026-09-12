@@ -5,9 +5,9 @@ import {
   pollUntil,
 } from "@frontal-labs/core";
 import type {
+  ConnectionTest,
   ConnectorCheckpoint,
   ConnectorInstallation,
-  ConnectionTest,
   CreateSyncRunInput,
   SyncRun,
   UpdateInstallationInput,

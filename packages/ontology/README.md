@@ -16,8 +16,11 @@ npm install @frontal-labs/ontology
 
 ## Quick Start
 
-```ts
-import { ontology } from "@frontal-labs/ontology";
+```ts prelude
+import { Frontal } from "@frontal-labs/sdk";
+
+const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
+const ontology = f.ontology;
 
 // Generate an ontology with the engine, then browse object types.
 const proposal = await ontology.engine.generate({
@@ -26,8 +29,6 @@ const proposal = await ontology.engine.generate({
 const objectTypes = await ontology.objects.listObjectTypes({ limit: 10 });
 ```
 
-The `ontology` singleton reads `FRONTAL_API_KEY` and
-`FRONTAL_ONTOLOGY_API_URL` from the environment.
 
 ## Usage
 
@@ -89,8 +90,9 @@ const inferred = await ontology.engine.inferClasses({ samples: [] });
 ```ts
 const bundle = await ontology.versions.createReleaseBundle({ version: "2.0.0" });
 const rollout = await ontology.rollouts.create({ bundleId: bundle.id });
-await ontology.rollouts.start(rollout.id);
-const status = await ontology.rollouts.status(rollout.id);
+const rolloutId = rollout.id as string;
+await ontology.rollouts.start(rolloutId);
+const status = await ontology.rollouts.status(rolloutId);
 ```
 
 ## Environment Variables

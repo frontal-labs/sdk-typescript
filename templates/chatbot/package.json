@@ -1,0 +1,23 @@
+{
+  "name": "frontal-chatbot",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Minimal Next.js chatbot on the Frontal SDK: one route, one page.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@frontal-labs/react": "workspace:*",
+    "@frontal-labs/sdk": "workspace:*",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.1",
+    "@types/react": "^19.1.0",
+    "typescript": "^6.0.3"
+  }
+}
