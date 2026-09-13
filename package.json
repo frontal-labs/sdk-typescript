@@ -44,8 +44,8 @@
     "release": "changeset publish",
     "publish:github": "bun run scripts/publish-github.ts",
     "prepare": "lefthook install",
-    "docs:llms": "bun scripts/generate-llms.ts",
-    "docs:llms:check": "bun scripts/generate-llms.ts --check",
+    "docs:manifest": "bun scripts/generate-docs-manifest.ts",
+    "docs:manifest:check": "bun scripts/generate-docs-manifest.ts --check",
     "docs:examples": "bun scripts/extract-examples.ts",
     "test:examples": "vitest run tests/examples"
   },

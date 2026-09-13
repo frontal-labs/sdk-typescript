@@ -1,14 +1,13 @@
 /**
- * Generates agent-readable docs from the READMEs:
+ * Generates the agent-readable docs manifest from the READMEs:
  *
- *   llms.txt        — index: title, description, install, links + one-liners
- *   llms-full.txt   — every source doc concatenated, in reading order
- *   docs/mcp.json   — manifest of docs + headline operations for a future
- *                     MCP server (contract only; no server code lives here)
+ *   docs/mcp.json   — manifest of docs (path, title, summary) + headline
+ *                     operations for MCP servers and agent tooling. No server
+ *                     code lives here; `SKILL.md` is the human/agent entry point.
  *
  * Usage:
- *   bun scripts/generate-llms.ts          # write files
- *   bun scripts/generate-llms.ts --check  # exit 1 if committed files are stale
+ *   bun scripts/generate-docs-manifest.ts          # write the manifest
+ *   bun scripts/generate-docs-manifest.ts --check  # exit 1 if it is stale
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -150,63 +149,6 @@ function version(): string {
   return pkg.version;
 }
 
-function renderIndex(docs: Doc[]): string {
-  const link = (d: Doc) =>
-    `- [${d.title}](${REPO}/blob/main/${d.path}): ${d.summary}`;
-  const byPath = (p: string) => docs.find((d) => d.path === p);
-  const entry = [
-    "packages/sdk/README.md",
-    "SKILL.md",
-    "packages/core/README.md",
-  ]
-    .map(byPath)
-    .filter((d): d is Doc => Boolean(d));
-  const services = docs.filter(
-    (d) =>
-      d.path.startsWith("packages/") &&
-      !entry.includes(d) &&
-      !d.path.includes("/testing/")
-  );
-  const reference = docs.filter(
-    (d) => !(entry.includes(d) || services.includes(d))
-  );
-
-  return `# Frontal TypeScript SDK
-
-> One typed client for Frontal: AI inference, agents, durable workflows, pipelines, knowledge graph, storage and 15 more services. Install \`${SDK_PKG}\`, construct \`new Frontal({ apiKey })\`, and every service is a lazy getter (\`f.ai\`, \`f.agents\`, \`f.workflows\`, ...).
-
-Version: ${SDK_PKG}@${version()}. TypeScript-first, ESM + CJS, Node 18+, Bun and edge runtimes. Zod v4 schemas. Every API error is a \`FrontalError\` subclass with \`code\`, \`requestId\`, \`statusCode\` and an optional \`docs\` URL.
-
-Rules for code generation: verify the installed version before writing code (\`bun pm ls ${SDK_PKG}\`), prefer \`new Frontal({ apiKey })\` over the deprecated env-driven singletons, and use \`@frontal-labs/testing\` mocks instead of real keys in tests. Every code block in these docs is type-checked in CI.
-
-## Start here
-
-${entry.map(link).join("\n")}
-
-## Services
-
-${services.map(link).join("\n")}
-
-## Reference
-
-${reference.map(link).join("\n")}
-- [Full docs in one file](${REPO}/blob/main/llms-full.txt): everything above, concatenated.
-- [OpenAPI contract](${REPO}/blob/main/contracts/openapi/api.openapi.json): the backend API the SDK targets.
-- [MCP manifest](${REPO}/blob/main/docs/mcp.json): docs + headline operations for tool builders.
-`;
-}
-
-function renderFull(docs: Doc[]): string {
-  const header =
-    "# Frontal TypeScript SDK — full documentation\n\nGenerated from the package READMEs by scripts/generate-llms.ts. Do not edit by hand.\n\n";
-  return (
-    header +
-    docs
-      .map((d) => `\n\n# ===== ${d.path} =====\n\n${d.body.trim()}\n`)
-      .join("")
-  );
-}
-
 function renderManifest(docs: Doc[]): string {
   const manifest = {
     $schema: "https://frontal.dev/schemas/mcp-manifest.v1.json",
@@ -221,7 +163,7 @@ function renderManifest(docs: Doc[]): string {
       init: "new Frontal({ apiKey })",
     },
     openapi: "contracts/openapi/api.openapi.json",
-    llms: { index: "llms.txt", full: "llms-full.txt", skill: "SKILL.md" },
+    skill: "SKILL.md",
     docs: docs.map((d) => ({
       id: d.path.replace(/\W+/g, "-").replace(/^-|-$/g, ""),
       path: d.path,
@@ -241,8 +183,6 @@ function main(): void {
   const check = process.argv.includes("--check");
   const docs = docsInOrder();
   const outputs: Record<string, string> = {
-    "llms.txt": renderIndex(docs),
-    "llms-full.txt": renderFull(docs),
     "docs/mcp.json": renderManifest(docs),
   };
 
@@ -260,11 +200,11 @@ function main(): void {
 
   if (check && stale.length) {
     console.error(
-      `Stale generated docs: ${stale.join(", ")}\nRun \`bun run docs:llms\` and commit the result.`
+      `Stale generated docs: ${stale.join(", ")}\nRun \`bun run docs:manifest\` and commit the result.`
     );
     process.exit(1);
   }
-  if (check) console.log("llms docs are up to date");
+  if (check) console.log("docs manifest is up to date");
 }
 
 main();

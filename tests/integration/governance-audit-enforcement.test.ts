@@ -23,7 +23,7 @@ const mockAuditEvent = {
   resource_id: "ds_1",
   outcome: "denied",
   metadata: { policy_id: "pol_1", reason: "Denied by policy" },
-  timestamp: "2025-01-01T00:00:00Z",
+  created_at: "2025-01-01T00:00:00Z",
 };
 
 describe("Governance → Audit enforcement", () => {
@@ -54,7 +54,8 @@ describe("Governance → Audit enforcement", () => {
     // Step 2: Record the denied action in the audit log.
     const event = await audit.events.create({
       action: "dataset.export.denied",
-      resource: { type: "dataset", id: "ds_1" },
+      resourceType: "dataset",
+      resourceId: "ds_1",
       outcome: "denied",
       metadata: { policy_id: "pol_1", reason: "Denied by policy" },
     });

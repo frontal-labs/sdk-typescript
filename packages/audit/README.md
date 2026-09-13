@@ -20,7 +20,9 @@ const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
 
 await f.audit.log({
   action: "dataset.export",
-  resource: { type: "dataset", id: "ds_orders" },
+  resourceType: "dataset",
+  resourceId: "ds_orders",
+  outcome: "success",
   metadata: { format: "csv" },
 });
 ```
@@ -51,16 +53,19 @@ const audit = createAuditClient(client);
 const page = await f.audit.events.list({
   action: "dataset.export",
   resourceType: "dataset",
+  outcome: "denied",
+  from: "2026-01-01T00:00:00Z",
+  pageSize: 50,
 });
-for (const e of page.data) console.log(e.id, e.action);
+for (const e of page.data) console.log(e.id, e.actorId, e.action, e.createdAt);
 ```
 
 ### Batch logging
 
 ```ts
 await f.audit.events.createBatch([
-  { action: "user.login", resource: { type: "user", id: "usr_1" } },
-  { action: "user.logout", resource: { type: "user", id: "usr_1" } },
+  { action: "user.login", resourceType: "user", resourceId: "usr_1", idempotencyKey: "login-1" },
+  { action: "user.logout", resourceType: "user", resourceId: "usr_1", outcome: "success" },
 ]);
 ```
 ## Error handling

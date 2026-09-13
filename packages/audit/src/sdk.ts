@@ -4,25 +4,13 @@ import {
   type HttpClient,
   type PageResult,
 } from "@frontal-labs/core";
-import type { AuditEvent, AuditEventInput } from "./schemas";
-
-/** Filters accepted by `GET /v1/audit/events`. */
-export interface AuditEventFilters {
-  actorId?: string;
-  action?: string;
-  runId?: string;
-  eventDomain?: string;
-  eventType?: string;
-  resourceType?: string;
-  outcome?: string;
-  /** RFC3339 lower bound. */
-  from?: string;
-  /** RFC3339 upper bound. */
-  to?: string;
-  pageSize?: number;
-  offset?: number;
-  [key: string]: unknown;
-}
+import {
+  type AuditEvent,
+  type AuditEventFilters,
+  AuditEventFiltersSchema,
+  type AuditEventInput,
+  AuditEventInputSchema,
+} from "./schemas";
 
 /**
  * AuditSdk event log (`/v1/audit/events`). The audit service records and queries
@@ -41,7 +29,7 @@ export class EventsNamespace {
    * @returns The saved audit event.
    */
   create(event: AuditEventInput): Promise<AuditEvent> {
-    return this.http.post("/audit/events", event);
+    return this.http.post("/audit/events", AuditEventInputSchema.parse(event));
   }
 
   /**
@@ -52,7 +40,9 @@ export class EventsNamespace {
   createBatch(
     events: AuditEventInput[]
   ): Promise<{ recorded: number; failed: number }> {
-    return this.http.post("/audit/events/batch", { events });
+    return this.http.post("/audit/events/batch", {
+      events: events.map((e) => AuditEventInputSchema.parse(e)),
+    });
   }
 
   /**
@@ -61,7 +51,8 @@ export class EventsNamespace {
    * @returns A paginated result of matching audit events.
    */
   async list(filters: AuditEventFilters = {}): Promise<PageResult<AuditEvent>> {
-    const raw = await this.http.get("/audit/events", filters);
+    const query = AuditEventFiltersSchema.parse(filters);
+    const raw = await this.http.get("/audit/events", query);
     return createPageResult(asPagePayload<AuditEvent>(raw), (cursor) =>
       this.list({ ...filters, cursor })
     );

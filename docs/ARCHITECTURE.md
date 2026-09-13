@@ -44,8 +44,8 @@ Every ```ts block in `README.md`, `packages/*/README.md`, `SKILL.md`,
 `docs/TESTING.md`, `templates/*/README.md` and `examples/SDKS_GUIDE.md` is
 extracted by `scripts/extract-examples.ts` and type-checked in CI
 (`bun run test:examples`); the sdk quickstart also runs against mocks.
-`llms.txt`, `llms-full.txt` and `docs/mcp.json` are generated from the same
-sources by `scripts/generate-llms.ts` and checked for freshness.
+`docs/mcp.json` is generated from the same sources by
+`scripts/generate-docs-manifest.ts` and checked for freshness.
 
 ### 4. AI (`@frontal-labs/ai`)
 
