@@ -5,14 +5,12 @@
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { extractExamples } from "../../scripts/extract-examples";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const require = createRequire(import.meta.url);
 
 describe("README examples", () => {
   const examples = extractExamples({ root });
@@ -24,11 +22,12 @@ describe("README examples", () => {
   });
 
   it("type-check against current sources", { timeout: 120_000 }, () => {
-    const tsc = require.resolve("typescript/bin/tsc");
+    // Use the bin shim rather than `typescript/bin/tsc`: TypeScript 7 ships a
+    // native binary and no longer exports that subpath.
+    const tsc = join(root, "node_modules/.bin/tsc");
     const res = spawnSync(
-      process.execPath,
+      tsc,
       [
-        tsc,
         "-p",
         join(root, "tests/examples/tsconfig.json"),
         "--pretty",

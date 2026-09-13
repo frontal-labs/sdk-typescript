@@ -17,3 +17,12 @@ updates:
       dependencies:
         patterns:
           - "*"
+    ignore:
+      # TypeScript 7 ships only unstable/* compiler APIs; scripts/endpoint-contract.ts
+      # (the CI contract gate) needs the stable AST API. Revisit once ported.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # jsdom 30 needs a newer Node than the CI runner provides
+      # (webidl.util.markAsUncloneable); revisit with the runner image.
+      - dependency-name: "jsdom"
+        update-types: ["version-update:semver-major"]
