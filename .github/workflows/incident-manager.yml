@@ -74,7 +74,7 @@ jobs:
       - name: Restore flap state
         if: inputs.action != 'status-check' && inputs.action != 'force-create'
         id: flap-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: flap-state.json
           key: flap-state-sdk-${{ github.run_id }}
@@ -214,7 +214,7 @@ jobs:
 
       - name: Save flap state
         if: inputs.action == 'force-resolve' || inputs.action == 'force-create'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: flap-state.json
           key: flap-state-sdk-${{ github.run_id }}
