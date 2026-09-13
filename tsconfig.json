@@ -51,7 +51,6 @@
 	{ "path": "./packages/sdk" }
 	],
 	"compilerOptions": {
-		"baseUrl": ".",
 		"paths": {
       "@frontal-labs/core": ["./packages/core/src"],
 			"@frontal-labs/ai": ["./packages/ai/src"],
