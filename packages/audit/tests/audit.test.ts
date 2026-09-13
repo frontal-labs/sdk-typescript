@@ -16,11 +16,12 @@ function createService(
 
 const mockEvent = {
   id: "evt_1",
-  actor: { userId: "usr_1" },
+  actor_id: "usr_1",
   action: "user.created",
-  resource: { type: "user", id: "usr_2" },
-  status: "success",
-  timestamp: "2025-01-01T00:00:00Z",
+  resource_type: "user",
+  resource_id: "usr_2",
+  outcome: "success",
+  created_at: "2025-01-01T00:00:00Z",
 };
 
 function pageWrap<T>(items: T[]) {
@@ -37,9 +38,18 @@ describe("AuditSdk", () => {
     ]);
     const result = await service.events.create({
       action: "user.created",
-      resource: { type: "user", id: "usr_2" },
+      resourceType: "user",
+      resourceId: "usr_2",
     });
     expect(result.id).toBe("evt_1");
+    // Wire shape: real backend fields, snake_case, outcome defaulted.
+    const body = mock.requests[0]?.body as Record<string, unknown>;
+    expect(body).toMatchObject({
+      action: "user.created",
+      resourceType: "user",
+      resourceId: "usr_2",
+      outcome: "success",
+    });
     const viaAlias = await service.log({ action: "user.created" });
     expect(viaAlias.id).toBe("evt_1");
     mock.expectCalled("POST", "/audit/events");
@@ -81,8 +91,19 @@ describe("AuditSdk", () => {
 });
 
 describe("Schemas", () => {
-  it("validates AuditSdkEvent", () => {
-    expect(AuditSdkEventSchema.safeParse(mockEvent).success).toBe(true);
+  it("validates AuditSdkEvent (camelCased SDK shape)", () => {
+    const sdkShape = {
+      id: "evt_1",
+      actorId: "usr_1",
+      action: "user.created",
+      resourceType: "user",
+      resourceId: "usr_2",
+      outcome: "success",
+      createdAt: "2025-01-01T00:00:00Z",
+    };
+    expect(AuditSdkEventSchema.safeParse(sdkShape).success).toBe(true);
+    // The wire form (snake_case) is what mocks return; the transport camelizes it.
+    expect(AuditSdkEventSchema.safeParse(mockEvent).success).toBe(false);
   });
 });
 

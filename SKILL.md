@@ -18,8 +18,8 @@ cat node_modules/@frontal-labs/sdk/README.md
 ```
 
 Every code block in this repository's READMEs is type-checked in CI, so the
-README for the installed version is the ground truth. `llms.txt` at the repo
-root indexes all of them.
+README for the installed version is the ground truth; `docs/mcp.json` at the
+repo root indexes all of them.
 
 ## Canonical setup
 

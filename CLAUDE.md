@@ -28,8 +28,8 @@ sandbox, schedules, webhooks, workers, workflows.
   `examples/SDKS_GUIDE.md` is extracted and type-checked by `bun run test:examples`.
   Tag a block ```ts prelude to share setup with later blocks, or ```ts skip
   (with a `// TODO(example): reason` line) to exclude it.
-- `llms.txt`, `llms-full.txt` and `docs/mcp.json` are generated: run
-  `bun run docs:llms` after editing any README.
+- `docs/mcp.json` is generated from the READMEs: run `bun run docs:manifest`
+  after editing any README.
 
 ## Common Tasks
 
@@ -37,7 +37,7 @@ sandbox, schedules, webhooks, workers, workflows.
 - Test: `bun run test`; docs examples: `bun run test:examples`
 - Lint: `bun run lint`; Format: `bun run format`; Types: `bun run type-check`
 - Contract gates: `bun run contract:endpoints`, `bun run contract:matrix`
-- Regenerate llms docs: `bun run docs:llms`
+- Regenerate docs manifest: `bun run docs:manifest`
 - Add changeset: `bun run changeset`
 
 ## References

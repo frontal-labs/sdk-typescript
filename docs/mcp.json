@@ -10,11 +10,7 @@
     "init": "new Frontal({ apiKey })"
   },
   "openapi": "contracts/openapi/api.openapi.json",
-  "llms": {
-    "index": "llms.txt",
-    "full": "llms-full.txt",
-    "skill": "SKILL.md"
-  },
+  "skill": "SKILL.md",
   "docs": [
     {
       "id": "packages-sdk-README-md",

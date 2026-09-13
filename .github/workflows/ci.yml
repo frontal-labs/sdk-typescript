@@ -56,9 +56,9 @@ jobs:
         run: bun run test:examples
 
       # llms.txt / llms-full.txt / docs/mcp.json are generated from the READMEs;
-      # fail if they were not regenerated (`bun run docs:llms`).
+      # fail if they were not regenerated (`bun run docs:manifest`).
       - name: Docs freshness (llms.txt)
-        run: bun run docs:llms:check
+        run: bun run docs:manifest:check
 
       # Contract gate: fails the build on endpoint-snapshot drift, forbidden
       # cross-surface calls, or any regression below the committed API coverage

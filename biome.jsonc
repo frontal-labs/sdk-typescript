@@ -7,7 +7,7 @@
       "packages/*/tests/**/*.ts",
       "packages/*/package.json",
       "scripts/extract-examples.ts",
-      "scripts/generate-llms.ts",
+      "scripts/generate-docs-manifest.ts",
       "tests/examples/**/*.ts",
       "biome.jsonc",
       "package.json"

@@ -783,20 +783,21 @@ const routes = await events.routes.list();
 
 ### What it does
 
-Audit trail and compliance SDK:
+Append-only audit event log (`/v1/audit/events`):
 
-- log audit events with actor, action, resource, and status
-- query events with time range, action, and status filters
-- export audit logs as CSV or JSON
-- audit trail management (create named filters)
-- compliance check execution and result retrieval
+- record events with actor, action, event domain/type, resource, outcome, run id and metadata
+- record batches atomically; `idempotencyKey` makes retries safe
+- query by actor, action, run, domain/type, resource type, outcome and time range (paginated)
+- fetch a single event by id
+
+Compliance frameworks, assessments and violations live in `@frontal-labs/governance`.
 
 ### Use cases
 
-- SOC 2 / ISO 27001 compliance logging
+- SOC 2 / ISO 27001 evidence logging
 - change tracking across the platform
 - security incident investigation
-- automated compliance reporting
+- correlating agent/workflow runs (`runId`) with the actions they took
 
 ### Example: logging and querying
 
@@ -809,9 +810,11 @@ const audit = createAuditClient({
 
 await audit.log({
   action: "pipeline.triggered",
-  resource: { type: "pipeline", id: "ppl_abc" },
-  metadata: { triggered_by: "schedule", schedule_id: "sch_1" },
-  status: "success"
+  eventDomain: "pipelines",
+  resourceType: "pipeline",
+  resourceId: "ppl_abc",
+  outcome: "success",
+  metadata: { triggeredBy: "schedule", scheduleId: "sch_1" },
 });
 
 const results = await audit.events.list({
@@ -825,12 +828,12 @@ for (const event of results.data) console.log(event.id, event.action);
 
 ### What it does
 
-Policy and RBAC governance SDK:
+Policies, compliance and RBAC (`/v1/policies`, `/v1/compliance`, `/v1/roles`, `/v1/permissions`, `/v1/access`):
 
-- policy CRUD with rules (resource, actions, effect, conditions)
-- policy evaluation with context
-- RBAC binding management (user → role → resource)
-- access check queries
+- policy CRUD with rules (resource, actions, effect, conditions), versions, templates, validation
+- compliance frameworks, assessments, violations and score
+- roles and permissions
+- access checks (`access.check({ userId, roleNames, action })`)
 
 ### Use cases
 

@@ -45,8 +45,8 @@ two files. Copy-paste starters live in [`templates/`](./templates): `chatbot`,
 `agent-approval`, `pipeline-graph`, `cron-export` — each is tested against
 mocks in CI.
 
-Writing code with an AI assistant? Point it at [`SKILL.md`](./SKILL.md) and
-[`llms.txt`](./llms.txt).
+Writing code with an AI assistant? Point it at [`SKILL.md`](./SKILL.md);
+[`docs/mcp.json`](./docs/mcp.json) lists every doc and headline operation.
 
 ## Why Frontal SDK
 
@@ -118,7 +118,7 @@ bun run test:examples    # type-check + run every README code block
 bun run lint             # biome
 bun run format           # biome --write
 bun run type-check       # tsc --noEmit per package
-bun run docs:llms        # regenerate llms.txt / llms-full.txt / docs/mcp.json
+bun run docs:manifest    # regenerate docs/mcp.json
 bun run contract:endpoints   # SDK ↔ OpenAPI conformance gate
 bun run contract:matrix      # regenerate migration matrix
 bun run changeset        # record a version bump
