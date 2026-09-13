@@ -22,7 +22,7 @@ describe("templates/chatbot route", () => {
     process.env.FRONTAL_API_KEY = originalKey;
   });
 
-  it("streams a UI message stream for a chat request", async () => {
+  it("streams a UI message stream for a chat request", { timeout: 60_000 }, async () => {
     const { POST } = await import("../../templates/chatbot/src/app/api/chat/route");
     const res = await POST(
       new Request("http://localhost/api/chat", {

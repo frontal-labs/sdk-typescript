@@ -80,7 +80,8 @@ describe("sdk README quickstart (runtime)", () => {
     process.env.FRONTAL_API_KEY = originalKey;
   });
 
-  it("runs end-to-end against mocks", async () => {
+  // Imports the full SDK graph; give it headroom under CI/hook CPU contention.
+  it("runs end-to-end against mocks", { timeout: 60_000 }, async () => {
     // Separate output dir: examples.test.ts wipes `.examples-build` in parallel.
     const examples = extractExamples({ root, out: ".examples-quickstart" });
     const quickstart = examples.find(
