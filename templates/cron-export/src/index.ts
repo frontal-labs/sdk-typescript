@@ -3,14 +3,14 @@ import { Frontal } from "@frontal-labs/sdk";
 /**
  * Nightly export:
  *   1. register a cron schedule that targets an export workflow
- *   2. run one export now: read a dataset artifact, upload it to blob
+ *   2. run one export now: read a blob object, re-upload it to the export
+ *      prefix
  *   3. mint a short-lived signed URL for the download
  */
 export async function run(
   f: Frontal,
-  opts: { datasetId: string; manifestId: string; bucket: string } = {
-    datasetId: "ds_orders",
-    manifestId: "latest",
+  opts: { sourceKey: string; bucket: string } = {
+    sourceKey: "orders/latest.parquet",
     bucket: "exports",
   }
 ) {
@@ -19,13 +19,16 @@ export async function run(
     cron: "0 2 * * *",
     timezone: "UTC",
     target: { type: "workflow", id: "wf_export_orders" },
-    payload: { datasetId: opts.datasetId, bucket: opts.bucket },
+    payload: { sourceKey: opts.sourceKey, bucket: opts.bucket },
   });
 
-  const artifact = await f.datasets.getArtifactContent(opts.datasetId, opts.manifestId);
+  const artifact = await f.blob.download({
+    bucket: opts.bucket,
+    key: opts.sourceKey,
+  });
   const bytes = new Uint8Array(await artifact.arrayBuffer());
 
-  const key = `${opts.datasetId}/${new Date().toISOString().slice(0, 10)}.parquet`;
+  const key = `${opts.sourceKey.split("/")[0]}/${new Date().toISOString().slice(0, 10)}.parquet`;
   await f.blob.upload({
     bucket: opts.bucket,
     key,

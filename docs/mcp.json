@@ -16,7 +16,7 @@
       "id": "packages-sdk-README-md",
       "path": "packages/sdk/README.md",
       "title": "@frontal-labs/sdk",
-      "summary": "The one-package entry point to Frontal: AI inference, agents, workflows, pipelines, knowledge graph, ontology, blob storage and 15 more services behind a single typed client."
+      "summary": "The one-package entry point to Frontal: AI inference, agents, workflows, pipelines, ontology, blob storage and 10 more services behind a single typed client."
     },
     {
       "id": "SKILL-md",
@@ -55,28 +55,16 @@
       "summary": "Declarative data pipeline SDK — ingest, transform, enrich, validate, and orchestrate with substrate awareness."
     },
     {
-      "id": "packages-graph-README-md",
-      "path": "packages/graph/README.md",
-      "title": "@frontal-labs/graph",
-      "summary": "Graph entities, relationships, query, traversal, time travel, and semantic search."
-    },
-    {
       "id": "packages-ontology-README-md",
       "path": "packages/ontology/README.md",
       "title": "@frontal-labs/ontology",
-      "summary": "Client for the Frontal Ontology platform (`/v1/ontology/*`). The API is composed of independent subdomain services, each exposed as a namespace: `engine`, `objects`, `relationships`, `schemas`, `versions`, `validation`, `transformations`, `reasoning`, `rollouts`, `rollups`, `extract`, and `events`. (The `graph` subdomain is served by `@frontal-labs/graph`.)"
+      "summary": "Client for the Frontal Ontology platform (`/v1/ontology/*`). The API is composed of independent subdomain services, each exposed as a namespace: `engine`, `objects`, `relationships`, `schemas`, `versions`, `validation`, `transformations`, `reasoning`, `rollouts`, `rollups`, `extract`, and `events`."
     },
     {
       "id": "packages-blob-README-md",
       "path": "packages/blob/README.md",
       "title": "@frontal-labs/blob",
       "summary": "Object storage SDK — upload, download, streaming, metadata, signed URLs, and copy/move operations."
-    },
-    {
-      "id": "packages-datasets-README-md",
-      "path": "packages/datasets/README.md",
-      "title": "@frontal-labs/datasets",
-      "summary": "Dataset catalog — list datasets, read artifacts, browse schemas and sources, and ingest data."
     },
     {
       "id": "packages-data-README-md",
@@ -121,12 +109,6 @@
       "summary": "Customers, plans, subscriptions, invoices, wallets, meters, prices and add-ons."
     },
     {
-      "id": "packages-events-README-md",
-      "path": "packages/events/README.md",
-      "title": "@frontal-labs/events",
-      "summary": "Event bus — topics, subscriptions, schemas, publish/subscribe and replays."
-    },
-    {
       "id": "packages-webhooks-README-md",
       "path": "packages/webhooks/README.md",
       "title": "@frontal-labs/webhooks",
@@ -139,12 +121,6 @@
       "summary": "Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions."
     },
     {
-      "id": "packages-workers-README-md",
-      "path": "packages/workers/README.md",
-      "title": "@frontal-labs/workers",
-      "summary": "Deploy and invoke edge workers."
-    },
-    {
       "id": "packages-sandbox-README-md",
       "path": "packages/sandbox/README.md",
       "title": "@frontal-labs/sandbox",
@@ -155,12 +131,6 @@
       "path": "packages/connectors/README.md",
       "title": "@frontal-labs/connectors",
       "summary": "Source connectors — discover connector definitions, install them per tenant, and replay or diagnose sync runs."
-    },
-    {
-      "id": "packages-integrations-README-md",
-      "path": "packages/integrations/README.md",
-      "title": "@frontal-labs/integrations",
-      "summary": "Third-party integrations — install providers with scoped credentials, run and replay actions, test connections and simulate policy."
     },
     {
       "id": "packages-react-README-md",
@@ -227,11 +197,6 @@
       "name": "pipelines.define",
       "docs": "packages/pipelines/README.md",
       "package": "@frontal-labs/pipelines"
-    },
-    {
-      "name": "graph.query",
-      "docs": "packages/graph/README.md",
-      "package": "@frontal-labs/graph"
     },
     {
       "name": "blob.upload",

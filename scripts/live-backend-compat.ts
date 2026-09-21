@@ -1,7 +1,6 @@
 import { createAgentsClient } from "../packages/agents/src";
 import { createAIClient } from "../packages/ai/src";
 import { createBlobClient } from "../packages/blob/src";
-import { createGraphClient } from "../packages/graph/src";
 import { createOntologyClient } from "../packages/ontology/src";
 import { createPipelinesClient } from "../packages/pipelines/src";
 import { createWorkflowsClient } from "../packages/workflows/src";
@@ -22,7 +21,6 @@ if (!apiKey) {
 
 const apiBaseUrl = process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1";
 const aiBaseUrl = process.env.FRONTAL_AI_API_URL ?? "https://ai.frontal.dev";
-const graphEntityType = process.env.FRONTAL_GRAPH_ENTITY_TYPE;
 const blobBucket = process.env.FRONTAL_BLOB_BUCKET;
 
 const checks: Array<() => Promise<CheckResult>> = [
@@ -36,20 +34,6 @@ const checks: Array<() => Promise<CheckResult>> = [
 		const agents = createAgentsClient({ apiKey, baseUrl: apiBaseUrl });
 		return runCheck("agents.list", async () => {
 			await agents.list({ limit: 1 });
-		});
-	},
-	async () => {
-		if (!graphEntityType) {
-			return {
-				name: "graph.query",
-				status: "skip",
-				message:
-					"Set FRONTAL_GRAPH_ENTITY_TYPE to run graph compatibility check",
-			};
-		}
-		const graph = createGraphClient({ apiKey, baseUrl: apiBaseUrl });
-		return runCheck("graph.query", async () => {
-			await graph.query({ entityType: graphEntityType, limit: 1 });
 		});
 	},
 	async () => {

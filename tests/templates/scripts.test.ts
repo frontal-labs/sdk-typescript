@@ -41,7 +41,7 @@ describe("templates/pipeline-graph", () => {
     const s = createScenario("pipeline-graph", [
       { on: "POST /data/pipelines/pipelines", return: { id: "ppl_1", name: "crm-sync", status: "active" } },
       { on: "POST /data/pipelines/runs", return: { id: "prun_1", pipeline_id: "ppl_1", status: "queued" } },
-      { on: "graph.query", return: { data: [{ id: "ent_1", type: "customer", fields: {}, version: 1, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" }], pagination: { cursor: "", has_more: false } } },
+      { on: "GET /ontology/objects/objects", return: { data: [{ id: "ent_1", type: "customer", fields: {}, version: 1, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" }], pagination: { cursor: "", has_more: false } } },
       { on: "GET /lineage/nodes/{param}/trace", return: { nodes: [{ id: "ent_1" }, { id: "ppl_1" }], edges: [] } },
     ]);
     const { run } = await import("../../templates/pipeline-graph/src/index");
@@ -55,7 +55,7 @@ describe("templates/cron-export", () => {
   it("schedules, exports and signs", async () => {
     const { client, mock } = createTestClient([
       { method: "POST", path: "/workflows/schedules", body: { id: "sch_1", name: "nightly", cron: "0 2 * * *", status: "active" } },
-      { method: "GET", path: /\/artifacts\/latest\/content$/, handler: () => new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "content-type": "application/octet-stream" } }) },
+      { method: "GET", path: /\/blob\/object\/exports\//, handler: () => new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "content-type": "application/octet-stream" } }) },
       { method: "POST", path: /\/blob\/object\/exports\//, body: {} },
       { method: "POST", path: /\/blob\/object\/sign\//, body: { signedURL: "https://signed.test/x" } },
     ]);

@@ -50,7 +50,6 @@ jobs:
           export FRONTAL_API_KEY="${{ secrets.FRONTAL_API_KEY }}"
           export FRONTAL_API_URL="${{ secrets.FRONTAL_API_URL || 'https://api.frontal.dev/v1' }}"
           export FRONTAL_AI_API_URL="${{ secrets.FRONTAL_AI_API_URL || 'https://ai.frontal.dev' }}"
-          export FRONTAL_GRAPH_ENTITY_TYPE="${{ secrets.FRONTAL_GRAPH_ENTITY_TYPE }}"
           export FRONTAL_BLOB_BUCKET="${{ secrets.FRONTAL_BLOB_BUCKET }}"
           export E2E_DRY_RUN="${{ inputs.dry_run || false }}"
           export WIDGET_API_URL="https://frontal-status.com/api/v1/summary"
@@ -59,7 +58,6 @@ jobs:
           FRONTAL_API_KEY: ${{ secrets.FRONTAL_API_KEY }}
           FRONTAL_API_URL: ${{ secrets.FRONTAL_API_URL || 'https://api.frontal.dev/v1' }}
           FRONTAL_AI_API_URL: ${{ secrets.FRONTAL_AI_API_URL || 'https://ai.frontal.dev' }}
-          FRONTAL_GRAPH_ENTITY_TYPE: ${{ secrets.FRONTAL_GRAPH_ENTITY_TYPE }}
           FRONTAL_BLOB_BUCKET: ${{ secrets.FRONTAL_BLOB_BUCKET }}
 
       - name: Upload run result

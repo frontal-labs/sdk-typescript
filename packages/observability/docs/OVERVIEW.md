@@ -90,4 +90,3 @@ try {
 
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
 - [@frontal-labs/audit](../audit/docs/OVERVIEW.md)
-- [@frontal-labs/events](../events/docs/OVERVIEW.md)

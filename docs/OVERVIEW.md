@@ -26,12 +26,7 @@ Turborepo, and Changesets for a seamless developer experience.
 | `@frontal-labs/blob` | Object storage compatible with Blob and S3. |
 | `@frontal-labs/connectors` | Data connectors. |
 | `@frontal-labs/data` | Data platform subdomains (aggregations, quality, query, serving, streams, …). |
-| `@frontal-labs/datasets` | Dataset ingest, catalog, and schemas. |
-| `@frontal-labs/events` | Pub/sub event bus with DLQ support. |
-| `@frontal-labs/workers` | Serverless workers on the edge runtime. |
 | `@frontal-labs/governance` | Policy management and RBAC. |
-| `@frontal-labs/graph` | Entity CRUD and semantic search. |
-| `@frontal-labs/integrations` | Third-party integrations. |
 | `@frontal-labs/lineage` | Data lineage and impact analysis. |
 | `@frontal-labs/observability` | Logs, metrics, and traces. |
 | `@frontal-labs/ontology` | Schema management and inference. |

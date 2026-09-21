@@ -11,7 +11,6 @@ set -euo pipefail
 #   FRONTAL_API_KEY          — API key for authenticated SDK checks
 #   FRONTAL_API_URL          — API base URL (default: https://api.frontal.dev/v1)
 #   FRONTAL_AI_API_URL       — AI API base URL (default: https://ai.frontal.dev)
-#   FRONTAL_GRAPH_ENTITY_TYPE— Entity type for graph queries
 #   FRONTAL_BLOB_BUCKET      — Bucket for blob tests
 #   WIDGET_API_URL           — Status page Widget API URL (default: https://frontal-status.com/api/v1/summary)
 #   E2E_DRY_RUN              — If "true", failures recorded but script exits 0

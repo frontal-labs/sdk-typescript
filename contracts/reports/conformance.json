@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T14:58:47.668Z",
+  "generatedAt": "2026-09-21T10:38:01.750Z",
   "packages": [
     "agents",
     "ai",
@@ -9,11 +9,7 @@
     "blob",
     "connectors",
     "data",
-    "datasets",
-    "events",
     "governance",
-    "graph",
-    "integrations",
     "lineage",
     "observability",
     "ontology",
@@ -22,7 +18,6 @@
     "sandbox",
     "schedules",
     "webhooks",
-    "workers",
     "workflows"
   ],
   "drift": {
@@ -1132,156 +1127,6 @@
         "reason": "missing-in-spec"
       },
       {
-        "package": "events",
-        "endpoint": {
-          "method": "DELETE",
-          "path": "/events/subscriptions/{param}"
-        },
-        "resolvedMethod": "DELETE",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "DELETE",
-          "path": "/events/topics/{param}"
-        },
-        "resolvedMethod": "DELETE",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "GET",
-          "path": "/events/schemas/{param}"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "GET",
-          "path": "/events/subscriptions/{param}"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "GET",
-          "path": "/events/topics/{param}"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "POST",
-          "path": "/events/publish"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "POST",
-          "path": "/events/schemas"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "POST",
-          "path": "/events/schemas/validate"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "POST",
-          "path": "/events/subscriptions"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "POST",
-          "path": "/events/subscriptions/{param}/pause"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "POST",
-          "path": "/events/subscriptions/{param}/resume"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "POST",
-          "path": "/events/topics"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "PUT",
-          "path": "/events/schemas/{param}"
-        },
-        "resolvedMethod": "PUT",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "PUT",
-          "path": "/events/subscriptions/{param}"
-        },
-        "resolvedMethod": "PUT",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "events",
-        "endpoint": {
-          "method": "PUT",
-          "path": "/events/topics/{param}"
-        },
-        "resolvedMethod": "PUT",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
         "package": "governance",
         "endpoint": {
           "method": "DELETE",
@@ -1516,166 +1361,6 @@
         "endpoint": {
           "method": "PUT",
           "path": "/policies/{param}"
-        },
-        "resolvedMethod": "PUT",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "graph",
-        "endpoint": {
-          "method": "DELETE",
-          "path": "/ontology/graph/entities/{param}"
-        },
-        "resolvedMethod": "DELETE",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "graph",
-        "endpoint": {
-          "method": "DELETE",
-          "path": "/ontology/graph/relationships/{param}"
-        },
-        "resolvedMethod": "DELETE",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "graph",
-        "endpoint": {
-          "method": "GET",
-          "path": "/ontology/graph/entities"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "graph",
-        "endpoint": {
-          "method": "POST",
-          "path": "/ontology/graph/entities"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "graph",
-        "endpoint": {
-          "method": "POST",
-          "path": "/ontology/graph/entities/{param}/provenance"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "GET",
-          "path": "/diagnostics"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "GET",
-          "path": "/governance/summary"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "GET",
-          "path": "/integrations"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "GET",
-          "path": "/integrations/{param}/metrics"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "GET",
-          "path": "/providers"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "POST",
-          "path": "/action-runs/{param}/replay"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "POST",
-          "path": "/integrations"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "POST",
-          "path": "/integrations/{param}/rotate-secret"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "POST",
-          "path": "/integrations/{param}/validate-configuration"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "POST",
-          "path": "/policy/simulate"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "integrations",
-        "endpoint": {
-          "method": "PUT",
-          "path": "/integrations/{param}/capabilities:bulk"
         },
         "resolvedMethod": "PUT",
         "surface": "api",
@@ -2283,30 +1968,10 @@
         "matched": 45,
         "unmatched": 0
       },
-      "datasets": {
-        "total": 11,
-        "matched": 11,
-        "unmatched": 0
-      },
-      "events": {
-        "total": 18,
-        "matched": 3,
-        "unmatched": 15
-      },
       "governance": {
         "total": 24,
         "matched": 0,
         "unmatched": 24
-      },
-      "graph": {
-        "total": 21,
-        "matched": 16,
-        "unmatched": 5
-      },
-      "integrations": {
-        "total": 21,
-        "matched": 10,
-        "unmatched": 11
       },
       "lineage": {
         "total": 7,
@@ -2348,11 +2013,6 @@
         "matched": 0,
         "unmatched": 10
       },
-      "workers": {
-        "total": 0,
-        "matched": 0,
-        "unmatched": 0
-      },
       "workflows": {
         "total": 10,
         "matched": 5,
@@ -2363,9 +2023,13 @@
       "api": {
         "surface": "api",
         "specTotal": 383,
-        "covered": 184,
-        "coveragePct": 48,
+        "covered": 146,
+        "coveragePct": 38.1,
         "uncovered": [
+          {
+            "method": "DELETE",
+            "path": "/v1/integrations/{integrationId}"
+          },
           {
             "method": "DELETE",
             "path": "/v1/observability/alerts/rules/{ruleId}"
@@ -2376,7 +2040,15 @@
           },
           {
             "method": "GET",
+            "path": "/v1/action-runs/{actionRunId}"
+          },
+          {
+            "method": "GET",
             "path": "/v1/auth/mfa/status"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/connection-tests/{connectionTestId}"
           },
           {
             "method": "GET",
@@ -2421,6 +2093,26 @@
           {
             "method": "GET",
             "path": "/v1/data/catalog/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/catalog/datasets"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/catalog/datasets/{dataset_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/catalog/datasets/{dataset_id}/artifacts/{manifest_id}/content"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/catalog/sources"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/catalog/catalog/sources/{source_id}"
           },
           {
             "method": "GET",
@@ -2484,6 +2176,18 @@
           },
           {
             "method": "GET",
+            "path": "/v1/data/ingest/datasets"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/datasets/{dataset_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/datasets/{dataset_id}/artifacts/{manifest_id}/content"
+          },
+          {
+            "method": "GET",
             "path": "/v1/data/ingest/health"
           },
           {
@@ -2497,6 +2201,14 @@
           {
             "method": "GET",
             "path": "/v1/data/ingest/runs/{run_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/schemas"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/data/ingest/schemas/{schema_ref}"
           },
           {
             "method": "GET",
@@ -2668,7 +2380,15 @@
           },
           {
             "method": "GET",
+            "path": "/v1/events/{id}"
+          },
+          {
+            "method": "GET",
             "path": "/v1/events/monitoring"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/integrations/{integrationId}"
           },
           {
             "method": "GET",
@@ -2676,7 +2396,15 @@
           },
           {
             "method": "GET",
+            "path": "/v1/integrations/{integrationId}/capabilities"
+          },
+          {
+            "method": "GET",
             "path": "/v1/integrations/{integrationId}/connection-tests"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/integrations/{integrationId}/surfaces"
           },
           {
             "method": "GET",
@@ -2748,7 +2476,35 @@
           },
           {
             "method": "GET",
+            "path": "/v1/ontology/graph/capabilities"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/graph/entities/{entity_id}"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/graph/entities/{entity_id}/provenance"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/graph/health"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/graph/info"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/graph/relationships/{relationship_id}"
+          },
+          {
+            "method": "GET",
             "path": "/v1/ontology/graph/runs"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/ontology/graph/runs/{run_id}"
           },
           {
             "method": "GET",
@@ -2932,6 +2688,10 @@
           },
           {
             "method": "GET",
+            "path": "/v1/providers/{providerSlug}"
+          },
+          {
+            "method": "GET",
             "path": "/v1/webhook-endpoints"
           },
           {
@@ -2941,6 +2701,10 @@
           {
             "method": "GET",
             "path": "/v1/webhook-endpoints/{id}/deliveries"
+          },
+          {
+            "method": "PATCH",
+            "path": "/v1/integrations/{integrationId}"
           },
           {
             "method": "PATCH",
@@ -2989,6 +2753,10 @@
           {
             "method": "POST",
             "path": "/v1/data/exports/runs"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/data/ingest/datasets/ingest"
           },
           {
             "method": "POST",
@@ -3116,6 +2884,34 @@
           },
           {
             "method": "POST",
+            "path": "/v1/ontology/graph/graph/analyze"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/graph/graph/build"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/graph/graph/bulk-read"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/graph/graph/neighborhood"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/graph/graph/path"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/graph/graph/query"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/ontology/graph/runs"
+          },
+          {
+            "method": "POST",
             "path": "/v1/ontology/objects/runs"
           },
           {
@@ -3160,7 +2956,23 @@
           },
           {
             "method": "PUT",
+            "path": "/v1/integrations/{integrationId}/capabilities/{capabilityKey}"
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/integrations/{integrationId}/surfaces/{surface}"
+          },
+          {
+            "method": "PUT",
             "path": "/v1/observability/alerts/rules/{ruleId}"
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/ontology/graph/entities/{entity_id}"
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/ontology/graph/relationships/{relationship_id}"
           }
         ]
       },

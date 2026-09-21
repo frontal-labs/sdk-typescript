@@ -11,8 +11,6 @@ import {
  * The ontology platform is composed of independent subdomain services that
  * share a common envelope (`capabilities`, `health`, `info`, and asynchronous
  * `runs`). Each subdomain is exposed as a namespace on {@link OntologySdk}.
- * The `graph` subdomain is served by the dedicated `@frontal-labs/graph`
- * package and is intentionally not duplicated here.
  *
  * Paths are written without the leading `/v1` because the client base URL
  * already includes it.

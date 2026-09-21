@@ -25,8 +25,6 @@ body:
         - "@frontal-labs/ai"
         - "@frontal-labs/blob"
         - "@frontal-labs/core"
-        - "@frontal-labs/functions"
-        - "@frontal-labs/graph"
         - "@frontal-labs/ontology"
         - "@frontal-labs/pipelines"
         - "@frontal-labs/testing"

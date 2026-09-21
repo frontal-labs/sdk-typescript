@@ -10,8 +10,8 @@ import {
  * (`/v1/data/*`), each a distinct backend service that shares a common
  * `capabilities`/`health`/`info`/`runs` envelope.
  *
- * Datasets (ingest + catalog), pipelines, and lineage have dedicated packages
- * (`@frontal-labs/datasets`, `@frontal-labs/pipelines`, `@frontal-labs/lineage`);
+ * Pipelines and lineage have dedicated packages
+ * (`@frontal-labs/pipelines`, `@frontal-labs/lineage`);
  * this package covers the remaining subdomains.
  *
  * Paths are written without the leading `/v1` because the client base URL

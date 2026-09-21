@@ -2,7 +2,6 @@
 "@frontal-labs/agents": patch
 "@frontal-labs/ai": patch
 "@frontal-labs/blob": patch
-"@frontal-labs/graph": patch
 "@frontal-labs/ontology": patch
 "@frontal-labs/pipelines": patch
 "@frontal-labs/workflows": patch

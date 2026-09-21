@@ -78,30 +78,9 @@ Simple, scalable object storage compatible with Blob and S3 standard patterns.
 
 Data ingestion connectors for enterprise data sources.
 
-### 11. Datasets (`@frontal-labs/datasets`)
-
-Dataset CRUD with versioning, data operations, and import/export.
-
-### 12. Events (`@frontal-labs/events`)
-
-Pub/sub event bus with client-side buffering, dead-letter queues, and schema
-registry.
-
-### 13. Workers (`@frontal-labs/workers`)
-
-Deploy and invoke serverless workers on the Frontal edge runtime.
-
 ### 15. Governance (`@frontal-labs/governance`)
 
 Policy management, RBAC (role-based access control), and data classification.
-
-### 16. Graph (`@frontal-labs/graph`)
-
-Business entity CRUD, traversal, time travel, and semantic search.
-
-### 17. Integrations (`@frontal-labs/integrations`)
-
-Execute actions in third-party applications.
 
 ### 18. Lineage (`@frontal-labs/lineage`)
 
@@ -117,8 +96,7 @@ Semantic model and schema management, migrations, and AI-powered inference.
 
 ### 22. Pipelines (`@frontal-labs/pipelines`)
 
-Declarative data pipelines with substrate orchestration and graph entity
-awareness.
+Declarative data pipelines with substrate orchestration.
 
 ### 24. Sandbox (`@frontal-labs/sandbox`)
 

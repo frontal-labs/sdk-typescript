@@ -131,18 +131,16 @@ Every factory accepts an `overrides` object.
 
 ```ts
 import { createIntegrationHarness, integrationPage } from "@frontal-labs/testing";
-import { EventsSdk } from "@frontal-labs/events";
 import { WebhooksSdk } from "@frontal-labs/webhooks";
 
 const harness = createIntegrationHarness([
-  { method: "GET", path: "/events/topics", body: integrationPage([{ id: "tpc_1" }]) },
+  { method: "GET", path: "/webhooks/endpoints", body: integrationPage([{ id: "wh_1" }]) },
 ]);
 
-const events = new EventsSdk(harness.createHttp().http);
 const webhooks = new WebhooksSdk(harness.createHttp().http);
 
-await events.topics.list();
-harness.expectCalled("GET", "/events/topics");
+await webhooks.endpoints.list();
+harness.expectCalled("GET", "/webhooks/endpoints");
 ```
 
 ### Streams

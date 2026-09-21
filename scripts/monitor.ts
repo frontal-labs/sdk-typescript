@@ -9,7 +9,6 @@
  *   FRONTAL_API_KEY             Required
  *   FRONTAL_API_URL             Default: https://api.frontal.dev/v1
  *   FRONTAL_AI_API_URL          Default: https://ai.frontal.dev
- *   FRONTAL_GRAPH_ENTITY_TYPE   Entity type for graph queries (skips if unset)
  *   FRONTAL_BLOB_BUCKET         Bucket for blob ops (skips if unset)
  *   DRY_RUN=true                Skip all real calls, emit fixture data
  *   CHECK_TIMEOUT_MS            Per-check timeout (default: 25000)
@@ -20,7 +19,6 @@
 import { createAgentsClient } from "../packages/agents/src";
 import { createAIClient } from "../packages/ai/src";
 import { createBlobClient } from "../packages/blob/src";
-import { createGraphClient } from "../packages/graph/src";
 import { createOntologyClient } from "../packages/ontology/src";
 import { createPipelinesClient } from "../packages/pipelines/src";
 import { createWorkflowsClient } from "../packages/workflows/src";
@@ -66,7 +64,6 @@ const TIMEOUT = Number(process.env.CHECK_TIMEOUT_MS) || 25_000;
 const apiKey = process.env.FRONTAL_API_KEY;
 const apiUrl = process.env.FRONTAL_API_URL ?? "https://api.frontal.dev/v1";
 const aiUrl = process.env.FRONTAL_AI_API_URL ?? "https://ai.frontal.dev";
-const graphType = process.env.FRONTAL_GRAPH_ENTITY_TYPE;
 const blobBucket = process.env.FRONTAL_BLOB_BUCKET;
 const runId = process.env.GITHUB_RUN_ID ?? "local";
 
@@ -127,7 +124,6 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 const ai = createAIClient({ apiKey, baseUrl: aiUrl });
 const agents = createAgentsClient({ apiKey, baseUrl: apiUrl });
-const graph = createGraphClient({ apiKey, baseUrl: apiUrl });
 const ontology = createOntologyClient({ apiKey, baseUrl: apiUrl });
 const pipelines = createPipelinesClient({ apiKey, baseUrl: apiUrl });
 const workflows = createWorkflowsClient({ apiKey, baseUrl: apiUrl });
@@ -147,11 +143,6 @@ const checks: CheckDef[] = [
   {
     name: "agents.list", service: "agents",
     fn: async () => { await agents.list({ limit: 1 }); },
-  },
-  {
-    name: "graph.query", service: "graph",
-    fn: async () => { await graph.query({ entityType: graphType!, limit: 1 }); },
-    skipIf: () => !graphType, skipMsg: "FRONTAL_GRAPH_ENTITY_TYPE not set",
   },
   {
     name: "ontology.list", service: "ontology",

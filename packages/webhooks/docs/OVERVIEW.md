@@ -86,4 +86,3 @@ try {
 ## Related Packages
 
 - [@frontal-labs/core](../core/docs/OVERVIEW.md)
-- [@frontal-labs/events](../events/docs/OVERVIEW.md)

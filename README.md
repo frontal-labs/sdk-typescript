@@ -7,7 +7,7 @@
 # Frontal TypeScript SDK
 
 Build governed, observable AI systems on Frontal: AI inference, agents,
-durable workflows, pipelines, knowledge graph, storage and 15 more services —
+durable workflows, pipelines, ontology, storage and 10 more services —
 from one typed client.
 
 ## Quickstart
@@ -72,10 +72,8 @@ need one service. Every package exposes a `createXClient()` factory that accepts
 | [`@frontal-labs/agents`](./packages/agents) | Define, run, watch and version agents. | ![npm](https://img.shields.io/npm/v/@frontal-labs/agents) |
 | [`@frontal-labs/workflows`](./packages/workflows) | Durable workflows with approval, condition and parallel steps. | ![npm](https://img.shields.io/npm/v/@frontal-labs/workflows) |
 | [`@frontal-labs/pipelines`](./packages/pipelines) | Data pipelines, runs, backfills, health. | ![npm](https://img.shields.io/npm/v/@frontal-labs/pipelines) |
-| [`@frontal-labs/graph`](./packages/graph) | Knowledge graph entities, relationships, semantic search. | ![npm](https://img.shields.io/npm/v/@frontal-labs/graph) |
 | [`@frontal-labs/ontology`](./packages/ontology) | Ontology engine, object types, versions and rollouts. | ![npm](https://img.shields.io/npm/v/@frontal-labs/ontology) |
 | [`@frontal-labs/blob`](./packages/blob) | Object storage: upload, download, signed URLs. | ![npm](https://img.shields.io/npm/v/@frontal-labs/blob) |
-| [`@frontal-labs/datasets`](./packages/datasets) | Dataset catalog, schemas, ingestion. | ![npm](https://img.shields.io/npm/v/@frontal-labs/datasets) |
 | [`@frontal-labs/data`](./packages/data) | Aggregations, enrichment, quality, exports, federated query. | ![npm](https://img.shields.io/npm/v/@frontal-labs/data) |
 | [`@frontal-labs/lineage`](./packages/lineage) | Lineage graph, traces, impact analysis. | ![npm](https://img.shields.io/npm/v/@frontal-labs/lineage) |
 | [`@frontal-labs/observability`](./packages/observability) | Logs, metrics, traces, alerts, dashboards. | ![npm](https://img.shields.io/npm/v/@frontal-labs/observability) |
@@ -83,13 +81,10 @@ need one service. Every package exposes a `createXClient()` factory that accepts
 | [`@frontal-labs/governance`](./packages/governance) | Policies, compliance, roles, permissions, access checks. | ![npm](https://img.shields.io/npm/v/@frontal-labs/governance) |
 | [`@frontal-labs/auth`](./packages/auth) | Sign-in, MFA, account and admin user management. | ![npm](https://img.shields.io/npm/v/@frontal-labs/auth) |
 | [`@frontal-labs/billing`](./packages/billing) | Customers, plans, subscriptions, invoices, meters. | ![npm](https://img.shields.io/npm/v/@frontal-labs/billing) |
-| [`@frontal-labs/events`](./packages/events) | Topics, subscriptions, schemas, publish/subscribe. | ![npm](https://img.shields.io/npm/v/@frontal-labs/events) |
 | [`@frontal-labs/webhooks`](./packages/webhooks) | Endpoints, deliveries, secrets, stats. | ![npm](https://img.shields.io/npm/v/@frontal-labs/webhooks) |
 | [`@frontal-labs/schedules`](./packages/schedules) | Cron schedules and triggers. | ![npm](https://img.shields.io/npm/v/@frontal-labs/schedules) |
-| [`@frontal-labs/workers`](./packages/workers) | Deploy and invoke edge workers. | ![npm](https://img.shields.io/npm/v/@frontal-labs/workers) |
 | [`@frontal-labs/sandbox`](./packages/sandbox) | Isolated code execution with a judge. | ![npm](https://img.shields.io/npm/v/@frontal-labs/sandbox) |
 | [`@frontal-labs/connectors`](./packages/connectors) | Source connectors and per-tenant installations. | ![npm](https://img.shields.io/npm/v/@frontal-labs/connectors) |
-| [`@frontal-labs/integrations`](./packages/integrations) | Third-party integrations, actions, policy simulation. | ![npm](https://img.shields.io/npm/v/@frontal-labs/integrations) |
 
 ## Contributing
 
@@ -146,7 +141,7 @@ Opt-in smoke test against a real backend:
 FRONTAL_API_KEY=frt_... bun run test:live
 ```
 
-Optional: `FRONTAL_GRAPH_ENTITY_TYPE` (for `graph.query`), `FRONTAL_BLOB_BUCKET` (for `blob.list`).
+Optional: `FRONTAL_BLOB_BUCKET` (for `blob.list`).
 
 ## License
 

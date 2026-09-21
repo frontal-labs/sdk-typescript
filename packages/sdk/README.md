@@ -1,7 +1,7 @@
 # @frontal-labs/sdk
 
 The one-package entry point to Frontal: AI inference, agents, workflows,
-pipelines, knowledge graph, ontology, blob storage and 15 more services behind
+pipelines, ontology, blob storage and 10 more services behind
 a single typed client.
 
 ## Installation
@@ -43,11 +43,11 @@ cached getter on the `Frontal` instance:
 | `f.agents` | Define, run and observe agents |
 | `f.workflows` | Durable workflows with approval steps |
 | `f.pipelines` | Data pipelines |
-| `f.graph` / `f.ontology` | Knowledge graph and ontology |
-| `f.blob` / `f.datasets` / `f.data` | Storage and data access |
+| `f.ontology` | Ontology engine, objects, versions and rollouts |
+| `f.blob` / `f.data` | Storage and data access |
 | `f.lineage` / `f.observability` / `f.audit` | Tracing, logs, lineage, audit trail |
-| `f.workers` / `f.sandbox` / `f.schedules` | Compute and scheduling |
-| `f.events` / `f.webhooks` / `f.connectors` / `f.integrations` | Eventing and external systems |
+| `f.sandbox` / `f.schedules` | Compute and scheduling |
+| `f.webhooks` / `f.connectors` | Webhooks and external systems |
 | `f.auth` / `f.governance` / `f.billing` | Identity, policy, billing |
 
 ## Configuration

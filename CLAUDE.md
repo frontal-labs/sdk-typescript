@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-TypeScript SDK monorepo for Frontal services. 25 workspace packages under
+TypeScript SDK monorepo for Frontal services. 21 workspace packages under
 `packages/*`: `sdk` (unified entry, `new Frontal({ apiKey })`), `core`
 (transport, errors, config), `testing` (mocks), and one package per service:
-agents, ai, audit, auth, billing, blob, connectors, data, datasets, events,
-governance, graph, integrations, lineage, observability, ontology, pipelines,
-sandbox, schedules, webhooks, workers, workflows.
+agents, ai, audit, auth, billing, blob, connectors, data,
+governance, lineage, observability, ontology, pipelines,
+sandbox, schedules, webhooks, workflows.
 
 ## Code Style
 

@@ -1,7 +1,7 @@
 /**
  * Every service package exposes `createXClient()` accepting either a config
  * object (with env/default fallbacks) or a shared `FrontalClient`, plus a
- * deprecated env-driven singleton. One table covers all 23.
+ * deprecated env-driven singleton. One table covers all 18.
  */
 import { FrontalClient } from "@frontal-labs/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -17,11 +17,7 @@ const factories: Array<[string, () => Promise<Record<string, unknown>>, string]>
   ["blob", () => import("@frontal-labs/blob"), "createBlobClient"],
   ["connectors", () => import("@frontal-labs/connectors"), "createConnectorsClient"],
   ["data", () => import("@frontal-labs/data"), "createDataClient"],
-  ["datasets", () => import("@frontal-labs/datasets"), "createDatasetsClient"],
-  ["events", () => import("@frontal-labs/events"), "createEventsClient"],
   ["governance", () => import("@frontal-labs/governance"), "createGovernanceClient"],
-  ["graph", () => import("@frontal-labs/graph"), "createGraphClient"],
-  ["integrations", () => import("@frontal-labs/integrations"), "createIntegrationsClient"],
   ["lineage", () => import("@frontal-labs/lineage"), "createLineageClient"],
   ["observability", () => import("@frontal-labs/observability"), "createObservabilityClient"],
   ["ontology", () => import("@frontal-labs/ontology"), "createOntologyClient"],
@@ -30,7 +26,6 @@ const factories: Array<[string, () => Promise<Record<string, unknown>>, string]>
   ["schedules", () => import("@frontal-labs/schedules"), "createSchedulesClient"],
   ["sdk", () => import("@frontal-labs/sdk"), "createFrontalClient"],
   ["webhooks", () => import("@frontal-labs/webhooks"), "createWebhooksClient"],
-  ["workers", () => import("@frontal-labs/workers"), "createWorkersClient"],
   ["workflows", () => import("@frontal-labs/workflows"), "createWorkflowsClient"],
 ];
 

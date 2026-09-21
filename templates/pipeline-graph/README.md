@@ -1,7 +1,7 @@
-# Pipeline → graph → lineage template
+# Pipeline → ontology → lineage template
 
-Defines a scheduled pipeline that upserts CRM contacts into the knowledge
-graph, triggers it, then queries the graph and traces lineage for a result.
+Defines a scheduled pipeline that upserts CRM contacts into the ontology,
+triggers it, then lists ontology objects and traces lineage for a result.
 
 ```bash
 cp -r templates/pipeline-graph my-sync && cd my-sync
@@ -13,4 +13,4 @@ bun install && bun start
 `tests/templates/pipeline-graph.test.ts`.
 
 What to change: the `collect` source, the `transform` mapping, and the
-`entityType` written to the graph.
+`entityType` written to the ontology.

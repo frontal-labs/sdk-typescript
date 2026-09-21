@@ -23,10 +23,8 @@ const SERVICE_ORDER = [
   "agents",
   "workflows",
   "pipelines",
-  "graph",
   "ontology",
   "blob",
-  "datasets",
   "data",
   "lineage",
   "observability",
@@ -34,13 +32,10 @@ const SERVICE_ORDER = [
   "governance",
   "auth",
   "billing",
-  "events",
   "webhooks",
   "schedules",
-  "workers",
   "sandbox",
   "connectors",
-  "integrations",
 ];
 
 /** Headline operations exposed to MCP/agent tooling. */
@@ -73,7 +68,6 @@ const TOOLS = [
     pkg: "pipelines",
     docs: "packages/pipelines/README.md",
   },
-  { name: "graph.query", pkg: "graph", docs: "packages/graph/README.md" },
   { name: "blob.upload", pkg: "blob", docs: "packages/blob/README.md" },
   { name: "blob.getSignedUrl", pkg: "blob", docs: "packages/blob/README.md" },
   {

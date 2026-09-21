@@ -30,13 +30,7 @@ sdk-ts/
 │   ├── billing/       # Plans, subscriptions, invoices, usage metering
 │   ├── blob/          # Object storage: upload, download, signed URLs
 │   ├── connectors/    # Data ingestion connectors for enterprise sources
-│   ├── datasets/      # Dataset CRUD with versioning
-│   ├── events/        # Pub/sub event bus with dead-letter queues
-│   ├── flags/         # Feature flags with A/B experiments
-│   ├── workers/      # Serverless worker deploy + invoke (edge runtime)
 │   ├── governance/    # Policy management and RBAC
-│   ├── graph/         # Entity CRUD, relationships, semantic search, history
-│   ├── integrations/  # Third-party application integrations
 │   ├── lineage/       # Data lineage graphs and impact analysis
 │   ├── observability/ # Logs, metrics, traces, alerts, dashboards
 │   ├── ontology/      # Schema modeling, migrations, AI-powered inference
@@ -137,20 +131,20 @@ bun run type-check  # type-check just this package
 ### Dependency Graph
 
 ```
-core    ──► ai, agents, audit, auth, billing, blob, connectors, datasets,
-            events, workers, governance, graph, integrations,
+core    ──► ai, agents, audit, auth, billing, blob, connectors,
+            governance,
             lineage, observability, ontology, organization, pipelines,
             queues, sandbox, schedules, search, vectors, webhooks, workflows
 
-testing ──► all 26 domain packages (devDependency only)
+testing ──► all 21 domain packages (devDependency only)
 
-ai, agents, audit, auth, billing, blob, connectors, datasets, events,
-workers, governance, graph, integrations, lineage,
+ai, agents, audit, auth, billing, blob, connectors,
+governance, lineage,
 observability, ontology, organization, pipelines, queues, sandbox,
 schedules, search, vectors, webhooks, workflows ──► sdk
 ```
 
-Arrows read "is depended on by". All 26 domain packages depend on
+Arrows read "is depended on by". All 21 domain packages depend on
 `@frontal-labs/core` at runtime and on `@frontal-labs/testing` as a
 devDependency. `@frontal-labs/sdk` depends on every domain package and
 re-exports them as a single unified client.

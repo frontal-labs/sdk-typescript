@@ -14,7 +14,6 @@
 # Core packages
 /packages/ai/ @sdk-team/ai-specialists
 /packages/compute/ @sdk-team/compute-specialists
-/packages/workers/ @sdk-team/workers-specialists
 /packages/flags/ @sdk-team/core
 /packages/logging/ @sdk-team/core
 /packages/notifications/ @sdk-team/core

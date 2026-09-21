@@ -4,7 +4,6 @@ Client for the Frontal Ontology platform (`/v1/ontology/*`). The API is composed
 of independent subdomain services, each exposed as a namespace:
 `engine`, `objects`, `relationships`, `schemas`, `versions`, `validation`,
 `transformations`, `reasoning`, `rollouts`, `rollups`, `extract`, and `events`.
-(The `graph` subdomain is served by `@frontal-labs/graph`.)
 
 ## Installation
 

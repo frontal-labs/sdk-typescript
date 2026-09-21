@@ -1,6 +1,6 @@
 ---
 name: frontal-sdk
-description: Write, review and test TypeScript that uses the Frontal SDK (@frontal-labs/sdk and the per-service @frontal-labs/* packages). Use whenever code calls Frontal AI, agents, workflows, pipelines, graph, blob or any other Frontal service.
+description: Write, review and test TypeScript that uses the Frontal SDK (@frontal-labs/sdk and the per-service @frontal-labs/* packages). Use whenever code calls Frontal AI, agents, workflows, pipelines, blob or any other Frontal service.
 ---
 
 # Frontal SDK
@@ -48,19 +48,18 @@ Every service is a lazy, cached getter on `Frontal`:
 | `f.agents` | `@frontal-labs/agents` | `define(name)` builder, `use(id).message/watch/waitForCompletion/conversation` |
 | `f.workflows` | `@frontal-labs/workflows` | `define(name)` builder with `.task/.approval/.condition/.parallel`, `approvals.approve/reject` |
 | `f.pipelines` | `@frontal-labs/pipelines` | `define`, `use(id).trigger/backfill/health` |
-| `f.graph` | `@frontal-labs/graph` | `query`, `semanticSearch`, `use(type).create/list/addRelationship` |
 | `f.ontology` | `@frontal-labs/ontology` | `engine.generate`, `objects`, `versions`, `rollouts` |
 | `f.blob` | `@frontal-labs/blob` | `upload`, `download`, `getSignedUrl`, `getMetadata`, `list` |
-| `f.datasets` / `f.data` | `@frontal-labs/datasets`, `@frontal-labs/data` | catalog + ingestion; aggregations/quality/exports/query |
+| `f.data` | `@frontal-labs/data` | aggregations/quality/exports/query |
 | `f.lineage` | `@frontal-labs/lineage` | `graph.get`, `nodes.trace`, `impact.analyzeChange` |
 | `f.observability` | `@frontal-labs/observability` | `logs.query`, `metrics`, `traces.get`, `alerts`, `dashboards` |
 | `f.audit` | `@frontal-labs/audit` | `log`, `events.list` |
 | `f.governance` | `@frontal-labs/governance` | `policies`, `compliance`, `roles`, `permissions`, `access.check` |
 | `f.auth` | `@frontal-labs/auth` | `signInWithPassword`, `mfa`, `account`, `admin` |
 | `f.billing` | `@frontal-labs/billing` | `customers`, `plans`, `subscriptions`, `invoices`, `meters` |
-| `f.events` / `f.webhooks` | `@frontal-labs/events`, `@frontal-labs/webhooks` | `publish`, `topics`, `subscriptions`; `endpoints`, `deliveries` |
-| `f.schedules` / `f.workers` / `f.sandbox` | respective packages | cron; `deploy`/`invoke`; `selfTest`/`submit` |
-| `f.connectors` / `f.integrations` | respective packages | source connectors; third-party integrations |
+| `f.webhooks` | `@frontal-labs/webhooks` | `endpoints`, `deliveries` |
+| `f.schedules` / `f.sandbox` | respective packages | cron; `selfTest`/`submit` |
+| `f.connectors` | `@frontal-labs/connectors` | source connectors |
 
 React UIs: `@frontal-labs/react` — `useChat({ api })` over a route that returns
 `toUIMessageStreamResponse(f.ai.streamText(...))`; `useAgentRun(agent)`;

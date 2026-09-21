@@ -15,16 +15,8 @@ import { createConnectorsClient } from "@frontal-labs/connectors";
 import { FrontalClient } from "@frontal-labs/core";
 import type { DataSdk } from "@frontal-labs/data";
 import { createDataClient } from "@frontal-labs/data";
-import type { DatasetsSdk } from "@frontal-labs/datasets";
-import { createDatasetsClient } from "@frontal-labs/datasets";
-import type { EventsSdk } from "@frontal-labs/events";
-import { createEventsClient } from "@frontal-labs/events";
 import type { GovernanceSdk } from "@frontal-labs/governance";
 import { createGovernanceClient } from "@frontal-labs/governance";
-import type { GraphSdk } from "@frontal-labs/graph";
-import { createGraphClient } from "@frontal-labs/graph";
-import type { IntegrationsSdk } from "@frontal-labs/integrations";
-import { createIntegrationsClient } from "@frontal-labs/integrations";
 import type { LineageSdk } from "@frontal-labs/lineage";
 import { createLineageClient } from "@frontal-labs/lineage";
 import type { ObservabilitySdk } from "@frontal-labs/observability";
@@ -39,8 +31,6 @@ import type { SchedulesSdk } from "@frontal-labs/schedules";
 import { createSchedulesClient } from "@frontal-labs/schedules";
 import type { WebhooksSdk } from "@frontal-labs/webhooks";
 import { createWebhooksClient } from "@frontal-labs/webhooks";
-import type { WorkersSdk } from "@frontal-labs/workers";
-import { createWorkersClient } from "@frontal-labs/workers";
 import type { WorkflowsSdk } from "@frontal-labs/workflows";
 import { createWorkflowsClient } from "@frontal-labs/workflows";
 import { resolveSdkConfig, type SdkConfig } from "./config";
@@ -74,20 +64,6 @@ export class Frontal {
     return this.#agents;
   }
 
-  /** Knowledge graph service. */
-  #graph?: GraphSdk;
-  get graph(): GraphSdk {
-    this.#graph ??= createGraphClient(this.#frontal);
-    return this.#graph;
-  }
-
-  /** Dataset management service. */
-  #datasets?: DatasetsSdk;
-  get datasets(): DatasetsSdk {
-    this.#datasets ??= createDatasetsClient(this.#frontal);
-    return this.#datasets;
-  }
-
   /** Data processing service. */
   #data?: DataSdk;
   get data(): DataSdk {
@@ -100,13 +76,6 @@ export class Frontal {
   get lineage(): LineageSdk {
     this.#lineage ??= createLineageClient(this.#frontal);
     return this.#lineage;
-  }
-
-  /** Serverless workers service. */
-  #workers?: WorkersSdk;
-  get workers(): WorkersSdk {
-    this.#workers ??= createWorkersClient(this.#frontal);
-    return this.#workers;
   }
 
   /** Pipeline management service. */
@@ -151,13 +120,6 @@ export class Frontal {
     return this.#observability;
   }
 
-  /** Event management service. */
-  #events?: EventsSdk;
-  get events(): EventsSdk {
-    this.#events ??= createEventsClient(this.#frontal);
-    return this.#events;
-  }
-
   /** Audit log service. */
   #audit?: AuditSdk;
   get audit(): AuditSdk {
@@ -184,13 +146,6 @@ export class Frontal {
   get connectors(): ConnectorsSdk {
     this.#connectors ??= createConnectorsClient(this.#frontal);
     return this.#connectors;
-  }
-
-  /** Integration management service. */
-  #integrations?: IntegrationsSdk;
-  get integrations(): IntegrationsSdk {
-    this.#integrations ??= createIntegrationsClient(this.#frontal);
-    return this.#integrations;
   }
 
   /** Webhook management service. */
