@@ -59,21 +59,6 @@
             '';
           };
 
-          functions = pkgs.stdenv.mkDerivation {
-            pname = "@frontal/functions";
-            version = "0.0.0";
-            src = ./packages/workers;
-            nativeBuildInputs = [ bun-pkg ];
-            buildPhase = ''
-              bun install --frozen-lockfile
-              bun run build
-            '';
-            installPhase = ''
-              mkdir -p $out
-              cp -r packages/workers/dist $out/
-            '';
-          };
-
           storage = pkgs.stdenv.mkDerivation {
             pname = "@frontal/storage";
             version = "0.0.0";
@@ -116,21 +101,6 @@
             installPhase = ''
               mkdir -p $out
               cp -r packages/core/dist $out/
-            '';
-          };
-
-          graph = pkgs.stdenv.mkDerivation {
-            pname = "@frontal/graph";
-            version = "0.0.0";
-            src = ./packages/graph;
-            nativeBuildInputs = [ bun-pkg ];
-            buildPhase = ''
-              bun install --frozen-lockfile
-              bun run build
-            '';
-            installPhase = ''
-              mkdir -p $out
-              cp -r packages/graph/dist $out/
             '';
           };
 
