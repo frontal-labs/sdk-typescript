@@ -112,7 +112,9 @@ function main(): void {
 
 	for (const issue of report.conformance.issues) {
 		const ops = issue.surface === "api" ? apiOps : aiOps;
-		const hint = suggest(issue, ops).replace(/\|/g, "\\|");
+		const hint = suggest(issue, ops)
+			.replace(/\\/g, "\\\\")
+			.replace(/\|/g, "\\|");
 		lines.push(
 			`| ${issue.package} | ${issue.endpoint.path} | ${issue.resolvedMethod} | ${issue.reason} | ${hint} |`,
 		);
