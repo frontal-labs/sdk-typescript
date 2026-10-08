@@ -1,3 +1,4 @@
+---
 "@frontal-labs/auth": patch
 ---
 
