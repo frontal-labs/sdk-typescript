@@ -72,6 +72,56 @@ describe("CircuitBreaker", () => {
     await expect(http.get("/x")).rejects.toThrow(/Circuit breaker is open/);
     expect(calls).toBe(1);
   });
+
+  it("counts transient HTTP responses and permits only one half-open probe", async () => {
+    let calls = 0;
+    const http = new HttpClient({
+      apiKey: "frt_test1234567890",
+      baseUrl: "https://api.test/v1",
+      timeout: 100,
+      maxRetries: 0,
+      retryDelay: 0,
+      headers: {},
+      environment: "test",
+      debug: false,
+      circuitBreaker: { failureThreshold: 1, resetTimeoutMs: 10_000 },
+      fetch: async () => {
+        calls++;
+        return Response.json(
+          { code: "SERVICE_ERROR", message: "unavailable" },
+          { status: 503 }
+        );
+      },
+    });
+
+    await expect(http.get("/x")).rejects.toThrow();
+    await expect(http.get("/x")).rejects.toThrow(/Circuit breaker is open/);
+    expect(calls).toBe(1);
+
+    const breaker = new CircuitBreaker({
+      failureThreshold: 1,
+      resetTimeoutMs: 1,
+    });
+    await expect(
+      breaker.execute(() => Promise.reject(new Error("down")))
+    ).rejects.toThrow("down");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+
+    let finishProbe: (value: string) => void = () => undefined;
+    const probe = breaker.execute(
+      () =>
+        new Promise<string>((resolve) => {
+          finishProbe = resolve;
+        })
+    );
+    await Promise.resolve();
+    await expect(
+      breaker.execute(async () => "extra probe")
+    ).rejects.toBeInstanceOf(CircuitBreakerOpenError);
+    finishProbe("healthy");
+    await expect(probe).resolves.toBe("healthy");
+    expect(breaker.getState()).toBe("CLOSED");
+  });
 });
 
 describe("tracing", () => {

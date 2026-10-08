@@ -1,8 +1,8 @@
 import type { z } from "zod";
-import { CircuitBreaker, CircuitBreakerOpenError } from "./circuit-breaker";
+import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { SDK_VERSION } from "./constants";
-import { NetworkError, parseFrontalError } from "./errors";
+import { NetworkError, parseFrontalError, TimeoutError } from "./errors";
 import { calculateDelay } from "./retry";
 import { type StreamOptions, type StreamPart, toStreamParts } from "./stream";
 import {
@@ -14,6 +14,12 @@ import {
 } from "./tracing";
 import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
 
+interface ResponseTimeout {
+  readonly timedOut: boolean;
+  readonly deadline: Promise<never>;
+  cleanup: () => void;
+}
+
 /**
  * Low-level HTTP client for the Frontal API.
  * Handles request/response transformation (snake_case ↔ camelCase),
@@ -22,6 +28,7 @@ import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
  */
 export class HttpClient {
   private readonly breaker?: CircuitBreaker;
+  private readonly responseTimeouts = new WeakMap<Response, ResponseTimeout>();
 
   constructor(private readonly config: ClientConfigOutput) {
     if (config.circuitBreaker) {
@@ -41,9 +48,10 @@ export class HttpClient {
   async get<T>(
     path: string,
     params?: Record<string, unknown>,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    headers: Record<string, string> = {}
   ): Promise<T> {
-    return this.request("GET", path, undefined, params, schema);
+    return this.request("GET", path, undefined, params, schema, 0, headers);
   }
 
   /**
@@ -123,12 +131,14 @@ export class HttpClient {
       // Buffer is a Uint8Array subclass; cast keeps DOM-lib consumers happy.
       body: body as unknown as RequestInit["body"],
     });
-    if (!res.ok) await this.throwError(res);
-    if (res.status === 204) return undefined;
-    const json = await res.json();
-    return typeof json === "object" && json !== null
-      ? deepSnakeToCamel(json)
-      : json;
+    return this.consumeResponse(res, async () => {
+      if (!res.ok) await this.throwError(res);
+      if (res.status === 204) return undefined;
+      const json = await res.json();
+      return typeof json === "object" && json !== null
+        ? deepSnakeToCamel(json)
+        : json;
+    });
   }
 
   /**
@@ -151,7 +161,7 @@ export class HttpClient {
       },
       options.signal
     );
-    if (!res.ok) await this.throwError(res);
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
     yield* this.parseSSEResponse(res, options.signal);
   }
 
@@ -188,7 +198,7 @@ export class HttpClient {
       },
       options.signal
     );
-    if (!res.ok) await this.throwError(res);
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
     yield* this.parseSSEResponse(res, options.signal);
   }
 
@@ -222,7 +232,8 @@ export class HttpClient {
       headers: new Headers(this.buildHeaders(headers)),
       body: JSON.stringify(body ?? {}),
     });
-    if (!res.ok) await this.throwError(res);
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
+    this.releaseResponse(res);
     return res;
   }
 
@@ -249,9 +260,11 @@ export class HttpClient {
       headers: merged,
       body: formData,
     });
-    if (!res.ok) await this.throwError(res);
-    const json = await res.json();
-    return deepSnakeToCamel(json) as T;
+    return this.consumeResponse(res, async () => {
+      if (!res.ok) await this.throwError(res);
+      const json = await res.json();
+      return deepSnakeToCamel(json) as T;
+    });
   }
 
   /**
@@ -271,7 +284,8 @@ export class HttpClient {
       method: "GET",
       headers: this.buildHeaders(headers),
     });
-    if (!res.ok) await this.throwError(res);
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
+    this.releaseResponse(res);
     return res;
   }
 
@@ -279,58 +293,115 @@ export class HttpClient {
     res: Response,
     signal?: AbortSignal
   ): AsyncGenerator<{ type: string; data: unknown; id?: string }> {
-    if (!res.body) return;
+    if (!res.body) {
+      this.releaseResponse(res);
+      return;
+    }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let eventType = "message";
+    let eventId: string | undefined;
+    let dataLines: string[] = [];
+    const timeout = this.responseTimeouts.get(res);
+
+    const dispatchEvent = ():
+      | { type: string; data: unknown; id?: string }
+      | undefined => {
+      if (dataLines.length === 0) {
+        eventType = "message";
+        eventId = undefined;
+        return undefined;
+      }
+
+      const payload = dataLines.join("\n");
+      let data: unknown = payload;
+      try {
+        const parsed = JSON.parse(payload);
+        data =
+          typeof parsed === "object" && parsed !== null
+            ? deepSnakeToCamel(parsed)
+            : parsed;
+      } catch {
+        // SSE data is allowed to contain plain text as well as JSON.
+      }
+
+      const event = {
+        type: eventType,
+        data,
+        ...(eventId === undefined ? {} : { id: eventId }),
+      };
+      eventType = "message";
+      eventId = undefined;
+      dataLines = [];
+      return event;
+    };
+
+    const processLine = (
+      line: string
+    ): { type: string; data: unknown; id?: string } | undefined => {
+      if (line === "") return dispatchEvent();
+      if (line.startsWith(":")) return undefined;
+
+      const separator = line.indexOf(":");
+      const field = separator === -1 ? line : line.slice(0, separator);
+      let value = separator === -1 ? "" : line.slice(separator + 1);
+      if (value.startsWith(" ")) value = value.slice(1);
+
+      if (field === "event") {
+        eventType = value || "message";
+      } else if (field === "data") {
+        dataLines.push(value);
+      } else if (field === "id" && !value.includes("\0")) {
+        eventId = value;
+      }
+      return undefined;
+    };
+
     const onAbort = () => {
-      void reader.cancel();
+      void reader.cancel().catch(() => undefined);
     };
     signal?.addEventListener("abort", onAbort, { once: true });
 
     try {
       while (true) {
-        const { done, value } = await reader.read();
+        const read = reader.read();
+        const { done, value } = timeout
+          ? await Promise.race([read, timeout.deadline])
+          : await read;
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = lines.pop() ?? "";
 
-        let event: { type: string; data: unknown; id?: string } = {
-          type: "message",
-          data: null,
-        };
-
         for (const rawLine of lines) {
-          const line = rawLine.trimEnd();
-          if (line.startsWith("id:")) {
-            event.id = line.slice(3).trim();
-          } else if (line.startsWith("event:")) {
-            event.type = line.slice(6).trim();
-          } else if (line.startsWith("data:")) {
-            const payload = line.slice(5).trim();
-            try {
-              const parsed = JSON.parse(payload);
-              event.data =
-                typeof parsed === "object" && parsed !== null
-                  ? deepSnakeToCamel(parsed)
-                  : parsed;
-            } catch {
-              event.data = payload;
-            }
-          } else if (line === "") {
-            if (event.data !== null) yield event;
-            event = { type: "message", data: null };
-          }
+          const event = processLine(
+            rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine
+          );
+          if (event) yield event;
         }
       }
+
+      buffer += decoder.decode();
+      if (buffer.length > 0) {
+        const event = processLine(
+          buffer.endsWith("\r") ? buffer.slice(0, -1) : buffer
+        );
+        if (event) yield event;
+      }
+      const finalEvent = dispatchEvent();
+      if (finalEvent) yield finalEvent;
+    } catch (error) {
+      if (timeout?.timedOut) throw this.makeTimeoutError();
+      throw error;
     } finally {
       signal?.removeEventListener("abort", onAbort);
       // Release the response body if the consumer stopped early; a no-op
       // once the stream has been fully read.
       void reader.cancel().catch(() => undefined);
+      this.releaseResponse(res);
     }
   }
 
@@ -340,7 +411,8 @@ export class HttpClient {
     body?: unknown,
     params?: Record<string, unknown>,
     schema?: z.ZodType<T>,
-    attempt = 0
+    attempt = 0,
+    headers: Record<string, string> = {}
   ): Promise<T> {
     const url = this.buildUrl(path, params);
     const requestId = crypto.randomUUID();
@@ -383,7 +455,7 @@ export class HttpClient {
 
     const reqInit: RequestInit = {
       method,
-      headers: this.buildHeaders({ "X-Request-Id": requestId }),
+      headers: this.buildHeaders({ "X-Request-Id": requestId, ...headers }),
       ...(method !== "GET"
         ? { body: JSON.stringify(transformedBody ?? {}) }
         : { body: undefined }),
@@ -396,6 +468,7 @@ export class HttpClient {
         return await this.fetchWithTimeout(url, reqInit);
       } catch (error) {
         this.config.logger?.error?.(error);
+        if (error instanceof TimeoutError) throw error;
         throw new NetworkError(error);
       }
     };
@@ -403,15 +476,12 @@ export class HttpClient {
     let res: Response;
     try {
       res = this.breaker
-        ? await this.breaker.execute(executeRequest)
+        ? await this.breaker.execute(executeRequest, (response) =>
+            [500, 502, 503, 504].includes(response.status)
+          )
         : await executeRequest();
     } catch (error) {
       report(undefined, error);
-      if (error instanceof CircuitBreakerOpenError) {
-        throw new Error(
-          `Circuit breaker is open. Retry after ${Math.ceil(error.retryAfterMs / 1000)}s.`
-        );
-      }
       throw error;
     }
     const serverRequestId = res.headers.get("x-request-id") ?? undefined;
@@ -419,7 +489,9 @@ export class HttpClient {
     this.config.logger?.response?.(res);
 
     if (!res.ok) {
+      const retrySafe = method === "GET";
       const shouldRetry =
+        retrySafe &&
         [429, 500, 502, 503, 504].includes(res.status) &&
         attempt < this.config.maxRetries;
 
@@ -438,52 +510,67 @@ export class HttpClient {
             );
 
         report(res.status, undefined, serverRequestId);
+        this.releaseResponse(res);
         await sleep(delay);
-        return this.request(method, path, body, params, schema, attempt + 1);
+        return this.request(
+          method,
+          path,
+          body,
+          params,
+          schema,
+          attempt + 1,
+          headers
+        );
       }
 
       try {
-        await this.throwError(res);
+        await this.consumeResponse(res, () => this.throwError(res));
       } catch (error) {
         report(res.status, error, serverRequestId);
         throw error;
       }
     }
 
-    report(res.status, undefined, serverRequestId);
-    if (res.status === 204) return undefined as T;
+    try {
+      const result = await this.consumeResponse(res, async () => {
+        if (res.status === 204) return undefined as T;
 
-    const contentType = (res.headers.get("content-type") || "").toLowerCase();
-    const payload = contentType.includes("application/json")
-      ? await res.json()
-      : await res.text();
+        const contentType = (
+          res.headers.get("content-type") || ""
+        ).toLowerCase();
+        const payload = contentType.includes("application/json")
+          ? await res.json()
+          : await res.text();
 
-    const transformedPayload =
-      typeof payload === "object" && payload !== null
-        ? deepSnakeToCamel(payload)
-        : payload;
+        const transformedPayload =
+          typeof payload === "object" && payload !== null
+            ? deepSnakeToCamel(payload)
+            : payload;
 
-    const tagId = serverRequestId ?? requestId;
-    if (telemetry?.recordOutputs) {
-      span?.setAttribute("frontal.response.body", safeJson(transformedPayload));
-    }
-    if (schema) {
-      try {
-        const parsed = schema.safeParse(transformedPayload);
-        if (!parsed.success) {
-          this.config.logger?.error?.(parsed.error);
-          throw parsed.error;
+        const tagId = serverRequestId ?? requestId;
+        if (telemetry?.recordOutputs) {
+          span?.setAttribute(
+            "frontal.response.body",
+            safeJson(transformedPayload)
+          );
         }
-        return tagRequestId(parsed.data, tagId);
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("_zod")) {
-          return tagRequestId(transformedPayload as T, tagId);
+        if (schema) {
+          const parsed = schema.safeParse(transformedPayload);
+          if (!parsed.success) {
+            this.config.logger?.error?.(parsed.error);
+            throw parsed.error;
+          }
+          return tagRequestId(parsed.data, tagId);
         }
-        throw error;
-      }
-    }
 
-    return tagRequestId(transformedPayload as T, tagId);
+        return tagRequestId(transformedPayload as T, tagId);
+      });
+      report(res.status, undefined, serverRequestId);
+      return result;
+    } catch (error) {
+      report(res.status, error, serverRequestId);
+      throw error;
+    }
   }
 
   private parseRateLimit(res: Response) {
@@ -576,18 +663,76 @@ export class HttpClient {
     signal?: AbortSignal
   ): Promise<Response> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.config.timeout);
-    const forward = () => controller.abort();
-    signal?.addEventListener("abort", forward, { once: true });
-    try {
-      return await (this.config.fetch ?? fetch)(url, {
-        ...init,
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timer);
-      signal?.removeEventListener("abort", forward);
+    let timedOut = false;
+    let timer: ReturnType<typeof setTimeout>;
+    let rejectDeadline: (reason?: unknown) => void = () => undefined;
+    const deadline = new Promise<never>((_, reject) => {
+      rejectDeadline = reject;
+    });
+    void deadline.catch(() => undefined);
+    const forward = () => controller.abort(signal?.reason);
+    const timeout: ResponseTimeout = {
+      get timedOut() {
+        return timedOut;
+      },
+      deadline,
+      cleanup: () => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", forward);
+      },
+    };
+    timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      rejectDeadline(this.makeTimeoutError());
+    }, this.config.timeout);
+    if (signal?.aborted) {
+      forward();
+    } else {
+      signal?.addEventListener("abort", forward, { once: true });
     }
+    try {
+      const response = await Promise.race([
+        (this.config.fetch ?? fetch)(url, {
+          ...init,
+          signal: controller.signal,
+        }),
+        deadline,
+      ]);
+      this.responseTimeouts.set(response, timeout);
+      return response;
+    } catch (error) {
+      timeout.cleanup();
+      if (timedOut) throw this.makeTimeoutError();
+      throw error;
+    }
+  }
+
+  private async consumeResponse<T>(
+    response: Response,
+    consume: () => Promise<T>
+  ): Promise<T> {
+    const timeout = this.responseTimeouts.get(response);
+    try {
+      return timeout
+        ? await Promise.race([consume(), timeout.deadline])
+        : await consume();
+    } catch (error) {
+      if (timeout?.timedOut) throw this.makeTimeoutError();
+      throw error;
+    } finally {
+      this.releaseResponse(response);
+    }
+  }
+
+  private releaseResponse(response: Response): void {
+    const timeout = this.responseTimeouts.get(response);
+    timeout?.cleanup();
+    this.responseTimeouts.delete(response);
+  }
+
+  private makeTimeoutError(): TimeoutError {
+    return new TimeoutError(`Request timed out after ${this.config.timeout}ms`);
   }
 }
 

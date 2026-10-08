@@ -731,7 +731,8 @@ const BACKOFF_STRATEGIES = ['exponential', 'linear', 'constant'] as const
 
 ### DEFAULT_RETRY_ON
 
-Default HTTP status codes that trigger retry attempts.
+Default HTTP status codes that trigger retry attempts for GET requests. Other
+methods are not replayed automatically.
 
 ```typescript
 const DEFAULT_RETRY_ON = [429, 500, 502, 503, 504]

@@ -489,7 +489,7 @@ describe("Integration Tests", () => {
           theme: z.enum(["light", "dark"]),
           notifications: z.boolean(),
         }),
-        metadata: z.record(z.unknown()).optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
       });
 
       const validUser = {

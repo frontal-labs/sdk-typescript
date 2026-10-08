@@ -115,10 +115,9 @@ const client = new FrontalClient({
   retryDelay: 1000
 })
 
-// Retries are automatically applied for:
-// - Rate limit errors (429)
-// - Server errors (500, 502, 503, 504)
-// - Network timeouts
+// GET requests retry automatically for HTTP statuses 429, 500, 502, 503,
+// and 504. POST, PUT, PATCH, and DELETE are not replayed automatically.
+// Network errors and timeouts surface to the caller.
 ```
 
 ### 5. Server-Sent Events (SSE)
@@ -150,8 +149,8 @@ const config = keys.client.parse(process.env)
 |--------|------|---------|-------------|
 | `apiKey` | `string` | Required | Frontal API key (must start with `frt_`) |
 | `baseUrl` | `string` | `https://api.frontal.dev/v1` | API base URL |
-| `timeout` | `number` | `30000` | Request timeout in milliseconds |
-| `maxRetries` | `number` | `3` | Maximum retry attempts |
+| `timeout` | `number` | `30000` | Request timeout in milliseconds; covers typed response bodies and streams |
+| `maxRetries` | `number` | `3` | Maximum automatic retry attempts for GET requests |
 | `retryDelay` | `number` | `1000` | Base retry delay in milliseconds |
 | `headers` | `Record<string, string>` | `{}` | Additional headers |
 | `environment` | `string` | `'production'` | Environment name |

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { RateLimitError } from "../src/errors";
+import { z } from "zod";
+import { RateLimitError, TimeoutError } from "../src/errors";
 import { HttpClient } from "../src/http";
 
 const base = {
@@ -94,14 +95,76 @@ describe("HttpClient branches", () => {
     expect(n).toBe(2);
   });
 
-  it("falls back to the raw payload when the schema module is mismatched", async () => {
-    const { http } = withFetch(async () => Response.json({ a: 1 }));
-    const fakeSchema = {
-      safeParse: () => {
-        throw new Error("_zod mismatch");
+  it("does not bypass schema failures that mention _zod", async () => {
+    const { http } = withFetch(async () =>
+      Response.json({ valid: "no", _zod: "unexpected" })
+    );
+    const schema = z.object({ valid: z.boolean() }).strict();
+    await expect(http.get("/x", undefined, schema)).rejects.toBeInstanceOf(
+      z.ZodError
+    );
+  });
+
+  it("does not automatically replay POST writes after a transient response", async () => {
+    let calls = 0;
+    const { http } = withFetch(
+      async () => {
+        calls++;
+        return Response.json(
+          { code: "SERVICE_UNAVAILABLE", message: "try again" },
+          { status: 503 }
+        );
       },
-    } as never;
-    expect(await http.get("/x", undefined, fakeSchema)).toEqual({ a: 1 });
+      { maxRetries: 2 }
+    );
+
+    await expect(http.post("/charges", { amount: 100 })).rejects.toThrow();
+    expect(calls).toBe(1);
+  });
+
+  it("times out while consuming a response body", async () => {
+    const { http } = withFetch(
+      async () =>
+        ({
+          ok: true,
+          status: 200,
+          headers: new Headers({ "content-type": "application/json" }),
+          json: () => new Promise(() => undefined),
+        }) as Response,
+      { timeout: 10 }
+    );
+
+    await expect(http.get("/slow-body")).rejects.toBeInstanceOf(TimeoutError);
+  });
+
+  it("keeps SSE event fields across chunks and joins data lines", async () => {
+    const encoder = new TextEncoder();
+    const chunks = [
+      "event: update\n",
+      "id: evt_1\n",
+      'data: {"first":\n',
+      'data: "x"}\n',
+      "\n",
+    ];
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+        controller.close();
+      },
+    });
+    const { http } = withFetch(
+      async () =>
+        new Response(stream, {
+          headers: { "content-type": "text/event-stream" },
+        })
+    );
+
+    const events = [];
+    for await (const event of http.stream("/events")) events.push(event);
+
+    expect(events).toEqual([
+      { type: "update", id: "evt_1", data: { first: "x" } },
+    ]);
   });
 
   it("invokes logger hooks", async () => {

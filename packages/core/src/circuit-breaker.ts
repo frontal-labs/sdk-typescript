@@ -31,6 +31,7 @@ export class CircuitBreaker {
   private failures = 0;
   private lastFailureTime = 0;
   private state: CircuitState = "CLOSED";
+  private probeInFlight = false;
   private readonly config: CircuitBreakerConfig;
 
   constructor(config: CircuitBreakerConfig) {
@@ -57,12 +58,17 @@ export class CircuitBreaker {
    * Executes an async function through the circuit breaker.
    * Throws CircuitBreakerOpenError immediately if the circuit is OPEN
    * and the reset timeout has not elapsed. On success in HALF_OPEN state,
-   * resets the circuit to CLOSED.
+   * resets the circuit to CLOSED. A result classifier can count returned HTTP
+   * error responses as failures too.
    *
    * @param fn - The async operation to protect.
+   * @param isFailure - Optional predicate for failure-shaped results.
    * @throws {CircuitBreakerOpenError} If the circuit is OPEN.
    */
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
+  async execute<T>(
+    fn: () => Promise<T>,
+    isFailure: (result: T) => boolean = () => false
+  ): Promise<T> {
     if (this.state === "OPEN") {
       if (Date.now() - this.lastFailureTime > this.config.resetTimeoutMs) {
         this.state = "HALF_OPEN";
@@ -74,20 +80,39 @@ export class CircuitBreaker {
       }
     }
 
+    const isProbe = this.state === "HALF_OPEN";
+    if (isProbe) {
+      if (this.probeInFlight) {
+        throw new CircuitBreakerOpenError(this.config.resetTimeoutMs);
+      }
+      this.probeInFlight = true;
+    }
+
     try {
       const result = await fn();
-      if (this.state === "HALF_OPEN") {
+      if (isFailure(result)) {
+        this.recordFailure(isProbe);
+      } else if (isProbe) {
         this.reset();
+      } else {
+        this.failures = 0;
       }
       return result;
     } catch (error) {
-      this.failures++;
-      this.lastFailureTime = Date.now();
-      if (this.failures >= this.config.failureThreshold) {
-        this.state = "OPEN";
-        this.config.onOpen?.();
-      }
+      this.recordFailure(isProbe);
       throw error;
+    } finally {
+      if (isProbe) this.probeInFlight = false;
+    }
+  }
+
+  private recordFailure(isProbe: boolean): void {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+    if (isProbe || this.failures >= this.config.failureThreshold) {
+      const wasOpen = this.state === "OPEN";
+      this.state = "OPEN";
+      if (!wasOpen) this.config.onOpen?.();
     }
   }
 
@@ -95,6 +120,7 @@ export class CircuitBreaker {
   forceOpen(): void {
     this.state = "OPEN";
     this.lastFailureTime = Date.now();
+    this.probeInFlight = false;
   }
 
   /** Manually resets the circuit to the CLOSED state. */

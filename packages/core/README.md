@@ -31,7 +31,7 @@ const client = new FrontalClient({
   apiKey: process.env.FRONTAL_API_KEY!, // required, `frt_...`
   baseUrl: "https://...",     // defaults to https://api.frontal.dev/v1
   timeout: 30_000,            // request timeout in ms
-  maxRetries: 3,              // max retry attempts on transient errors
+  maxRetries: 3,              // GET retry attempts on transient errors
   retryDelay: 1_000,          // delay between retries in ms
   headers: {},                // extra headers sent with every request
   environment: "production",  // "development" | "test" | "production"
@@ -41,6 +41,13 @@ const client = new FrontalClient({
 
 Methods: `get`, `post`, `put`, `patch`, `delete`, `getRaw`, `postRaw`,
 `putRaw`, `postFormData`, `stream`, `postStream`.
+
+Automatic retries are limited to `GET` requests. Mutation requests are never
+replayed automatically; retry them only when the endpoint supports an
+idempotency key or the application can establish that the operation did not
+commit. The configured timeout covers response-body consumption and SSE stream
+reads. `getRaw()` and `postRaw()` return the body to the caller, so their timeout
+covers the request through response headers.
 
 ### Error Handling
 
