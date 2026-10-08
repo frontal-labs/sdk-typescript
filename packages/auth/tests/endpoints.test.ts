@@ -360,4 +360,10 @@ describe("AuthSdk endpoints", () => {
     expect(req?.method).toBe(method);
     expect(req?.path).toMatch(path);
   });
+
+  it("forwards the optional JWT as the Authorization header", async () => {
+    mock.reset();
+    await sdk.getUser("user-jwt");
+    expect(mock.requests.at(-1)?.headers.authorization).toBe("Bearer user-jwt");
+  });
 });

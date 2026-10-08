@@ -476,7 +476,7 @@ export class AISdk {
     if (validated.prompt) formData.append("prompt", validated.prompt);
     if (validated.responseFormat)
       formData.append("response_format", validated.responseFormat);
-    if (validated.temperature)
+    if (validated.temperature !== undefined)
       formData.append("temperature", String(validated.temperature));
 
     return this.http.postFormData<TranscriptionResult>(

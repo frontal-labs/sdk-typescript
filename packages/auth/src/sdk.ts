@@ -613,7 +613,7 @@ export class AuthSdk {
   async getUser(jwt?: string): Promise<UserResponse> {
     const headers: Record<string, string> = {};
     if (jwt) headers.Authorization = `Bearer ${jwt}`;
-    return this.http.get("/auth/user");
+    return this.http.get("/auth/user", undefined, undefined, headers);
   }
 
   /**

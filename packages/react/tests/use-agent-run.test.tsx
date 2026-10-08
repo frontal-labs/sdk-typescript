@@ -60,22 +60,66 @@ describe("useAgentRun", () => {
     expect(result.current.status).toBe("error");
     expect(result.current.error?.code).toBe("NOT_FOUND");
   });
+
+  it("stays idle after the caller stops a run", async () => {
+    const s = createScenario("agent-run-stop", [
+      { on: "agents.message", return: runResource },
+      {
+        on: "agents.watch",
+        stream: {
+          chunks: [{ event: "state", data: { value: "late" } }],
+          chunkDelayMs: 1_000,
+        },
+      },
+    ]);
+    const agent = new AgentsSdk(s.client.httpClient).use("agt_1");
+    const { result } = renderHook(() => useAgentRun(agent));
+    let trigger: Promise<unknown> | undefined;
+
+    act(() => {
+      trigger = result.current.trigger("t");
+    });
+    await waitFor(() => expect(result.current.status).toBe("streaming"));
+    act(() => result.current.stop());
+    expect(result.current.status).toBe("idle");
+
+    await act(async () => {
+      await trigger;
+    });
+    expect(result.current.status).toBe("idle");
+    expect(result.current.events.some((event) => event.type === "abort")).toBe(
+      true
+    );
+    s.assertAllHit();
+  });
 });
 
 describe("useWorkflowApprovals", () => {
   it("lists and approves", async () => {
     const pending = {
       id: "apr_1",
-      workflow_id: "wf_1",
+      status: "pending",
       execution_id: "ex_1",
       step_id: "review",
-      status: "pending",
-      approvers: ["ops"],
-      required_approvals: 1,
+      signal_name: "review",
+      title: "Review",
+      description: "Review this request",
+      required_approvers: ["ops"],
+      approved_by: [],
+      rejected_by: null,
+      cancel_reason: null,
+      comment: null,
+      expires_at: null,
+      resolved_at: null,
+      created_by: "system",
       created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
     };
     const s = createScenario("approvals", [
-      { on: "workflows.approvals.list", return: { data: [pending], pagination: { cursor: "", has_more: false } } },
+      {
+        on: "workflows.approvals.list",
+        return: { items: [pending], next_page_token: "" },
+      },
       { on: "workflows.approvals.approve", return: { ...pending, status: "approved" } },
     ]);
     const workflows = new WorkflowsSdk(s.client.httpClient);

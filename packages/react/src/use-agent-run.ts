@@ -77,6 +77,7 @@ export function useAgentRun<TState extends z.ZodType = z.ZodType>(
         signal: controller.signal,
       })) {
         setEvents((prev) => [...prev, part]);
+        if (part.type === "abort") continue;
         if (part.type === "state") setState(part.state);
         if (part.type === "error") {
           failed = true;
@@ -84,8 +85,10 @@ export function useAgentRun<TState extends z.ZodType = z.ZodType>(
           options.onError?.(part.error);
         }
       }
-      if (abortRef.current === controller) abortRef.current = undefined;
-      setStatus(failed ? "error" : "completed");
+      if (abortRef.current === controller) {
+        abortRef.current = undefined;
+        setStatus(failed ? "error" : "completed");
+      }
     },
     [agent, options.onError]
   );
@@ -113,6 +116,7 @@ export function useAgentRun<TState extends z.ZodType = z.ZodType>(
   const stop = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = undefined;
+    setStatus("idle");
   }, []);
 
   return { run, events, state, status, error, trigger, watch, stop };

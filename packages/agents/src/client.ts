@@ -27,6 +27,14 @@ export interface AgentsClientConfig {
   maxRetries?: number;
 }
 
+function getAgentApiUrl(): string | undefined {
+  return (
+    globalThis as unknown as {
+      process?: { env?: Record<string, string | undefined> };
+    }
+  ).process?.env?.FRONTAL_AGENTS_API_URL;
+}
+
 /**
  * Creates an {@link AgentsSdk} from either an existing {@link FrontalClient}
  * or a plain configuration object.
@@ -48,7 +56,7 @@ export function createAgentsClient(
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??
-      process.env.FRONTAL_AGENTS_API_URL ??
+      getAgentApiUrl() ??
       env.FRONTAL_API_URL ??
       DEFAULT_AGENTS_BASE_URL,
     timeout: clientOrConfig.timeout ?? DEFAULT_TIMEOUT,

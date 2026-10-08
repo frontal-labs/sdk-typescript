@@ -258,22 +258,29 @@ describe("AISdk", () => {
   describe("transcribe()", () => {
     it("transcribes audio", async () => {
       const { http } = createTestHttpClient([]);
+      const bodies: FormData[] = [];
       vi.spyOn(
         http as unknown as {
-          postFormData: () => Promise<{ text: string }>;
+          postFormData: (
+            path: string,
+            body: FormData
+          ) => Promise<{ text: string }>;
         },
         "postFormData"
-      ).mockResolvedValue({
-        text: "Hello world",
+      ).mockImplementation(async (_path, body) => {
+        bodies.push(body);
+        return { text: "Hello world" };
       });
 
       const service = new AISdk(http);
       const result = await service.transcribe({
         file: new Blob(["audio data"]),
         model: "whisper-1",
+        temperature: 0,
       });
 
       expect(result.text).toBe("Hello world");
+      expect(bodies[0]?.get("temperature")).toBe("0");
     });
   });
 
