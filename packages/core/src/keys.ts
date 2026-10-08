@@ -1,6 +1,13 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
+const runtimeProcessEnv =
+  (
+    globalThis as unknown as {
+      process?: { env?: Record<string, string | undefined> };
+    }
+  ).process?.env ?? {};
+
 const apiKeySchema = z
   .string()
   .min(9, "FRONTAL_API_KEY must be at least 9 characters")
@@ -41,10 +48,10 @@ export const env = createEnv({
     FRONTAL_DEBUG: debugSchema,
   },
   runtimeEnv: {
-    FRONTAL_ENV: process.env.FRONTAL_ENV,
-    FRONTAL_API_KEY: process.env.FRONTAL_API_KEY,
-    FRONTAL_API_URL: process.env.FRONTAL_API_URL,
-    FRONTAL_DEBUG: process.env.FRONTAL_DEBUG,
+    FRONTAL_ENV: runtimeProcessEnv.FRONTAL_ENV,
+    FRONTAL_API_KEY: runtimeProcessEnv.FRONTAL_API_KEY,
+    FRONTAL_API_URL: runtimeProcessEnv.FRONTAL_API_URL,
+    FRONTAL_DEBUG: runtimeProcessEnv.FRONTAL_DEBUG,
   },
   emptyStringAsUndefined: true,
 });
