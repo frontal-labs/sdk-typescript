@@ -86,7 +86,10 @@ function normalizePath(path: string): string {
 	return path.replace(/\$\{[^}]+\}/g, "{param}");
 }
 
-function extractPath(arg: ts.Expression): string | null {
+function extractPath(
+	arg: ts.Expression,
+	staticProperties: Map<string, string>,
+): string | null {
 	if (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg)) {
 		return arg.text;
 	}
@@ -94,7 +97,15 @@ function extractPath(arg: ts.Expression): string | null {
 	if (ts.isTemplateExpression(arg)) {
 		let value = arg.head.text;
 		for (const span of arg.templateSpans) {
-			value += "{param}";
+			const expression = span.expression;
+			const propertyName =
+				ts.isPropertyAccessExpression(expression) &&
+				ts.isIdentifier(expression.expression)
+					? `${expression.expression.text}.${expression.name.text}`
+					: null;
+			value += propertyName
+				? (staticProperties.get(propertyName) ?? "{param}")
+				: "{param}";
 			value += span.literal.text;
 		}
 		return value;
@@ -118,6 +129,29 @@ function extractFromFile(filePath: string): Endpoint[] {
 		true,
 		ts.ScriptKind.TS,
 	);
+	const staticProperties = new Map<string, string>();
+	const collectStaticProperties = (node: ts.Node): void => {
+		if (ts.isClassDeclaration(node) && node.name) {
+			for (const member of node.members) {
+				if (
+					ts.isPropertyDeclaration(member) &&
+					member.initializer &&
+					ts.isStringLiteral(member.initializer) &&
+					member.modifiers?.some(
+						(modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword,
+					) &&
+					(member.name as ts.Identifier).text
+				) {
+					staticProperties.set(
+						`${node.name.text}.${(member.name as ts.Identifier).text}`,
+						member.initializer.text,
+					);
+				}
+			}
+		}
+		ts.forEachChild(node, collectStaticProperties);
+	};
+	collectStaticProperties(source);
 
 	const endpoints: Endpoint[] = [];
 
@@ -132,7 +166,7 @@ function extractFromFile(filePath: string): Endpoint[] {
 			if (HTTP_METHODS.has(method) && isThisHttpAccess(call.expression)) {
 				const firstArg = node.arguments[0];
 				if (firstArg) {
-					const rawPath = extractPath(firstArg);
+					const rawPath = extractPath(firstArg, staticProperties);
 					if (rawPath && rawPath.startsWith("/")) {
 						// `streamParts` / `postStreamParts` are the errors-as-data
 						// variants of `stream` / `postStream`; same wire call.

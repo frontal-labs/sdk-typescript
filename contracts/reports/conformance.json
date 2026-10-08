@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T16:49:16.179Z",
+  "generatedAt": "2026-10-08T21:02:10.378Z",
   "packages": [
     "agents",
     "ai",
@@ -21,43 +21,8 @@
     "workflows"
   ],
   "drift": {
-    "errors": [
-      "\n[workflows]",
-      "  Missing endpoints:",
-      "    - DELETE /workflows",
-      "    - GET /workflows/{param}/{param}",
-      "    - GET /workflows/{param}/{param}/summary",
-      "    - PATCH /workflows",
-      "    - POST /workflows/batch",
-      "    - POST /workflows/search",
-      "    - PUT /workflows",
-      "    - STREAM /workflows/{param}/{param}/timeline",
-      "  Unexpected endpoints:",
-      "    + DELETE /workflows/{param}",
-      "    + GET /workflows/approvals",
-      "    + GET /workflows/approvals/{param}",
-      "    + GET /workflows/executions",
-      "    + GET /workflows/executions/{param}",
-      "    + GET /workflows/executions/{param}/tasks",
-      "    + GET /workflows/runs/{param}/steps",
-      "    + GET /workflows/tasks/{param}",
-      "    + GET /workflows/templates",
-      "    + GET /workflows/templates/{param}",
-      "    + GET /workflows/{param}",
-      "    + PATCH /workflows/{param}",
-      "    + POST /workflows/approvals/{param}/approve",
-      "    + POST /workflows/approvals/{param}/reject",
-      "    + POST /workflows/executions",
-      "    + POST /workflows/tasks/{param}/cancel",
-      "    + POST /workflows/tasks/{param}/retry",
-      "    + POST /workflows/templates",
-      "    + POST /workflows/templates/{param}/instantiate",
-      "    + POST /workflows/{param}/archive",
-      "    + POST /workflows/{param}/publish",
-      "    + POST /workflows/{param}/restore",
-      "    + POST /workflows/{param}/versions"
-    ],
-    "hasDrift": true
+    "errors": [],
+    "hasDrift": false
   },
   "conformance": {
     "issues": [
@@ -1036,6 +1001,86 @@
         "endpoint": {
           "method": "POST",
           "path": "/billing/wallets/{param}/top-up"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/blob/object/{param}/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "GET",
+          "path": "/blob/object/info/{param}/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "GETRAW",
+          "path": "/blob/object/{param}/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "POST",
+          "path": "/blob/object/copy"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "POST",
+          "path": "/blob/object/list/{param}"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "POST",
+          "path": "/blob/object/move"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "POST",
+          "path": "/blob/object/sign/{param}/{param}"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "blob",
+        "endpoint": {
+          "method": "POSTFORMDATA",
+          "path": "/blob/object/{param}/{param}"
         },
         "resolvedMethod": "POST",
         "surface": "api",
@@ -2149,9 +2194,9 @@
         "unmatched": 23
       },
       "blob": {
-        "total": 0,
+        "total": 8,
         "matched": 0,
-        "unmatched": 0
+        "unmatched": 8
       },
       "connectors": {
         "total": 12,
