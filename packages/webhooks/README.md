@@ -60,6 +60,37 @@ for (const d of deliveries.data) {
 const { secret } = await f.webhooks.endpoints.rotateSecret("wh_1");
 console.log(secret);
 ```
+
+### Verify incoming events
+
+Signature verification uses Web Crypto and is asynchronous, so it works with
+native Node ESM and Web Crypto based edge runtimes:
+
+```ts
+import { extractWebhookEvent } from "@frontal-labs/webhooks";
+
+export async function POST(request: Request) {
+  const rawBody = await request.text();
+  const signature = request.headers.get("Signature") ?? "";
+  const result = await extractWebhookEvent(
+    rawBody,
+    signature,
+    process.env.FRONTAL_WEBHOOK_SECRET!
+  );
+
+  if (!result.valid) {
+    return new Response("Invalid signature", { status: 401 });
+  }
+
+  console.log(result.event);
+  return new Response("OK");
+}
+```
+
+Use the timestamped `t=...,v1=...` signature format for replay protection.
+Legacy raw hex signatures are accepted but do not contain a timestamp.
+The example reads the secret from Node's environment; use your edge provider's
+secret binding when deploying there.
 ## Error handling
 
 All failures throw a typed `FrontalError` subclass (`NotFoundError`,

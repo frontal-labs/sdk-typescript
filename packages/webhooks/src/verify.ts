@@ -1,53 +1,55 @@
 /**
- * Verifies an incoming webhook payload signature using HMAC-SHA256.
+ * Verifies an incoming webhook payload signature using Web Crypto HMAC-SHA256.
  *
- * Supports the standard webhook signing pattern:
- *   HMAC-SHA256(payload + "." + timestamp, secret)
- *
- * The signature header is expected to be "t=<timestamp>,v1=<signature>" format,
- * or a raw hex-encoded HMAC.
+ * Supports the timestamped format `t=<unix-seconds>,v1=<hex-signature>` and
+ * legacy raw hex signatures. Timestamped signatures include the timestamp after
+ * the payload, separated by a period. Raw signatures do not provide replay
+ * protection.
  *
  * @param payload - The raw webhook request body as a string.
- * @param signatureHeader - The `Signature` header value (raw hex or `t=...,v1=...` format).
+ * @param signatureHeader - The `Signature` header value.
  * @param secret - The shared signing secret.
- * @param toleranceMs - Timestamp tolerance in milliseconds for anti-replay (default 300s).
- * @returns An object with `valid` boolean and optional `error` message.
+ * @param toleranceMs - Timestamp tolerance in milliseconds (default 300s).
+ * @returns A promise with the signature verification result.
  */
-export function verifyWebhookSignature(
+export async function verifyWebhookSignature(
   payload: string,
   signatureHeader: string,
   secret: string,
   toleranceMs = 300_000
-): { valid: boolean; error?: string } {
+): Promise<{ valid: boolean; error?: string }> {
   if (!(payload && signatureHeader && secret)) {
     return { valid: false, error: "Missing payload, signature, or secret" };
   }
 
-  // Parse standard "t=<ts>,v1=<sig>" format
-  const parts: Record<string, string> = {};
+  const parts = new Map<string, string>();
   for (const part of signatureHeader.split(",")) {
-    const eq = part.indexOf("=");
-    if (eq === -1) {
-      parts.v1 = part.trim();
+    const separator = part.indexOf("=");
+    if (separator === -1) {
+      parts.set("v1", part.trim());
     } else {
-      parts[part.slice(0, eq).trim()] = part.slice(eq + 1).trim();
+      parts.set(
+        part.slice(0, separator).trim(),
+        part.slice(separator + 1).trim()
+      );
     }
   }
 
-  const signature = parts.v1;
-  const timestamp = parts.t;
-
+  const signature = parts.get("v1");
+  const timestamp = parts.get("t");
   if (!signature) {
     return { valid: false, error: "No signature found in header" };
   }
 
-  // Timestamp tolerance check (anti-replay)
-  if (timestamp) {
-    const ts = Number.parseInt(timestamp, 10);
-    if (Number.isNaN(ts)) {
-      return { valid: false, error: `Invalid timestamp: ${timestamp}` };
+  if (timestamp !== undefined) {
+    if (!/^\d+$/.test(timestamp)) {
+      return { valid: false, error: "Invalid timestamp" };
     }
-    if (Math.abs(Date.now() - ts * 1000) > toleranceMs) {
+    const timestampMs = Number(timestamp) * 1000;
+    if (
+      !Number.isSafeInteger(timestampMs) ||
+      Math.abs(Date.now() - timestampMs) > toleranceMs
+    ) {
       return {
         valid: false,
         error: `Timestamp outside tolerance (${toleranceMs}ms)`,
@@ -55,54 +57,73 @@ export function verifyWebhookSignature(
     }
   }
 
-  const crypto = require("crypto") as typeof import("crypto");
-  const signedPayload = timestamp ? `${payload}.${timestamp}` : payload;
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(signedPayload)
-    .digest("hex");
+  const signatureBytes = decodeHexSignature(signature);
+  if (!signatureBytes) {
+    return { valid: false, error: "Signature must be 64-character hex" };
+  }
 
-  const valid = timingSafeEqual(expected, signature);
+  const webCrypto = globalThis.crypto;
+  if (!webCrypto?.subtle) {
+    return { valid: false, error: "Web Crypto is unavailable in this runtime" };
+  }
+
+  const key = await webCrypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"]
+  );
+  const signedPayload = timestamp ? `${payload}.${timestamp}` : payload;
+  const valid = await webCrypto.subtle.verify(
+    "HMAC",
+    key,
+    signatureBytes,
+    new TextEncoder().encode(signedPayload)
+  );
 
   return valid
     ? { valid: true }
     : { valid: false, error: "Signature mismatch" };
 }
 
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+function decodeHexSignature(
+  signature: string
+): Uint8Array<ArrayBuffer> | undefined {
+  if (!/^[a-fA-F0-9]{64}$/.test(signature)) return undefined;
+
+  const bytes = new Uint8Array(new ArrayBuffer(32));
+  for (let index = 0; index < bytes.length; index++) {
+    bytes[index] = Number.parseInt(
+      signature.slice(index * 2, index * 2 + 2),
+      16
+    );
   }
-  return result === 0;
+  return bytes;
 }
 
 /**
- * Verifies and extracts a typed event from an incoming webhook payload.
- * Combines signature verification with JSON parsing in one call.
+ * Verifies a webhook signature and parses the JSON event.
  *
  * @param payload - The raw webhook request body as a string.
  * @param signatureHeader - The `Signature` header value.
  * @param secret - The shared signing secret.
- * @param toleranceMs - Timestamp tolerance in milliseconds for anti-replay.
- * @returns An object with `valid` boolean, optional parsed `event`, and optional `error` message.
+ * @param toleranceMs - Timestamp tolerance in milliseconds (default 300s).
+ * @returns A promise with the validity result and, on success, the parsed event.
  */
-export function extractWebhookEvent<T = Record<string, unknown>>(
+export async function extractWebhookEvent<T = Record<string, unknown>>(
   payload: string,
   signatureHeader: string,
   secret: string,
   toleranceMs?: number
-): { valid: boolean; event?: T; error?: string } {
-  const verify = verifyWebhookSignature(
+): Promise<{ valid: boolean; event?: T; error?: string }> {
+  const verify = await verifyWebhookSignature(
     payload,
     signatureHeader,
     secret,
     toleranceMs
   );
-  if (!verify.valid) {
-    return verify;
-  }
+  if (!verify.valid) return verify;
 
   try {
     const event = JSON.parse(payload) as T;
