@@ -1,0 +1,11 @@
+---
+description: TypeScript SDK code conventions and checks
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# TypeScript development rules
+
+Use Bun, workspace package patterns, Biome, Zod v4, and Changesets. Preserve the lazy service getter facade. Keep README examples type-checked and service behavior grounded in the committed contracts.
+
+When implementing behavior changes, add deterministic offline coverage using the repository's existing test tools. Update docs and runnable examples for public API changes. See `AGENTS.md` for project-specific rules and use the applicable skill under `skills/`.

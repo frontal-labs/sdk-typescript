@@ -39,3 +39,14 @@ bun-debug.log*
 *.swp
 *.bak
 .frontal-biome-temp.json
+
+# Local secrets and generated caches
+.env
+.env.*
+!.env.example
+!.env.*.example
+.gradle/
+.venv/
+venv/
+__pycache__/
+*.egg-info/

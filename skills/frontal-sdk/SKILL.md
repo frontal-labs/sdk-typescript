@@ -100,7 +100,8 @@ All API failures throw a `FrontalError` subclass from `@frontal-labs/core`
 Every `FrontalError` has `code`, `message`, `requestId`, `statusCode`,
 `retryable`, an optional `fix` hint and an optional `docs` URL. Streams
 (`ai.streamText().fullStream`, `agents.use(id).watch()`) never throw
-mid-stream: they yield `{ type: "error", error }` parts, then `done`. Log `requestId`; it correlates with
+mid-stream: they yield `{ type: "error", error }` parts, then `done`. Log
+`requestId`; it correlates with
 `f.observability.logs.query({ query: \`requestId:"..."\` })`.
 
 ```ts
@@ -164,3 +165,23 @@ See `docs/TESTING.md` for streaming and multi-service recipes.
 2. Method names verified against the installed package's README or `.d.ts`.
 3. Errors handled by class, `requestId` surfaced.
 4. Tests use `createTestClient`, no network.
+
+## Extend this monorepo
+
+For work inside the SDK repository, follow `AGENTS.md` and the closest service package. The common package layout is `client.ts` (factory and compatibility exports), `sdk.ts` (service class using `HttpClient`), `schemas.ts` (Zod definitions), `constants.ts`, and `index.ts`. Keep service behavior in `packages/<service>` and shared transport/errors in `packages/core`; `packages/sdk` owns lazy getters on `Frontal`, and `packages/testing` owns fetch-level mocks.
+
+Use the committed endpoint inventory and OpenAPI snapshots for route behavior. Keep Zod schemas and exported input/output types aligned, including optional inputs for defaulted fields. Add contract coverage with behavior changes, executable README examples for public APIs, and a Changeset for publishable package changes. Follow Biome and the repository's Bun workspace setup.
+
+Every TypeScript block in root/package READMEs and `examples/SDKS_GUIDE.md` is exercised by `bun run test:examples`. After editing those docs, use `ts prelude` only when later snippets need shared setup, and use a `// TODO(example): reason` line for any intentionally skipped snippet. Regenerate `docs/mcp.json` with `bun run docs:manifest` whenever README content changes. Consult `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and `CONTRIBUTING.md` before structural changes.
+
+Useful repository checks:
+
+```bash
+bun run build
+bun run test
+bun run test:examples
+bun run lint
+bun run type-check
+bun run contract:endpoints
+bun run contract:matrix
+```

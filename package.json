@@ -1,5 +1,5 @@
 {
-  "name": "@frontal-labs/root",
+  "name": "sdk-typescript",
   "version": "0.0.0",
   "private": true,
   "description": "Frontal JavaScript/Typescript SDK Monorepo",
