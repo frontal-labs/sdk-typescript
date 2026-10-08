@@ -1,0 +1,125 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "TypeScript: Build workspace",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "build"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "TypeScript: Test",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "test"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "TypeScript: Test docs examples",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "test:examples"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "TypeScript: Lint",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "lint"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "TypeScript: Format check",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "format:check"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "TypeScript: Type check",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "type-check"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "TypeScript: Endpoint contracts",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "contract:endpoints"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "TypeScript: Contract matrix",
+      "type": "process",
+      "command": "bun",
+      "args": [
+        "run",
+        "contract:matrix"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    }
+  ]
+}

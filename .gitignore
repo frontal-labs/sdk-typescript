@@ -45,13 +45,11 @@ bun-debug.log*
 *.pem
 .history
 .idea
-.vscode
 *.swp
 *.bak
 .frontal-biome-temp.json
 
 # IDE
-.cursor
 *.tsbuildinfo
 
 # Extracted README examples (generated)
