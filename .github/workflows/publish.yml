@@ -72,8 +72,8 @@ jobs:
         id: changesets
         uses: changesets/action@v2.1.2
         with:
-          publish: bun run release
-          version: bun run version-packages
+          publish-script: bun run release
+          version-script: bun run version-packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
