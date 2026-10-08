@@ -1,0 +1,26 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Frontal TypeScript SDK",
+  "description": "TypeScript SDK monorepo for Frontal services, with a unified client, service packages, Zod schemas, and React hooks.",
+  "folders": [],
+  "excludeFolders": [
+    ".git",
+    "node_modules",
+    ".turbo",
+    ".examples-build",
+    ".examples-quickstart",
+    "dist",
+    "build",
+    "coverage",
+    "test-results",
+    "tmp",
+    "temp"
+  ],
+  "rules": [
+    "Use @frontal-labs/sdk for the unified Frontal client or import a service package directly.",
+    "The unified client entry is packages/sdk; service implementations live in packages/<service>.",
+    "Use the committed contracts/sdk-endpoints.json and OpenAPI snapshots as the source of truth for endpoint methods and paths.",
+    "Use Zod v4 schemas for payload validation; derive caller inputs with z.input and outputs with z.infer.",
+    "Use Bun for workspace scripts and Turborepo for package tasks."
+  ]
+}

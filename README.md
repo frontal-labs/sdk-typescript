@@ -2,7 +2,7 @@
 
 ![Frontal Banner](./banner.png)
 
-**Frontal Javascript/Typescript SDK library.**
+[![skills.sh](https://skills.sh/b/frontal-labs/sdk-typescript)](https://skills.sh/frontal-labs/sdk-typescript)
 
 Build governed, observable AI systems on Frontal: AI inference, agents,
 durable workflows, pipelines, ontology, storage and 10 more services —
@@ -146,6 +146,14 @@ FRONTAL_API_KEY=frt_... bun run test:live
 ```
 
 Optional: `FRONTAL_BLOB_BUCKET` (for `blob.list`).
+
+## Agent skills
+
+Install this repository's TypeScript-specific agent skills with the [skills CLI](https://skills.sh/docs/cli):
+
+```bash
+npx skills add frontal-labs/sdk-typescript
+```
 
 ## License
 
