@@ -30,6 +30,7 @@
     "format:check": "biome format packages/ biome.jsonc package.json",
     "test": "vitest run",
     "test:live": "bun scripts/live-backend-compat.ts",
+    "runtime:smoke": "node scripts/package-runtime-smoke.mjs",
     "contract:sync": "bun scripts/contract-sync.ts",
     "contract:endpoints": "bun scripts/endpoint-contract.ts",
     "contract:endpoints:update": "bun scripts/endpoint-contract.ts --update",

@@ -264,7 +264,7 @@ Our CI pipeline runs tests automatically:
 
 We test across:
 
-- **Runtime**: Node.js (v18, v20, v22), Bun (latest)
+- **Runtime**: Node.js LTS (v22, v24), Bun (latest)
 - **OS**: Ubuntu, macOS
 
 ## Debugging Tests

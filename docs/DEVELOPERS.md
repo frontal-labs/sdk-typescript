@@ -3,7 +3,8 @@
 ## Prerequisites
 
 - [Bun](https://bun.sh/) v1.3.8+
-- [Node.js](https://nodejs.org/) v18+ (for compatibility)
+- [Node.js](https://nodejs.org/) v18+ compatibility; use a currently supported
+  Node LTS release for production
 - [Git](https://git-scm.com/)
 
 ## Initial Setup

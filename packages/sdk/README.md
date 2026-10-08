@@ -59,9 +59,13 @@ const f = new Frontal({
   env: "development",                     // "development" | "test" | "production"; or FRONTAL_ENV
   debug: false,                           // or FRONTAL_DEBUG=1
   timeout: 30_000,
-  maxRetries: 3,
+  maxRetries: 3, // automatic retries apply to GET requests only
 });
 ```
+
+The timeout covers response-body consumption and streamed reads. Raw-response
+methods return body ownership to the caller, so their timeout ends when response
+headers arrive. Mutation requests are never replayed automatically.
 
 Invalid config (for example an API key without the `frt_` prefix) throws at
 construction time, not on the first request.

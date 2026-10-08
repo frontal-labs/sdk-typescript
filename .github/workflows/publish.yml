@@ -83,16 +83,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: bun run publish:github
-
-  docs:
-    name: Generate Documentation
-    needs: release
-    if: needs.release.result == 'success'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    permissions:
-      actions: read
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-      - name: Generate documentation
-        run: echo "Documentation generation not yet configured"

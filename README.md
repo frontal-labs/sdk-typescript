@@ -1,10 +1,8 @@
-<picture>
-  <source srcset="./banner-dark.png" media="(prefers-color-scheme: dark)">
-  <source srcset="./banner.png" media="(prefers-color-scheme: light)">
-  <img src="./banner-dark.png" alt="Frontal Banner">
-</picture>
-
 # Frontal TypeScript SDK
+
+![Frontal Banner](./banner.png)
+
+**Frontal Javascript/Typescript SDK library.**
 
 Build governed, observable AI systems on Frontal: AI inference, agents,
 durable workflows, pipelines, ontology, storage and 10 more services —
@@ -54,7 +52,9 @@ Writing code with an AI assistant? Point it at [`SKILL.md`](./SKILL.md);
 - **Typed end to end.** Zod-validated requests and responses; every API error is a `FrontalError` subclass with `code`, `requestId` and `statusCode`.
 - **Testable without a backend.** `@frontal-labs/testing` mocks at the `fetch` layer so retries, transforms and errors behave exactly as in production.
 - **Docs that can't rot.** Every code block in these READMEs is extracted and type-checked in CI; the quickstart above runs against mocks on every PR.
-- **ESM + CJS, Node 18+, Bun, edge runtimes.** TypeScript-first, and proud of it.
+- **ESM + CJS, Node 18+ compatibility, Bun, and Fetch/Web Crypto compatible
+  edge runtimes.** CI loads built package entries on Node 22 and 24 LTS. Use a
+  Node release that is still supported for production deployments.
 
 ## Packages
 
@@ -90,7 +90,8 @@ need one service. Every package exposes a `createXClient()` factory that accepts
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) v1.3.8+ (Node 18+ for consumers)
+- [Bun](https://bun.sh) v1.3.8+ (Node 18+ compatibility for consumers; use a
+  currently supported Node LTS release in production)
 - [Git](https://git-scm.com)
 
 ### Development setup
@@ -113,6 +114,7 @@ bun run test:examples    # type-check + run every README code block
 bun run lint             # biome
 bun run format           # biome --write
 bun run type-check       # tsc --noEmit per package
+bun run runtime:smoke    # load built ESM and CommonJS package entries on Node
 bun run docs:manifest    # regenerate docs/mcp.json
 bun run contract:endpoints   # SDK ↔ OpenAPI conformance gate
 bun run contract:matrix      # regenerate migration matrix
@@ -123,6 +125,8 @@ CI runs format, build, lint, type-check, tests, README examples, docs
 freshness and the contract gates on every PR. See
 [`CONTRIBUTING.md`](./CONTRIBUTING.md) and [`docs/`](./docs) for architecture,
 testing, publishing and release notes.
+See [`docs/ENTERPRISE_READINESS.md`](./docs/ENTERPRISE_READINESS.md) for the
+repository's verified controls and open enterprise qualification items.
 
 ### Environment
 
