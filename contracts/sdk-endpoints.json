@@ -451,7 +451,7 @@
       "path": "/blob/object/info/{param}/{param}"
     },
     {
-      "method": "GET",
+      "method": "GETRAW",
       "path": "/blob/object/{param}/{param}"
     },
     {
