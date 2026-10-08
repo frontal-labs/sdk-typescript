@@ -46,7 +46,7 @@ merge triggers the publish workflow:
 1. CI passes (build, type-check, test).
 2. Changesets publishes all updated packages to npm in dependency order.
 3. GitHub Releases are created with the generated changelogs.
-4. Documentation is regenerated and deployed.
+4. CI checks generated documentation manifests for freshness before the release.
 
 ### 4. Verify
 
@@ -55,6 +55,7 @@ After publishing, confirm:
 - Packages appear on [GitHub Packages] with the same versions
 - Provenance badges are visible on each npm package page
 - GitHub Releases are created with correct changelogs
+- Generated documentation manifests are current
 
 ## Manual Release (if CI is unavailable)
 
@@ -77,7 +78,7 @@ bun run release
 | Release PR | Changesets merged to main | Bot opens a Version Packages PR |
 | Publish | Version Packages PR merged | Published to npm with provenance |
 | GitHub Packages | After npm publish | Same versions to GitHub Packages |
-| Docs | After publish | API docs generated and deployed to GitHub Pages |
+| Docs | Pull request CI | README-derived manifests are checked for freshness; hosted API-doc deployment is not configured |
 
 ## Provenance
 

@@ -2,12 +2,13 @@
 
 ## Supported Versions
 
-We are committed to maintaining the security of the Frontal SDK. Currently, we support the following versions:
+Support applies to each published package's own version. The unified SDK's
+version does not promote a pre-1.0 service package to a stable support level.
 
-| Version | Support Status | End of Life |
-| ------- | -------------- | ------------ |
-| 1.x     | Supported    | TBD           |
-| < 1.0   | Unsupported | N/A           |
+| Package version | Status | Support commitment |
+| --- | --- | --- |
+| 1.x | Supported | Security fixes and maintenance releases under this policy |
+| 0.x (`<1.0`) | Preview | Best effort; no enterprise support or availability commitment |
 
 **Recommendation**: Always use the latest version to ensure you have the most recent security fixes and features.
 
@@ -17,12 +18,13 @@ We take security seriously and appreciate your help in making the Frontal SDK mo
 
 ### How to Report
 
-If you discover a security vulnerability, please **do not open a public issue**. Instead, report it privately to our security team.
+If you discover a security vulnerability, please **do not open a public issue**.
+Report it privately using GitHub's private reporting feature or the security
+contact below.
 
 **Primary Contact Methods:**
 - **Email**: security@frontal.cloud
 - **GitHub**: Use [GitHub's private reporting feature](https://docs.github.com/en/github/site-policy/github-private-reporting)
-- **Discord**: Contact any moderator in the Frontal Discord server with "Security" prefix
 
 ### What to Include
 
@@ -34,25 +36,24 @@ When reporting a vulnerability, please provide:
 - **Environment Details**: SDK version, Node.js/Bun version, OS, etc.
 - **Proof of Concept**: Code snippet or minimal reproduction if possible
 
-### Response Timeline
+### Response Expectations
 
-We are committed to addressing security issues promptly:
-
-- **Initial Response**: Within 48 hours of receiving the report
-- **Detailed Assessment**: Within 7 business days
-- **Fix Timeline**: Based on severity, typically within 30 days
-- **Public Disclosure**: After fix is available and tested
+This repository does not define a response-time or fix-time commitment. Confirm
+the current security contact, response target, and disclosure process with the
+Frontal security owner before relying on them for an enterprise requirement.
 
 ## Security Measures
 
-### Built-in Protections
+### Repository Controls
 
-The Frontal SDK includes several security features:
-
-- **Input Validation**: Sanitization of user inputs
-- **Secure Defaults**: Secure configuration by default
-- **Dependency Scanning**: Automated scanning of dependencies
-- **Code Review**: Security-focused code reviews
+- Client configuration is validated with Zod, and endpoint response schemas
+  validate responses where a service method supplies a schema.
+- The repository configures weekly Dependabot update pull requests in
+  [`.github/dependabot.yml`](../.github/dependabot.yml).
+- A CodeQL workflow analyzes JavaScript and TypeScript on pushes, pull requests,
+  and a weekly schedule in [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml).
+- CI builds, lints, type-checks, and tests the SDK. These checks do not verify
+  platform controls or replace a security assessment of an integration.
 
 ### Best Practices for Users
 
@@ -85,24 +86,17 @@ const apiKey = "sk-1234567890abcdef";
 
 ### How We Handle Security Issues
 
-1. **Assessment**: Evaluate severity and impact
-2. **Development**: Create and test security patches
-3. **Release**: Publish security updates promptly
-4. **Notification**: Inform users of security updates
-5. **Documentation**: Update security documentation
+Maintainers should assess reported impact, coordinate a fix, and agree on
+disclosure with the reporter. This repository does not define a severity-based
+release schedule or notification SLA.
 
 ### Security Advisories
 
-We publish security advisories for:
-
-- **Critical Issues**: Within 24 hours of fix availability
-- **High Priority**: Within 48 hours of fix availability
-- **Medium/Low**: With next scheduled release
+Security advisories can be published through GitHub when a public advisory is
+appropriate. This repository does not define a publication deadline.
 
 Subscribe to security updates:
 - **GitHub Security Advisories**: [Watch our repository](https://github.com/frontal-labs/sdk-typescript/security/advisories)
-- **Email Newsletter**: Subscribe at [frontal.cloud](https://frontal.cloud)
-- **Discord**: Join our security announcements channel
 
 ## Vulnerability Disclosure Policy
 
@@ -113,31 +107,15 @@ We follow responsible disclosure principles:
 - **Coordinated Release**: Work with reporters on disclosure timing
 - **Credit**: Acknowledge and credit security researchers
 
-### Bug Bounty Program
-
-We offer rewards for valid security reports:
-
-- **Critical**: Up to $5,000
-- **High**: Up to $2,000
-- **Medium**: Up to $500
-- **Low**: Up to $200
-
-*Rewards are at our discretion based on impact and exploitability.*
-
-## Security Team
-
-Our security team includes:
-
-- **Security Engineers**: Dedicated security specialists
-- **Core Maintainers**: Senior developers with security focus
-- **External Advisors**: Third-party security experts
+This repository does not specify a bug bounty program or reward amounts. Confirm
+any current program terms with the security owner.
 
 ## Additional Resources
 
 ### Security Tools
 
 - **npm audit**: `npm audit` or `bun audit`
-- **GitHub Dependabot**: Automated dependency updates
+- **GitHub Dependabot**: Weekly dependency update configuration in this repository
 - **CodeQL**: Static code analysis
 
 ### Documentation
@@ -148,20 +126,22 @@ Our security team includes:
 
 ### Community
 
-- [Frontal Discord](https://discord.gg/frontal)
 - [GitHub Discussions](https://github.com/frontal-labs/sdk-typescript/discussions)
-- [Security Researcher Program](mailto:security@frontal.cloud)
+- [Security contact](mailto:security@frontal.cloud)
 
 ## Compliance
 
-The Frontal SDK is designed to comply with:
-
-- **GDPR**: Data protection and privacy
-- **SOC 2**: Security controls and processes
-- **Industry Standards**: Following security best practices
+This SDK repository does not certify or establish that the Frontal platform is
+GDPR-compliant or SOC 2-attested. Those claims depend on platform controls,
+contractual terms, and independent assurance materials that are outside this
+repository. Enterprise customers should request the current security package,
+including applicable audit reports, a DPA, subprocessors, retention and data
+residency terms, incident commitments, and penetration-test summaries. See
+[`ENTERPRISE_READINESS.md`](./ENTERPRISE_READINESS.md) for repository evidence
+and open qualification items.
 
 ---
 
-*Last Updated: March 2026*
+*Last Updated: October 2026*
 
 *For questions about this security policy, contact security@frontal.cloud*

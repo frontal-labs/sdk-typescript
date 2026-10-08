@@ -46,7 +46,7 @@ Every service is a lazy, cached getter on `Frontal`:
 | --- | --- | --- |
 | `f.ai` | `@frontal-labs/ai` | `generateText`, `streamText`, `embed`, `generateObject`, speech/image/video |
 | `f.agents` | `@frontal-labs/agents` | `define(name)` builder, `use(id).message/watch/waitForCompletion/conversation` |
-| `f.workflows` | `@frontal-labs/workflows` | `define(name)` builder with `.task/.approval/.condition/.parallel`, `approvals.approve/reject` |
+| `f.workflows` | `@frontal-labs/workflows` | `define(name)` builder, workflow lifecycle, executions and approvals |
 | `f.pipelines` | `@frontal-labs/pipelines` | `define`, `use(id).trigger/backfill/health` |
 | `f.ontology` | `@frontal-labs/ontology` | `engine.generate`, `objects`, `versions`, `rollouts` |
 | `f.blob` | `@frontal-labs/blob` | `upload`, `download`, `getSignedUrl`, `getMetadata`, `list` |
@@ -100,7 +100,8 @@ All API failures throw a `FrontalError` subclass from `@frontal-labs/core`
 Every `FrontalError` has `code`, `message`, `requestId`, `statusCode`,
 `retryable`, an optional `fix` hint and an optional `docs` URL. Streams
 (`ai.streamText().fullStream`, `agents.use(id).watch()`) never throw
-mid-stream: they yield `{ type: "error", error }` parts, then `done`. Log `requestId`; it correlates with
+mid-stream: they yield `{ type: "error", error }` parts, then `done`. Log
+`requestId`; it correlates with
 `f.observability.logs.query({ query: \`requestId:"..."\` })`.
 
 ```ts

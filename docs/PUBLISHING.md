@@ -76,12 +76,13 @@ on npm. For a package name that has never been published:
 All 23 current package names already exist on npm, so this only matters for
 future new packages.
 
-## Note on private workspace packages
+## Workspace package visibility
 
-`core` and `testing` are private workspace packages (`"private": true`). They
-are **not** published — instead they are bundled into each consumer's `dist`
-via `noExternal` in the consumer's `tsup.config.ts`. Do not register trusted
-publishers for them.
+The current `packages/core/package.json` and `packages/testing/package.json`
+manifests do not set `"private": true`. They are publishable workspace packages
+and must be included in Changesets and Trusted Publisher setup like the other
+packages. Keep this section in sync if either package is intentionally made
+private; npm publishing behavior follows the package manifest.
 
 ## Troubleshooting
 

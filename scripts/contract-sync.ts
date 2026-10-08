@@ -16,7 +16,8 @@ type OpenApiDoc = {
 };
 
 const ROOT = process.cwd();
-const API_SOURCE_URL = "https://openapi.frontal.dev";
+const API_SOURCE_URL =
+	process.env.FRONTAL_OPENAPI_URL ?? "https://openapi.frontal.dev";
 const API_TARGET = join(ROOT, "contracts", "openapi", "api.openapi.json");
 const AI_TARGET = join(
 	ROOT,
@@ -172,17 +173,32 @@ async function fetchApiSpec(url: string): Promise<string> {
 			`Failed to fetch API spec from ${url}: ${res.status} ${res.statusText}`,
 		);
 	}
-	return res.text();
+	const text = await res.text();
+	let spec: Partial<OpenApiDoc>;
+	try {
+		spec = JSON.parse(text) as Partial<OpenApiDoc>;
+	} catch {
+		throw new Error(`OpenAPI source ${url} did not return valid JSON`);
+	}
+	if (
+		typeof spec.openapi !== "string" ||
+		!spec.info ||
+		typeof spec.info.title !== "string" ||
+		typeof spec.info.version !== "string" ||
+		!spec.paths ||
+		typeof spec.paths !== "object"
+	) {
+		throw new Error(`OpenAPI source ${url} is missing required fields`);
+	}
+	return text;
 }
 
 async function main(): Promise<void> {
-	mkdirSync(join(ROOT, "contracts", "openapi"), { recursive: true });
-
 	const apiSpecText = await fetchApiSpec(API_SOURCE_URL);
-	writeFileSync(API_TARGET, apiSpecText, "utf8");
-
 	const aiSpec = buildAiSpec();
 	const aiSpecJson = `${JSON.stringify(aiSpec, null, 2)}\n`;
+	mkdirSync(join(ROOT, "contracts", "openapi"), { recursive: true });
+	writeFileSync(API_TARGET, apiSpecText, "utf8");
 	writeFileSync(AI_TARGET, aiSpecJson, "utf8");
 
 	const manifest = {
