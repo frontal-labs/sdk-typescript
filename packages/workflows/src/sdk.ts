@@ -9,18 +9,84 @@ import {
 import type { z } from "zod";
 import * as S from "./schemas";
 
-const asPagePayload = <T>(
-  raw: unknown
-): {
-  data: T[];
-  pagination: PaginationMeta;
-  meta?: unknown;
-} =>
-  raw as {
-    data: T[];
-    pagination: PaginationMeta;
-    meta?: unknown;
+type ApiRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): ApiRecord {
+  return typeof value === "object" && value !== null
+    ? (value as ApiRecord)
+    : {};
+}
+
+function unwrap(raw: unknown, key: string): ApiRecord {
+  const envelope = asRecord(raw);
+  return asRecord(envelope[key] ?? raw);
+}
+
+function resourceId(resource: ApiRecord, wireKey: string): string {
+  const id = resource.id ?? resource[wireKey];
+  if (typeof id !== "string" || id.length === 0) {
+    throw new TypeError(`The API response did not contain ${wireKey}`);
+  }
+  return id;
+}
+
+function normalizeWorkflow(raw: unknown): S.Workflow {
+  const workflow = unwrap(raw, "workflow");
+  const status = String(workflow.status ?? "draft").toLowerCase();
+  return S.WorkflowSchema.parse({
+    ...workflow,
+    id: resourceId(workflow, "workflowId"),
+    status,
+    version: Number(workflow.latestVersion ?? workflow.version ?? 0),
+  });
+}
+
+function normalizeExecution(raw: unknown): S.WorkflowExecution {
+  const execution = unwrap(raw, "execution");
+  const workflowId = execution.workflowId;
+  if (typeof workflowId !== "string" || workflowId.length === 0) {
+    throw new TypeError("The API response did not contain workflowId");
+  }
+  const startedAt = execution.startedAt ?? execution.createdAt;
+  return S.WorkflowExecutionSchema.parse({
+    ...execution,
+    id: resourceId(execution, "executionId"),
+    workflowId,
+    status: String(execution.status ?? "pending").toLowerCase(),
+    stepExecutions: Array.isArray(execution.stepExecutions)
+      ? execution.stepExecutions
+      : [],
+    triggeredBy: String(execution.startedBy ?? execution.triggeredBy ?? ""),
+    ...(startedAt !== undefined ? { startedAt } : {}),
+  });
+}
+
+function pageFrom<T>(
+  raw: unknown,
+  key: string
+): { data: T[]; pagination: PaginationMeta } {
+  const envelope = asRecord(raw);
+  const data = Array.isArray(envelope[key]) ? (envelope[key] as T[]) : [];
+  const cursor = String(
+    envelope.nextPageToken ?? envelope.next_page_token ?? ""
+  );
+  return {
+    data,
+    pagination: { cursor, hasMore: cursor.length > 0 },
   };
+}
+
+function queryOptions(opts: {
+  status?: string;
+  limit?: number;
+  cursor?: S.Cursor;
+}): Record<string, unknown> {
+  return {
+    ...(opts.status !== undefined ? { status: opts.status } : {}),
+    ...(opts.limit !== undefined ? { pageSize: opts.limit } : {}),
+    ...(opts.cursor !== undefined ? { pageToken: opts.cursor } : {}),
+  };
+}
 
 /**
  * Client for the Frontal Workflows API (`/v1/workflows/*`).
@@ -62,9 +128,12 @@ export class WorkflowsSdk {
   async list(
     opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.Workflow>> {
-    const raw = await this.http.get("/workflows", opts);
-    return createPageResult(asPagePayload<S.Workflow>(raw), (cursor) =>
-      this.list({ ...opts, cursor })
+    const raw = await this.http.get("/workflows", queryOptions(opts));
+    const page = pageFrom<unknown>(raw, "workflows");
+    return createPageResult(
+      page.data.map(normalizeWorkflow),
+      page.pagination,
+      (cursor: string) => this.list({ ...opts, cursor })
     );
   }
 
@@ -74,7 +143,38 @@ export class WorkflowsSdk {
    */
   async create(definition: S.WorkflowDefinition): Promise<S.Workflow> {
     const body = S.WorkflowDefinitionSchema.parse(definition);
-    return this.http.post("/workflows", body);
+    const base = await this.createBaseWorkflow(body);
+    return base;
+  }
+
+  private async createBaseWorkflow(
+    definition: S.WorkflowDefinition
+  ): Promise<S.Workflow> {
+    const slug = definition.name
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const created = await this.http.post("/workflows", {
+      name: definition.name,
+      slug,
+      description: definition.description,
+    });
+    const workflow = normalizeWorkflow(created);
+    await this.http.post(
+      `/workflows/${encodeURIComponent(workflow.id)}/versions`,
+      {
+        spec: definition,
+      }
+    );
+    return {
+      ...workflow,
+      ...definition,
+      id: workflow.id,
+      status: workflow.status,
+      version: workflow.version,
+    };
   }
 }
 
@@ -329,7 +429,31 @@ export class WorkflowBuilder {
    */
   async create(): Promise<S.Workflow> {
     const definition = S.WorkflowDefinitionSchema.parse(this._definition);
-    return this.http.post("/workflows", definition);
+    const slug = definition.name
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const created = await this.http.post("/workflows", {
+      name: definition.name,
+      slug,
+      description: definition.description,
+    });
+    const workflow = normalizeWorkflow(created);
+    await this.http.post(
+      `/workflows/${encodeURIComponent(workflow.id)}/versions`,
+      {
+        spec: definition,
+      }
+    );
+    return {
+      ...workflow,
+      ...definition,
+      id: workflow.id,
+      status: workflow.status,
+      version: workflow.version,
+    };
   }
 
   /**
@@ -337,8 +461,13 @@ export class WorkflowBuilder {
    * @returns The activated workflow resource.
    */
   async activate(): Promise<S.Workflow> {
-    const _workflow = await this.create();
-    return this.http.patch("/workflows", { status: "active" });
+    const workflow = await this.create();
+    return normalizeWorkflow(
+      await this.http.post(
+        `/workflows/${encodeURIComponent(workflow.id)}/publish`,
+        {}
+      )
+    );
   }
 }
 
@@ -355,7 +484,9 @@ export class WorkflowAccessor {
    * Fetches the workflow definition and current state.
    */
   async get(): Promise<S.Workflow> {
-    return this.http.get("/workflows");
+    return normalizeWorkflow(
+      await this.http.get(`/workflows/${encodeURIComponent(this.id)}`)
+    );
   }
 
   /**
@@ -363,31 +494,53 @@ export class WorkflowAccessor {
    * @param definition - Fields to update.
    */
   async update(definition: Partial<S.WorkflowDefinition>): Promise<S.Workflow> {
-    return this.http.put("/workflows", definition);
+    return normalizeWorkflow(
+      await this.http.patch(
+        `/workflows/${encodeURIComponent(this.id)}`,
+        definition
+      )
+    );
   }
 
   /**
    * Deletes the workflow.
    */
-  /**
-   * Deletes the workflow.
-   */
   async delete(): Promise<void> {
-    return this.http.delete("/workflows");
+    return this.http.delete(`/workflows/${encodeURIComponent(this.id)}`);
   }
 
   /**
    * Activates the workflow, making it eligible for execution.
    */
   async activate(): Promise<S.Workflow> {
-    return this.http.patch("/workflows", { status: "active" });
+    return normalizeWorkflow(
+      await this.http.post(
+        `/workflows/${encodeURIComponent(this.id)}/publish`,
+        {}
+      )
+    );
   }
 
   /**
-   * Pauses the workflow, preventing new executions.
+   * Archives the workflow, preventing new executions.
    */
-  async pause(): Promise<S.Workflow> {
-    return this.http.patch("/workflows", { status: "paused" });
+  async archive(): Promise<S.Workflow> {
+    return normalizeWorkflow(
+      await this.http.post(
+        `/workflows/${encodeURIComponent(this.id)}/archive`,
+        {}
+      )
+    );
+  }
+
+  /** Restores an archived workflow to draft status. */
+  async restore(): Promise<S.Workflow> {
+    return normalizeWorkflow(
+      await this.http.post(
+        `/workflows/${encodeURIComponent(this.id)}/restore`,
+        {}
+      )
+    );
   }
 
   /**
@@ -397,12 +550,15 @@ export class WorkflowAccessor {
   async executions(
     opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.WorkflowExecution>> {
-    const raw = await this.http.post("/workflows/search", {
+    const raw = await this.http.get("/workflows/executions", {
       workflowId: this.id,
-      ...opts,
+      ...queryOptions(opts),
     });
-    return createPageResult(asPagePayload<S.WorkflowExecution>(raw), (cursor) =>
-      this.executions({ ...opts, cursor })
+    const page = pageFrom<unknown>(raw, "executions");
+    return createPageResult(
+      page.data.map(normalizeExecution),
+      page.pagination,
+      (cursor: string) => this.executions({ ...opts, cursor })
     );
   }
 
@@ -411,14 +567,11 @@ export class WorkflowAccessor {
    * @param executionId - The execution ID.
    */
   async execution(executionId: string): Promise<S.WorkflowExecution> {
-    return this.http.get(`/workflows/${this.id}/${executionId}`);
-  }
-
-  /** Fetch a compact summary of a workflow execution. */
-  async executionSummary(
-    executionId: string
-  ): Promise<Record<string, unknown>> {
-    return this.http.get(`/workflows/${this.id}/${executionId}/summary`);
+    return normalizeExecution(
+      await this.http.get(
+        `/workflows/executions/${encodeURIComponent(executionId)}`
+      )
+    );
   }
 
   /**
@@ -428,7 +581,12 @@ export class WorkflowAccessor {
   async trigger(
     input: Record<string, unknown> = {}
   ): Promise<S.WorkflowExecution> {
-    return this.http.post("/workflows/batch", input);
+    return normalizeExecution(
+      await this.http.post("/workflows/executions", {
+        workflowId: this.id,
+        input,
+      })
+    );
   }
 
   /**
@@ -447,15 +605,6 @@ export class WorkflowAccessor {
         ["completed", "failed", "cancelled"].includes(exec.status),
     });
   }
-
-  /**
-   * Watches an execution via SSE, yielding events as they occur.
-   */
-  async *watch(
-    executionId: string
-  ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-    yield* this.http.stream(`/workflows/${this.id}/${executionId}/timeline`);
-  }
 }
 
 /**
@@ -471,9 +620,12 @@ export class ApprovalsNamespace {
   async list(
     opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.Approval>> {
-    const raw = await this.http.get("/workflows", opts);
-    return createPageResult(asPagePayload<S.Approval>(raw), (cursor) =>
-      this.list({ ...opts, cursor })
+    const raw = await this.http.get("/workflows/approvals", queryOptions(opts));
+    const page = pageFrom<unknown>(raw, "items");
+    return createPageResult(
+      page.data.map((item) => normalizeApproval(item)),
+      page.pagination,
+      (cursor: string) => this.list({ ...opts, cursor })
     );
   }
 
@@ -481,8 +633,10 @@ export class ApprovalsNamespace {
    * Fetches an approval request by ID.
    * @param _id - The approval ID.
    */
-  async get(_id: string): Promise<S.Approval> {
-    return this.http.get("/workflows");
+  async get(id: string): Promise<S.Approval> {
+    return normalizeApproval(
+      await this.http.get(`/workflows/approvals/${encodeURIComponent(id)}`)
+    );
   }
 
   /**
@@ -490,8 +644,13 @@ export class ApprovalsNamespace {
    * @param _id - The approval ID.
    * @param comment - Optional approval comment.
    */
-  async approve(_id: string, comment?: string): Promise<S.Approval> {
-    return this.http.post("/workflows/batch", { comment });
+  async approve(id: string, comment?: string): Promise<S.Approval> {
+    return normalizeApproval(
+      await this.http.post(
+        `/workflows/approvals/${encodeURIComponent(id)}/approve`,
+        { comment }
+      )
+    );
   }
 
   /**
@@ -499,60 +658,98 @@ export class ApprovalsNamespace {
    * @param _id - The approval ID.
    * @param comment - Optional rejection reason.
    */
-  async reject(_id: string, comment?: string): Promise<S.Approval> {
-    return this.http.post("/workflows/batch", { comment });
+  async reject(id: string, comment?: string): Promise<S.Approval> {
+    return normalizeApproval(
+      await this.http.post(
+        `/workflows/approvals/${encodeURIComponent(id)}/reject`,
+        { comment }
+      )
+    );
   }
 }
 
+function normalizeApproval(raw: unknown): S.Approval {
+  const approval = unwrap(raw, "approval");
+  return S.ApprovalSchema.parse({
+    ...approval,
+    id: resourceId(approval, "approvalId"),
+    status: String(approval.status ?? "pending").toLowerCase(),
+  });
+}
+
 /**
- * Namespace for standalone workflow step definitions.
+ * Task and step operations supported by the workflow execution API.
  */
 export class StepsNamespace {
   constructor(private readonly http: HttpClient) {}
 
-  /**
-   * Lists all standalone step definitions.
-   */
-  async list(): Promise<S.StepDefinition[]> {
-    return this.http.get("/workflows");
+  async listTasks(
+    executionId: string,
+    opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
+  ): Promise<PageResult<S.WorkflowTask>> {
+    const raw = await this.http.get(
+      `/workflows/executions/${encodeURIComponent(executionId)}/tasks`,
+      queryOptions(opts)
+    );
+    const page = pageFrom<unknown>(raw, "tasks");
+    return createPageResult(
+      page.data.map(normalizeTask),
+      page.pagination,
+      (cursor: string) => this.listTasks(executionId, { ...opts, cursor })
+    );
   }
 
-  /**
-   * Fetches a step definition by ID.
-   * @param _id - The step ID.
-   */
-  async get(_id: string): Promise<S.StepDefinition> {
-    return this.http.get("/workflows");
+  /** Fetches a task instance by ID. */
+  async getTask(id: string): Promise<S.WorkflowTask> {
+    const raw = await this.http.get(
+      `/workflows/tasks/${encodeURIComponent(id)}`
+    );
+    return normalizeTask(raw);
   }
 
-  /**
-   * Creates a new standalone step definition.
-   * @param definition - The step definition.
-   */
-  async create(definition: S.StepDefinition): Promise<S.StepDefinition> {
-    const body = S.StepDefinitionSchema.parse(definition);
-    return this.http.post("/workflows", body);
+  /** Retries a failed task. */
+  async retryTask(id: string): Promise<S.WorkflowTask> {
+    const raw = await this.http.post(
+      `/workflows/tasks/${encodeURIComponent(id)}/retry`,
+      {}
+    );
+    return normalizeTask(raw);
   }
 
-  /**
-   * Updates a standalone step definition.
-   * @param _id - The step ID.
-   * @param definition - Fields to update.
-   */
-  async update(
-    _id: string,
-    definition: Partial<S.StepDefinition>
-  ): Promise<S.StepDefinition> {
-    return this.http.put("/workflows", definition);
+  /** Cancels a task. */
+  async cancelTask(id: string, reason?: string): Promise<S.WorkflowTask> {
+    const raw = await this.http.post(
+      `/workflows/tasks/${encodeURIComponent(id)}/cancel`,
+      { reason }
+    );
+    return normalizeTask(raw);
   }
 
-  /**
-   * Deletes a step definition.
-   * @param _id - The step ID.
-   */
-  async delete(_id: string): Promise<void> {
-    return this.http.delete("/workflows");
+  /** Lists step runs associated with a workflow run. */
+  async listRunSteps(
+    runId: string,
+    opts: { status?: string; limit?: number; cursor?: S.Cursor } = {}
+  ): Promise<PageResult<S.WorkflowRunStep>> {
+    const raw = await this.http.get(
+      `/workflows/runs/${encodeURIComponent(runId)}/steps`,
+      queryOptions(opts)
+    );
+    const page = pageFrom<unknown>(raw, "steps");
+    return createPageResult(
+      page.data.map((step) => S.WorkflowRunStepSchema.parse(step)),
+      page.pagination,
+      (cursor: string) => this.listRunSteps(runId, { ...opts, cursor })
+    );
   }
+}
+
+function normalizeTask(raw: unknown): S.WorkflowTask {
+  const task = unwrap(raw, "task");
+  return S.WorkflowTaskSchema.parse({
+    ...task,
+    id: task.id ?? resourceId(task, "taskId"),
+    status: String(task.status ?? "unknown").toLowerCase(),
+  });
 }
 
 /**
@@ -568,9 +765,17 @@ export class TemplatesNamespace {
   async list(
     opts: { category?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.WorkflowTemplate>> {
-    const raw = await this.http.get("/workflows", opts);
-    return createPageResult(asPagePayload<S.WorkflowTemplate>(raw), (cursor) =>
-      this.list({ ...opts, cursor })
+    const query = {
+      ...(opts.category !== undefined ? { category: opts.category } : {}),
+      ...(opts.limit !== undefined ? { pageSize: opts.limit } : {}),
+      ...(opts.cursor !== undefined ? { pageToken: opts.cursor } : {}),
+    };
+    const raw = await this.http.get("/workflows/templates", query);
+    const page = pageFrom<unknown>(raw, "templates");
+    return createPageResult(
+      page.data.map(normalizeTemplate),
+      page.pagination,
+      (cursor: string) => this.list({ ...opts, cursor })
     );
   }
 
@@ -578,8 +783,10 @@ export class TemplatesNamespace {
    * Fetches a workflow template by ID.
    * @param _id - The template ID.
    */
-  async get(_id: string): Promise<S.WorkflowTemplate> {
-    return this.http.get("/workflows");
+  async get(id: string): Promise<S.WorkflowTemplate> {
+    return normalizeTemplate(
+      await this.http.get(`/workflows/templates/${encodeURIComponent(id)}`)
+    );
   }
 
   /**
@@ -592,7 +799,9 @@ export class TemplatesNamespace {
     category?: string;
     definition: S.WorkflowDefinition;
   }): Promise<S.WorkflowTemplate> {
-    return this.http.post("/workflows", template);
+    return normalizeTemplate(
+      await this.http.post("/workflows/templates", template)
+    );
   }
 
   /**
@@ -600,7 +809,20 @@ export class TemplatesNamespace {
    * @param _id - The template ID.
    * @param name - Name for the new workflow.
    */
-  async use(_id: string, name: string): Promise<S.Workflow> {
-    return this.http.post("/workflows/batch", { name });
+  async use(id: string, name: string): Promise<S.Workflow> {
+    return normalizeWorkflow(
+      await this.http.post(
+        `/workflows/templates/${encodeURIComponent(id)}/instantiate`,
+        { name }
+      )
+    );
   }
+}
+
+function normalizeTemplate(raw: unknown): S.WorkflowTemplate {
+  const template = unwrap(raw, "template");
+  return S.WorkflowTemplateSchema.parse({
+    ...template,
+    id: resourceId(template, "templateId"),
+  });
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-21T10:38:01.750Z",
+  "generatedAt": "2026-10-08T16:49:16.179Z",
   "packages": [
     "agents",
     "ai",
@@ -21,8 +21,43 @@
     "workflows"
   ],
   "drift": {
-    "errors": [],
-    "hasDrift": false
+    "errors": [
+      "\n[workflows]",
+      "  Missing endpoints:",
+      "    - DELETE /workflows",
+      "    - GET /workflows/{param}/{param}",
+      "    - GET /workflows/{param}/{param}/summary",
+      "    - PATCH /workflows",
+      "    - POST /workflows/batch",
+      "    - POST /workflows/search",
+      "    - PUT /workflows",
+      "    - STREAM /workflows/{param}/{param}/timeline",
+      "  Unexpected endpoints:",
+      "    + DELETE /workflows/{param}",
+      "    + GET /workflows/approvals",
+      "    + GET /workflows/approvals/{param}",
+      "    + GET /workflows/executions",
+      "    + GET /workflows/executions/{param}",
+      "    + GET /workflows/executions/{param}/tasks",
+      "    + GET /workflows/runs/{param}/steps",
+      "    + GET /workflows/tasks/{param}",
+      "    + GET /workflows/templates",
+      "    + GET /workflows/templates/{param}",
+      "    + GET /workflows/{param}",
+      "    + PATCH /workflows/{param}",
+      "    + POST /workflows/approvals/{param}/approve",
+      "    + POST /workflows/approvals/{param}/reject",
+      "    + POST /workflows/executions",
+      "    + POST /workflows/tasks/{param}/cancel",
+      "    + POST /workflows/tasks/{param}/retry",
+      "    + POST /workflows/templates",
+      "    + POST /workflows/templates/{param}/instantiate",
+      "    + POST /workflows/{param}/archive",
+      "    + POST /workflows/{param}/publish",
+      "    + POST /workflows/{param}/restore",
+      "    + POST /workflows/{param}/versions"
+    ],
+    "hasDrift": true
   },
   "conformance": {
     "issues": [
@@ -1880,7 +1915,7 @@
         "package": "workflows",
         "endpoint": {
           "method": "DELETE",
-          "path": "/workflows"
+          "path": "/workflows/{param}"
         },
         "resolvedMethod": "DELETE",
         "surface": "api",
@@ -1899,8 +1934,68 @@
       {
         "package": "workflows",
         "endpoint": {
+          "method": "GET",
+          "path": "/workflows/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "GET",
+          "path": "/workflows/approvals"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "GET",
+          "path": "/workflows/executions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "GET",
+          "path": "/workflows/executions/{param}/tasks"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "GET",
+          "path": "/workflows/runs/{param}/steps"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "GET",
+          "path": "/workflows/templates"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
           "method": "PATCH",
-          "path": "/workflows"
+          "path": "/workflows/{param}"
         },
         "resolvedMethod": "PATCH",
         "surface": "api",
@@ -1919,10 +2014,110 @@
       {
         "package": "workflows",
         "endpoint": {
-          "method": "PUT",
-          "path": "/workflows"
+          "method": "POST",
+          "path": "/workflows/{param}/archive"
         },
-        "resolvedMethod": "PUT",
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/{param}/publish"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/{param}/restore"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/{param}/versions"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/approvals/{param}/approve"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/approvals/{param}/reject"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/executions"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/tasks/{param}/cancel"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/tasks/{param}/retry"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/templates"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "workflows",
+        "endpoint": {
+          "method": "POST",
+          "path": "/workflows/templates/{param}/instantiate"
+        },
+        "resolvedMethod": "POST",
         "surface": "api",
         "reason": "missing-in-spec"
       }
@@ -2014,17 +2209,17 @@
         "unmatched": 10
       },
       "workflows": {
-        "total": 10,
-        "matched": 5,
-        "unmatched": 5
+        "total": 25,
+        "matched": 4,
+        "unmatched": 21
       }
     },
     "coverage": {
       "api": {
         "surface": "api",
         "specTotal": 383,
-        "covered": 146,
-        "coveragePct": 38.1,
+        "covered": 142,
+        "coveragePct": 37.1,
         "uncovered": [
           {
             "method": "DELETE",
@@ -2703,6 +2898,14 @@
             "path": "/v1/webhook-endpoints/{id}/deliveries"
           },
           {
+            "method": "GET",
+            "path": "/v1/workflows/{workflow_id}/{run_id}/summary"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/workflows/{workflow_id}/{run_id}/timeline"
+          },
+          {
             "method": "PATCH",
             "path": "/v1/integrations/{integrationId}"
           },
@@ -2953,6 +3156,14 @@
           {
             "method": "POST",
             "path": "/v1/webhook-endpoints/{id}/rotate-secret"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/workflows/batch"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/workflows/search"
           },
           {
             "method": "PUT",

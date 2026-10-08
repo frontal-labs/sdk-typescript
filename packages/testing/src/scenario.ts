@@ -25,13 +25,10 @@ export const scenarioAliases: Record<string, `${string} ${string}`> = {
   "agents.conversation": "GET /agents/runs/{param}/conversation",
   "workflows.list": "GET /workflows",
   "workflows.create": "POST /workflows",
-  // The published OpenAPI contract has no approval endpoints; the workflows
-  // SDK routes trigger/approve/reject through `/workflows/batch` (which the
-  // contract does expose). Aliases track what the SDK actually sends.
-  "workflows.trigger": "POST /workflows/batch",
-  "workflows.approvals.list": "GET /workflows",
-  "workflows.approvals.approve": "POST /workflows/batch",
-  "workflows.approvals.reject": "POST /workflows/batch",
+  "workflows.trigger": "POST /workflows/executions",
+  "workflows.approvals.list": "GET /workflows/approvals",
+  "workflows.approvals.approve": "POST /workflows/approvals/{param}/approve",
+  "workflows.approvals.reject": "POST /workflows/approvals/{param}/reject",
   "pipelines.list": "GET /data/pipelines/pipelines",
   "graph.query": "POST /ontology/graph/graph/query",
   "blob.getSignedUrl": "POST /blob/object/sign/{param}/{param}",

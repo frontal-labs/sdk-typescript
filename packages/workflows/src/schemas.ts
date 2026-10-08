@@ -1,4 +1,3 @@
-import { timestampSchema } from "@frontal-labs/core";
 import { z } from "zod";
 
 /**
@@ -9,14 +8,7 @@ export type Cursor = string;
 /**
  * Schema for workflow lifecycle status.
  */
-export const WorkflowStatusSchema = z.enum([
-  "draft",
-  "active",
-  "paused",
-  "completed",
-  "failed",
-  "cancelled",
-]);
+export const WorkflowStatusSchema = z.enum(["draft", "active", "archived"]);
 /**
  * Schema for workflow execution status.
  */
@@ -44,6 +36,7 @@ export const ApprovalStatusSchema = z.enum([
   "pending",
   "approved",
   "rejected",
+  "cancelled",
   "expired",
 ]);
 /**
@@ -209,22 +202,22 @@ export const WorkflowDefinitionSchema = z
 /**
  * Schema for a full workflow resource including runtime state.
  */
-export const WorkflowSchema = WorkflowDefinitionSchema.extend({
-  id: z.string(),
-  status: WorkflowStatusSchema,
-  version: z.number().int(),
-  createdAt: timestampSchema,
-  updatedAt: timestampSchema,
-  lastExecution: z
-    .object({
-      id: z.string(),
-      status: ExecutionStatusSchema,
-      startedAt: timestampSchema,
-      completedAt: timestampSchema.optional(),
-      durationMs: z.number().int().optional(),
-    })
-    .optional(),
-}).loose();
+export const WorkflowSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().optional(),
+    status: WorkflowStatusSchema,
+    version: z.number().int().optional(),
+    latestVersion: z.number().int().optional(),
+    triggers: z.array(WorkflowTriggerSchema).optional(),
+    steps: z.array(WorkflowStepSchema).optional(),
+    variables: z.record(z.string(), z.unknown()).optional(),
+    tags: z.array(z.string()).optional(),
+    createdAt: z.iso.datetime().optional(),
+    updatedAt: z.iso.datetime().optional(),
+  })
+  .loose();
 
 /**
  * Schema for a workflow execution with step-level details.
@@ -233,27 +226,29 @@ export const WorkflowExecutionSchema = z
   .object({
     id: z.string(),
     workflowId: z.string(),
-    workflowVersion: z.number().int(),
     status: ExecutionStatusSchema,
+    workflowVersion: z.number().int().optional(),
     input: z.record(z.string(), z.unknown()).optional(),
     output: z.record(z.string(), z.unknown()).optional(),
     variables: z.record(z.string(), z.unknown()).optional(),
-    stepExecutions: z.array(
-      z.object({
-        stepId: z.string(),
-        status: StepStatusSchema,
-        input: z.record(z.string(), z.unknown()).optional(),
-        output: z.record(z.string(), z.unknown()).optional(),
-        startedAt: timestampSchema.optional(),
-        completedAt: timestampSchema.optional(),
-        durationMs: z.number().int().optional(),
-        error: z.string().optional(),
-        retryCount: z.number().int().default(0),
-      })
-    ),
-    triggeredBy: z.string(),
-    startedAt: timestampSchema,
-    completedAt: timestampSchema.optional(),
+    stepExecutions: z
+      .array(
+        z.object({
+          stepId: z.string(),
+          status: StepStatusSchema,
+          input: z.record(z.string(), z.unknown()).optional(),
+          output: z.record(z.string(), z.unknown()).optional(),
+          startedAt: z.iso.datetime().optional(),
+          completedAt: z.iso.datetime().optional(),
+          durationMs: z.number().int().optional(),
+          error: z.string().optional(),
+          retryCount: z.number().int().default(0),
+        })
+      )
+      .optional(),
+    triggeredBy: z.string().optional(),
+    startedAt: z.iso.datetime().optional(),
+    completedAt: z.iso.datetime().optional(),
     durationMs: z.number().int().optional(),
     error: z.string().optional(),
   })
@@ -265,23 +260,22 @@ export const WorkflowExecutionSchema = z
 export const ApprovalSchema = z
   .object({
     id: z.string(),
-    workflowId: z.string(),
     executionId: z.string(),
     stepId: z.string(),
     status: ApprovalStatusSchema,
-    requestedBy: z.string(),
-    requestedAt: timestampSchema,
-    approvers: z.array(
-      z.object({
-        userId: z.string(),
-        status: ApprovalStatusSchema,
-        respondedAt: timestampSchema.optional(),
-        comment: z.string().optional(),
-      })
-    ),
-    requiredApprovals: z.number().int().positive(),
-    expiresAt: timestampSchema.optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
+    signalName: z.string(),
+    title: z.string(),
+    description: z.string(),
+    requiredApprovers: z.array(z.string()),
+    approvedBy: z.array(z.string()),
+    rejectedBy: z.string().nullable(),
+    cancelReason: z.string().nullable(),
+    comment: z.string().nullable(),
+    expiresAt: z.iso.datetime().nullable(),
+    resolvedAt: z.iso.datetime().nullable(),
+    createdBy: z.string(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
   })
   .loose();
 
@@ -305,6 +299,45 @@ export const StepDefinitionSchema = z
   })
   .loose();
 
+/** A workflow task instance returned by the execution service. */
+export const WorkflowTaskSchema = z
+  .object({
+    id: z.string(),
+    taskId: z.string().optional(),
+    stepId: z.string(),
+    executionId: z.string(),
+    status: z.string(),
+    type: z.string(),
+    attempt: z.number().int(),
+    maxAttempts: z.number().int(),
+    input: z.record(z.string(), z.unknown()).optional(),
+    output: z.record(z.string(), z.unknown()).optional(),
+    error: z.record(z.string(), z.unknown()).nullable().optional(),
+    errorMessage: z.string().optional(),
+    startedAt: z.iso.datetime().nullable().optional(),
+    completedAt: z.iso.datetime().nullable().optional(),
+    createdAt: z.iso.datetime().optional(),
+    updatedAt: z.iso.datetime().optional(),
+  })
+  .loose();
+
+/** A step result projected onto a workflow run. */
+export const WorkflowRunStepSchema = z
+  .object({
+    stepId: z.string(),
+    stepIndex: z.number().int(),
+    status: z.string(),
+    input: z.record(z.string(), z.unknown()).optional(),
+    output: z.record(z.string(), z.unknown()).optional(),
+    error: z.record(z.string(), z.unknown()).nullable().optional(),
+    attempt: z.number().int(),
+    maxAttempts: z.number().int(),
+    latencyMs: z.number().optional(),
+    startedAt: z.iso.datetime().nullable().optional(),
+    completedAt: z.iso.datetime().nullable().optional(),
+  })
+  .loose();
+
 /**
  * Schema for a reusable workflow template.
  */
@@ -314,16 +347,11 @@ export const WorkflowTemplateSchema = z
     name: z.string(),
     description: z.string().optional(),
     category: z.string().optional(),
-    definition: WorkflowDefinitionSchema,
-    usage: z
-      .object({
-        count: z.number().int(),
-        lastUsed: timestampSchema.optional(),
-      })
-      .optional(),
+    definition: z.record(z.string(), z.unknown()),
     tags: z.array(z.string()).default([]),
-    createdAt: timestampSchema,
-    updatedAt: timestampSchema,
+    createdBy: z.string().optional(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
   })
   .loose();
 
@@ -353,5 +381,9 @@ export type WorkflowExecution = z.infer<typeof WorkflowExecutionSchema>;
 export type Approval = z.infer<typeof ApprovalSchema>;
 /** Standalone step definition type. */
 export type StepDefinition = z.infer<typeof StepDefinitionSchema>;
+/** Workflow task instance. */
+export type WorkflowTask = z.infer<typeof WorkflowTaskSchema>;
+/** Workflow step execution projected onto a run. */
+export type WorkflowRunStep = z.infer<typeof WorkflowRunStepSchema>;
 /** Reusable workflow template type. */
 export type WorkflowTemplate = z.infer<typeof WorkflowTemplateSchema>;

@@ -441,7 +441,40 @@
       "path": "/billing/wallets/{param}/top-up"
     }
   ],
-  "blob": [],
+  "blob": [
+    {
+      "method": "DELETE",
+      "path": "/blob/object/{param}/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/blob/object/info/{param}/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/blob/object/{param}/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/copy"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/list/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/move"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/sign/{param}/{param}"
+    },
+    {
+      "method": "POSTFORMDATA",
+      "path": "/blob/object/{param}/{param}"
+    }
+  ],
   "connectors": [
     {
       "method": "DELETE",
@@ -1382,7 +1415,7 @@
   "workflows": [
     {
       "method": "DELETE",
-      "path": "/workflows"
+      "path": "/workflows/{param}"
     },
     {
       "method": "GET",
@@ -1390,15 +1423,47 @@
     },
     {
       "method": "GET",
-      "path": "/workflows/{param}/{param}"
+      "path": "/workflows/{param}"
     },
     {
       "method": "GET",
-      "path": "/workflows/{param}/{param}/summary"
+      "path": "/workflows/approvals"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/approvals/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/executions"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/executions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/executions/{param}/tasks"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/runs/{param}/steps"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/tasks/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/templates"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/templates/{param}"
     },
     {
       "method": "PATCH",
-      "path": "/workflows"
+      "path": "/workflows/{param}"
     },
     {
       "method": "POST",
@@ -1406,19 +1471,47 @@
     },
     {
       "method": "POST",
-      "path": "/workflows/batch"
+      "path": "/workflows/{param}/archive"
     },
     {
       "method": "POST",
-      "path": "/workflows/search"
+      "path": "/workflows/{param}/publish"
     },
     {
-      "method": "PUT",
-      "path": "/workflows"
+      "method": "POST",
+      "path": "/workflows/{param}/restore"
     },
     {
-      "method": "STREAM",
-      "path": "/workflows/{param}/{param}/timeline"
+      "method": "POST",
+      "path": "/workflows/{param}/versions"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/approvals/{param}/approve"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/approvals/{param}/reject"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/tasks/{param}/cancel"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/tasks/{param}/retry"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/templates"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/templates/{param}/instantiate"
     }
   ]
 }
