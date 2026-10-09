@@ -1313,205 +1313,191 @@
       "path": "/data/pipelines/pipeline-runs/{param}"
     }
   ],
-  "react": [],
-  "sandbox": [
-    {
-      "method": "GET",
-      "path": "/sandbox/languages"
-    },
-    {
-      "method": "POST",
-      "path": "/sandbox/self-test"
-    },
-    {
-      "method": "POST",
-      "path": "/sandbox/submit"
-    }
-  ],
-  "schedules": [
-    {
-      "method": "DELETE",
-      "path": "/workflows/schedules/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/schedules"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/schedules/{param}"
-    },
-    {
-      "method": "PATCH",
-      "path": "/workflows/schedules/{param}"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/cron/parse"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/cron/validate"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/schedules"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/schedules/{param}/pause"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/schedules/{param}/resume"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/schedules/{param}/trigger"
-    }
-  ],
-  "webhooks": [
-    {
-      "method": "DELETE",
-      "path": "/webhooks/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/webhooks"
-    },
-    {
-      "method": "GET",
-      "path": "/webhooks/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/webhooks/deliveries"
-    },
-    {
-      "method": "GET",
-      "path": "/webhooks/deliveries/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/webhooks/stats"
-    },
-    {
-      "method": "POST",
-      "path": "/webhooks"
-    },
-    {
-      "method": "POST",
-      "path": "/webhooks/{param}/rotate-secret"
-    },
-    {
-      "method": "POST",
-      "path": "/webhooks/deliveries/{param}/retry"
-    },
-    {
-      "method": "PUT",
-      "path": "/webhooks/{param}"
-    }
-  ],
-  "workflows": [
-    {
-      "method": "DELETE",
-      "path": "/workflows/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/approvals"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/approvals/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/executions"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/executions/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/executions/{param}/tasks"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/runs/{param}/steps"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/tasks/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/templates"
-    },
-    {
-      "method": "GET",
-      "path": "/workflows/templates/{param}"
-    },
-    {
-      "method": "PATCH",
-      "path": "/workflows/{param}"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/{param}/archive"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/{param}/publish"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/{param}/restore"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/{param}/versions"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/approvals/{param}/approve"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/approvals/{param}/reject"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/executions"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/tasks/{param}/cancel"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/tasks/{param}/retry"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/templates"
-    },
-    {
-      "method": "POST",
-      "path": "/workflows/templates/{param}/instantiate"
-    }
-  ]
-}
+    "react": [],
+    "schedules": [
+      {
+        "method": "DELETE",
+        "path": "/workflows/schedules/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/schedules"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/schedules/{param}"
+      },
+      {
+        "method": "PATCH",
+        "path": "/workflows/schedules/{param}"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/cron/parse"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/cron/validate"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/schedules"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/schedules/{param}/pause"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/schedules/{param}/resume"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/schedules/{param}/trigger"
+      }
+    ],
+    "webhooks": [
+      {
+        "method": "DELETE",
+        "path": "/webhooks/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/webhooks"
+      },
+      {
+        "method": "GET",
+        "path": "/webhooks/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/webhooks/deliveries"
+      },
+      {
+        "method": "GET",
+        "path": "/webhooks/deliveries/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/webhooks/stats"
+      },
+      {
+        "method": "POST",
+        "path": "/webhooks"
+      },
+      {
+        "method": "POST",
+        "path": "/webhooks/{param}/rotate-secret"
+      },
+      {
+        "method": "POST",
+        "path": "/webhooks/deliveries/{param}/retry"
+      },
+      {
+        "method": "PUT",
+        "path": "/webhooks/{param}"
+      }
+    ],
+    "workflows": [
+      {
+        "method": "DELETE",
+        "path": "/workflows/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/approvals"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/approvals/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/executions"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/executions/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/executions/{param}/tasks"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/runs/{param}/steps"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/tasks/{param}"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/templates"
+      },
+      {
+        "method": "GET",
+        "path": "/workflows/templates/{param}"
+      },
+      {
+        "method": "PATCH",
+        "path": "/workflows/{param}"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/{param}/archive"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/{param}/publish"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/{param}/restore"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/{param}/versions"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/approvals/{param}/approve"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/approvals/{param}/reject"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/executions"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/tasks/{param}/cancel"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/tasks/{param}/retry"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/templates"
+      },
+      {
+        "method": "POST",
+        "path": "/workflows/templates/{param}/instantiate"
+      }
+    ]
+  }

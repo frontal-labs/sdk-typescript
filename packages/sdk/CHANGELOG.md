@@ -22,13 +22,12 @@
   - @frontal-labs/integrations@0.0.6
   - @frontal-labs/lineage@0.0.6
   - @frontal-labs/observability@0.1.4
-  - @frontal-labs/ontology@1.0.3
-  - @frontal-labs/pipelines@0.0.5
-  - @frontal-labs/sandbox@1.0.3
-  - @frontal-labs/schedules@1.0.3
-  - @frontal-labs/webhooks@0.0.6
-  - @frontal-labs/workers@0.1.3
-  - @frontal-labs/workflows@0.1.3
+   - @frontal-labs/ontology@1.0.3
+   - @frontal-labs/pipelines@0.0.5
+   - @frontal-labs/schedules@1.0.3
+   - @frontal-labs/webhooks@0.0.6
+   - @frontal-labs/workers@0.1.3
+   - @frontal-labs/workflows@0.1.3
 
 ## 1.0.3
 
@@ -58,13 +57,12 @@
   - @frontal-labs/integrations@0.0.5
   - @frontal-labs/lineage@0.0.5
   - @frontal-labs/observability@0.1.3
-  - @frontal-labs/ontology@1.0.2
-  - @frontal-labs/pipelines@0.0.4
-  - @frontal-labs/sandbox@1.0.2
-  - @frontal-labs/schedules@1.0.2
-  - @frontal-labs/webhooks@0.0.5
-  - @frontal-labs/workers@0.1.2
-  - @frontal-labs/workflows@0.1.2
+   - @frontal-labs/ontology@1.0.2
+   - @frontal-labs/pipelines@0.0.4
+   - @frontal-labs/schedules@1.0.2
+   - @frontal-labs/webhooks@0.0.5
+   - @frontal-labs/workers@0.1.2
+   - @frontal-labs/workflows@0.1.2
 
 ## 1.0.2
 
@@ -97,12 +95,11 @@
   - @frontal-labs/lineage@0.0.4
   - @frontal-labs/observability@0.1.1
   - @frontal-labs/ontology@1.0.1
-  - @frontal-labs/pipelines@0.0.3
-  - @frontal-labs/sandbox@1.0.1
-  - @frontal-labs/schedules@1.0.1
-  - @frontal-labs/webhooks@0.0.4
-  - @frontal-labs/workers@0.1.1
-  - @frontal-labs/workflows@0.1.1
+   - @frontal-labs/pipelines@0.0.3
+   - @frontal-labs/schedules@1.0.1
+   - @frontal-labs/webhooks@0.0.4
+   - @frontal-labs/workers@0.1.1
+   - @frontal-labs/workflows@0.1.1
 
 ## 1.0.0
 
@@ -200,12 +197,11 @@ path?, headers?, body? })` (returns the raw `Response`).
   - @frontal-labs/ontology@1.0.0
   - @frontal-labs/workers@0.1.0
   - @frontal-labs/datasets@1.0.0
-  - @frontal-labs/sandbox@1.0.0
-  - @frontal-labs/audit@0.0.3
-  - @frontal-labs/governance@0.0.3
-  - @frontal-labs/integrations@0.0.3
-  - @frontal-labs/lineage@0.0.3
-  - @frontal-labs/pipelines@0.0.2
+   - @frontal-labs/audit@0.0.3
+   - @frontal-labs/governance@0.0.3
+   - @frontal-labs/integrations@0.0.3
+   - @frontal-labs/lineage@0.0.3
+   - @frontal-labs/pipelines@0.0.2
 
 ## 0.0.2
 

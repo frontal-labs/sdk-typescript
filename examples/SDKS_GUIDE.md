@@ -17,7 +17,6 @@ This guide covers all SDK packages in this repository:
 - `@frontal-labs/billing`
 - `@frontal-labs/webhooks`
 - `@frontal-labs/schedules`
-- `@frontal-labs/sandbox`
 - `@frontal-labs/lineage`
 - `@frontal-labs/connectors`
 - `@frontal-labs/data`
@@ -56,7 +55,7 @@ const f = new Frontal({
 const {
   ai, agents, workflows, pipelines, ontology, blob, auth,
   observability, audit, governance, billing, webhooks, schedules,
-  sandbox, lineage, connectors, data,
+  lineage, connectors, data,
 } = f;
 const obs = observability;
 const client = f.client; // underlying FrontalClient for raw calls
@@ -864,50 +863,57 @@ const run = await schedules.trigger(schedule.id);
 console.log(run.id, run.status);
 ```
 
-## 20) `@frontal-labs/sandbox`
+## 21) `@frontal-labs/lineage`
 
 ### What it does
 
-Compile-and-judge code execution SDK:
-
-- `languages()` — list supported languages
-- `selfTest()` — compile and run once against a single stdin input
-- `submit()` — compile and judge against a set of test cases (scored)
-- sandbox tiers and per-request resource limits
+Data lineage tracking SDK:
+- lineage graph retrieval with configurable depth
+- node and edge listing with filtering
+- full trace of resource dependencies
+- impact analysis for schema/data changes
 
 ### Use cases
 
-- secure execution of user-submitted code
-- automated grading / judging against test cases
-- AI agent tool execution with isolation
+- data provenance and audit
+- impact analysis before schema migrations
+- dependency visualization for data pipelines
+- compliance reporting for data flows
 
-### Example: self-test and judge
+### Example: graph and impact analysis
 
-```ts
-import { createSandboxClient } from "@frontal-labs/sandbox";
+Data lineage tracking SDK:
+- lineage graph retrieval with configurable depth
+- node and edge listing with filtering
+- full trace of resource dependencies
+- impact analysis for schema/data changes
 
-const sandbox = createSandboxClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
+### Use cases
 
-const languages = await sandbox.languages();
+- data provenance and audit
+- impact analysis before schema migrations
+- dependency visualization for data pipelines
+- compliance reporting for data flows
 
-const test = await sandbox.selfTest({
-  language: "Python",
-  code: "print('hello')",
-  stdin: ""
-});
-console.log(test.summary?.stdout);
+### Example: graph and impact analysis
 
-const result = await sandbox.submit({
-  language: "Python",
-  code: "print(input())",
-  task: {
-    cases: [{ caseId: 1, score: 100, input: "ok\n", answer: "ok\n" }]
-  }
-});
-console.log(result.summary.result, result.summary.score);
-```
+
+## 21) `@frontal-labs/lineage`
+
+### What it does
+
+Data lineage tracking SDK:
+- lineage graph retrieval with configurable depth
+- node and edge listing with filtering
+- full trace of resource dependencies
+- impact analysis for schema/data changes
+
+### Use cases
+
+- data provenance and audit
+- impact analysis before schema migrations
+- dependency visualization for data pipelines
+- compliance reporting for data flows
 
 ## 22) `@frontal-labs/lineage`
 
@@ -929,55 +935,9 @@ Data lineage tracking SDK:
 
 ### Example: graph and impact analysis
 
-```ts
-import { createLineageClient } from "@frontal-labs/lineage";
-
-const lineage = createLineageClient({
-  apiKey: process.env.FRONTAL_API_KEY!
-});
-
-const graph = await lineage.graph.get("ds_sales", { depth: 3 });
-for (const edge of graph.edges) {
-  console.log(`${edge.source_id} → [${edge.type}] → ${edge.target_id}`);
-}
-
-const nodes = await lineage.nodes.list({ type: "dataset" });
-const trace = await lineage.nodes.trace("ds_sales");
-
-const impact = await lineage.impact.analyzeChange("ds_sales", {
-  type: "update",
-  field: "amount"
-});
-for (const r of impact.affectedResources) {
-  console.log(`${r.name} (${r.type}): ${r.impact} impact`);
-}
-```
-
-## 22a) `@frontal-labs/connectors`
-
-### What it does
-
-Source connectors: discover connector definitions, install them per tenant,
-replay or diagnose sync runs.
-
-### Example: install and list
-
-```ts
-const definitions = await connectors.list();
-
-const installation = await connectors.installations.create({
-  connectorSlug: "postgres",
-  tenantId: "tn_acme",
-  datasetNamespace: "acme.crm",
-  displayName: "Acme CRM",
-  auth: { mode: "connection_string", secretRef: "secret://acme/pg" },
-});
-
-const installed = await connectors.installations.list({ tenantId: "tn_acme" });
-console.log(definitions.length, installation.id, installed.data.length);
-```
-
 ## 22b) `@frontal-labs/data`
+
+## 21) `@frontal-labs/lineage`
 
 ### What it does
 
@@ -1013,13 +973,12 @@ A common high-value orchestration flow:
 9. Enforce taxonomy via `@frontal-labs/ontology`
 10. Track provenance with `@frontal-labs/lineage`
 16. Schedule recurring work with `@frontal-labs/schedules`
-17. Execute isolated code in `@frontal-labs/sandbox`
-18. Coordinate approvals with `@frontal-labs/workflows`
-19. Delegate decisions with `@frontal-labs/agents`
+17. Coordinate approvals with `@frontal-labs/workflows`
+18. Delegate decisions with `@frontal-labs/agents`
 21. Monitor everything with `@frontal-labs/observability`
-22. Log compliance with `@frontal-labs/audit`
-23. Enforce policies with `@frontal-labs/governance`
-24. Track costs with `@frontal-labs/billing`
+21. Log compliance with `@frontal-labs/audit`
+22. Enforce policies with `@frontal-labs/governance`
+23. Track costs with `@frontal-labs/billing`
 
 ## 24) Error Handling Pattern
 

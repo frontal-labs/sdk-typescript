@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T21:02:10.378Z",
+  "generatedAt": "2026-10-09T13:08:16.442Z",
   "packages": [
     "agents",
     "ai",
@@ -9,20 +9,39 @@
     "blob",
     "connectors",
     "data",
+    "functions",
     "governance",
     "lineage",
     "observability",
     "ontology",
     "pipelines",
     "react",
-    "sandbox",
     "schedules",
     "webhooks",
     "workflows"
   ],
   "drift": {
-    "errors": [],
-    "hasDrift": false
+    "errors": [
+      "\n[functions]",
+      "  Unexpected endpoints:",
+      "    + DELETE /functions/{param}",
+      "    + GET /functions",
+      "    + GET /functions/executions",
+      "    + GET /functions/executions/{param}",
+      "    + GET /functions/executions/{param}/result",
+      "    + GET /functions/{param}",
+      "    + GET /functions/{param}/versions",
+      "    + GET /functions/{param}/versions/{param}",
+      "    + GET /functions/{param}/versions/{param}/deployment/status",
+      "    + PATCH /functions/{param}",
+      "    + POST /functions",
+      "    + POST /functions/executions/{param}/cancel",
+      "    + POST /functions/invoke",
+      "    + POST /functions/invoke-async",
+      "    + POST /functions/{param}/versions/{param}/deploy",
+      "    + POST /functions/{param}/versions/{param}/publish"
+    ],
+    "hasDrift": true
   },
   "conformance": {
     "issues": [
@@ -1207,6 +1226,166 @@
         "reason": "missing-in-spec"
       },
       {
+        "package": "functions",
+        "endpoint": {
+          "method": "DELETE",
+          "path": "/functions/{param}"
+        },
+        "resolvedMethod": "DELETE",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions/{param}/versions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions/{param}/versions/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions/{param}/versions/{param}/deployment/status"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions/executions"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions/executions/{param}"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "GET",
+          "path": "/functions/executions/{param}/result"
+        },
+        "resolvedMethod": "GET",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "PATCH",
+          "path": "/functions/{param}"
+        },
+        "resolvedMethod": "PATCH",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "POST",
+          "path": "/functions"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "POST",
+          "path": "/functions/{param}/versions/{param}/deploy"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "POST",
+          "path": "/functions/{param}/versions/{param}/publish"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "POST",
+          "path": "/functions/executions/{param}/cancel"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "POST",
+          "path": "/functions/invoke"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
+        "package": "functions",
+        "endpoint": {
+          "method": "POST",
+          "path": "/functions/invoke-async"
+        },
+        "resolvedMethod": "POST",
+        "surface": "api",
+        "reason": "missing-in-spec"
+      },
+      {
         "package": "governance",
         "endpoint": {
           "method": "DELETE",
@@ -1737,36 +1916,6 @@
         "reason": "missing-in-spec"
       },
       {
-        "package": "sandbox",
-        "endpoint": {
-          "method": "GET",
-          "path": "/sandbox/languages"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "sandbox",
-        "endpoint": {
-          "method": "POST",
-          "path": "/sandbox/self-test"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "sandbox",
-        "endpoint": {
-          "method": "POST",
-          "path": "/sandbox/submit"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
         "package": "schedules",
         "endpoint": {
           "method": "DELETE",
@@ -2208,6 +2357,11 @@
         "matched": 45,
         "unmatched": 0
       },
+      "functions": {
+        "total": 16,
+        "matched": 0,
+        "unmatched": 16
+      },
       "governance": {
         "total": 24,
         "matched": 0,
@@ -2237,11 +2391,6 @@
         "total": 0,
         "matched": 0,
         "unmatched": 0
-      },
-      "sandbox": {
-        "total": 3,
-        "matched": 0,
-        "unmatched": 3
       },
       "schedules": {
         "total": 10,
