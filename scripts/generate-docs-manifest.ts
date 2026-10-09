@@ -15,7 +15,6 @@ import { join } from "node:path";
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 
 const SDK_PKG = "@frontal-labs/sdk";
-const REPO = "https://github.com/frontal-labs/sdk-typescript";
 
 /** Reading order: entry points first, then services, then reference. */
 const SERVICE_ORDER = [
@@ -34,7 +33,6 @@ const SERVICE_ORDER = [
   "billing",
   "webhooks",
   "schedules",
-  "sandbox",
   "connectors",
 ];
 

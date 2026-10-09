@@ -95,16 +95,16 @@ Changesets resolves the dependency graph and publishes in correct order:
 1. `@frontal-labs/core` (no internal dependencies)
 2. `@frontal-labs/testing` (depends on core)
 3. All domain SDKs (depend on core):
-   `@frontal-labs/ai`, `@frontal-labs/agents`, `@frontal-labs/audit`,
-   `@frontal-labs/auth`, `@frontal-labs/billing`, `@frontal-labs/blob`,
-   `@frontal-labs/connectors`,
-   `@frontal-labs/governance`,
-   `@frontal-labs/lineage`, `@frontal-labs/observability`,
-   `@frontal-labs/ontology`,
-   `@frontal-labs/pipelines`,
-   `@frontal-labs/sandbox`, `@frontal-labs/schedules`,
-   `@frontal-labs/webhooks`,
-   `@frontal-labs/workflows`
+    `@frontal-labs/ai`, `@frontal-labs/agents`, `@frontal-labs/audit`,
+    `@frontal-labs/auth`, `@frontal-labs/billing`, `@frontal-labs/blob`,
+    `@frontal-labs/connectors`,
+    `@frontal-labs/governance`,
+    `@frontal-labs/lineage`, `@frontal-labs/observability`,
+    `@frontal-labs/ontology`,
+    `@frontal-labs/pipelines`,
+    `@frontal-labs/schedules`,
+    `@frontal-labs/webhooks`,
+    `@frontal-labs/workflows`
 4. `@frontal-labs/sdk` (depends on all other packages)
 
 ## Version Policy

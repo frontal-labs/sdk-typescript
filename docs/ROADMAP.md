@@ -17,7 +17,6 @@ The following packages are available:
 - @frontal-labs/observability — Logs, metrics, traces, alerts
 - @frontal-labs/ontology — Schema management and AI inference
 - @frontal-labs/pipelines — Declarative data pipelines
-- @frontal-labs/sandbox — Isolated code execution
 - @frontal-labs/schedules — Cron-based scheduling
 - @frontal-labs/webhooks — Webhook endpoint management
 - @frontal-labs/workflows — Workflow orchestration

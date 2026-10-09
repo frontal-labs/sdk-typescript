@@ -22,7 +22,6 @@ const factories: Array<[string, () => Promise<Record<string, unknown>>, string]>
   ["observability", () => import("@frontal-labs/observability"), "createObservabilityClient"],
   ["ontology", () => import("@frontal-labs/ontology"), "createOntologyClient"],
   ["pipelines", () => import("@frontal-labs/pipelines"), "createPipelinesClient"],
-  ["sandbox", () => import("@frontal-labs/sandbox"), "createSandboxClient"],
   ["schedules", () => import("@frontal-labs/schedules"), "createSchedulesClient"],
   ["sdk", () => import("@frontal-labs/sdk"), "createFrontalClient"],
   ["webhooks", () => import("@frontal-labs/webhooks"), "createWebhooksClient"],

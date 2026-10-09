@@ -121,16 +121,16 @@
       "summary": "Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions."
     },
     {
-      "id": "packages-sandbox-README-md",
-      "path": "packages/sandbox/README.md",
-      "title": "@frontal-labs/sandbox",
-      "summary": "Isolated code execution with a judge — run snippets, self-test, or submit against test cases."
-    },
-    {
       "id": "packages-connectors-README-md",
       "path": "packages/connectors/README.md",
       "title": "@frontal-labs/connectors",
       "summary": "Source connectors — discover connector definitions, install them per tenant, and replay or diagnose sync runs."
+    },
+    {
+      "id": "packages-functions-README-md",
+      "path": "packages/functions/README.md",
+      "title": "@frontal-labs/functions",
+      "summary": "User-defined functions client for the Frontal platform."
     },
     {
       "id": "packages-react-README-md",

@@ -5,9 +5,7 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "outputs": [
         "dist/**",
         "lib/**"
@@ -29,6 +27,28 @@
       ],
       "cache": false
     },
+    "format": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    },
+    "format:check": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false
+    },
     "type-check": {
       "dependsOn": [],
       "outputs": [],
@@ -39,6 +59,30 @@
       "cache": false
     },
     "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.test.ts",
+        "tests/**/*.ts"
+      ],
+      "cache": false
+    },
+    "test:watch": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.test.ts",
+        "tests/**/*.ts"
+      ],
+      "cache": false
+    },
+    "test:coverage": {
       "dependsOn": [
         "^build"
       ],

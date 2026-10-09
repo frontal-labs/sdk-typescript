@@ -31,7 +31,6 @@ Turborepo, and Changesets for a seamless developer experience.
 | `@frontal-labs/observability` | Logs, metrics, and traces. |
 | `@frontal-labs/ontology` | Schema management and inference. |
 | `@frontal-labs/pipelines` | Declarative data pipelines. |
-| `@frontal-labs/sandbox` | Isolated code execution. |
 | `@frontal-labs/schedules` | Cron-based scheduling. |
 | `@frontal-labs/webhooks` | Endpoint management. |
 | `@frontal-labs/workflows` | Workflow orchestration. |

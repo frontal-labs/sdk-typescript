@@ -15,6 +15,8 @@ import { createConnectorsClient } from "@frontal-labs/connectors";
 import { FrontalClient } from "@frontal-labs/core";
 import type { DataSdk } from "@frontal-labs/data";
 import { createDataClient } from "@frontal-labs/data";
+import type { FunctionsSdk } from "@frontal-labs/functions";
+import { createFunctionsClient } from "@frontal-labs/functions";
 import type { GovernanceSdk } from "@frontal-labs/governance";
 import { createGovernanceClient } from "@frontal-labs/governance";
 import type { LineageSdk } from "@frontal-labs/lineage";
@@ -25,8 +27,6 @@ import type { OntologySdk } from "@frontal-labs/ontology";
 import { createOntologyClient } from "@frontal-labs/ontology";
 import type { PipelinesSdk } from "@frontal-labs/pipelines";
 import { createPipelinesClient } from "@frontal-labs/pipelines";
-import type { SandboxSdk } from "@frontal-labs/sandbox";
-import { createSandboxClient } from "@frontal-labs/sandbox";
 import type { SchedulesSdk } from "@frontal-labs/schedules";
 import { createSchedulesClient } from "@frontal-labs/schedules";
 import type { WebhooksSdk } from "@frontal-labs/webhooks";
@@ -55,6 +55,13 @@ export class Frontal {
   get ai(): AISdk {
     this.#ai ??= createAIClient(this.#frontal);
     return this.#ai;
+  }
+
+  /** Functions service. */
+  #functions?: FunctionsSdk;
+  get functions(): FunctionsSdk {
+    this.#functions ??= createFunctionsClient(this.#frontal);
+    return this.#functions;
   }
 
   /** Agent management service. */
@@ -97,13 +104,6 @@ export class Frontal {
   get schedules(): SchedulesSdk {
     this.#schedules ??= createSchedulesClient(this.#frontal);
     return this.#schedules;
-  }
-
-  /** Sandbox code execution service. */
-  #sandbox?: SandboxSdk;
-  get sandbox(): SandboxSdk {
-    this.#sandbox ??= createSandboxClient(this.#frontal);
-    return this.#sandbox;
   }
 
   /** Authentication service. */
