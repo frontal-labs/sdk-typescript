@@ -83,7 +83,6 @@ need one service. Every package exposes a `createXClient()` factory that accepts
 | [`@frontal-labs/billing`](./packages/billing) | Customers, plans, subscriptions, invoices, meters. | ![npm](https://img.shields.io/npm/v/@frontal-labs/billing) |
 | [`@frontal-labs/webhooks`](./packages/webhooks) | Endpoints, deliveries, secrets, stats. | ![npm](https://img.shields.io/npm/v/@frontal-labs/webhooks) |
 | [`@frontal-labs/schedules`](./packages/schedules) | Cron schedules and triggers. | ![npm](https://img.shields.io/npm/v/@frontal-labs/schedules) |
-| [`@frontal-labs/sandbox`](./packages/sandbox) | Isolated code execution with a judge. | ![npm](https://img.shields.io/npm/v/@frontal-labs/sandbox) |
 | [`@frontal-labs/connectors`](./packages/connectors) | Source connectors and per-tenant installations. | ![npm](https://img.shields.io/npm/v/@frontal-labs/connectors) |
 
 ## Contributing

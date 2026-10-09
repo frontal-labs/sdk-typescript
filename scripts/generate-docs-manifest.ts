@@ -15,7 +15,6 @@ import { join } from "node:path";
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 
 const SDK_PKG = "@frontal-labs/sdk";
-const REPO = "https://github.com/frontal-labs/sdk-typescript";
 
 /** Reading order: entry points first, then services, then reference. */
 const SERVICE_ORDER = [
@@ -26,6 +25,7 @@ const SERVICE_ORDER = [
   "ontology",
   "blob",
   "data",
+  "functions",
   "lineage",
   "observability",
   "audit",
@@ -34,7 +34,6 @@ const SERVICE_ORDER = [
   "billing",
   "webhooks",
   "schedules",
-  "sandbox",
   "connectors",
 ];
 
@@ -120,7 +119,7 @@ function docsInOrder(): Doc[] {
     "SKILL.md",
     "packages/core/README.md",
   ];
-  const packages = readdirSync(join(ROOT, "packages"));
+  const packages = readdirSync(join(ROOT, "packages")).sort();
   for (const s of SERVICE_ORDER) {
     if (packages.includes(s)) paths.push(`packages/${s}/README.md`);
   }

@@ -58,7 +58,7 @@ Every service is a lazy, cached getter on `Frontal`:
 | `f.auth` | `@frontal-labs/auth` | `signInWithPassword`, `mfa`, `account`, `admin` |
 | `f.billing` | `@frontal-labs/billing` | `customers`, `plans`, `subscriptions`, `invoices`, `meters` |
 | `f.webhooks` | `@frontal-labs/webhooks` | `endpoints`, `deliveries` |
-| `f.schedules` / `f.sandbox` | respective packages | cron; `selfTest`/`submit` |
+| `f.schedules` | respective packages | cron; `selfTest`/`submit` |
 | `f.connectors` | `@frontal-labs/connectors` | source connectors |
 
 React UIs: `@frontal-labs/react` — `useChat({ api })` over a route that returns

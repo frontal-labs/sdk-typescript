@@ -38,8 +38,6 @@ sdk-ts/
 │   ├── organization/  # Multi-tenancy and team management
 │   ├── pipelines/     # Declarative data pipelines with substrate orchestration
 │   ├── queues/        # Job and message queues
-│   ├── sandbox/       # Isolated code execution
-│   ├── schedules/     # Cron-based scheduling
 │   ├── search/        # Unified cross-service search
 │   ├── vectors/       # Embeddings store and similarity search
 │   ├── webhooks/      # Endpoint management with signature verification
@@ -133,21 +131,21 @@ bun run type-check  # type-check just this package
 
 ```
 core    ──► ai, agents, audit, auth, billing, blob, connectors,
-            governance,
-            lineage, observability, ontology, organization, pipelines,
-            queues, sandbox, schedules, search, vectors, webhooks, workflows
+             governance,
+             lineage, observability, ontology, organization, pipelines,
+             queues, schedules, search, vectors, webhooks, workflows
 
-testing ──► all 21 domain packages (devDependency only)
+testing ──► all 20 domain packages (devDependency only)
 
 ai, agents, audit, auth, billing, blob, connectors,
 governance, lineage,
-observability, ontology, organization, pipelines, queues, sandbox,
-schedules, search, vectors, webhooks, workflows ──► sdk
+observability, ontology, organization, pipelines, queues, schedules,
+search, vectors, webhooks, workflows ──► sdk
 ```
 
-Arrows read "is depended on by". All 21 domain packages depend on
-`@frontal-labs/core` at runtime and on `@frontal-labs/testing` as a
-devDependency. `@frontal-labs/sdk` depends on every domain package and
+Arrows read "is depended on by". All 20 domain packages depend on
+    `@frontal-labs/core` at runtime and on `@frontal-labs/testing` as a
+    devDependency. `@frontal-labs/sdk` depends on every domain package and
 re-exports them as a single unified client.
 
 ## Code Style

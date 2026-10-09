@@ -46,7 +46,6 @@ cached getter on the `Frontal` instance:
 | `f.ontology` | Ontology engine, objects, versions and rollouts |
 | `f.blob` / `f.data` | Storage and data access |
 | `f.lineage` / `f.observability` / `f.audit` | Tracing, logs, lineage, audit trail |
-| `f.sandbox` / `f.schedules` | Compute and scheduling |
 | `f.webhooks` / `f.connectors` | Webhooks and external systems |
 | `f.auth` / `f.governance` / `f.billing` | Identity, policy, billing |
 

@@ -1,44 +1,42 @@
 {
   "name": "@frontal-labs/sdk",
   "version": "1.0.4",
-  "description": "Unified SDK client for all Frontal services.",
-  "keywords": [
-    "javascript",
-    "typescript",
-    "sdk",
-    "frontal",
-    "frontal-labs"
-  ],
-  "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/sdk",
-  "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
-  "license": "Apache-2.0",
-  "author": "Frontal Labs",
-  "files": [
-    "dist",
-    "src"
-  ],
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "description": "Unified Frontal SDK client",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.mjs"
+        "default": "./dist/index.js"
       },
       "require": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "default": "./dist/index.cjs"
       }
     },
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/frontal-labs/sdk-typescript.git",
     "directory": "packages/sdk"
+  },
+  "bugs": "https://github.com/frontal-labs/sdk-typescript/issues",
+  "homepage": "https://github.com/frontal-labs/sdk-typescript/tree/master/packages/sdk",
+  "license": "Apache-2.0",
+  "author": "Frontal Labs",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "tsup && tsc --emitDeclarationOnly",
@@ -46,19 +44,7 @@
     "type-check": "tsc --noEmit",
     "test": "bun test",
     "lint": "biome lint src/ tests/",
-    "clean": "rm -rf dist",
-    "docs": "typedoc --entryPoints src/index.ts --out docs/v2 --excludePrivate --excludeProtected",
-    "docs:json": "typedoc --json docs/v2/spec.json --entryPoints src/index.ts --excludePrivate --excludeExternals --excludeProtected"
-  },
-  "jsdelivr": "dist/umd/frontal-labs.js",
-  "unpkg": "dist/umd/frontal-labs.js",
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
-  "engines": {
-    "bun": ">=1.3.8",
-    "node": ">=18.0.0"
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@frontal-labs/agents": "^1.0.4",
@@ -70,12 +56,12 @@
     "@frontal-labs/connectors": "^0.0.6",
     "@frontal-labs/core": "^1.0.4",
     "@frontal-labs/data": "^0.1.3",
+    "@frontal-labs/functions": "^0.0.1",
     "@frontal-labs/governance": "^0.0.6",
     "@frontal-labs/lineage": "^0.0.6",
     "@frontal-labs/observability": "^0.1.4",
     "@frontal-labs/ontology": "^1.0.3",
     "@frontal-labs/pipelines": "^0.0.5",
-    "@frontal-labs/sandbox": "^1.0.3",
     "@frontal-labs/schedules": "^1.0.3",
     "@frontal-labs/webhooks": "^0.0.6",
     "@frontal-labs/workflows": "^0.1.3",
@@ -88,5 +74,9 @@
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^5.0.0"
+  },
+  "engines": {
+    "bun": ">=1.3.8",
+    "node": ">=18.0.0"
   }
 }

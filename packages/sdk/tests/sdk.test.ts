@@ -21,7 +21,6 @@ describe("Frontal", () => {
     expect(sdk.pipelines).toBeDefined();
     expect(sdk.workflows).toBeDefined();
     expect(sdk.schedules).toBeDefined();
-    expect(sdk.sandbox).toBeDefined();
     expect(sdk.auth).toBeDefined();
     expect(sdk.observability).toBeDefined();
     expect(sdk.audit).toBeDefined();

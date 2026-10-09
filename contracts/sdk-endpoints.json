@@ -707,6 +707,72 @@
       "path": "/data/transformations/transformations/{param}/executions"
     }
   ],
+  "functions": [
+    {
+      "method": "DELETE",
+      "path": "/functions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/functions"
+    },
+    {
+      "method": "GET",
+      "path": "/functions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/functions/{param}/versions"
+    },
+    {
+      "method": "GET",
+      "path": "/functions/{param}/versions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/functions/{param}/versions/{param}/deployment/status"
+    },
+    {
+      "method": "GET",
+      "path": "/functions/executions"
+    },
+    {
+      "method": "GET",
+      "path": "/functions/executions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/functions/executions/{param}/result"
+    },
+    {
+      "method": "PATCH",
+      "path": "/functions/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/functions"
+    },
+    {
+      "method": "POST",
+      "path": "/functions/{param}/versions/{param}/deploy"
+    },
+    {
+      "method": "POST",
+      "path": "/functions/{param}/versions/{param}/publish"
+    },
+    {
+      "method": "POST",
+      "path": "/functions/executions/{param}/cancel"
+    },
+    {
+      "method": "POST",
+      "path": "/functions/invoke"
+    },
+    {
+      "method": "POST",
+      "path": "/functions/invoke-async"
+    }
+  ],
   "governance": [
     {
       "method": "DELETE",
@@ -1314,20 +1380,6 @@
     }
   ],
   "react": [],
-  "sandbox": [
-    {
-      "method": "GET",
-      "path": "/sandbox/languages"
-    },
-    {
-      "method": "POST",
-      "path": "/sandbox/self-test"
-    },
-    {
-      "method": "POST",
-      "path": "/sandbox/submit"
-    }
-  ],
   "schedules": [
     {
       "method": "DELETE",

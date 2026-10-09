@@ -73,6 +73,12 @@
       "summary": "Data platform sub-domains — aggregations, archival, enrichment, exports, normalization, quality, serving, streams, sync, transformations, federated query and schema registry — behind one client."
     },
     {
+      "id": "packages-functions-README-md",
+      "path": "packages/functions/README.md",
+      "title": "@frontal-labs/functions",
+      "summary": "User-defined functions client for the Frontal platform."
+    },
+    {
       "id": "packages-lineage-README-md",
       "path": "packages/lineage/README.md",
       "title": "@frontal-labs/lineage",
@@ -119,12 +125,6 @@
       "path": "packages/schedules/README.md",
       "title": "@frontal-labs/schedules",
       "summary": "Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions."
-    },
-    {
-      "id": "packages-sandbox-README-md",
-      "path": "packages/sandbox/README.md",
-      "title": "@frontal-labs/sandbox",
-      "summary": "Isolated code execution with a judge — run snippets, self-test, or submit against test cases."
     },
     {
       "id": "packages-connectors-README-md",

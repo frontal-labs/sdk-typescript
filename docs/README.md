@@ -43,7 +43,6 @@ Each package in the monorepo contains its own documentation:
 - **[@frontal-labs/observability](../packages/observability/)** - Observability
 - **[@frontal-labs/ontology](../packages/ontology/)** - Schema management
 - **[@frontal-labs/pipelines](../packages/pipelines/)** - Data pipelines
-- **[@frontal-labs/sandbox](../packages/sandbox/)** - Code execution
 - **[@frontal-labs/schedules](../packages/schedules/)** - Scheduling
 - **[@frontal-labs/webhooks](../packages/webhooks/)** - Webhooks
 - **[@frontal-labs/workflows](../packages/workflows/)** - Workflows

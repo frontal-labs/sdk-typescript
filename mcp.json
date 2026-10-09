@@ -118,20 +118,14 @@
       "title": "@frontal-labs/webhooks",
       "summary": "Outbound webhooks — register endpoints, inspect and retry deliveries, rotate secrets, and read delivery stats."
     },
-    {
-      "id": "packages-schedules-README-md",
-      "path": "packages/schedules/README.md",
-      "title": "@frontal-labs/schedules",
-      "summary": "Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions."
-    },
-    {
-      "id": "packages-sandbox-README-md",
-      "path": "packages/sandbox/README.md",
-      "title": "@frontal-labs/sandbox",
-      "summary": "Isolated code execution with a judge — run snippets, self-test, or submit against test cases."
-    },
-    {
-      "id": "packages-connectors-README-md",
+      {
+        "id": "packages-schedules-README-md",
+        "path": "packages/schedules/README.md",
+        "title": "@frontal-labs/schedules",
+        "summary": "Cron schedules for workflows and pipelines — create, pause, resume, trigger, and validate cron expressions."
+      },
+      {
+        "id": "packages-connectors-README-md",
       "path": "packages/connectors/README.md",
       "title": "@frontal-labs/connectors",
       "summary": "Source connectors — discover connector definitions, install them per tenant, and replay or diagnose sync runs."

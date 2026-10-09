@@ -98,11 +98,7 @@ Semantic model and schema management, migrations, and AI-powered inference.
 
 Declarative data pipelines with substrate orchestration.
 
-### 24. Sandbox (`@frontal-labs/sandbox`)
-
-Isolated code execution with streaming, snapshots, and file management.
-
-### 25. Schedules (`@frontal-labs/schedules`)
+### 23. Schedules (`@frontal-labs/schedules`)
 
 Cron-based scheduling with local validation, run history, and manual triggers.
 

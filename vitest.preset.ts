@@ -23,7 +23,6 @@ export const resolveAliases: Record<string, string> = {
   "@frontal-labs/ontology": resolve(packagesDir, "ontology/src"),
   "@frontal-labs/pipelines": resolve(packagesDir, "pipelines/src"),
   "@frontal-labs/react": resolve(packagesDir, "react/src"),
-  "@frontal-labs/sandbox": resolve(packagesDir, "sandbox/src"),
   "@frontal-labs/schedules": resolve(packagesDir, "schedules/src"),
   "@frontal-labs/sdk": resolve(packagesDir, "sdk/src"),
   "@frontal-labs/testing": resolve(packagesDir, "testing/src"),

@@ -83,7 +83,7 @@ export { lineage } from "@frontal-labs/lineage";
 export { observability } from "@frontal-labs/observability";
 export { ontology } from "@frontal-labs/ontology";
 export { pipelines } from "@frontal-labs/pipelines";
-export { sandbox } from "@frontal-labs/sandbox";
 export { schedules } from "@frontal-labs/schedules";
 export { webhooks } from "@frontal-labs/webhooks";
 export { workflows } from "@frontal-labs/workflows";
+export { functions } from "@frontal-labs/functions";
