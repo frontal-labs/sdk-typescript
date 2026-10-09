@@ -25,6 +25,7 @@ const SERVICE_ORDER = [
   "ontology",
   "blob",
   "data",
+  "functions",
   "lineage",
   "observability",
   "audit",
@@ -118,7 +119,7 @@ function docsInOrder(): Doc[] {
     "SKILL.md",
     "packages/core/README.md",
   ];
-  const packages = readdirSync(join(ROOT, "packages"));
+  const packages = readdirSync(join(ROOT, "packages")).sort();
   for (const s of SERVICE_ORDER) {
     if (packages.includes(s)) paths.push(`packages/${s}/README.md`);
   }
