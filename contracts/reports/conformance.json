@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T13:08:16.442Z",
+  "generatedAt": "2026-10-09T14:27:19.345Z",
   "packages": [
     "agents",
     "ai",
@@ -21,27 +21,8 @@
     "workflows"
   ],
   "drift": {
-    "errors": [
-      "\n[functions]",
-      "  Unexpected endpoints:",
-      "    + DELETE /functions/{param}",
-      "    + GET /functions",
-      "    + GET /functions/executions",
-      "    + GET /functions/executions/{param}",
-      "    + GET /functions/executions/{param}/result",
-      "    + GET /functions/{param}",
-      "    + GET /functions/{param}/versions",
-      "    + GET /functions/{param}/versions/{param}",
-      "    + GET /functions/{param}/versions/{param}/deployment/status",
-      "    + PATCH /functions/{param}",
-      "    + POST /functions",
-      "    + POST /functions/executions/{param}/cancel",
-      "    + POST /functions/invoke",
-      "    + POST /functions/invoke-async",
-      "    + POST /functions/{param}/versions/{param}/deploy",
-      "    + POST /functions/{param}/versions/{param}/publish"
-    ],
-    "hasDrift": true
+    "errors": [],
+    "hasDrift": false
   },
   "conformance": {
     "issues": [
