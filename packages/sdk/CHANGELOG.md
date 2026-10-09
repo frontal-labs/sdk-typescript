@@ -1,5 +1,36 @@
 # @frontal-labs/sdk
 
+## 2.0.0
+
+### Major Changes
+
+- e4a35e6: `new Frontal({ apiKey, ... })` — the unified client now accepts an `SdkConfig` directly (validated at construction; `frt_` prefix enforced) as well as a shared `FrontalClient`. Adds `f.client` for sharing the transport with standalone packages, `resolveSdkConfig`, `sdkConfigSchema`, `FrontalEnvironment`, and re-exports of common helpers (`tool`, `toUIMessageStreamResponse`, `toApprovalStep`, `isFrontalError`, …). The env-driven `frontal` singleton and per-service singleton re-exports are deprecated (runtime kept). README rewritten as the canonical quickstart. Fixes `main`/`require` pointing at a non-existent `dist/index.cjs` and removes a bogus `bin` entry.
+  
+  **Breaking (inherited from the service packages):** `f.agents.use(id).watch()` yields discriminated parts instead of raw SSE envelopes, `f.agents.define(...).create()` returns a typed accessor, and `f.ai.streamText()`'s `textStream`/`fullStream` are two views of one request. See the `@frontal-labs/agents` and `@frontal-labs/ai` changesets.
+
+### Patch Changes
+
+- Updated dependencies [4b90ce4]
+- Updated dependencies [d7c7a05]
+- Updated dependencies [5fd277e]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [8d0c43f]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/audit@1.0.0
+  - @frontal-labs/agents@2.0.0
+  - @frontal-labs/core@1.1.0
+  - @frontal-labs/webhooks@1.0.0
+  - @frontal-labs/workflows@1.0.0
+  - @frontal-labs/ai@0.2.0
+  - @frontal-labs/blob@1.0.4
+  - @frontal-labs/ontology@1.0.4
+  - @frontal-labs/pipelines@0.0.6
+  - @frontal-labs/auth@1.0.4
+
 ## 1.0.4
 
 ### Patch Changes

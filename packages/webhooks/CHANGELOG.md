@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.0
+
+### Major Changes
+
+- d7c7a05: Fix shared transport timeouts, SSE parsing, schema validation, retry safety, and
+  circuit-breaker handling. Make webhook signature verification asynchronous and
+  Web Crypto based so it works in native Node ESM and Fetch/Web Crypto runtimes.
+  Callers must now await `verifyWebhookSignature` and `extractWebhookEvent`.
+
+### Patch Changes
+
+- Updated dependencies [d7c7a05]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/core@1.1.0
+
 ## 0.0.6
 
 ### Patch Changes

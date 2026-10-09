@@ -1,5 +1,25 @@
 # @frontal-labs/react
 
+## 0.2.0
+
+### Minor Changes
+
+- e4a35e6: New package: `useChat` (streams from any route returning `toUIMessageStreamResponse`, errors as data with `retry()`), `useAgentRun` (trigger + typed run stream), `useWorkflowApprovals` (list/approve/reject). Transport-agnostic; `react >= 18` peer.
+
+### Patch Changes
+
+- Updated dependencies [d7c7a05]
+- Updated dependencies [5fd277e]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/agents@2.0.0
+  - @frontal-labs/core@1.1.0
+  - @frontal-labs/workflows@1.0.0
+  - @frontal-labs/ai@0.2.0
+
 ## 0.1.0
 
 ### Added

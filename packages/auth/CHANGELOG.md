@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.4
+
+### Patch Changes
+
+- 8d0c43f: Forward the optional JWT as a bearer token when fetching the current user.
+- Updated dependencies [d7c7a05]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/core@1.1.0
+
 ## 1.0.3
 
 ### Patch Changes

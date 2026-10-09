@@ -1,5 +1,22 @@
 # @frontal-labs/workflows
 
+## 1.0.0
+
+### Major Changes
+
+- 5fd277e: Align workflow operations with the service resource routes and response shapes.
+  This release changes workflow lifecycle, execution, approval, task, and template
+  operations, and removes the legacy `pause`, `watch`, and `executionSummary`
+  methods.
+
+### Patch Changes
+
+- e4a35e6: Fix `main`/`exports.require` pointing at `dist/index.cjs`, which tsup never emitted for these packages (CommonJS consumers got a missing-file error). They now point at the emitted `dist/index.js`.
+- Updated dependencies [d7c7a05]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/core@1.1.0
+
 ## 0.1.3
 
 ### Patch Changes
