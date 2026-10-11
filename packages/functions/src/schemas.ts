@@ -1,4 +1,15 @@
 import { z } from "zod";
+import {
+  type AiCapabilitySchema,
+  type BlobCapabilitySchema,
+  type CapabilityBudgetSchema,
+  type CapabilityKindSchema,
+  CapabilitySchema,
+  type DataCapabilitySchema,
+  type KvCapabilitySchema,
+  type OntologyCapabilitySchema,
+  type TelemetryCapabilitySchema,
+} from "./capabilities";
 
 /**
  * Zod schema for function runtime.
@@ -30,33 +41,39 @@ export const FunctionStatusSchema = z.enum([
 export type FunctionStatus = z.input<typeof FunctionStatusSchema>;
 
 /**
- * Zod schema for function permission.
+ * Zod schema for schema reference (inline or remote).
  */
-export const FunctionPermissionSchema = z.object({
-  ontology: z.array(z.string()).optional(),
-  actions: z.array(z.string()).optional(),
+export const SchemaRefSchema = z.object({
+  /** Inline schema object */
+  schema: z.record(z.string(), z.any()).optional(),
+  /** Remote schema URI */
+  schemaUri: z.string().url().optional(),
+  /** Schema version */
+  schemaVersion: z.string().optional(),
+  /** Content hash for integrity verification */
+  contentHash: z.string().optional(),
 });
 
 /**
- * Function permission.
+ * Schema reference.
  */
-export type FunctionPermission = z.input<typeof FunctionPermissionSchema>;
+export type SchemaRef = z.input<typeof SchemaRefSchema>;
 
 /**
- * Zod schema for function resources.
+ * Zod schema for function resource.
  */
 export const FunctionResourceSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
   runtime: FunctionRuntimeSchema,
-  entrypoint: z.string(),
+  handler: z.string(),
   status: FunctionStatusSchema,
   version: z.number().int().positive(),
   latestVersion: z.number().int().positive().optional(),
   memory: z.number().int().positive().optional(), // in MB
   timeout: z.number().int().positive().optional(), // in seconds
-  permissions: FunctionPermissionSchema.optional(),
+  capabilities: z.array(CapabilitySchema).optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -73,16 +90,14 @@ export const FunctionDefinitionSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   runtime: FunctionRuntimeSchema,
-  entrypoint: z.string(),
-  source: z.string().optional(), // reference to source in blob/storage
-  inputSchema: z.record(z.string(), z.any()).optional(), // JSON schema
-  outputSchema: z.record(z.string(), z.any()).optional(), // JSON schema
-  dependencies: z.array(z.string()).optional(),
+  handler: z.string(),
+  inputSchema: SchemaRefSchema.optional(),
+  outputSchema: SchemaRefSchema.optional(),
   envVars: z.record(z.string(), z.string()).optional(),
   secrets: z.array(z.string()).optional(), // secret names
+  capabilities: z.array(CapabilitySchema).optional(),
   memory: z.number().int().positive().optional(),
   timeout: z.number().int().positive().optional(),
-  permissions: FunctionPermissionSchema.optional(),
 });
 
 /**
@@ -95,7 +110,7 @@ export type FunctionDefinition = z.input<typeof FunctionDefinitionSchema>;
  */
 export const FunctionVersionSchema = z.object({
   version: z.number().int().positive(),
-  source: z.string(),
+  handler: z.string(),
   createdAt: z.string().datetime(),
   publishedBy: z.string().optional(),
 });
@@ -133,6 +148,7 @@ export const FunctionInvocationInputSchema = z.object({
   functionId: z.string(),
   version: z.number().int().positive().optional(),
   input: z.record(z.string(), z.any()).optional(),
+  idempotencyKey: z.string().optional(),
 });
 
 /**
@@ -210,3 +226,27 @@ export const FunctionExecutionListResponseSchema = z.object({
 export type FunctionExecutionListResponse = z.infer<
   typeof FunctionExecutionListResponseSchema
 >;
+
+/**
+ * Re-export capability types for convenience
+ */
+export type Capability = z.infer<typeof CapabilitySchema>;
+export type CapabilityInput = z.input<typeof CapabilitySchema>;
+export type CapabilityBudget = z.infer<typeof CapabilityBudgetSchema>;
+export type CapabilityBudgetInput = z.input<typeof CapabilityBudgetSchema>;
+export type CapabilityKind = z.infer<typeof CapabilityKindSchema>;
+export type CapabilityKindInput = z.input<typeof CapabilityKindSchema>;
+export type KvCapability = z.infer<typeof KvCapabilitySchema>;
+export type KvCapabilityInput = z.input<typeof KvCapabilitySchema>;
+export type BlobCapability = z.infer<typeof BlobCapabilitySchema>;
+export type BlobCapabilityInput = z.input<typeof BlobCapabilitySchema>;
+export type AiCapability = z.infer<typeof AiCapabilitySchema>;
+export type AiCapabilityInput = z.input<typeof AiCapabilitySchema>;
+export type TelemetryCapability = z.infer<typeof TelemetryCapabilitySchema>;
+export type TelemetryCapabilityInput = z.input<
+  typeof TelemetryCapabilitySchema
+>;
+export type OntologyCapability = z.infer<typeof OntologyCapabilitySchema>;
+export type OntologyCapabilityInput = z.input<typeof OntologyCapabilitySchema>;
+export type DataCapability = z.infer<typeof DataCapabilitySchema>;
+export type DataCapabilityInput = z.input<typeof DataCapabilitySchema>;
