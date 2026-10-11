@@ -722,18 +722,6 @@
     },
     {
       "method": "GET",
-      "path": "/functions/{param}/versions"
-    },
-    {
-      "method": "GET",
-      "path": "/functions/{param}/versions/{param}"
-    },
-    {
-      "method": "GET",
-      "path": "/functions/{param}/versions/{param}/deployment/status"
-    },
-    {
-      "method": "GET",
       "path": "/functions/executions"
     },
     {
@@ -751,14 +739,6 @@
     {
       "method": "POST",
       "path": "/functions"
-    },
-    {
-      "method": "POST",
-      "path": "/functions/{param}/versions/{param}/deploy"
-    },
-    {
-      "method": "POST",
-      "path": "/functions/{param}/versions/{param}/publish"
     },
     {
       "method": "POST",

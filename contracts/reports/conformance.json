@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T14:27:19.345Z",
+  "generatedAt": "2026-10-11T10:37:59.204Z",
   "packages": [
     "agents",
     "ai",
@@ -1240,36 +1240,6 @@
         "package": "functions",
         "endpoint": {
           "method": "GET",
-          "path": "/functions/{param}/versions"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "functions",
-        "endpoint": {
-          "method": "GET",
-          "path": "/functions/{param}/versions/{param}"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "functions",
-        "endpoint": {
-          "method": "GET",
-          "path": "/functions/{param}/versions/{param}/deployment/status"
-        },
-        "resolvedMethod": "GET",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "functions",
-        "endpoint": {
-          "method": "GET",
           "path": "/functions/executions"
         },
         "resolvedMethod": "GET",
@@ -1311,26 +1281,6 @@
         "endpoint": {
           "method": "POST",
           "path": "/functions"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "functions",
-        "endpoint": {
-          "method": "POST",
-          "path": "/functions/{param}/versions/{param}/deploy"
-        },
-        "resolvedMethod": "POST",
-        "surface": "api",
-        "reason": "missing-in-spec"
-      },
-      {
-        "package": "functions",
-        "endpoint": {
-          "method": "POST",
-          "path": "/functions/{param}/versions/{param}/publish"
         },
         "resolvedMethod": "POST",
         "surface": "api",
@@ -2339,9 +2289,9 @@
         "unmatched": 0
       },
       "functions": {
-        "total": 16,
+        "total": 11,
         "matched": 0,
-        "unmatched": 16
+        "unmatched": 11
       },
       "governance": {
         "total": 24,
