@@ -1,21 +1,17 @@
 import type { HttpClient } from "@frontal-labs/core";
 import type {
-  IFunctionsNamespace,
-  IFunctionsVersionsNamespace,
-  IFunctionsDeploymentsNamespace,
-  IFunctionsExecutionsNamespace,
-} from "./types";
-import type {
-  FunctionResource,
   FunctionDefinition,
-  FunctionVersion,
   FunctionExecution,
+  FunctionExecutionListResponse,
   FunctionInvocationInput,
   FunctionInvocationResult,
   FunctionListResponse,
-  FunctionVersionListResponse,
-  FunctionExecutionListResponse,
+  FunctionResource,
 } from "./schemas";
+import type {
+  IFunctionsExecutionsNamespace,
+  IFunctionsNamespace,
+} from "./types";
 
 /**
  * Namespace for function CRUD operations.
@@ -46,61 +42,6 @@ export class FunctionsNamespace implements IFunctionsNamespace {
 
   async delete(id: string): Promise<void> {
     return this.http.delete(`/functions/${id}`);
-  }
-}
-
-/**
- * Namespace for function version operations.
- */
-export class FunctionsVersionsNamespace implements IFunctionsVersionsNamespace {
-  constructor(private readonly http: HttpClient) {}
-
-  async list(
-    functionId: string,
-    opts: { cursor?: string; limit?: number } = {}
-  ): Promise<FunctionVersionListResponse> {
-    return this.http.get<FunctionVersionListResponse>(
-      `/functions/${functionId}/versions`,
-      opts
-    );
-  }
-
-  async get(functionId: string, version: number): Promise<FunctionVersion> {
-    return this.http.get<FunctionVersion>(
-      `/functions/${functionId}/versions/${version}`
-    );
-  }
-
-  async publish(functionId: string, version: number): Promise<FunctionVersion> {
-    return this.http.post<FunctionVersion>(
-      `/functions/${functionId}/versions/${version}/publish`,
-      {}
-    );
-  }
-}
-
-/**
- * Namespace for function deployment operations.
- */
-export class FunctionsDeploymentsNamespace
-  implements IFunctionsDeploymentsNamespace
-{
-  constructor(private readonly http: HttpClient) {}
-
-  async deploy(functionId: string, version: number): Promise<void> {
-    return this.http.post(
-      `/functions/${functionId}/versions/${version}/deploy`,
-      {}
-    );
-  }
-
-  async status(
-    functionId: string,
-    version: number
-  ): Promise<{ status: string; details?: unknown }> {
-    return this.http.get<{ status: string; details?: unknown }>(
-      `/functions/${functionId}/versions/${version}/deployment/status`
-    );
   }
 }
 
