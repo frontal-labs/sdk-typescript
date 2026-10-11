@@ -1,14 +1,14 @@
 import type {
-  FunctionResource,
+  CapabilityInput,
   FunctionDefinition,
-  FunctionVersion,
   FunctionExecution,
+  FunctionExecutionListResponse,
   FunctionInvocationInput,
   FunctionInvocationResult,
   FunctionListResponse,
-  FunctionVersionListResponse,
-  FunctionExecutionListResponse,
+  FunctionResource,
   FunctionRuntime,
+  SchemaRef,
 } from "./schemas";
 
 /**
@@ -56,62 +56,6 @@ export interface IFunctionsNamespace {
 }
 
 /**
- * Interface for function version operations.
- */
-export interface IFunctionsVersionsNamespace {
-  /**
-   * Lists versions for a function.
-   * @param functionId - The function ID.
-   * @param opts - Pagination options.
-   * @returns A paginated result of function versions.
-   */
-  list(
-    functionId: string,
-    opts: { cursor?: string; limit?: number }
-  ): Promise<FunctionVersionListResponse>;
-
-  /**
-   * Retrieves a specific version of a function.
-   * @param functionId - The function ID.
-   * @param version - The version number.
-   * @returns The function version.
-   */
-  get(functionId: string, version: number): Promise<FunctionVersion>;
-
-  /**
-   * Publishes a version of a function.
-   * @param functionId - The function ID.
-   * @param version - The version number to publish.
-   * @returns The published function version.
-   */
-  publish(functionId: string, version: number): Promise<FunctionVersion>;
-}
-
-/**
- * Interface for function deployment operations.
- */
-export interface IFunctionsDeploymentsNamespace {
-  /**
-   * Deploys a version of a function.
-   * @param functionId - The function ID.
-   * @param version - The version number to deploy.
-   * @returns A promise that resolves when the deployment is complete.
-   */
-  deploy(functionId: string, version: number): Promise<void>;
-
-  /**
-   * Gets the deployment status of a function version.
-   * @param functionId - The function ID.
-   * @param version - The version number.
-   * @returns The deployment status.
-   */
-  status(
-    functionId: string,
-    version: number
-  ): Promise<{ status: string; details?: unknown }>;
-}
-
-/**
  * Interface for function execution operations.
  */
 export interface IFunctionsExecutionsNamespace {
@@ -127,7 +71,9 @@ export interface IFunctionsExecutionsNamespace {
    * @param input - The invocation input.
    * @returns The execution ID for tracking.
    */
-  invokeAsync(input: FunctionInvocationInput): Promise<{ executionId: string }>;
+  invokeAsync(input: FunctionInvocationInput): Promise<{
+    executionId: string;
+  }>;
 
   /**
    * Retrieves the status of a function execution.
@@ -191,7 +137,7 @@ export class FunctionBuilder {
 
   /**
    * Sets the runtime for the function.
-   * @param runtime - The runtime (e.g. "nodejs20").
+   * @param runtime - The runtime (e.g. "nodejs22").
    */
   runtime(runtime: FunctionRuntime): this {
     this._definition.runtime = runtime;
@@ -199,47 +145,29 @@ export class FunctionBuilder {
   }
 
   /**
-   * Sets the entrypoint for the function.
-   * @param entrypoint - The entrypoint (e.g. "index.handler").
+   * Sets the handler for the function.
+   * @param handler - The handler (e.g. "file.export").
    */
-  entrypoint(entrypoint: string): this {
-    this._definition.entrypoint = entrypoint;
-    return this;
-  }
-
-  /**
-   * Sets the source reference for the function.
-   * @param source - The source reference (e.g. blob path).
-   */
-  source(source: string): this {
-    this._definition.source = source;
+  handler(handler: string): this {
+    this._definition.handler = handler;
     return this;
   }
 
   /**
    * Sets the input schema for the function.
-   * @param schema - The input schema (JSON schema object).
+   * @param schema - The input schema (inline or reference).
    */
-  inputSchema(schema: Record<string, unknown>): this {
+  inputSchema(schema: SchemaRef): this {
     this._definition.inputSchema = schema;
     return this;
   }
 
   /**
    * Sets the output schema for the function.
-   * @param schema - The output schema (JSON schema object).
+   * @param schema - The output schema (inline or reference).
    */
-  outputSchema(schema: Record<string, unknown>): this {
+  outputSchema(schema: SchemaRef): this {
     this._definition.outputSchema = schema;
-    return this;
-  }
-
-  /**
-   * Sets the dependencies for the function.
-   * @param dependencies - The dependency array.
-   */
-  dependencies(dependencies: string[]): this {
-    this._definition.dependencies = dependencies;
     return this;
   }
 
@@ -253,11 +181,23 @@ export class FunctionBuilder {
   }
 
   /**
-   * Sets the secrets for the function.
-   * @param secrets - The secret names array.
+   * Adds a secret name for the function.
+   * @param name - The secret name.
    */
-  secrets(secrets: string[]): this {
-    this._definition.secrets = secrets;
+  secret(name: string): this {
+    this._definition.secrets = [...(this._definition.secrets ?? []), name];
+    return this;
+  }
+
+  /**
+   * Adds capabilities for the function.
+   * @param caps - The capabilities array.
+   */
+  capabilities(...caps: CapabilityInput[]): this {
+    this._definition.capabilities = [
+      ...(this._definition.capabilities ?? []),
+      ...caps,
+    ];
     return this;
   }
 
@@ -276,15 +216,6 @@ export class FunctionBuilder {
    */
   timeout(timeout: number): this {
     this._definition.timeout = timeout;
-    return this;
-  }
-
-  /**
-   * Sets the permissions for the function.
-   * @param permissions - The permissions object.
-   */
-  permissions(permissions: { ontology?: string[]; actions?: string[] }): this {
-    this._definition.permissions = permissions;
     return this;
   }
 
