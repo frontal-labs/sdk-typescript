@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_GOVERNANCE_BASE_URL,
@@ -11,6 +12,10 @@ import {
   DEFAULT_TIMEOUT,
 } from "./constants";
 import { GovernanceSdk } from "./sdk";
+import {
+  governanceInterceptor,
+  type GovernanceInterceptorConfig,
+} from "./interceptor";
 
 /** Configuration options for creating a Governance API client. */
 export interface GovernanceClientConfig {
@@ -22,6 +27,14 @@ export interface GovernanceClientConfig {
   timeout?: number;
   /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
+  /** Optional governance policies to enforce locally on all requests. */
+  policies?: GovernanceInterceptorConfig["policies"];
+  /** Whether to fail closed on policy evaluation errors. */
+  failClosed?: boolean;
+  /** Optional callback when a policy violation occurs. */
+  onViolation?: GovernanceInterceptorConfig["onViolation"];
+  /** Optional interceptor(s) to apply to the HTTP client. */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -44,20 +57,29 @@ export function createGovernanceClient(
   if (clientOrConfig instanceof FrontalClient) {
     return new GovernanceSdk(clientOrConfig.httpClient);
   }
+
+  const { policies, failClosed, onViolation, interceptors, ...httpConfig } =
+    clientOrConfig;
+
   const http = new HttpClient({
-    apiKey: clientOrConfig.apiKey,
+    apiKey: httpConfig.apiKey,
     baseUrl:
-      clientOrConfig.baseUrl ??
-      env.FRONTAL_API_URL ??
-      DEFAULT_GOVERNANCE_BASE_URL,
-    timeout: clientOrConfig.timeout ?? DEFAULT_TIMEOUT,
-    maxRetries: clientOrConfig.maxRetries ?? DEFAULT_MAX_RETRIES,
+      httpConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_GOVERNANCE_BASE_URL,
+    timeout: httpConfig.timeout ?? DEFAULT_TIMEOUT,
+    maxRetries: httpConfig.maxRetries ?? DEFAULT_MAX_RETRIES,
     retryDelay: DEFAULT_RETRY_DELAY,
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: [
+      ...(interceptors ?? []),
+      ...(policies
+        ? [governanceInterceptor({ policies, failClosed, onViolation })]
+        : []),
+    ],
   });
-  return new GovernanceSdk(http);
+
+  return new GovernanceSdk(http.intercepted);
 }
 
 let _governanceCache: GovernanceSdk | undefined;

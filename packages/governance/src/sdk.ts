@@ -4,7 +4,8 @@ import {
   type HttpClient,
   type PageResult,
 } from "@frontal-labs/core";
-import type { Policy } from "./schemas";
+import { LocalPolicyEngine } from "./engine";
+import type { Policy, PolicyEvaluationResult } from "./schemas";
 
 type Obj = Record<string, unknown>;
 interface ListOpts {
@@ -144,6 +145,35 @@ export class PoliciesNamespace {
     [key: string]: unknown;
   }): Promise<{ valid: boolean; errors?: Obj[] }> {
     return this.http.post("/policies/validate", input);
+  }
+
+  /**
+   * Evaluates a policy locally against input data (no network call).
+   * Uses the in-process {@link LocalPolicyEngine} for zero-latency evaluation.
+   * @param policy - The policy to evaluate.
+   * @param input - The input data to evaluate against.
+   * @returns Evaluation result with pass/fail and rule details.
+   */
+  async evaluateLocally(
+    policy: Policy,
+    input: unknown
+  ): Promise<PolicyEvaluationResult> {
+    const engine = new LocalPolicyEngine();
+    return engine.evaluate(policy, input);
+  }
+
+  /**
+   * Evaluates multiple policies locally against the same input.
+   * @param policies - Array of policies to evaluate.
+   * @param input - The input data to evaluate against.
+   * @returns Combined evaluation result (all must pass).
+   */
+  async evaluateAllLocally(
+    policies: Policy[],
+    input: unknown
+  ): Promise<PolicyEvaluationResult> {
+    const engine = new LocalPolicyEngine();
+    return engine.evaluateAll(policies, input);
   }
 }
 
