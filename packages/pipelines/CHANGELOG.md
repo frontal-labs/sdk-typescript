@@ -1,5 +1,15 @@
 # @frontal-labs/pipelines
 
+## 0.0.6
+
+### Patch Changes
+
+- e4a35e6: Fix `main`/`exports.require` pointing at `dist/index.cjs`, which tsup never emitted for these packages (CommonJS consumers got a missing-file error). They now point at the emitted `dist/index.js`.
+- Updated dependencies [d7c7a05]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/core@1.1.0
+
 ## 0.0.5
 
 ### Patch Changes

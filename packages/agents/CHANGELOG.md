@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.0.0
+
+### Major Changes
+
+- e4a35e6: - `agents.define(name, options)` typed one-shot form with `triggers`, `stateSchema`, `tools` (shared `ToolSet`), `approveWhen`/`approvers`; builder gains `.state()`, `.tools()`, `.approveWhen()`, `.configure()`, `.toJSON()`.
+  - `create()` now returns the agent resource merged with a typed accessor (`id`, `name`, … plus `message`, `watch`, `waitForCompletion`, `requiresApproval`, `.agent`).
+  - `use(id, { stateSchema, stateEvent })` re-attaches with typing; `stateEvent` overrides the SSE event name that carries state snapshots (default `"state"`).
+  - **Breaking:** `watch(runId, { signal })` now yields `AgentRunEvent` parts — `{ type: "event", event, data }`, typed `{ type: "state", state }`, `{ type: "error", error }` (with `retryable`), `abort`, `done` — and no longer throws mid-stream. Code that read `event.type` / `event.data` on every item must switch on `type` first (`if (e.type === "event") …`).
+  - **Breaking:** `AgentBuilder.create()` returns the resource merged with a typed accessor instead of the bare resource (all resource fields are still present).
+  - `toApprovalStep()` maps an agent's approval contract to a workflow approval step.
+  - `create()` accepts `AgentDefinitionInput` (defaulted fields optional) and reports invalid definitions with readable field lists.
+  - `AgentBuilder.on()` now throws: local handlers were never uploaded or executed.
+
+### Patch Changes
+
+- d7c7a05: Fix shared transport timeouts, SSE parsing, schema validation, retry safety, and
+  circuit-breaker handling. Make webhook signature verification asynchronous and
+  Web Crypto based so it works in native Node ESM and Fetch/Web Crypto runtimes.
+  Callers must now await `verifyWebhookSignature` and `extractWebhookEvent`.
+- e4a35e6: Fix `main`/`exports.require` pointing at `dist/index.cjs`, which tsup never emitted for these packages (CommonJS consumers got a missing-file error). They now point at the emitted `dist/index.js`.
+- Updated dependencies [d7c7a05]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/core@1.1.0
+
 ## 1.0.4
 
 ### Patch Changes

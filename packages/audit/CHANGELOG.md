@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.0.0
+
+### Major Changes
+
+- 4b90ce4: Align the audit SDK with the real `/v1/audit/events` service (closes the audit item of the SDK alignment plan).
+  
+  **Breaking — event shape.** Inputs, filters and stored events now use the backend's fields instead of the previously fabricated ones:
+  
+  | Before | After |
+  | --- | --- |
+  | `resource: { type, id }` | `resourceType`, `resourceId` |
+  | `status` | `outcome` (`"success" \| "failure" \| "denied"`, default `"success"`) |
+  | `actor: { userId }` (read) / `actorUserId` (filter) | `actorId` (+ optional `actorType`) |
+  | `timeFrom` / `timeTo` | `from` / `to` |
+  | `timestamp` | `createdAt` |
+  | — | `eventDomain`, `eventType`, `runId`, `sequence`, `requestId`, `idempotencyKey`, `tenantId`, `ipAddress`, `userAgent` |
+  
+  - Inputs and filters are validated with Zod before the request (`AuditEventInputSchema`, `AuditEventFiltersSchema`); `pageSize`/`offset` filters are exposed.
+  - Removed the leftover `AuditReportSchema` / `AuditQuerySchema` types — the service has no reports; compliance lives in `@frontal-labs/governance`.
+  - Routes were already the real ones (`POST/GET /audit/events`, `POST /audit/events/batch`, `GET /audit/events/:id`); no change there.
+
+### Patch Changes
+
+- e4a35e6: Input option types now derive from `z.input`, so schema-defaulted fields (e.g. `AuditEventInput.status`, `SemanticSearchOptions.threshold`) are optional for callers as intended.
+- Updated dependencies [d7c7a05]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/core@1.1.0
+
 ## 0.0.7
 
 ### Patch Changes
