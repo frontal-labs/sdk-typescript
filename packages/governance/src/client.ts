@@ -33,7 +33,7 @@ export interface GovernanceClientConfig {
   failClosed?: boolean;
   /** Optional callback when a policy violation occurs. */
   onViolation?: GovernanceInterceptorConfig["onViolation"];
-  /** Optional interceptor(s) to apply to the HTTP client. */
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
   interceptors?: Interceptor[];
 }
 
