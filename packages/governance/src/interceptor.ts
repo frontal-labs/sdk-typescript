@@ -146,3 +146,10 @@ function defaultBuildInput(context: PolicyContext): unknown {
     user: context.user,
   };
 }
+
+// ── Short DX aliases (canonical names above remain fully supported) ──
+
+/** Short alias for {@link governanceInterceptor}. */
+export const govern = governanceInterceptor;
+/** Short alias for {@link GovernanceInterceptorConfig}. */
+export type GovernOptions = GovernanceInterceptorConfig;

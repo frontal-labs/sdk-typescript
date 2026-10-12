@@ -311,3 +311,29 @@ export const commonPolicies = {
       ],
     }),
 };
+
+// ── Short DX aliases (canonical names above remain fully supported) ──
+
+/** Short alias for {@link definePolicy}. */
+export const policy = definePolicy;
+/** Short alias for {@link denyRule}. */
+export const deny = denyRule;
+/** Short alias for {@link allowRule}. */
+export const allow = allowRule;
+/** Short alias for the {@link conditions} builders. */
+export const where = conditions;
+
+/**
+ * Short-named pre-built policies. Spreads {@link commonPolicies} (so the
+ * long names keep working) and adds concise aliases:
+ * `budget`, `allowOnly`, `memory`, `timeout`, `prodSecrets`, `idempotency`.
+ */
+export const policies = {
+  ...commonPolicies,
+  budget: commonPolicies.aiBudgetLimit,
+  allowOnly: commonPolicies.denyDisallowedCapabilities,
+  memory: commonPolicies.memoryLimit,
+  timeout: commonPolicies.timeoutLimit,
+  prodSecrets: commonPolicies.productionSecretsInNonProd,
+  idempotency: commonPolicies.requireIdempotency,
+};

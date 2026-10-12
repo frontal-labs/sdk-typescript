@@ -319,3 +319,14 @@ export class PolicyViolationError extends Error {
     this.ruleResults = ruleResults;
   }
 }
+
+// ── Short DX aliases (canonical names above remain fully supported) ──
+
+/** Short alias for {@link LocalPolicyEngine}. */
+export const PolicyEngine = LocalPolicyEngine;
+/** Type alias for {@link LocalPolicyEngine}. */
+export type PolicyEngine = LocalPolicyEngine;
+/** Short alias for {@link PolicyViolationError}. */
+export const DeniedError = PolicyViolationError;
+/** Type alias for {@link PolicyViolationError}. */
+export type DeniedError = PolicyViolationError;
