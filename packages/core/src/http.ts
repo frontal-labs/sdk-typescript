@@ -13,6 +13,7 @@ import {
   tagRequestId,
 } from "./tracing";
 import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
+import { composeInterceptors, type Interceptor } from "./interceptors";
 
 interface ResponseTimeout {
   readonly timedOut: boolean;
@@ -29,15 +30,220 @@ interface ResponseTimeout {
 export class HttpClient {
   private readonly breaker?: CircuitBreaker;
   private readonly responseTimeouts = new WeakMap<Response, ResponseTimeout>();
+  private readonly interceptedClient: HttpClient;
 
-  constructor(private readonly config: ClientConfigOutput) {
+  constructor(
+    private readonly config: ClientConfigOutput & {
+      interceptors?: Interceptor[];
+    }
+  ) {
     if (config.circuitBreaker) {
       this.breaker = new CircuitBreaker({
         failureThreshold: config.circuitBreaker.failureThreshold,
         resetTimeoutMs: config.circuitBreaker.resetTimeoutMs,
       });
     }
+
+    // Build the intercepted client that wraps this instance
+    this.interceptedClient = config.interceptors
+      ? composeInterceptors(...config.interceptors)(this)
+      : this;
   }
+
+  /**
+   * Returns the intercepted client for external consumers.
+   * Internal methods should call the private implementations directly.
+   */
+  get intercepted(): HttpClient {
+    return this.interceptedClient;
+  }
+
+  /**
+   * Internal GET implementation.
+   */
+  private async getImpl<T>(
+    path: string,
+    params?: Record<string, unknown>,
+    schema?: z.ZodType<T>,
+    headers: Record<string, string> = {}
+  ): Promise<T> {
+    return this.request("GET", path, undefined, params, schema, 0, headers);
+  }
+
+  /**
+   * Internal POST implementation.
+   */
+  private async postImpl<T>(
+    path: string,
+    body?: unknown,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("POST", path, body ?? {}, undefined, schema);
+  }
+
+  /**
+   * Internal PUT implementation.
+   */
+  private async putImpl<T>(
+    path: string,
+    body?: unknown,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("PUT", path, body ?? {}, undefined, schema);
+  }
+
+  /**
+   * Internal PATCH implementation.
+   */
+  private async patchImpl<T>(
+    path: string,
+    body?: unknown,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("PATCH", path, body ?? {}, undefined, schema);
+  }
+
+  /**
+   * Internal DELETE implementation.
+   */
+  private async deleteImpl<T = void>(
+    path: string,
+    params?: Record<string, unknown>,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    return this.request("DELETE", path, {}, params, schema);
+  }
+
+  /**
+   * Internal putRaw implementation.
+   */
+  private async putRawImpl(
+    path: string,
+    body: Buffer | ReadableStream,
+    contentType: string,
+    headers: Record<string, string> = {}
+  ): Promise<unknown> {
+    const url = this.buildUrl(path);
+    const res = await this.fetchWithTimeout(url, {
+      method: "PUT",
+      headers: this.buildHeaders({ "Content-Type": contentType, ...headers }),
+      body: body as unknown as RequestInit["body"],
+    });
+    return this.consumeResponse(res, async () => {
+      if (!res.ok) await this.throwError(res);
+      if (res.status === 204) return undefined;
+      const json = await res.json();
+      return typeof json === "object" && json !== null
+        ? deepSnakeToCamel(json)
+        : json;
+    });
+  }
+
+  /**
+   * Internal stream implementation.
+   */
+  private async *streamImpl(
+    path: string,
+    params?: Record<string, string>,
+    options: StreamOptions = {}
+  ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
+    const url = this.buildUrl(path, params);
+    const res = await this.fetchWithTimeout(
+      url,
+      {
+        method: "GET",
+        headers: this.buildHeaders({ Accept: "text/event-stream" }),
+      },
+      options.signal
+    );
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
+    yield* this.parseSSEResponse(res, options.signal);
+  }
+
+  /**
+   * Internal postStream implementation.
+   */
+  private async *postStreamImpl(
+    path: string,
+    body?: unknown,
+    options: StreamOptions = {}
+  ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
+    const url = this.buildUrl(path);
+    const res = await this.fetchWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: this.buildHeaders({ Accept: "text/event-stream" }),
+        body: JSON.stringify(body ?? {}),
+      },
+      options.signal
+    );
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
+    yield* this.parseSSEResponse(res, options.signal);
+  }
+
+  /**
+   * Internal postRaw implementation.
+   */
+  private async postRawImpl(
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
+    const url = this.buildUrl(path);
+    const res = await this.fetchWithTimeout(url, {
+      method: "POST",
+      headers: new Headers(this.buildHeaders(headers)),
+      body: JSON.stringify(body ?? {}),
+    });
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
+    this.releaseResponse(res);
+    return res;
+  }
+
+  /**
+   * Internal postFormData implementation.
+   */
+  private async postFormDataImpl<T>(
+    path: string,
+    formData: FormData,
+    headers: Record<string, string> = {}
+  ): Promise<T> {
+    const url = this.buildUrl(path);
+    const merged = new Headers(this.buildHeaders(headers));
+    merged.delete("Content-Type");
+
+    const res = await this.fetchWithTimeout(url, {
+      method: "POST",
+      headers: merged,
+      body: formData,
+    });
+    return this.consumeResponse(res, async () => {
+      if (!res.ok) await this.throwError(res);
+      const json = await res.json();
+      return deepSnakeToCamel(json) as T;
+    });
+  }
+
+  /**
+   * Internal getRaw implementation.
+   */
+  private async getRawImpl(
+    path: string,
+    params?: Record<string, unknown>,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
+    const url = this.buildUrl(path, params);
+    const res = await this.fetchWithTimeout(url, {
+      method: "GET",
+      headers: this.buildHeaders(headers),
+    });
+    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
+    this.releaseResponse(res);
+    return res;
+  }
+
+  // ─── Public methods (interceptable) ────────────────────────────────
 
   /**
    * Sends a GET request.
@@ -51,7 +257,7 @@ export class HttpClient {
     schema?: z.ZodType<T>,
     headers: Record<string, string> = {}
   ): Promise<T> {
-    return this.request("GET", path, undefined, params, schema, 0, headers);
+    return this.getImpl(path, params, schema, headers);
   }
 
   /**
@@ -65,7 +271,7 @@ export class HttpClient {
     body?: unknown,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    return this.request("POST", path, body ?? {}, undefined, schema);
+    return this.postImpl(path, body, schema);
   }
 
   /**
@@ -79,7 +285,7 @@ export class HttpClient {
     body?: unknown,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    return this.request("PUT", path, body ?? {}, undefined, schema);
+    return this.putImpl(path, body, schema);
   }
 
   /**
@@ -93,7 +299,7 @@ export class HttpClient {
     body?: unknown,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    return this.request("PATCH", path, body ?? {}, undefined, schema);
+    return this.patchImpl(path, body, schema);
   }
 
   /**
@@ -107,7 +313,7 @@ export class HttpClient {
     params?: Record<string, unknown>,
     schema?: z.ZodType<T>
   ): Promise<T> {
-    return this.request("DELETE", path, {}, params, schema);
+    return this.deleteImpl(path, params, schema);
   }
 
   /**
@@ -124,21 +330,7 @@ export class HttpClient {
     contentType: string,
     headers: Record<string, string> = {}
   ): Promise<unknown> {
-    const url = this.buildUrl(path);
-    const res = await this.fetchWithTimeout(url, {
-      method: "PUT",
-      headers: this.buildHeaders({ "Content-Type": contentType, ...headers }),
-      // Buffer is a Uint8Array subclass; cast keeps DOM-lib consumers happy.
-      body: body as unknown as RequestInit["body"],
-    });
-    return this.consumeResponse(res, async () => {
-      if (!res.ok) await this.throwError(res);
-      if (res.status === 204) return undefined;
-      const json = await res.json();
-      return typeof json === "object" && json !== null
-        ? deepSnakeToCamel(json)
-        : json;
-    });
+    return this.putRawImpl(path, body, contentType, headers);
   }
 
   /**
@@ -152,17 +344,7 @@ export class HttpClient {
     params?: Record<string, string>,
     options: StreamOptions = {}
   ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-    const url = this.buildUrl(path, params);
-    const res = await this.fetchWithTimeout(
-      url,
-      {
-        method: "GET",
-        headers: this.buildHeaders({ Accept: "text/event-stream" }),
-      },
-      options.signal
-    );
-    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
-    yield* this.parseSSEResponse(res, options.signal);
+    yield* this.streamImpl(path, params, options);
   }
 
   /**
@@ -188,18 +370,7 @@ export class HttpClient {
     body?: unknown,
     options: StreamOptions = {}
   ): AsyncIterable<{ type: string; data: unknown; id?: string }> {
-    const url = this.buildUrl(path);
-    const res = await this.fetchWithTimeout(
-      url,
-      {
-        method: "POST",
-        headers: this.buildHeaders({ Accept: "text/event-stream" }),
-        body: JSON.stringify(body ?? {}),
-      },
-      options.signal
-    );
-    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
-    yield* this.parseSSEResponse(res, options.signal);
+    yield* this.postStreamImpl(path, body, options);
   }
 
   /**
@@ -226,15 +397,7 @@ export class HttpClient {
     body?: unknown,
     headers: Record<string, string> = {}
   ): Promise<Response> {
-    const url = this.buildUrl(path);
-    const res = await this.fetchWithTimeout(url, {
-      method: "POST",
-      headers: new Headers(this.buildHeaders(headers)),
-      body: JSON.stringify(body ?? {}),
-    });
-    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
-    this.releaseResponse(res);
-    return res;
+    return this.postRawImpl(path, body, headers);
   }
 
   /**
@@ -251,20 +414,7 @@ export class HttpClient {
     formData: FormData,
     headers: Record<string, string> = {}
   ): Promise<T> {
-    const url = this.buildUrl(path);
-    const merged = new Headers(this.buildHeaders(headers));
-    merged.delete("Content-Type");
-
-    const res = await this.fetchWithTimeout(url, {
-      method: "POST",
-      headers: merged,
-      body: formData,
-    });
-    return this.consumeResponse(res, async () => {
-      if (!res.ok) await this.throwError(res);
-      const json = await res.json();
-      return deepSnakeToCamel(json) as T;
-    });
+    return this.postFormDataImpl(path, formData, headers);
   }
 
   /**
@@ -279,14 +429,7 @@ export class HttpClient {
     params?: Record<string, unknown>,
     headers: Record<string, string> = {}
   ): Promise<Response> {
-    const url = this.buildUrl(path, params);
-    const res = await this.fetchWithTimeout(url, {
-      method: "GET",
-      headers: this.buildHeaders(headers),
-    });
-    if (!res.ok) await this.consumeResponse(res, () => this.throwError(res));
-    this.releaseResponse(res);
-    return res;
+    return this.getRawImpl(path, params, headers);
   }
 
   private async *parseSSEResponse(

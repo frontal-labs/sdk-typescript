@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_AUTH_BASE_URL,
@@ -22,6 +23,8 @@ export interface AuthClientConfig {
   timeout?: number;
   /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -54,8 +57,9 @@ export function createAuthClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new AuthSdk(http);
+  return new AuthSdk(http.intercepted);
 }
 
 let _authCache: AuthSdk | undefined;

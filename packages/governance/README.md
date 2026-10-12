@@ -8,7 +8,7 @@ Policies, compliance, roles, permissions and access checks.
 bun add @frontal-labs/sdk
 ```
 
-The unified SDK exposes this service as `f.governance`. To install only this
+The unified SDK exposes this service as `f.governance()`. To install only this
 package: `bun add @frontal-labs/governance`.
 
 ## Quick Start
@@ -18,7 +18,7 @@ import { Frontal } from "@frontal-labs/sdk";
 
 const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
 
-const { allowed } = await f.governance.access.check({
+const { allowed } = await f.governance().access.check({
   userId: "usr_1",
   roleNames: ["editor"],
   action: "dataset:read",
@@ -49,7 +49,7 @@ const governance = createGovernanceClient(client);
 ### Create a policy
 
 ```ts
-const policy = await f.governance.policies.create({
+const policy = await f.governance().policies.create({
   name: "pii-readonly",
   description: "PII datasets are read-only for analysts",
   rules: [
@@ -67,7 +67,7 @@ console.log(policy.id);
 ### Run a compliance assessment
 
 ```ts
-const assessment = await f.governance.compliance.runAssessment({
+const assessment = await f.governance().compliance.runAssessment({
   framework: "soc2",
 });
 console.log(assessment);
@@ -76,7 +76,7 @@ console.log(assessment);
 ### List roles
 
 ```ts
-const roles = await f.governance.roles.list({ limit: 20 });
+const roles = await f.governance().roles.list({ limit: 20 });
 console.log(roles.data);
 ```
 ## Error handling

@@ -39,6 +39,14 @@ export {
 } from "./errors";
 // HTTP client for API requests
 export { HttpClient } from "./http";
+// Interceptors for cross-cutting concerns (governance, audit, etc.)
+export {
+  type Interceptor,
+  composeInterceptors,
+  createInterceptedClient,
+  type InterceptorConfig,
+  BaseInterceptor,
+} from "./interceptors";
 // Environment variable management
 export { env } from "./keys";
 // Pagination utilities

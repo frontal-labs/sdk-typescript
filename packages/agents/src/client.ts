@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_AGENTS_BASE_URL,
@@ -25,6 +26,8 @@ export interface AgentsClientConfig {
   baseUrl?: string;
   timeout?: number;
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 function getAgentApiUrl(): string | undefined {
@@ -65,8 +68,9 @@ export function createAgentsClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new AgentsSdk(http);
+  return new AgentsSdk(http.intercepted);
 }
 
 let _agentsCache: AgentsSdk | undefined;

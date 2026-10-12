@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_MAX_RETRIES,
@@ -24,6 +25,8 @@ export interface SchedulesClientConfig {
   timeout?: number;
   /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -56,9 +59,10 @@ export function createSchedulesClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
 
-  return new SchedulesSdk(http);
+  return new SchedulesSdk(http.intercepted);
 }
 
 let _schedulesCache: SchedulesSdk | undefined;

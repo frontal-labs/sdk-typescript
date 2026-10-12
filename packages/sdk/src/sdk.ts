@@ -42,6 +42,7 @@ import { resolveSdkConfig, type SdkConfig } from "./config";
  */
 export class Frontal {
   readonly #frontal: FrontalClient;
+  #governance?: GovernanceSdk;
 
   /** Blob storage service. */
   #blob?: BlobSdk;
@@ -128,8 +129,11 @@ export class Frontal {
   }
 
   /** Governance service. */
-  #governance?: GovernanceSdk;
-  get governance(): GovernanceSdk {
+  // governance is accessed via the governance() method or directly from
+  // @frontal-labs/governance package. Not configured in the Frontal constructor.
+
+  /** Returns the Governance SDK instance, lazily created on first call. */
+  governance(): GovernanceSdk {
     this.#governance ??= createGovernanceClient(this.#frontal);
     return this.#governance;
   }

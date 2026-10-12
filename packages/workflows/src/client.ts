@@ -7,6 +7,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_MAX_RETRIES,
@@ -29,6 +30,8 @@ export interface WorkflowsClientConfig {
   baseUrl?: string;
   timeout?: number;
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -60,8 +63,9 @@ export function createWorkflowsClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new WorkflowsSdk(http);
+  return new WorkflowsSdk(http.intercepted);
 }
 
 let _workflowsCache: WorkflowsSdk | undefined;

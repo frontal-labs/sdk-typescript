@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_LINEAGE_BASE_URL,
@@ -24,6 +25,8 @@ export interface LineageClientConfig {
   timeout?: number;
   /** Maximum number of retries for failed requests. Defaults to {@link DEFAULT_MAX_RETRIES}. */
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -53,8 +56,9 @@ export function createLineageClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new LineageSdk(http);
+  return new LineageSdk(http.intercepted);
 }
 
 let _lineageCache: LineageSdk | undefined;

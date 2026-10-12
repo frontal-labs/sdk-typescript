@@ -47,7 +47,7 @@ cached getter on the `Frontal` instance:
 | `f.blob` / `f.data` | Storage and data access |
 | `f.lineage` / `f.observability` / `f.audit` | Tracing, logs, lineage, audit trail |
 | `f.webhooks` / `f.connectors` | Webhooks and external systems |
-| `f.auth` / `f.governance` / `f.billing` | Identity, policy, billing |
+| `f.auth` / `f.governance()` / `f.billing` | Identity, policy, billing |
 
 ## Configuration
 

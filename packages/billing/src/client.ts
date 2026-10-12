@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_BILLING_BASE_URL,
@@ -22,6 +23,8 @@ export interface BillingClientConfig {
   timeout?: number;
   /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -54,8 +57,9 @@ export function createBillingClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new BillingSdk(http);
+  return new BillingSdk(http.intercepted);
 }
 
 let _billingCache: BillingSdk | undefined;
