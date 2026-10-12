@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_AI_BASE_URL,
@@ -25,6 +26,8 @@ export interface AIClientConfig {
   baseUrl?: string;
   timeout?: number;
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -53,8 +56,9 @@ export function createAIClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new AISdk(http);
+  return new AISdk(http.intercepted);
 }
 
 let _aiCache: AISdk | undefined;

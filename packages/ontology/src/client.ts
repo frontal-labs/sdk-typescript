@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_MAX_RETRIES,
@@ -25,6 +26,8 @@ export interface OntologyClientConfig {
   baseUrl?: string;
   timeout?: number;
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -56,8 +59,9 @@ export function createOntologyClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new OntologySdk(http);
+  return new OntologySdk(http.intercepted);
 }
 
 let _ontologyCache: OntologySdk | undefined;

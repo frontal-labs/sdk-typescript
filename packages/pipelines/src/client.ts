@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_MAX_RETRIES,
@@ -25,6 +26,8 @@ export interface PipelinesClientConfig {
   baseUrl?: string;
   timeout?: number;
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -56,8 +59,9 @@ export function createPipelinesClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new PipelinesSdk(http);
+  return new PipelinesSdk(http.intercepted);
 }
 
 let _pipelinesCache: PipelinesSdk | undefined;

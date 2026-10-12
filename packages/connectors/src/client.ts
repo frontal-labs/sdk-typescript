@@ -3,6 +3,7 @@ import {
   FrontalClient,
   getDefaultClient,
   HttpClient,
+  type Interceptor,
 } from "@frontal-labs/core";
 import {
   DEFAULT_CONNECTORS_BASE_URL,
@@ -22,6 +23,8 @@ export interface ConnectorsClientConfig {
   timeout?: number;
   /** Maximum number of retry attempts for failed requests. */
   maxRetries?: number;
+  /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
+  interceptors?: Interceptor[];
 }
 
 /**
@@ -47,8 +50,9 @@ export function createConnectorsClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
+    interceptors: clientOrConfig.interceptors,
   });
-  return new ConnectorsSdk(http);
+  return new ConnectorsSdk(http.intercepted);
 }
 
 let _connectorsCache: ConnectorsSdk | undefined;
