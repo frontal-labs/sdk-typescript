@@ -1,575 +1,90 @@
 # Architecture
 
-## System Overview
+`@frontal-labs/blob` is a thin client over the Frontal Blob HTTP API. It adds
+typed inputs, typed outputs, and `FrontalError` handling. Transport, auth, and
+retry behavior come from `@frontal-labs/core`.
 
-The Frontal Storage SDK is designed as a comprehensive object storage solution that provides S3-compatible functionality with enhanced features for modern applications. It offers both class-based and functional APIs, supporting various data types and operations while maintaining type safety and error handling consistency.
-
-## Architecture Layers
-
-### 1. Client Layer
-
-The client layer provides the main interface for storage operations:
-
-- **Storage Class**: Primary client for storage operations
-- **Functional API**: Global client instance for convenience
-- **Configuration Management**: Environment-based and programmatic configuration
-- **Authentication**: Secure API key authentication
-
-### 2. HTTP Layer
-
-The HTTP layer handles all communication with the storage service:
-
-- **Request Routing**: Direct API endpoint communication
-- **Authentication Headers**: Automatic token injection
-- **Error Handling**: Comprehensive error capture and formatting
-- **Response Processing**: Standardized response structure
-
-### 3. Data Layer
-
-The data layer manages different data types and formats:
-
-- **BodyInit Support**: Files, Blobs, Buffers, Streams
-- **Content Type Handling**: Automatic and manual content type management
-- **Metadata Management**: Custom metadata storage and retrieval
-- **Streaming Support**: Large file handling with streams
-
-### 4. Utility Layer
-
-The utility layer provides helper functions and validation:
-
-- **Schema Validation**: Zod-based type validation
-- **Error Formatting**: Consistent error response structure
-- **URL Generation**: Signed URL creation and management
-- **Configuration Constants**: Default values and version management
-
-## Core Components
-
-### Storage Class
-
-The main client class implementing the IStorageClient interface:
-
-```typescript
-class Storage implements IStorageClient {
-  private readonly client: FrontalClient;
-  
-  constructor(config?: StorageConfig)
-  
-  // Core operations
-  upload(bucket: string, key: string, data: BodyInit, contentType?: string): Promise<APIResponse<void>>
-  download(bucket: string, key: string): Promise<APIResponse<Blob>>
-  downloadStream(bucket: string, key: string): Promise<APIResponse<ReadableStream<Uint8Array>>>
-  delete(bucket: string, key: string): Promise<APIResponse<void>>
-  list(bucket: string, prefix?: string): Promise<APIResponse<ListObjectsResult>>
-  
-  // Advanced operations
-  getSignedUrl(bucket: string, options: SignedUrlOptions): Promise<APIResponse<string>>
-  copyObject(sourceBucket: string, sourceKey: string, destBucket: string, destKey: string): Promise<APIResponse<void>>
-  moveObject(sourceBucket: string, sourceKey: string, destBucket: string, destKey: string): Promise<APIResponse<void>>
-  getMetadata(bucket: string, key: string): Promise<APIResponse<StorageObject>>
-}
-```
-
-### Functional API
-
-Global functions using a shared client instance:
-
-```typescript
-// Configuration
-function configure(config: StorageConfig): void
-
-// Core operations
-function upload(bucket: string, key: string, data: BodyInit, contentType?: string): Promise<APIResponse<void>>
-function download(bucket: string, key: string): Promise<APIResponse<Blob>>
-function list(bucket: string, prefix?: string): Promise<APIResponse<ListObjectsResult>>
-function getSignedUrl(bucket: string, options: SignedUrlOptions): Promise<APIResponse<string>>
-```
-
-### Type System
-
-Comprehensive TypeScript interfaces with Zod validation:
-
-```typescript
-// Core types
-interface StorageConfig {
-  apiKey?: string;
-  baseUrl?: string;
-}
-
-interface APIResponse<T> {
-  data: T | null;
-  error: ErrorResponse | null;
-  headers: Record<string, string> | null;
-}
-
-interface ErrorResponse {
-  message: string;
-  statusCode: number;
-  name: string;
-}
-
-// Storage-specific types
-interface StorageObject {
-  key: string;
-  size: number;
-  contentType: string;
-  lastModified: string;
-  etag: string;
-  metadata?: Record<string, string>;
-}
-
-interface ListObjectsResult {
-  objects: StorageObject[];
-  prefix?: string;
-  continuationToken?: string;
-}
-
-interface SignedUrlOptions {
-  key: string;
-  expiresIn?: number;
-  operation?: "read" | "write" | "delete";
-}
-```
-
-## Data Flow Architecture
-
-### Upload Flow
+## Layers
 
 ```
-Client Request
-    ↓
-Data Validation
-    ↓
-Content Type Detection
-    ↓
-HTTP Request (PUT)
-    ↓
-Server Processing
-    ↓
-Response Handling
-    ↓
-API Response Formatting
+blob (Proxy singleton)  ─┐
+createBlobClient(...)   ─┼─► BlobSdk ─► HttpClient (@frontal-labs/core) ─► Blob API
+FrontalClient           ─┘
 ```
 
-### Download Flow
-
-```
-Client Request
-    ↓
-Authentication Check
-    ↓
-HTTP Request (GET)
-    ↓
-Server Response
-    ↓
-Data Processing
-    ↓
-Blob/Stream Creation
-    ↓
-API Response Formatting
-```
-
-### List Flow
-
-```
-Client Request
-    ↓
-Prefix Validation
-    ↓
-HTTP Request (GET with query)
-    ↓
-Server Processing
-    ↓
-Object Enumeration
-    ↓
-Response Formatting
-    ↓
-API Response with Results
-```
-
-### Signed URL Flow
-
-```
-Client Request
-    ↓
-Options Validation
-    ↓
-URL Generation Request
-    ↓
-Server URL Creation
-    ↓
-Digital Signature
-    ↓
-Signed URL Response
-    ↓
-API Response with URL
-```
-
-## Operation Architecture
-
-### Upload Operations
-
-Upload operations support multiple data types and streaming:
-
-```typescript
-// File Upload
-await storage.upload("bucket", "path/file.txt", file, "text/plain");
-
-// Stream Upload
-await storage.upload("bucket", "path/large-file.zip", readableStream, "application/zip");
-
-// Buffer Upload
-await storage.upload("bucket", "path/data.json", buffer, "application/json");
-```
-
-**Upload Processing:**
-
-1. **Data Type Detection**: Automatic detection of File, Blob, Buffer, or Stream
-2. **Content Type Handling**: Automatic detection or manual specification
-3. **Metadata Processing**: Custom metadata attachment and validation
-4. **Streaming Support**: Efficient handling of large data streams
-5. **Error Handling**: Comprehensive error capture and formatting
-
-### Download Operations
-
-Download operations provide both Blob and streaming options:
-
-```typescript
-// Blob Download
-const result = await storage.download("bucket", "path/file.txt");
-const blob = result.data;
-
-// Stream Download
-const streamResult = await storage.downloadStream("bucket", "path/large-file.zip");
-const stream = streamResult.data;
-```
-
-**Download Processing:**
-
-1. **Request Validation**: Bucket and key validation
-2. **Authentication**: Automatic token injection
-3. **Data Retrieval**: Efficient data fetching from storage
-4. **Format Conversion**: Conversion to appropriate data type
-5. **Response Formatting**: Standardized API response structure
-
-### List Operations
+| File           | Responsibility                                                                 |
+|----------------|--------------------------------------------------------------------------------|
+| `client.ts`    | `createBlobClient` (from a `FrontalClient` or config) and the lazy `blob` singleton |
+| `sdk.ts`       | `BlobSdk`, the nine object and bucket operations, each mapped to one HTTP route |
+| `schemas.ts`   | Zod v4 schemas and inferred types for `BlobObject`, `ListObjectsResult`, `SignedUrlOptions`, `BlobConfig`, `BucketConfig`; the `IBlobClient` interface |
+| `constants.ts` | `DEFAULT_BLOB_BASE_URL`, `VERSION`, timeout and retry defaults                 |
+| `index.ts`     | Public exports                                                                 |
 
-List operations support pagination and filtering:
+## Client construction
 
-```typescript
-// Basic List
-const result = await storage.list("bucket");
+`createBlobClient` accepts either a `FrontalClient` or a `BlobClientConfig`.
 
-// Prefix Filtered List
-const filteredResult = await storage.list("bucket", "uploads/");
-```
-
-**List Processing:**
-
-1. **Prefix Validation**: Safe prefix handling and encoding
-2. **Query Construction**: Proper URL query parameter building
-3. **Pagination Support**: Continuation token handling
-4. **Result Formatting**: Consistent object structure
-5. **Metadata Inclusion**: Complete object metadata retrieval
-
-### Signed URL Operations
-
-Signed URLs provide secure temporary access:
+- With a `FrontalClient`, it reuses that client's `httpClient`, so timeouts, retries, and interceptors configured on the client apply.
+- With a config object, it builds a new `HttpClient` with `apiKey`, `baseUrl` (default `DEFAULT_BLOB_BASE_URL`, overridable by `FRONTAL_API_URL`), `timeout` (default 30 s), `maxRetries` (default 3), and optional `interceptors`.
 
-```typescript
-// Read Access
-const readUrl = await storage.getSignedUrl("bucket", {
-  key: "private/document.pdf",
-  expiresIn: 3600,
-  operation: "read"
-});
+The `blob` export is a `Proxy` that creates one `BlobSdk` on first property access, using `getDefaultClient()` (which reads `FRONTAL_API_KEY`). Method calls are bound to that instance.
 
-// Write Access
-const writeUrl = await storage.getSignedUrl("bucket", {
-  key: "uploads/new-file.txt",
-  expiresIn: 900,
-  operation: "write"
-});
-```
+## Request mapping
 
-**Signed URL Processing:**
+Object routes live under `/blob/object` relative to the versioned base URL.
 
-1. **Options Validation**: Comprehensive parameter validation
-2. **Security Checks**: Permission and access validation
-3. **URL Generation**: Secure URL creation with digital signature
-4. **Expiration Handling**: Time-based access control
-5. **Operation Support**: Read, write, and delete operations
+| Method            | HTTP call                                                  |
+|-------------------|------------------------------------------------------------|
+| `upload`          | `POST /blob/object/{bucket}/{key}` (multipart form, `file` field) |
+| `download`        | `GET /blob/object/{bucket}/{key}` → `Blob`                 |
+| `downloadStream`  | `GET /blob/object/{bucket}/{key}` → body `ReadableStream`  |
+| `delete`          | `DELETE /blob/object/{bucket}/{key}`                       |
+| `list`            | `POST /blob/object/list/{bucket}` with `prefix`, `limit`, `offset` |
+| `getSignedUrl`    | `POST /blob/object/sign/{bucket}/{key}` with `expiresIn`; returns `signedURL` |
+| `copyObject`      | `POST /blob/object/copy`                                   |
+| `moveObject`      | `POST /blob/object/move`                                   |
+| `getMetadata`     | `GET /blob/object/info/{bucket}/{key}`, validated against `blobObjectSchema` |
 
-## Error Handling Architecture
+`upload` wraps non-`Blob` data in a `Blob` with the given `contentType`
+(default `application/octet-stream`) and sends a fixed `cacheControl` of `3600`.
 
-### Error Types
+`getSignedUrl` validates `options` with `signedUrlOptionsSchema` before sending.
+`operation` is deprecated: it is validated if present and is never included in the request body.
 
-The SDK provides comprehensive error handling with specific error types:
+## Error handling
 
-```typescript
-interface ErrorResponse {
-  message: string;     // Human-readable error message
-  statusCode: number;  // HTTP status code
-  name: string;        // Error identifier
-}
+Methods return values on success and throw on failure. Failures from the HTTP
+layer are `FrontalError` instances from `@frontal-labs/core`, carrying `code`,
+`statusCode`, `requestId`, `retryable`, and an optional `fix`. `downloadStream`
+throws a plain `Error` when the response has no body. Invalid signed-URL
+options fail Zod validation and throw a `ZodError`.
 
-// Common error names
-- "upload_error": Upload operation failures
-- "download_error": Download operation failures
-- "validation_error": Input validation failures
-- "stream_error": Streaming operation failures
-- "application_error": General application errors
-```
+## Retries
 
-### Error Handling Flow
+The core `HttpClient` retries only `GET` requests, on 429 and 5xx responses, up
+to `maxRetries` times, with exponential backoff or the `Retry-After` header.
+In this package that covers `download`, `downloadStream`, and `getMetadata`.
+`upload`, `delete`, `list`, `getSignedUrl`, `copyObject`, and `moveObject` use
+POST or DELETE requests and are not retried by the transport. Callers
+that need to retry those should branch on `FrontalError.retryable`.
 
-```
-Operation Execution
-    ↓
-Error Detection
-    ↓
-Error Classification
-    ↓
-Error Formatting
-    ↓
-API Response Creation
-    ↓
-Client Response
-```
+## Streaming
 
-### Error Recovery
+`downloadStream` returns the response body as a `ReadableStream<Uint8Array>`
+without buffering it. `upload` does not stream: its type accepts a
+`ReadableStream`, but the implementation wraps the data in a `Blob`, so pass
+`Blob`, `ArrayBuffer`, `Uint8Array`, or `Buffer` for uploads.
 
-Built-in error recovery strategies:
+## Configuration
 
-1. **Validation Errors**: Immediate return with detailed validation messages
-2. **Network Errors**: Automatic retry with exponential backoff
-3. **Authentication Errors**: Clear authentication requirement messages
-4. **Permission Errors**: Detailed permission requirement information
-5. **Server Errors**: Graceful degradation with retry suggestions
+| Source                  | Used for                                      |
+|-------------------------|-----------------------------------------------|
+| `FRONTAL_API_KEY`       | API key for the `blob` singleton              |
+| `FRONTAL_API_URL`       | Base URL override (default `https://api.frontal.dev/v1`) |
+| `FRONTAL_ENV`, `FRONTAL_DEBUG` | Environment and debug logging, passed through to core |
+| `BlobClientConfig`      | Per-client overrides passed to `createBlobClient` |
 
-## Performance Architecture
+## Compatibility aliases
 
-### Streaming Support
-
-Efficient handling of large files through streaming:
-
-```typescript
-// Upload streaming
-const readableStream = createReadStream("large-file.zip");
-await storage.upload("bucket", "archives/large-file.zip", readableStream);
-
-// Download streaming
-const downloadStream = await storage.downloadStream("bucket", "archives/large-file.zip");
-const writableStream = createWriteStream("downloaded-file.zip");
-downloadStream.data.pipeTo(writableStream);
-```
-
-**Streaming Benefits:**
-
-1. **Memory Efficiency**: Minimal memory usage for large files
-2. **Progress Tracking**: Real-time upload/download progress
-3. **Cancellation Support**: Ability to cancel long operations
-4. **Bandwidth Optimization**: Efficient network utilization
-5. **Error Recovery**: Partial operation recovery
-
-### Caching Strategy
-
-Intelligent caching for improved performance:
-
-```typescript
-// Response caching for metadata
-const metadataCache = new Map<string, StorageObject>();
-
-// Signed URL caching with expiration
-const urlCache = new Map<string, { url: string; expires: number }>();
-```
-
-**Caching Layers:**
-
-1. **Metadata Cache**: Object metadata caching with TTL
-2. **URL Cache**: Signed URL caching with expiration tracking
-3. **Configuration Cache**: Client configuration caching
-4. **Error Cache**: Error pattern recognition and caching
-
-## Security Architecture
-
-### Authentication
-
-Secure authentication mechanisms:
-
-```typescript
-interface StorageConfig {
-  apiKey?: string;    // API key for authentication
-  baseUrl?: string;    // Custom base URL
-}
-
-// Environment variable support
-FRONTAL_API_KEY=your_api_key
-FRONTAL_BASE_URL=https://api.frontal.dev
-```
-
-**Authentication Features:**
-
-1. **API Key Authentication**: Secure token-based authentication
-2. **Environment Variables**: Secure configuration from environment
-3. **Custom Endpoints**: Support for private deployments
-4. **Token Management**: Automatic token refresh and management
-
-### Signed URL Security
-
-Security features for signed URLs:
-
-```typescript
-interface SignedUrlOptions {
-  key: string;                    // Object key
-  expiresIn?: number;              // Expiration time in seconds
-  operation?: "read" | "write" | "delete"; // Operation type
-}
-```
-
-**Security Measures:**
-
-1. **Digital Signatures**: Cryptographic URL signing
-2. **Time-Based Expiration**: Automatic URL expiration
-3. **Operation-Specific Access**: Granular permission control
-4. **Key Validation**: Secure key validation and encoding
-5. **Access Logging**: Complete access audit trail
-
-## Extensibility Architecture
-
-### Plugin System
-
-Modular architecture for extending functionality:
-
-```typescript
-interface StoragePlugin {
-  name: string;
-  version: string;
-  hooks: {
-    beforeUpload?: (data: UploadData) => Promise<UploadData>;
-    afterUpload?: (result: APIResponse<void>) => Promise<void>;
-    beforeDownload?: (key: string) => Promise<string>;
-    afterDownload?: (data: Blob) => Promise<Blob>;
-  };
-}
-```
-
-### Custom Data Types
-
-Support for custom data types and processors:
-
-```typescript
-interface DataProcessor {
-  name: string;
-  supportedTypes: string[];
-  process: (data: BodyInit) => Promise<ProcessedData>;
-  validate: (data: BodyInit) => boolean;
-}
-```
-
-### Middleware Support
-
-Request/response middleware for custom processing:
-
-```typescript
-interface StorageMiddleware {
-  name: string;
-  beforeRequest?: (request: Request) => Promise<Request>;
-  afterResponse?: (response: Response) => Promise<Response>;
-  onError?: (error: Error) => Promise<ErrorResponse>;
-}
-```
-
-## Testing Architecture
-
-### Unit Testing
-
-Comprehensive unit testing framework:
-
-```typescript
-interface StorageTestSuite {
-  uploadTests: UploadTestCase[];
-  downloadTests: DownloadTestCase[];
-  listTests: ListTestCase[];
-  signedUrlTests: SignedUrlTestCase[];
-}
-
-interface UploadTestCase {
-  name: string;
-  data: BodyInit;
-  expectedSuccess: boolean;
-  expectedError?: string;
-}
-```
-
-### Integration Testing
-
-End-to-end integration testing:
-
-```typescript
-interface IntegrationTest {
-  name: string;
-  scenario: TestScenario;
-  setup: () => Promise<void>;
-  execute: () => Promise<TestResult>;
-  cleanup: () => Promise<void>;
-}
-```
-
-### Mock Testing
-
-Mock server for testing:
-
-```typescript
-class MockStorageServer {
-  private buckets: Map<string, Map<string, StorageObject>>;
-  
-  upload(bucket: string, key: string, data: BodyInit): Promise<MockResponse>;
-  download(bucket: string, key: string): Promise<MockResponse>;
-  list(bucket: string, prefix?: string): Promise<MockResponse>;
-}
-```
-
-## Configuration Architecture
-
-### Environment Configuration
-
-Environment-based configuration system:
-
-```typescript
-// Default configuration from environment
-const defaultConfig = {
-  apiKey: process.env.FRONTAL_API_KEY,
-  baseUrl: process.env.FRONTAL_BASE_URL || DEFAULT_STORAGE_BASE_URL
-};
-```
-
-### Runtime Configuration
-
-Dynamic configuration updates:
-
-```typescript
-class Storage {
-  private config: StorageConfig;
-  
-  updateConfig(newConfig: Partial<StorageConfig>): void {
-    this.config = { ...this.config, ...newConfig };
-    this.updateClient();
-  }
-}
-```
-
-### Validation Configuration
-
-Schema-based configuration validation:
-
-```typescript
-const storageConfigSchema = z.object({
-  apiKey: z.string().optional(),
-  baseUrl: z.url().optional()
-});
-
-// Automatic validation
-const validatedConfig = storageConfigSchema.parse(config);
-```
-
-This architecture ensures the Storage SDK is robust, secure, performant, and extensible while providing a clean, intuitive API for developers.
+`StorageObject`, `StorageConfig`, `storageObjectSchema`, `storageConfigSchema`,
+and `IStorageClient` are kept as aliases of their `Blob`-named counterparts.

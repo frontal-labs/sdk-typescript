@@ -1,12 +1,16 @@
 /**
  * Error Handling Example
  *
- * This example demonstrates comprehensive error handling strategies for
- * storage operations, including retry logic, error classification, and
- * graceful degradation.
+ * This example demonstrates error handling strategies for blob operations,
+ * including error classification, retry logic, and graceful degradation.
+ *
+ * Blob methods return their results directly and throw on failure. Failures
+ * are thrown as `FrontalError`, which carries `code`, `statusCode`,
+ * `requestId`, `retryable`, and an optional `fix` hint.
  */
 
 import { blob } from "@frontal-labs/blob";
+import { FrontalError } from "@frontal-labs/core";
 
 // Use the default blob singleton
 
@@ -17,49 +21,54 @@ async function errorClassificationExample() {
 
 	console.log("🚨 Error Classification Example\n");
 
-	// Attempt to download non-existent file
+	// Attempt to download a non-existent file
 	console.log("📥 Attempting to download non-existent file...");
-	const downloadResult = await blob.download(bucketName, objectKey);
-
-	if (downloadResult.error) {
+	try {
+		await blob.download({ bucket: bucketName, key: objectKey });
+		console.log("✅ Unexpected success - file should not exist");
+	} catch (error) {
+		if (!FrontalError.isInstance(error)) {
+			throw error;
+		}
 		console.log("❌ Error occurred:");
-		console.log(`  Message: ${downloadResult.error.message}`);
-		console.log(`  Status Code: ${downloadResult.error.statusCode}`);
-		console.log(`  Error Name: ${downloadResult.error.name}`);
+		console.log(`  Message: ${error.message}`);
+		console.log(`  Status Code: ${error.statusCode}`);
+		console.log(`  Code: ${error.code}`);
+		console.log(`  Request ID: ${error.requestId}`);
 
 		// Classify error type
-		if (downloadResult.error.statusCode === 404) {
+		if (error.statusCode === 404) {
 			console.log("🔍 Classification: Not Found Error");
 			console.log(
 				"💡 Suggested action: Check if the object key is correct or create the object first",
 			);
-		} else if (downloadResult.error.statusCode >= 500) {
+		} else if (error.statusCode >= 500) {
 			console.log("🔍 Classification: Server Error");
 			console.log(
 				"💡 Suggested action: Retry the operation or contact support",
 			);
-		} else if (downloadResult.error.statusCode >= 400) {
+		} else if (error.statusCode >= 400) {
 			console.log("🔍 Classification: Client Error");
 			console.log(
 				"💡 Suggested action: Check request parameters and permissions",
 			);
 		}
-	} else {
-		console.log("✅ Unexpected success - file should not exist");
 	}
 
-	// Attempt to access non-existent bucket
+	// Attempt to list a non-existent bucket
 	console.log("\n📥 Attempting to access non-existent bucket...");
-	const listResult = await blob.list("non-existent-bucket");
-
-	if (listResult.error) {
+	try {
+		await blob.list({ bucket: "non-existent-bucket" });
+	} catch (error) {
+		if (!FrontalError.isInstance(error)) {
+			throw error;
+		}
 		console.log("❌ Error occurred:");
-		console.log(`  Message: ${listResult.error.message}`);
-		console.log(`  Status Code: ${listResult.error.statusCode}`);
-		console.log(`  Error Name: ${listResult.error.name}`);
+		console.log(`  Message: ${error.message}`);
+		console.log(`  Status Code: ${error.statusCode}`);
 
 		// Handle bucket-specific errors
-		if (listResult.error.statusCode === 404) {
+		if (error.statusCode === 404) {
 			console.log("🔍 Classification: Bucket Not Found");
 			console.log(
 				"💡 Suggested action: Create the bucket or check bucket name spelling",
@@ -72,50 +81,42 @@ async function errorClassificationExample() {
 async function retryWithBackoff() {
 	const bucketName = "error-handling-bucket";
 	const objectKey = "retry-test.txt";
-	const content = "This content should eventually be uploaded.";
+	const content = new TextEncoder().encode(
+		"This content should eventually be uploaded.",
+	);
 
 	console.log("\n🔄 Retry Logic with Exponential Backoff\n");
 
-	// Function to perform operation with retry
-	async function uploadWithRetry(
-		operation: () => Promise<any>,
+	// Function to perform an operation with retry
+	async function withRetry<T>(
+		operation: () => Promise<T>,
 		maxRetries: number = 3,
 		baseDelay: number = 1000,
-	): Promise<{ success: boolean; attempts: number; error?: any }> {
-		let lastError: any;
+	): Promise<{ success: boolean; attempts: number; error?: unknown }> {
+		let lastError: unknown;
 
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
 				console.log(`📤 Attempt ${attempt}/${maxRetries}...`);
-				const result = await operation();
+				await operation();
+				console.log(`✅ Success on attempt ${attempt}`);
+				return { success: true, attempts: attempt };
+			} catch (error) {
+				lastError = error;
 
-				if (!result.error) {
-					console.log(`✅ Success on attempt ${attempt}`);
-					return { success: true, attempts: attempt };
-				}
-
-				lastError = result.error;
-
-				// Don't retry on client errors (4xx)
-				if (result.error.statusCode >= 400 && result.error.statusCode < 500) {
+				// Don't retry errors the SDK marks as non-retryable (e.g. 4xx)
+				if (FrontalError.isInstance(error) && !error.retryable) {
 					console.log(
-						`❌ Client error (${result.error.statusCode}), not retrying`,
+						`❌ Non-retryable error (${error.statusCode}), not retrying`,
 					);
-					return { success: false, attempts: attempt, error: lastError };
+					return { success: false, attempts: attempt, error };
 				}
+
+				console.log(`❌ Attempt ${attempt} failed:`, error);
 
 				// Retry on server errors (5xx) or network issues
 				if (attempt < maxRetries) {
 					const delay = baseDelay * 2 ** (attempt - 1); // Exponential backoff
-					console.log(`⏳ Waiting ${delay}ms before retry...`);
-					await new Promise((resolve) => setTimeout(resolve, delay));
-				}
-			} catch (error) {
-				lastError = error;
-				console.log(`❌ Exception on attempt ${attempt}:`, error);
-
-				if (attempt < maxRetries) {
-					const delay = baseDelay * 2 ** (attempt - 1);
 					console.log(`⏳ Waiting ${delay}ms before retry...`);
 					await new Promise((resolve) => setTimeout(resolve, delay));
 				}
@@ -128,22 +129,25 @@ async function retryWithBackoff() {
 
 	// Test successful upload with retry logic
 	console.log("🧪 Testing successful operation...");
-	const uploadOperation = () =>
-		blob.upload(bucketName, objectKey, content, "text/plain");
-	const uploadResult = await uploadWithRetry(uploadOperation);
+	const uploadResult = await withRetry(() =>
+		blob.upload({
+			bucket: bucketName,
+			key: objectKey,
+			data: content,
+			contentType: "text/plain",
+		}),
+	);
 
 	if (uploadResult.success) {
 		console.log(`✅ Upload succeeded after ${uploadResult.attempts} attempts`);
+		await blob.delete({ bucket: bucketName, key: objectKey });
 	} else {
 		console.log(
 			`❌ Upload failed after ${uploadResult.attempts} attempts:`,
-			uploadResult.error?.message,
+			uploadResult.error instanceof Error
+				? uploadResult.error.message
+				: uploadResult.error,
 		);
-	}
-
-	// Clean up if successful
-	if (uploadResult.success) {
-		await blob.delete(bucketName, objectKey);
 	}
 }
 
@@ -155,9 +159,7 @@ class CircuitBreaker {
 
 	constructor(
 		private threshold: number = 5,
-		private timeout: number = 60000,
-		// 1 minute
-		_storage: Storage,
+		private timeout: number = 60000, // 1 minute
 	) {}
 
 	async execute<T>(operation: () => Promise<T>): Promise<T> {
@@ -206,24 +208,17 @@ class CircuitBreaker {
 }
 
 async function circuitBreakerExample() {
-	const _bucketName = "error-handling-bucket";
-	const circuitBreaker = new CircuitBreaker(3, 5000, storage); // 3 failures, 5 second timeout
+	const bucketName = "error-handling-bucket";
+	const circuitBreaker = new CircuitBreaker(3, 5000); // 3 failures, 5 second timeout
 
 	console.log("\n🔌 Circuit Breaker Pattern Example\n");
 
-	// Simulate operations that might fail
-	const failingOperation = async () => {
-		// Simulate 70% failure rate
-		if (Math.random() < 0.7) {
-			const error = new Error("Simulated operation failure");
-			(error as any).statusCode = 500;
-			throw error;
-		}
+	// Wrap a real download so failures from the service trip the breaker
+	const download = () =>
+		circuitBreaker.execute(() =>
+			blob.download({ bucket: bucketName, key: "circuit-test.txt" }),
+		);
 
-		return { data: "Operation successful", error: null };
-	};
-
-	// Test circuit breaker with multiple operations
 	console.log("🧪 Testing circuit breaker with multiple operations...");
 
 	for (let i = 0; i < 10; i++) {
@@ -233,10 +228,12 @@ async function circuitBreakerExample() {
 				`   Circuit state: ${circuitBreaker.getState().state}, Failures: ${circuitBreaker.getState().failures}`,
 			);
 
-			const result = await circuitBreaker.execute(failingOperation);
-			console.log(`   ✅ Success: ${result.data}`);
+			const file = await download();
+			console.log(`   ✅ Success: ${await file.text()}`);
 		} catch (error) {
-			console.log(`   ❌ Failed: ${(error as Error).message}`);
+			console.log(
+				`   ❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+			);
 		}
 
 		// Small delay between operations
@@ -250,10 +247,12 @@ async function circuitBreakerExample() {
 	// Try operation again
 	try {
 		console.log("📤 Operation after reset:");
-		const result = await circuitBreaker.execute(failingOperation);
-		console.log(`✅ Success: ${result.data}`);
+		const file = await download();
+		console.log(`✅ Success: ${await file.text()}`);
 	} catch (error) {
-		console.log(`❌ Failed: ${(error as Error).message}`);
+		console.log(
+			`❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+		);
 	}
 }
 
@@ -266,14 +265,14 @@ async function gracefulDegradation() {
 	console.log("\n🛡️ Graceful Degradation Example\n");
 
 	// Upload fallback data first
-	const fallbackContent =
-		"This is fallback content when primary is unavailable.";
-	await blob.upload(
-		bucketName,
-		fallbackObjectKey,
-		fallbackContent,
-		"text/plain",
-	);
+	await blob.upload({
+		bucket: bucketName,
+		key: fallbackObjectKey,
+		data: new TextEncoder().encode(
+			"This is fallback content when primary is unavailable.",
+		),
+		contentType: "text/plain",
+	});
 	console.log("✅ Fallback data uploaded");
 
 	// Function to get data with graceful degradation
@@ -283,49 +282,49 @@ async function gracefulDegradation() {
 	}> {
 		// Try primary source first
 		console.log("📥 Attempting to fetch primary data...");
-		const primaryResult = await blob.download(bucketName, primaryObjectKey);
-
-		if (!primaryResult.error) {
-			const content = await primaryResult.data?.text();
+		try {
+			const file = await blob.download({
+				bucket: bucketName,
+				key: primaryObjectKey,
+			});
 			console.log("✅ Primary data retrieved successfully");
-			return { content, source: "primary" };
+			return { content: await file.text(), source: "primary" };
+		} catch (error) {
+			console.log(`❌ Primary data unavailable: ${String(error)}`);
 		}
 
-		console.log(`❌ Primary data unavailable: ${primaryResult.error.message}`);
 		console.log("📥 Falling back to secondary data...");
 
 		// Try fallback source
-		const fallbackResult = await blob.download(
-			bucketName,
-			fallbackObjectKey,
-		);
-
-		if (!fallbackResult.error) {
-			const content = await fallbackResult.data?.text();
+		try {
+			const file = await blob.download({
+				bucket: bucketName,
+				key: fallbackObjectKey,
+			});
 			console.log("✅ Fallback data retrieved successfully");
-			return { content, source: "fallback" };
+			return { content: await file.text(), source: "fallback" };
+		} catch (error) {
+			console.log(`❌ Fallback data also unavailable: ${String(error)}`);
 		}
 
-		console.log(
-			`❌ Fallback data also unavailable: ${fallbackResult.error.message}`,
-		);
-
 		// Last resort - return default content
-		const defaultContent = "Default content when all sources are unavailable.";
 		console.log("📥 Using default content as last resort");
-		return { content: defaultContent, source: "default" };
+		return {
+			content: "Default content when all sources are unavailable.",
+			source: "default",
+		};
 	}
 
 	// Test graceful degradation
 	console.log("\n🧪 Testing graceful degradation...");
 	const result = await getDataWithFallback();
 
-	console.log(`\n📊 Result:`);
+	console.log("\n📊 Result:");
 	console.log(`  Source: ${result.source}`);
 	console.log(`  Content: ${result.content}`);
 
 	// Clean up
-	await blob.delete(bucketName, fallbackObjectKey);
+	await blob.delete({ bucket: bucketName, key: fallbackObjectKey });
 }
 
 // Error logging and monitoring
@@ -340,51 +339,48 @@ async function errorLoggingAndMonitoring() {
 		operation: string;
 		error: string;
 		statusCode: number;
-		recoverable: boolean;
+		retryable: boolean;
 	}> = [];
 
 	// Function to log errors
-	function logError(operation: string, error: any) {
+	function logError(operation: string, error: unknown) {
+		const frontalError = FrontalError.isInstance(error) ? error : undefined;
 		const logEntry = {
 			timestamp: new Date().toISOString(),
 			operation,
-			error: error.message || String(error),
-			statusCode: error.statusCode || 0,
-			recoverable: !error.statusCode || error.statusCode >= 500, // Server errors are recoverable
+			error: error instanceof Error ? error.message : String(error),
+			statusCode: frontalError?.statusCode ?? 0,
+			retryable: frontalError?.retryable ?? true,
 		};
 
 		errorLog.push(logEntry);
 		console.log("📝 Error logged:", logEntry);
 	}
 
-	// Function to execute operation with error logging
+	// Function to run an operation and log any thrown error
 	async function executeWithErrorLogging<T>(
 		operation: string,
 		fn: () => Promise<T>,
-	): Promise<{ success: boolean; result?: T; error?: any }> {
+	): Promise<{ success: boolean; result?: T }> {
 		try {
 			const result = await fn();
-
-			if (result && typeof result === "object" && "error" in result) {
-				if (result.error) {
-					logError(operation, result.error);
-					return { success: false, error: result.error };
-				}
-			}
-
 			return { success: true, result };
 		} catch (error) {
 			logError(operation, error);
-			return { success: false, error };
+			return { success: false };
 		}
 	}
 
-	// Test various operations
 	console.log("🧪 Testing various operations with error logging...");
 
 	// Test successful operation
 	const successResult = await executeWithErrorLogging("upload-success", () =>
-		blob.upload(bucketName, "test.txt", "test content", "text/plain"),
+		blob.upload({
+			bucket: bucketName,
+			key: "test.txt",
+			data: new TextEncoder().encode("test content"),
+			contentType: "text/plain",
+		}),
 	);
 	console.log(
 		`Upload operation: ${successResult.success ? "SUCCESS" : "FAILED"}`,
@@ -393,14 +389,14 @@ async function errorLoggingAndMonitoring() {
 	// Test failed operations
 	const failResult1 = await executeWithErrorLogging(
 		"download-nonexistent",
-		() => blob.download(bucketName, "nonexistent.txt"),
+		() => blob.download({ bucket: bucketName, key: "nonexistent.txt" }),
 	);
 	console.log(
 		`Download nonexistent: ${failResult1.success ? "SUCCESS" : "FAILED"}`,
 	);
 
 	const failResult2 = await executeWithErrorLogging("list-invalid-bucket", () =>
-		blob.list(""),
+		blob.list({ bucket: "" }),
 	);
 	console.log(
 		`List invalid bucket: ${failResult2.success ? "SUCCESS" : "FAILED"}`,
@@ -411,73 +407,66 @@ async function errorLoggingAndMonitoring() {
 	console.log(`Total errors logged: ${errorLog.length}`);
 
 	if (errorLog.length > 0) {
-		const recoverableErrors = errorLog.filter((log) => log.recoverable).length;
-		const nonRecoverableErrors = errorLog.length - recoverableErrors;
+		const retryableErrors = errorLog.filter((log) => log.retryable).length;
+		const nonRetryableErrors = errorLog.length - retryableErrors;
 
-		console.log(`Recoverable errors: ${recoverableErrors}`);
-		console.log(`Non-recoverable errors: ${nonRecoverableErrors}`);
+		console.log(`Retryable errors: ${retryableErrors}`);
+		console.log(`Non-retryable errors: ${nonRetryableErrors}`);
 
 		console.log("\n📋 Error Details:");
 		errorLog.forEach((log, index) => {
 			console.log(
-				`${index + 1}. ${log.operation}: ${log.error} (${log.statusCode}) - ${log.recoverable ? "Recoverable" : "Non-recoverable"}`,
+				`${index + 1}. ${log.operation}: ${log.error} (${log.statusCode}) - ${log.retryable ? "Retryable" : "Non-retryable"}`,
 			);
 		});
 	}
 
-	// Clean up if successful upload
+	// Clean up if the upload succeeded
 	if (successResult.success) {
-		await blob.delete(bucketName, "test.txt");
+		await blob.delete({ bucket: bucketName, key: "test.txt" });
 	}
 }
 
 // Comprehensive error handling wrapper
-class SafeStorageOperations {
-	constructor(private storage: Storage) {}
-
+class SafeBlobOperations {
 	async safeUpload(
 		bucket: string,
 		key: string,
-		data: BodyInit,
-		contentType?: string,
+		data: Uint8Array,
+		contentType: string,
 		options: {
-			maxRetries?: number;
 			fallbackKey?: string;
 			timeout?: number;
 		} = {},
 	): Promise<{ success: boolean; key?: string; error?: string }> {
-		const { maxRetries = 3, fallbackKey, timeout = 30000 } = options;
+		const { fallbackKey, timeout = 30000 } = options;
+
+		const attempt = (objectKey: string) =>
+			Promise.race([
+				blob.upload({ bucket, key: objectKey, data, contentType }),
+				new Promise<never>((_, reject) =>
+					setTimeout(() => reject(new Error("Operation timeout")), timeout),
+				),
+			]);
 
 		try {
-			// Add timeout
-			const uploadPromise = this.blob.upload(bucket, key, data, contentType);
-			const timeoutPromise = new Promise((_, reject) =>
-				setTimeout(() => reject(new Error("Operation timeout")), timeout),
-			);
-
-			const result = await Promise.race([uploadPromise, timeoutPromise]);
-
-			if (!result.error) {
-				return { success: true, key };
-			}
-
+			await attempt(key);
+			return { success: true, key };
+		} catch (error) {
 			// Try fallback if specified
 			if (fallbackKey) {
 				console.log("📥 Trying fallback key...");
-				const fallbackResult = await this.blob.upload(
-					bucket,
-					fallbackKey,
-					data,
-					contentType,
-				);
-				if (!fallbackResult.error) {
+				try {
+					await attempt(fallbackKey);
 					return { success: true, key: fallbackKey };
+				} catch {
+					// fall through to the failure result below
 				}
 			}
-
-			return { success: false, error: result.error.message };
-		} catch (error) {
-			return { success: false, error: (error as Error).message };
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : String(error),
+			};
 		}
 	}
 
@@ -496,19 +485,13 @@ class SafeStorageOperations {
 	}> {
 		const { fallbackKeys = [], defaultContent } = options;
 
-		// Try primary key
-		const result = await this.blob.download(bucket, key);
-		if (!result.error) {
-			const content = await result.data?.text();
-			return { success: true, content, source: key };
-		}
-
-		// Try fallback keys
-		for (const fallbackKey of fallbackKeys) {
-			const fallbackResult = await this.blob.download(bucket, fallbackKey);
-			if (!fallbackResult.error) {
-				const content = await fallbackResult.data?.text();
-				return { success: true, content, source: fallbackKey };
+		// Try primary key, then each fallback key in order
+		for (const candidate of [key, ...fallbackKeys]) {
+			try {
+				const file = await blob.download({ bucket, key: candidate });
+				return { success: true, content: await file.text(), source: candidate };
+			} catch {
+				// try the next candidate
 			}
 		}
 
@@ -526,7 +509,7 @@ class SafeStorageOperations {
 
 async function comprehensiveErrorHandling() {
 	const bucketName = "error-handling-bucket";
-	const safeStorage = new SafeStorageOperations(storage);
+	const safeStorage = new SafeBlobOperations();
 
 	console.log("\n🛡️ Comprehensive Error Handling Example\n");
 
@@ -535,11 +518,9 @@ async function comprehensiveErrorHandling() {
 	const uploadResult = await safeStorage.safeUpload(
 		bucketName,
 		"primary-file.txt",
-		"Primary content",
+		new TextEncoder().encode("Primary content"),
 		"text/plain",
-		{
-			fallbackKey: "fallback-file.txt",
-		},
+		{ fallbackKey: "fallback-file.txt" },
 	);
 
 	console.log(`Upload result: ${uploadResult.success ? "SUCCESS" : "FAILED"}`);
@@ -568,7 +549,7 @@ async function comprehensiveErrorHandling() {
 
 	// Clean up
 	if (uploadResult.key) {
-		await blob.delete(bucketName, uploadResult.key);
+		await blob.delete({ bucket: bucketName, key: uploadResult.key });
 	}
 }
 

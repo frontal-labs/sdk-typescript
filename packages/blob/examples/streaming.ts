@@ -3,11 +3,16 @@
  *
  * This example demonstrates streaming operations for handling large files
  * and real-time data processing without loading entire files into memory.
+ *
+ * `downloadStream` returns a `ReadableStream<Uint8Array>` directly and throws
+ * a FrontalError on failure, so no result envelope needs to be checked.
  */
 
 import { blob } from "@frontal-labs/blob";
 
 // Use the default blob singleton
+
+const encoder = new TextEncoder();
 
 // Basic stream download example
 async function basicStreamDownload() {
@@ -26,28 +31,20 @@ async function basicStreamDownload() {
 	}
 	const logContent = logLines.join("\n");
 
-	const uploadResult = await blob.upload(
-		bucketName,
-		objectKey,
-		logContent,
-		"text/plain",
-	);
-	if (uploadResult.error) {
-		console.error("❌ Upload failed:", uploadResult.error.message);
-		return;
-	}
+	await blob.upload({
+		bucket: bucketName,
+		key: objectKey,
+		data: encoder.encode(logContent),
+		contentType: "text/plain",
+	});
 	console.log("✅ Large log file uploaded");
 
 	// Download as stream
 	console.log("\n📥 Downloading as stream...");
-	const streamResult = await blob.downloadStream(bucketName, objectKey);
-
-	if (streamResult.error) {
-		console.error("❌ Stream download failed:", streamResult.error.message);
-		return;
-	}
-
-	const stream = streamResult.data!;
+	const stream = await blob.downloadStream({
+		bucket: bucketName,
+		key: objectKey,
+	});
 	console.log("✅ Stream obtained successfully");
 
 	// Process stream in chunks
@@ -84,7 +81,7 @@ async function basicStreamDownload() {
 	}
 
 	// Clean up
-	await blob.delete(bucketName, objectKey);
+	await blob.delete({ bucket: bucketName, key: objectKey });
 }
 
 // Stream processing with backpressure handling
@@ -112,29 +109,20 @@ async function streamWithBackpressure() {
 	}
 
 	const jsonContent = JSON.stringify(records, null, 2);
-	const uploadResult = await blob.upload(
-		bucketName,
-		objectKey,
-		jsonContent,
-		"application/json",
-	);
-
-	if (uploadResult.error) {
-		console.error("❌ Upload failed:", uploadResult.error.message);
-		return;
-	}
+	await blob.upload({
+		bucket: bucketName,
+		key: objectKey,
+		data: encoder.encode(jsonContent),
+		contentType: "application/json",
+	});
 	console.log("✅ Large JSON dataset uploaded");
 
 	// Stream with controlled processing
 	console.log("\n🔄 Streaming with controlled processing...");
-	const streamResult = await blob.downloadStream(bucketName, objectKey);
-
-	if (streamResult.error) {
-		console.error("❌ Stream download failed:", streamResult.error.message);
-		return;
-	}
-
-	const stream = streamResult.data!;
+	const stream = await blob.downloadStream({
+		bucket: bucketName,
+		key: objectKey,
+	});
 	const reader = stream.getReader();
 	const decoder = new TextDecoder();
 
@@ -190,7 +178,7 @@ async function streamWithBackpressure() {
 	}
 
 	// Clean up
-	await blob.delete(bucketName, objectKey);
+	await blob.delete({ bucket: bucketName, key: objectKey });
 }
 
 // Real-time log streaming example
@@ -213,19 +201,20 @@ async function realTimeLogStreaming() {
 	}
 
 	const logContent = logEntries.join("\n");
-	await blob.upload(bucketName, logKey, logContent, "text/plain");
+	await blob.upload({
+		bucket: bucketName,
+		key: logKey,
+		data: encoder.encode(logContent),
+		contentType: "text/plain",
+	});
 	console.log("✅ Log file created");
 
 	// Stream and filter logs in real-time
 	console.log("\n🔍 Streaming and filtering logs (ERROR level only)...");
-	const streamResult = await blob.downloadStream(bucketName, logKey);
-
-	if (streamResult.error) {
-		console.error("❌ Stream download failed:", streamResult.error.message);
-		return;
-	}
-
-	const stream = streamResult.data!;
+	const stream = await blob.downloadStream({
+		bucket: bucketName,
+		key: logKey,
+	});
 	const reader = stream.getReader();
 	const decoder = new TextDecoder();
 
@@ -267,7 +256,7 @@ async function realTimeLogStreaming() {
 	}
 
 	// Clean up
-	await blob.delete(bucketName, logKey);
+	await blob.delete({ bucket: bucketName, key: logKey });
 }
 
 // Stream to file transformation
@@ -289,25 +278,26 @@ async function streamTransformation() {
 		"5,Charlie Wilson,charlie@example.com,32",
 	].join("\n");
 
-	await blob.upload(bucketName, sourceKey, csvData, "text/csv");
+	await blob.upload({
+		bucket: bucketName,
+		key: sourceKey,
+		data: encoder.encode(csvData),
+		contentType: "text/csv",
+	});
 	console.log("✅ CSV source data uploaded");
 
 	// Stream CSV and transform to JSON
 	console.log("\n🔄 Streaming CSV and transforming to JSON...");
-	const streamResult = await blob.downloadStream(bucketName, sourceKey);
-
-	if (streamResult.error) {
-		console.error("❌ Stream download failed:", streamResult.error.message);
-		return;
-	}
-
-	const stream = streamResult.data!;
+	const stream = await blob.downloadStream({
+		bucket: bucketName,
+		key: sourceKey,
+	});
 	const reader = stream.getReader();
 	const decoder = new TextDecoder();
 
 	let buffer = "";
 	const headers: string[] = [];
-	const records: any[] = [];
+	const records: Record<string, string>[] = [];
 
 	try {
 		while (true) {
@@ -330,7 +320,7 @@ async function streamTransformation() {
 					headers.push(...values);
 				} else {
 					// Data lines
-					const record: any = {};
+					const record: Record<string, string> = {};
 					headers.forEach((header, index) => {
 						record[header] = values[index] || "";
 					});
@@ -343,7 +333,7 @@ async function streamTransformation() {
 		if (buffer.trim()) {
 			const values = buffer.split(",");
 			if (headers.length > 0) {
-				const record: any = {};
+				const record: Record<string, string> = {};
 				headers.forEach((header, index) => {
 					record[header] = values[index] || "";
 				});
@@ -356,36 +346,28 @@ async function streamTransformation() {
 
 		// Upload transformed JSON
 		const jsonData = JSON.stringify(records, null, 2);
-		const uploadResult = await blob.upload(
-			bucketName,
-			targetKey,
-			jsonData,
-			"application/json",
-		);
+		await blob.upload({
+			bucket: bucketName,
+			key: targetKey,
+			data: encoder.encode(jsonData),
+			contentType: "application/json",
+		});
+		console.log("✅ Transformed JSON data uploaded");
 
-		if (uploadResult.error) {
-			console.error(
-				"❌ Transformed data upload failed:",
-				uploadResult.error.message,
-			);
-		} else {
-			console.log("✅ Transformed JSON data uploaded");
-
-			// Verify transformation
-			const verifyResult = await blob.download(bucketName, targetKey);
-			if (!verifyResult.error) {
-				const verifyContent = await verifyResult.data?.text();
-				const verifyData = JSON.parse(verifyContent);
-				console.log(`✅ Transformation verified: ${verifyData.length} records`);
-			}
-		}
+		// Verify transformation
+		const verified = await blob.download({
+			bucket: bucketName,
+			key: targetKey,
+		});
+		const verifyData = JSON.parse(await verified.text());
+		console.log(`✅ Transformation verified: ${verifyData.length} records`);
 	} finally {
 		reader.releaseLock();
 	}
 
 	// Clean up
-	await blob.delete(bucketName, sourceKey);
-	await blob.delete(bucketName, targetKey);
+	await blob.delete({ bucket: bucketName, key: sourceKey });
+	await blob.delete({ bucket: bucketName, key: targetKey });
 }
 
 // Stream performance monitoring
@@ -415,25 +397,21 @@ async function streamPerformanceMonitoring() {
 		largeFile.set(chunks[i], i * chunkSize);
 	}
 
-	await blob.upload(
-		bucketName,
-		objectKey,
-		largeFile,
-		"application/octet-stream",
-	);
+	await blob.upload({
+		bucket: bucketName,
+		key: objectKey,
+		data: largeFile,
+		contentType: "application/octet-stream",
+	});
 	console.log("✅ Large binary file uploaded");
 
 	// Stream with performance monitoring
 	console.log("\n📊 Streaming with performance monitoring...");
 	const startTime = Date.now();
-	const streamResult = await blob.downloadStream(bucketName, objectKey);
-
-	if (streamResult.error) {
-		console.error("❌ Stream download failed:", streamResult.error.message);
-		return;
-	}
-
-	const stream = streamResult.data!;
+	const stream = await blob.downloadStream({
+		bucket: bucketName,
+		key: objectKey,
+	});
 	const reader = stream.getReader();
 
 	let totalBytesRead = 0;
@@ -494,7 +472,7 @@ async function streamPerformanceMonitoring() {
 	}
 
 	// Clean up
-	await blob.delete(bucketName, objectKey);
+	await blob.delete({ bucket: bucketName, key: objectKey });
 }
 
 // Run all streaming examples

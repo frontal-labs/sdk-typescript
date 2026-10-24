@@ -54,10 +54,12 @@ export class BlobSdk {
       contentType = "application/octet-stream",
     } = params;
     const form = new FormData();
+    // Read byte sources (including streams) into memory. `new Blob([stream])`
+    // would store the string "[object ReadableStream]" instead of the bytes.
     const blob =
       data instanceof Blob
         ? data
-        : new Blob([data as BlobPart], {
+        : new Blob([await new Response(data as BodyInit).arrayBuffer()], {
             type: contentType,
           });
     form.append("file", blob, key.split("/").pop() ?? key);

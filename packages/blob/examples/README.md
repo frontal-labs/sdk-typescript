@@ -76,24 +76,14 @@ Robust error management strategies:
 Create a `.env` file in the examples directory:
 ```env
 FRONTAL_API_KEY=your_api_key_here
-FRONTAL_BASE_URL=https://api.frontal.dev
+FRONTAL_API_URL=https://api.frontal.dev
 ```
 
 ### Running Examples
 
-#### Individual Examples
 ```bash
 # Run a specific example
 bun run basic-crud.ts
-
-# Or with Node.js
-node basic-crud.ts
-```
-
-#### All Examples
-```bash
-# Run all examples in sequence
-bun run all-examples.ts
 ```
 
 ## Example Structure
@@ -109,7 +99,7 @@ Each example file follows a consistent structure:
 ## Best Practices Demonstrated
 
 ### Error Handling
-- Always check for errors in API responses
+- Wrap blob calls in try/catch and handle `FrontalError` (check `statusCode`, `code`, `retryable`)
 - Implement retry logic for transient failures
 - Use circuit breakers for resilience
 - Provide meaningful error messages
@@ -134,55 +124,53 @@ Each example file follows a consistent structure:
 
 ## Common Patterns
 
+Blob methods return their results directly (`download` returns a `Blob`,
+`getSignedUrl` returns a `string`, `delete` returns `void`) and throw a
+`FrontalError` on failure. There is no `{ data, error }` envelope.
+
 ### Basic Operation Pattern
 ```typescript
-const result = await blob.upload(bucket, key, data, contentType);
+import { FrontalError } from "@frontal-labs/core";
 
-if (result.error) {
-  console.error("Operation failed:", result.error.message);
-  return;
+try {
+  await blob.upload({ bucket, key, data, contentType: "text/plain" });
+  console.log("Operation succeeded");
+} catch (error) {
+  if (FrontalError.isInstance(error)) {
+    console.error("Operation failed:", error.code, error.statusCode);
+  }
+  throw error;
 }
-
-console.log("Operation succeeded");
 ```
 
 ### Error Handling Pattern
 ```typescript
 try {
-  const result = await blob.operation(params);
-  
-  if (result.error) {
-    // Handle API error
-    handleApiError(result.error);
-    return;
-  }
-  
-  // Process successful result
-  processResult(result.data);
+  const file = await blob.download({ bucket, key });
+  processResult(await file.text());
 } catch (error) {
-  // Handle unexpected errors
+  if (FrontalError.isInstance(error) && error.retryable) {
+    // Transient failure (rate limit, 5xx, network): retry with backoff
+  }
   handleUnexpectedError(error);
 }
 ```
 
 ### Streaming Pattern
 ```typescript
-const streamResult = await blob.downloadStream(bucket, key);
+const stream = await blob.downloadStream({ bucket, key });
+const reader = stream.getReader();
 
-if (!streamResult.error) {
-  const reader = streamResult.data!.getReader();
-  
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      // Process chunk
-      processChunk(value);
-    }
-  } finally {
-    reader.releaseLock();
+try {
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    // Process chunk
+    processChunk(value);
   }
+} finally {
+  reader.releaseLock();
 }
 ```
 
