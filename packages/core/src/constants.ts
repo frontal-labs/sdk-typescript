@@ -42,4 +42,4 @@ export const JITTER_MAX = 200;
 /**
  * SDK version string sent in the X-Frontal-Core header.
  */
-export const SDK_VERSION = "1.0.1";
+export const SDK_VERSION = "1.0.4";
