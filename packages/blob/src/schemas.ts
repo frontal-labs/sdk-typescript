@@ -1,4 +1,3 @@
-import type { APIResponse } from "@frontal-labs/core";
 import { z } from "zod";
 
 export type { APIResponse, ErrorResponse } from "@frontal-labs/core";
@@ -57,7 +56,11 @@ export type ListObjectsResult = z.infer<typeof listObjectsResultSchema>;
 export const signedUrlOptionsSchema = z.object({
   key: z.string(),
   expiresIn: z.number().int().positive().default(3600), // seconds
-  operation: z.enum(["read", "write", "delete"]),
+  /**
+   * @deprecated Has no effect. The service does not accept an operation, so
+   * the SDK validates the value and does not send it. Omit it.
+   */
+  operation: z.enum(["read", "write", "delete"]).optional(),
 });
 
 /**
@@ -83,7 +86,8 @@ export const storageConfigSchema = blobConfigSchema;
 export type StorageConfig = BlobConfig;
 
 /**
- * Interface for Blob client.
+ * Interface for Blob client. Methods return their results directly and
+ * throw on failure, matching {@link BlobSdk}.
  */
 export interface IBlobClient {
   /**
@@ -92,38 +96,40 @@ export interface IBlobClient {
   upload(params: {
     bucket: string;
     key: string;
-    data: BodyInit;
+    data: Blob | Buffer | ReadableStream | ArrayBuffer | Uint8Array;
     contentType?: string;
-  }): Promise<APIResponse<void>>;
+  }): Promise<void>;
   /**
    * Downloads data from a bucket as a Blob.
    */
-  download(params: { bucket: string; key: string }): Promise<APIResponse<Blob>>;
+  download(params: { bucket: string; key: string }): Promise<Blob>;
   /**
    * Downloads data from a bucket as a stream.
    */
   downloadStream(params: {
     bucket: string;
     key: string;
-  }): Promise<APIResponse<ReadableStream<Uint8Array>>>;
+  }): Promise<ReadableStream<Uint8Array>>;
   /**
    * Deletes an object from a bucket.
    */
-  delete(params: { bucket: string; key: string }): Promise<APIResponse<void>>;
+  delete(params: { bucket: string; key: string }): Promise<void>;
   /**
-   * Lists objects in a bucket with optional prefix.
+   * Lists objects in a bucket with optional prefix, limit, and offset.
    */
   list(params: {
     bucket: string;
     prefix?: string;
-  }): Promise<APIResponse<ListObjectsResult>>;
+    limit?: number;
+    offset?: number;
+  }): Promise<ListObjectsResult>;
   /**
    * Generates a signed URL for temporary access.
    */
   getSignedUrl(params: {
     bucket: string;
     options: SignedUrlOptions;
-  }): Promise<APIResponse<string>>;
+  }): Promise<string>;
   /**
    * Copies an object within or across buckets.
    */
@@ -132,7 +138,7 @@ export interface IBlobClient {
     sourceKey: string;
     destBucket: string;
     destKey: string;
-  }): Promise<APIResponse<void>>;
+  }): Promise<void>;
   /**
    * Moves (renames) an object.
    */
@@ -141,14 +147,11 @@ export interface IBlobClient {
     sourceKey: string;
     destBucket: string;
     destKey: string;
-  }): Promise<APIResponse<void>>;
+  }): Promise<void>;
   /**
    * Retrieves metadata for a specific object.
    */
-  getMetadata(params: {
-    bucket: string;
-    key: string;
-  }): Promise<APIResponse<BlobObject>>;
+  getMetadata(params: { bucket: string; key: string }): Promise<BlobObject>;
 }
 
 // Backward compatibility exports

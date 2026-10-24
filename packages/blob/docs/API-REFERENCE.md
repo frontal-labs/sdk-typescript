@@ -1,743 +1,457 @@
 # API Reference
 
-## Storage
+`@frontal-labs/blob` exposes a `BlobSdk` class and a set of helpers that create
+or reuse one. Every method returns its result directly and throws on failure.
+There is no `{ data, error }` envelope.
 
-The main client class for interacting with Frontal Storage services.
+## Creating a client
 
-### Constructor
+### blob (default singleton)
+
+A lazily created `BlobSdk` that reads its configuration from environment
+variables (`FRONTAL_API_KEY`, optional `FRONTAL_API_URL`, `FRONTAL_ENV`,
+`FRONTAL_DEBUG`).
 
 ```typescript
-new Storage(config?: StorageConfig)
+import { blob } from "@frontal-labs/blob";
+
+const result = await blob.list({ bucket: "my-bucket" });
 ```
 
-Creates a new Storage client instance.
+### createBlobClient
+
+Creates a `BlobSdk` from an existing `FrontalClient` or from a configuration
+object.
+
+```typescript
+createBlobClient(config: BlobClientConfig | FrontalClient): BlobSdk
+```
 
 **Parameters:**
-- `config` (optional): Configuration options for the client
+- `config`: Either a `FrontalClient` instance, or a `BlobClientConfig`:
+  - `apiKey` (string, required): Frontal API key
+  - `baseUrl` (string, optional): Override the blob API base URL
+  - `timeout` (number, optional): Request timeout in milliseconds (default `30000`)
+  - `maxRetries` (number, optional): Maximum retry attempts (default `3`)
+  - `interceptors` (optional): HTTP interceptors, e.g. governance policy enforcement
 
 **Example:**
 ```typescript
-import { Storage } from "@frontal-labs/blob";
+import { createBlobClient } from "@frontal-labs/blob";
+import { FrontalClient } from "@frontal-labs/core";
 
-// Use default configuration (environment variables)
-const storage = new Storage();
+// From a configuration object
+const blob = createBlobClient({ apiKey: process.env.FRONTAL_API_KEY! });
 
-// Use custom configuration
-const customStorage = new Storage({
-  apiKey: "your-api-key",
-  baseUrl: "https://custom-api.example.com"
-});
+// From a shared FrontalClient
+const client = new FrontalClient({ apiKey: process.env.FRONTAL_API_KEY! });
+const shared = createBlobClient(client);
 ```
 
-### Methods
-
-#### upload
+### BlobSdk
 
 ```typescript
-upload(bucket: string, key: string, data: BodyInit, contentType?: string): Promise<APIResponse<void>>
-```
-
-Uploads data to a bucket.
-
-**Parameters:**
-- `bucket`: The bucket name
-- `key`: The object key (path)
-- `data`: The data to upload (File, Blob, Buffer, or ReadableStream)
-- `contentType` (optional): The content type of the data
-
-**Returns:** Promise resolving to API response
-
-**Example:**
-```typescript
-const file = new File(["Hello, World!"], "greeting.txt", { 
-  type: "text/plain" 
-});
-
-const result = await storage.upload("my-bucket", "greetings/hello.txt", file);
-if (result.error) {
-  console.error("Upload failed:", result.error);
-} else {
-  console.log("Upload successful");
+class BlobSdk {
+  constructor(http: HttpClient);
 }
 ```
 
-#### download
+Usually obtained through `createBlobClient` or `blob` rather than constructed
+directly.
 
-```typescript
-download(bucket: string, key: string): Promise<APIResponse<Blob>>
-```
+## Methods
 
-Downloads data from a bucket as a Blob.
-
-**Parameters:**
-- `bucket`: The bucket name
-- `key`: The object key
-
-**Returns:** Promise resolving to API response with Blob data
-
-**Example:**
-```typescript
-const result = await storage.download("my-bucket", "documents/report.pdf");
-if (result.data) {
-  const blob = result.data;
-  const url = URL.createObjectURL(blob);
-  
-  // Download in browser
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'report.pdf';
-  a.click();
-}
-```
-
-#### downloadStream
-
-```typescript
-downloadStream(bucket: string, key: string): Promise<APIResponse<ReadableStream<Uint8Array>>>
-```
-
-Downloads data from a bucket as a stream.
-
-**Parameters:**
-- `bucket`: The bucket name
-- `key`: The object key
-
-**Returns:** Promise resolving to API response with readable stream
-
-**Example:**
-```typescript
-const result = await storage.downloadStream("my-bucket", "large-dataset.csv");
-if (result.data) {
-  const stream = result.data;
-  const reader = stream.getReader();
-  
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    
-    // Process chunk
-    processChunk(value);
-  }
-}
-```
-
-#### delete
-
-```typescript
-delete(bucket: string, key: string): Promise<APIResponse<void>>
-```
-
-Deletes an object from a bucket.
-
-**Parameters:**
-- `bucket`: The bucket name
-- `key`: The object key
-
-**Returns:** Promise resolving to API response
-
-**Example:**
-```typescript
-const result = await storage.delete("my-bucket", "temp/old-file.txt");
-if (result.error) {
-  console.error("Delete failed:", result.error);
-} else {
-  console.log("Delete successful");
-}
-```
-
-#### list
-
-```typescript
-list(bucket: string, prefix?: string): Promise<APIResponse<ListObjectsResult>>
-```
-
-Lists objects in a bucket with optional prefix filtering.
-
-**Parameters:**
-- `bucket`: The bucket name
-- `prefix` (optional): Prefix to filter objects
-
-**Returns:** Promise resolving to API response with object list
-
-**Example:**
-```typescript
-const result = await storage.list("my-bucket", "uploads/");
-if (result.data) {
-  console.log("Objects:", result.data.objects);
-  console.log("Prefix:", result.data.prefix);
-  console.log("Continuation token:", result.data.continuationToken);
-}
-```
-
-#### getSignedUrl
-
-```typescript
-getSignedUrl(bucket: string, options: SignedUrlOptions): Promise<APIResponse<string>>
-```
-
-Generates a signed URL for temporary access to objects.
-
-**Parameters:**
-- `bucket`: The bucket name
-- `options`: Signed URL options
-
-**Returns:** Promise resolving to API response with signed URL
-
-**Example:**
-```typescript
-const result = await storage.getSignedUrl("private-bucket", {
-  key: "sensitive-document.pdf",
-  expiresIn: 3600, // 1 hour
-  operation: "read"
-});
-
-if (result.data) {
-  console.log("Signed URL:", result.data);
-  // URL expires in 1 hour
-}
-```
-
-#### copyObject
-
-```typescript
-copyObject(sourceBucket: string, sourceKey: string, destBucket: string, destKey: string): Promise<APIResponse<void>>
-```
-
-Copies an object within or across buckets.
-
-**Parameters:**
-- `sourceBucket`: Source bucket name
-- `sourceKey`: Source object key
-- `destBucket`: Destination bucket name
-- `destKey`: Destination object key
-
-**Returns:** Promise resolving to API response
-
-**Example:**
-```typescript
-const result = await storage.copyObject(
-  "source-bucket", 
-  "documents/report.pdf",
-  "archive-bucket", 
-  "reports/2024/report.pdf"
-);
-```
-
-#### moveObject
-
-```typescript
-moveObject(sourceBucket: string, sourceKey: string, destBucket: string, destKey: string): Promise<APIResponse<void>>
-```
-
-Moves (renames) an object.
-
-**Parameters:**
-- `sourceBucket`: Source bucket name
-- `sourceKey`: Source object key
-- `destBucket`: Destination bucket name
-- `destKey`: Destination object key
-
-**Returns:** Promise resolving to API response
-
-**Example:**
-```typescript
-const result = await storage.moveObject(
-  "temp-bucket",
-  "processing/data.json",
-  "final-bucket",
-  "processed/data.json"
-);
-```
-
-#### getMetadata
-
-```typescript
-getMetadata(bucket: string, key: string): Promise<APIResponse<StorageObject>>
-```
-
-Retrieves metadata for a specific object.
-
-**Parameters:**
-- `bucket`: The bucket name
-- `key`: The object key
-
-**Returns:** Promise resolving to API response with object metadata
-
-**Example:**
-```typescript
-const result = await storage.getMetadata("my-bucket", "documents/report.pdf");
-if (result.data) {
-  console.log("File size:", result.data.size);
-  console.log("Content type:", result.data.contentType);
-  console.log("Last modified:", result.data.lastModified);
-  console.log("ETag:", result.data.etag);
-  console.log("Metadata:", result.data.metadata);
-}
-```
-
-## Functional API
-
-The package also provides functional API that uses a global client instance.
-
-### configure
-
-```typescript
-configure(config: StorageConfig): void
-```
-
-Configures the global Storage client instance.
-
-**Parameters:**
-- `config`: Configuration options
-
-**Example:**
-```typescript
-import { configure } from "@frontal-labs/blob";
-
-configure({
-  apiKey: "your-api-key",
-  baseUrl: "https://api.frontal.dev"
-});
-```
+All methods are `async`. Object identity is given by `bucket` and `key`, and
+keys may contain `/` to represent folders.
 
 ### upload
 
 ```typescript
-upload(bucket: string, key: string, data: BodyInit, contentType?: string): Promise<APIResponse<void>>
+upload(params: {
+  bucket: string;
+  key: string;
+  data: Blob | Buffer | ReadableStream | ArrayBuffer | Uint8Array;
+  contentType?: string;
+}): Promise<void>
 ```
 
-Uploads data using the global client instance.
+Uploads data to a bucket. Overwrites an existing object with the same key.
 
 **Parameters:**
 - `bucket`: The bucket name
 - `key`: The object key
-- `data`: The data to upload
-- `contentType` (optional): The content type
+- `data`: The data to upload. `Blob`, `Buffer`, `ArrayBuffer`, and `Uint8Array` are supported. Strings must be encoded to bytes first (for example with `TextEncoder`).
+- `contentType` (optional): MIME type. Defaults to `application/octet-stream`.
+
+**Returns:** `Promise<void>`. Resolves when the upload succeeds; throws `FrontalError` otherwise.
 
 **Example:**
 ```typescript
-import { upload } from "@frontal-labs/blob";
+import { blob } from "@frontal-labs/blob";
 
-await upload("my-bucket", "data.json", JSON.stringify(data), {
-  contentType: "application/json"
+await blob.upload({
+  bucket: "my-bucket",
+  key: "greetings/hello.txt",
+  data: new TextEncoder().encode("Hello, World!"),
+  contentType: "text/plain",
 });
 ```
 
 ### download
 
 ```typescript
-download(bucket: string, key: string): Promise<APIResponse<Blob>>
+download(params: { bucket: string; key: string }): Promise<Blob>
 ```
 
-Downloads data using the global client instance.
+Downloads an object fully into memory as a `Blob`.
 
-**Parameters:**
-- `bucket`: The bucket name
-- `key`: The object key
+**Returns:** `Promise<Blob>`
 
 **Example:**
 ```typescript
-import { download } from "@frontal-labs/blob";
+const file = await blob.download({ bucket: "my-bucket", key: "documents/report.pdf" });
 
-const result = await download("my-bucket", "image.jpg");
-if (result.data) {
-  const imageUrl = URL.createObjectURL(result.data);
-  // Use imageUrl
+const url = URL.createObjectURL(file);
+const a = document.createElement("a");
+a.href = url;
+a.download = "report.pdf";
+a.click();
+```
+
+### downloadStream
+
+```typescript
+downloadStream(params: { bucket: string; key: string }): Promise<ReadableStream<Uint8Array>>
+```
+
+Downloads an object as a stream of bytes, without buffering the whole object.
+
+**Returns:** `Promise<ReadableStream<Uint8Array>>`. Throws `Error` ("Response has no body stream") if the response has no body.
+
+**Example:**
+```typescript
+const stream = await blob.downloadStream({ bucket: "my-bucket", key: "large-dataset.csv" });
+const reader = stream.getReader();
+
+try {
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    processChunk(value);
+  }
+} finally {
+  reader.releaseLock();
 }
+```
+
+### delete
+
+```typescript
+delete(params: { bucket: string; key: string }): Promise<void>
+```
+
+Deletes an object.
+
+**Returns:** `Promise<void>`
+
+**Example:**
+```typescript
+await blob.delete({ bucket: "my-bucket", key: "temp/old-file.txt" });
 ```
 
 ### list
 
 ```typescript
-list(bucket: string, prefix?: string): Promise<APIResponse<ListObjectsResult>>
+list(params: {
+  bucket: string;
+  prefix?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<ListObjectsResult>
 ```
 
-Lists objects using the global client instance.
+Lists objects in a bucket, optionally filtered by key prefix and paginated with
+`limit` and `offset`.
 
 **Parameters:**
 - `bucket`: The bucket name
-- `prefix` (optional): Prefix to filter objects
+- `prefix` (optional): Only return keys starting with this prefix
+- `limit` (optional): Page size
+- `offset` (optional): Number of objects to skip
+
+**Returns:** `Promise<ListObjectsResult>`, where `objects` is an array of `BlobObject`.
 
 **Example:**
 ```typescript
-import { list } from "@frontal-labs/blob";
+const page = await blob.list({ bucket: "my-bucket", prefix: "uploads/", limit: 50 });
 
-const result = await list("my-bucket", "images/");
-if (result.data) {
-  result.data.objects.forEach(obj => {
-    console.log(`${obj.key} (${obj.size} bytes)`);
-  });
+for (const obj of page.objects) {
+  console.log(`${obj.key} (${obj.size} bytes)`);
 }
 ```
 
 ### getSignedUrl
 
 ```typescript
-getSignedUrl(bucket: string, options: SignedUrlOptions): Promise<APIResponse<string>>
+getSignedUrl(params: { bucket: string; options: SignedUrlOptions }): Promise<string>
 ```
 
-Generates signed URL using the global client instance.
+Generates a signed URL for temporary access to an object.
 
 **Parameters:**
 - `bucket`: The bucket name
-- `options`: Signed URL options
+- `options`: A `SignedUrlOptions` object. `key` is the object key. `expiresIn` is the lifetime in seconds (default `3600`). Only `key` and `expiresIn` are sent to the service. `operation` is deprecated: it is accepted for compatibility, validated if present, and has no effect.
+
+**Returns:** `Promise<string>`, the signed URL.
 
 **Example:**
 ```typescript
-import { getSignedUrl } from "@frontal-labs/blob";
-
-const result = await getSignedUrl("private-bucket", {
-  key: "document.pdf",
-  expiresIn: 1800, // 30 minutes
-  operation: "read"
+const url = await blob.getSignedUrl({
+  bucket: "private-bucket",
+  options: {
+    key: "sensitive-document.pdf",
+    expiresIn: 3600, // 1 hour
+  },
 });
+
+console.log("Signed URL:", url);
+```
+
+### copyObject
+
+```typescript
+copyObject(params: {
+  sourceBucket: string;
+  sourceKey: string;
+  destBucket: string;
+  destKey: string;
+}): Promise<void>
+```
+
+Copies an object within or across buckets.
+
+**Example:**
+```typescript
+await blob.copyObject({
+  sourceBucket: "source-bucket",
+  sourceKey: "documents/report.pdf",
+  destBucket: "archive-bucket",
+  destKey: "reports/2024/report.pdf",
+});
+```
+
+### moveObject
+
+```typescript
+moveObject(params: {
+  sourceBucket: string;
+  sourceKey: string;
+  destBucket: string;
+  destKey: string;
+}): Promise<void>
+```
+
+Moves (renames) an object within or across buckets.
+
+**Example:**
+```typescript
+await blob.moveObject({
+  sourceBucket: "temp-bucket",
+  sourceKey: "processing/data.json",
+  destBucket: "final-bucket",
+  destKey: "processed/data.json",
+});
+```
+
+### getMetadata
+
+```typescript
+getMetadata(params: { bucket: string; key: string }): Promise<BlobObject>
+```
+
+Retrieves metadata for one object.
+
+**Returns:** `Promise<BlobObject>`
+
+**Example:**
+```typescript
+const meta = await blob.getMetadata({ bucket: "my-bucket", key: "documents/report.pdf" });
+
+console.log("File size:", meta.size);
+console.log("Content type:", meta.contentType);
+console.log("Last modified:", meta.lastModified);
+console.log("ETag:", meta.etag);
+console.log("Custom metadata:", meta.metadata ?? {});
 ```
 
 ## Types
 
-### StorageConfig
+Types are exported from `@frontal-labs/blob`.
 
-Configuration options for the Storage client.
+### BlobObject
 
 ```typescript
-interface StorageConfig {
-  apiKey?: string;    // API key for authentication
-  baseUrl?: string;    // Custom base URL
-}
+type BlobObject = {
+  key: string;                          // Object key
+  size: number;                         // Size in bytes (integer, >= 0)
+  contentType: string;                  // MIME content type
+  lastModified: string;                 // ISO 8601 timestamp
+  etag: string;                         // Entity tag
+  metadata?: Record<string, string>;    // Custom key/value metadata, when present
+};
+```
+
+`StorageObject` is a backward-compatibility alias of `BlobObject`.
+
+### ListObjectsResult
+
+```typescript
+type ListObjectsResult = {
+  objects: BlobObject[];
+  prefix?: string;
+  continuationToken?: string;
+};
 ```
 
 ### SignedUrlOptions
 
-Options for generating signed URLs.
-
 ```typescript
-interface SignedUrlOptions {
-  key: string;                    // Object key
-  expiresIn?: number;              // Expiration time in seconds (default: 3600)
-  operation?: "read" | "write" | "delete"; // URL operation (default: "read")
-}
+type SignedUrlOptions = {
+  key: string;
+  /** @deprecated Has no effect; omit it. */
+  operation?: "read" | "write" | "delete";
+  expiresIn?: number;   // seconds; defaults to 3600
+};
 ```
 
-### StorageObject
+`SignedUrlOptions` is the input type (`z.input`), so `expiresIn` is optional for callers.
 
-Represents a storage object with metadata.
-
-```typescript
-interface StorageObject {
-  key: string;                    // Unique object identifier
-  size: number;                    // Size in bytes
-  contentType: string;               // MIME content type
-  lastModified: string;              // ISO 8601 timestamp
-  etag: string;                    // Entity tag for versioning
-  metadata?: Record<string, string>;   // Custom metadata key-value pairs
-}
-```
-
-### ListObjectsResult
-
-Result of listing objects in a bucket.
+### BlobConfig
 
 ```typescript
-interface ListObjectsResult {
-  objects: StorageObject[];           // Array of storage objects
-  prefix?: string;                   // Common prefix of objects
-  continuationToken?: string;         // Token for pagination
-}
+type BlobConfig = {
+  apiKey?: string;
+  baseUrl?: string;     // must be a valid URL when set
+};
 ```
 
-### APIResponse
-
-Standard response structure for all API operations.
-
-```typescript
-interface APIResponse<T> {
-  data: T | null;                   // Success response data
-  error: {                         // Error information
-    message: string;                 // Error message
-    statusCode: number;               // HTTP status code
-    name: string;                    // Error name/identifier
-  } | null;
-  headers?: Record<string, string>;     // Response headers
-}
-```
-
-### ErrorResponse
-
-Error information structure.
-
-```typescript
-interface ErrorResponse {
-  message: string;     // Human-readable error message
-  statusCode: number;  // HTTP status code
-  name: string;        // Error identifier
-}
-```
+`StorageConfig` is a backward-compatibility alias of `BlobConfig`.
 
 ### BucketConfig
 
-Bucket configuration options.
+```typescript
+type BucketConfig = {
+  name: string;         // non-empty
+  public?: boolean;
+};
+```
+
+### IBlobClient
+
+The interface implemented by `BlobSdk`. Each method has the signature shown in
+[Methods](#methods). `IStorageClient` is a backward-compatibility alias that
+extends `IBlobClient` with no additional members.
+
+### ErrorResponse
+
+The shape of the error body returned by the service, re-exported from
+`@frontal-labs/core`.
+
+## Errors
+
+Failures are thrown, not returned. The SDK throws `FrontalError` (exported from
+`@frontal-labs/core`) for HTTP and API errors. Use `FrontalError.isInstance` to
+narrow an unknown error.
+
+| Property     | Type      | Description                                                                 |
+|--------------|-----------|-----------------------------------------------------------------------------|
+| `code`       | `string`  | Stable error identifier from the API                                        |
+| `statusCode` | `number`  | HTTP status code                                                            |
+| `requestId`  | `string`  | Request identifier, useful when reporting issues                            |
+| `retryable`  | `boolean` | Whether retrying the same request may succeed (rate limits, transient 5xx, network) |
+| `fix`        | `string?` | Human-readable next step, when the SDK knows one                            |
+| `docs`       | `string?` | Link to documentation for the error, when available                         |
+| `rateLimit`  | `object?` | Rate-limit information from response headers, when present                  |
 
 ```typescript
-interface BucketConfig {
-  name: string;        // Bucket name
-  public?: boolean;    // Whether bucket is public (default: false)
+import { blob } from "@frontal-labs/blob";
+import { FrontalError } from "@frontal-labs/core";
+
+try {
+  await blob.delete({ bucket: "my-bucket", key: "file.txt" });
+} catch (error) {
+  if (FrontalError.isInstance(error)) {
+    console.error("Delete failed:", error.code, error.statusCode, error.requestId);
+    if (error.retryable) {
+      // Retry with backoff
+    }
+    if (error.fix) {
+      console.error("Next step:", error.fix);
+    }
+  } else {
+    throw error;
+  }
 }
 ```
 
+Non-HTTP failures, such as `downloadStream` receiving a response without a body,
+are thrown as plain `Error` objects.
+
 ## Constants
 
-### DEFAULT_STORAGE_BASE_URL
-
-Default base URL for Frontal Storage API.
+### DEFAULT_BLOB_BASE_URL
 
 ```typescript
-const DEFAULT_STORAGE_BASE_URL = "https://api.frontal.dev/v1";
+const DEFAULT_BLOB_BASE_URL = "https://api.frontal.dev/v1";
 ```
 
 ### VERSION
-
-Package version.
 
 ```typescript
 const VERSION = "0.0.1";
 ```
 
-## Error Handling
-
-All operations return an `APIResponse<T>` with consistent error handling:
-
-```typescript
-// Example error handling
-const result = await storage.upload("my-bucket", "file.txt", data);
-
-if (result.error) {
-  switch (result.error.name) {
-    case "upload_error":
-      console.error("Upload operation failed:", result.error.message);
-      break;
-    case "validation_error":
-      console.error("Invalid parameters:", result.error.message);
-      break;
-    case "download_error":
-      console.error("Download operation failed:", result.error.message);
-      break;
-    case "stream_error":
-      console.error("Stream operation failed:", result.error.message);
-      break;
-    default:
-      console.error("Unknown error:", result.error);
-  }
-  
-  // Handle based on status code
-  if (result.error.statusCode === 401) {
-    // Handle authentication error
-  } else if (result.error.statusCode === 403) {
-    // Handle authorization error
-  } else if (result.error.statusCode === 404) {
-    // Handle not found error
-  } else if (result.error.statusCode >= 500) {
-    // Handle server error
-  }
-} else {
-  // Success case
-  console.log("Operation completed successfully");
-}
-```
-
-## Utility Functions
-
-### Default Export
-
-The package exports a default storage instance:
-
-```typescript
-import { storage } from "@frontal-labs/blob";
-
-// Uses configuration from environment variables
-const result = await storage.upload("my-bucket", "file.txt", data);
-```
-
-### createStorageClient
-
-Factory function for creating custom client instances:
-
-```typescript
-import { createStorageClient } from "@frontal-labs/blob";
-import { FrontalClient } from "@frontal-labs/core";
-
-const client = new FrontalClient({
-  apiKey: "your-api-key",
-  baseUrl: "https://custom-api.example.com"
-});
-
-const storage = createStorageClient(client);
-```
-
-## Streaming Examples
-
-### Upload Streaming Data
-
-```typescript
-// Upload from a readable stream
-const response = await fetch("https://api.example.com/large-file");
-const readableStream = response.body!;
-
-const uploadResult = await storage.upload("my-bucket", "streaming-data.json", readableStream, {
-  contentType: "application/json"
-});
-```
-
-### Download Streaming Data
-
-```typescript
-// Download as readable stream
-const downloadResult = await storage.downloadStream("my-bucket", "large-file.json");
-
-if (downloadResult.data) {
-  const stream = downloadResult.data;
-  const writer = new WritableStream();
-  
-  // Pipe to file or process
-  stream.pipeTo(writer);
-}
-```
-
-## Metadata Operations
-
-### Upload with Metadata
-
-```typescript
-const uploadResult = await storage.upload("my-bucket", "documents/report.pdf", fileData, {
-  contentType: "application/pdf",
-  metadata: {
-    department: "finance",
-    reportType: "quarterly",
-    generatedBy: "automated-system",
-    version: "1.0",
-    classification: "internal"
-  }
-});
-```
-
-### Retrieve Metadata
-
-```typescript
-const metadataResult = await storage.getMetadata("my-bucket", "documents/report.pdf");
-
-if (metadataResult.data) {
-  console.log("Object metadata:", metadataResult.data.metadata);
-  console.log("File size:", metadataResult.data.size, "bytes");
-  console.log("Content type:", metadataResult.data.contentType);
-  console.log("Last modified:", metadataResult.data.lastModified);
-}
-```
-
-## Signed URL Operations
-
-### Read Access URL
-
-```typescript
-const readUrlResult = await storage.getSignedUrl("private-bucket", {
-  key: "private/document.pdf",
-  expiresIn: 3600, // 1 hour
-  operation: "read"
-});
-
-if (readUrlResult.data) {
-  // URL can be used to download the file
-  console.log("Download URL:", readUrlResult.data);
-}
-```
-
-### Write Access URL
-
-```typescript
-const writeUrlResult = await storage.getSignedUrl("private-bucket", {
-  key: "uploads/new-file.txt",
-  expiresIn: 900, // 15 minutes
-  operation: "write"
-});
-
-if (writeUrlResult.data) {
-  // URL can be used to upload directly to storage
-  console.log("Upload URL:", writeUrlResult.data);
-}
-```
-
-### Delete Access URL
-
-```typescript
-const deleteUrlResult = await storage.getSignedUrl("private-bucket", {
-  key: "temp/file-to-delete.txt",
-  expiresIn: 300, // 5 minutes
-  operation: "delete"
-});
-
-if (deleteUrlResult.data) {
-  // URL can be used to delete the file
-  console.log("Delete URL:", deleteUrlResult.data);
-}
-```
-
 ## Best Practices
 
-### Error Handling
+### Error handling
 
-Always check for errors in API responses:
+Wrap calls in `try`/`catch` and branch on `FrontalError` fields:
 
 ```typescript
-const result = await storage.upload("my-bucket", "file.txt", data);
+import { FrontalError } from "@frontal-labs/core";
 
-if (result.error) {
-  // Log error details
-  console.error("Operation failed:", {
-    name: result.error.name,
-    message: result.error.message,
-    statusCode: result.error.statusCode
-  });
-  
-  // Implement retry logic for transient errors
-  if (result.error.statusCode >= 500) {
-    // Retry with exponential backoff
-    await retryOperation();
+try {
+  await blob.upload({ bucket: "my-bucket", key: "file.txt", data: bytes });
+} catch (error) {
+  if (FrontalError.isInstance(error) && error.retryable) {
+    await retryWithBackoff();
+  } else {
+    throw error;
   }
-} else {
-  // Success case
-  console.log("Operation completed successfully");
 }
 ```
 
-### Large File Handling
+### Large objects
 
-Use streaming for files larger than 100MB:
+Use `downloadStream` instead of `download` to avoid buffering a large object in
+memory:
 
 ```typescript
-// For uploads
-const largeFileStream = createReadStream("large-file.zip");
-await storage.upload("my-bucket", "archives/large-file.zip", largeFileStream);
+import { createWriteStream } from "node:fs";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
-// For downloads
-const downloadStream = await storage.downloadStream("my-bucket", "archives/large-file.zip");
-const writeStream = createWriteStream("downloaded-file.zip");
-downloadStream.data.pipeTo(writeStream);
+const stream = await blob.downloadStream({ bucket: "my-bucket", key: "archives/large-file.zip" });
+await pipeline(Readable.fromWeb(stream), createWriteStream("downloaded-file.zip"));
 ```
 
-### Signed URL Security
+### Signed URL lifetimes
 
-Use appropriate expiration times and secure operations:
+Use short lifetimes for sensitive objects:
 
 ```typescript
-// Short expiration for sensitive operations
-const sensitiveUrl = await storage.getSignedUrl("private-bucket", {
-  key: "sensitive-data.json",
-  expiresIn: 300, // 5 minutes
-  operation: "read"
-});
-
-// Longer expiration for public content
-const publicUrl = await storage.getSignedUrl("public-bucket", {
-  key: "public/document.pdf",
-  expiresIn: 86400, // 24 hours
-  operation: "read"
+const sensitiveUrl = await blob.getSignedUrl({
+  bucket: "private-bucket",
+  options: { key: "sensitive-data.json", expiresIn: 300 }, // 5 minutes
 });
 ```

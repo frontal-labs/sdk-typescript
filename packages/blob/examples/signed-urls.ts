@@ -3,13 +3,18 @@
  *
  * This example demonstrates how to generate and use signed URLs for temporary
  * access to storage objects without requiring authentication for each request.
+ *
+ * `getSignedUrl` returns the URL string directly and throws a FrontalError on
+ * failure.
  */
 
 import { blob } from "@frontal-labs/blob";
 
 // Use the default blob singleton
 
-// Generate signed URLs for different operations
+const encoder = new TextEncoder();
+
+// Generate signed URLs for objects
 async function generateSignedUrls() {
 	const bucketName = "signed-url-bucket";
 	const objectKey = "protected/document.pdf";
@@ -18,82 +23,63 @@ async function generateSignedUrls() {
 
 	// First, upload a test file
 	console.log("📤 Uploading test file...");
-	const uploadResult = await blob.upload(
-		bucketName,
-		objectKey,
-		"This is a protected document content.",
-		"application/pdf",
-	);
-
-	if (uploadResult.error) {
-		console.error("❌ Upload failed:", uploadResult.error.message);
+	try {
+		await blob.upload({
+			bucket: bucketName,
+			key: objectKey,
+			data: encoder.encode("This is a protected document content."),
+			contentType: "application/pdf",
+		});
+	} catch (error) {
+		console.error("❌ Upload failed:", error);
 		return;
 	}
 	console.log("✅ Test file uploaded");
 
-	// Generate signed URL for reading (default 1 hour expiry)
-	console.log("\n🔗 Generating signed URL for reading...");
-	const readUrlResult = await blob.getSignedUrl(bucketName, {
-		key: objectKey,
-		operation: "read",
-	});
+	try {
+		// Generate a signed URL (default 1 hour expiry)
+		console.log("\n🔗 Generating signed URL...");
+		const readUrl = await blob.getSignedUrl({
+			bucket: bucketName,
+			options: {
+				key: objectKey,
+			},
+		});
+		console.log("✅ Signed URL generated:");
+		console.log(readUrl);
+		console.log("Expires in: 1 hour (default)");
 
-	if (readUrlResult.error) {
-		console.error(
-			"❌ Read URL generation failed:",
-			readUrlResult.error.message,
-		);
+		// Generate a signed URL with a custom expiry
+		console.log("\n🔗 Generating signed URL with a 5 minute expiry...");
+		const writeUrl = await blob.getSignedUrl({
+			bucket: bucketName,
+			options: {
+				key: "uploads/new-document.txt",
+				expiresIn: 300, // 5 minutes
+			},
+		});
+		console.log("✅ Second signed URL generated:");
+		console.log(writeUrl);
+		console.log("Expires in: 5 minutes");
+
+		// Generate signed URL for deletion
+		console.log("\n🔗 Generating signed URL for deletion (10 minutes)...");
+		const deleteUrl = await blob.getSignedUrl({
+			bucket: bucketName,
+			options: {
+				key: objectKey,
+				expiresIn: 600, // 10 minutes
+			},
+		});
+		console.log("✅ Delete URL generated:");
+		console.log(deleteUrl);
+		console.log("Expires in: 10 minutes");
+
+		return { readUrl, writeUrl, deleteUrl, bucketName, objectKey };
+	} catch (error) {
+		console.error("❌ URL generation failed:", error);
 		return;
 	}
-
-	const readUrl = readUrlResult.data!;
-	console.log("✅ Read URL generated:");
-	console.log(readUrl);
-	console.log(`Expires in: 1 hour (default)`);
-
-	// Generate signed URL for writing with custom expiry
-	console.log("\n🔗 Generating signed URL for writing (5 minutes)...");
-	const writeUrlResult = await blob.getSignedUrl(bucketName, {
-		key: "uploads/new-document.txt",
-		operation: "write",
-		expiresIn: 300, // 5 minutes
-	});
-
-	if (writeUrlResult.error) {
-		console.error(
-			"❌ Write URL generation failed:",
-			writeUrlResult.error.message,
-		);
-		return;
-	}
-
-	const writeUrl = writeUrlResult.data!;
-	console.log("✅ Write URL generated:");
-	console.log(writeUrl);
-	console.log(`Expires in: 5 minutes`);
-
-	// Generate signed URL for deletion
-	console.log("\n🔗 Generating signed URL for deletion (10 minutes)...");
-	const deleteUrlResult = await blob.getSignedUrl(bucketName, {
-		key: objectKey,
-		operation: "delete",
-		expiresIn: 600, // 10 minutes
-	});
-
-	if (deleteUrlResult.error) {
-		console.error(
-			"❌ Delete URL generation failed:",
-			deleteUrlResult.error.message,
-		);
-		return;
-	}
-
-	const deleteUrl = deleteUrlResult.data!;
-	console.log("✅ Delete URL generated:");
-	console.log(deleteUrl);
-	console.log(`Expires in: 10 minutes`);
-
-	return { readUrl, writeUrl, deleteUrl, bucketName, objectKey };
 }
 
 // Use signed URLs with fetch API
@@ -106,8 +92,8 @@ async function useSignedUrls(urls: {
 }) {
 	console.log("\n🌐 Using Signed URLs Example\n");
 
-	// Use signed read URL
-	console.log("📖 Using signed read URL...");
+	// Use the signed URL
+	console.log("📖 Using the signed URL...");
 	try {
 		const readResponse = await fetch(urls.readUrl);
 		if (readResponse.ok) {
@@ -125,8 +111,8 @@ async function useSignedUrls(urls: {
 		console.error("❌ Error reading via signed URL:", error);
 	}
 
-	// Use signed write URL
-	console.log("\n📝 Using signed write URL...");
+	// Use the second signed URL
+	console.log("\n📝 Using the second signed URL...");
 	try {
 		const newContent = "This content was uploaded using a signed URL.";
 		const writeResponse = await fetch(urls.writeUrl, {
@@ -141,13 +127,17 @@ async function useSignedUrls(urls: {
 			console.log("✅ Successfully uploaded content via signed URL");
 
 			// Verify the upload
-			const verifyResult = await blob.download(
-				urls.bucketName,
-				"uploads/new-document.txt",
-			);
-			if (!verifyResult.error) {
-				const uploadedContent = await verifyResult.data?.text();
-				console.log("✅ Upload verified:", uploadedContent === newContent);
+			try {
+				const uploaded = await blob.download({
+					bucket: urls.bucketName,
+					key: "uploads/new-document.txt",
+				});
+				console.log(
+					"✅ Upload verified:",
+					(await uploaded.text()) === newContent,
+				);
+			} catch (error) {
+				console.error("❌ Verification download failed:", error);
 			}
 		} else {
 			console.error(
@@ -170,15 +160,15 @@ async function useSignedUrls(urls: {
 		if (deleteResponse.ok) {
 			console.log("✅ Successfully deleted object via signed URL");
 
-			// Verify deletion
-			const verifyResult = await blob.download(
-				urls.bucketName,
-				urls.objectKey,
-			);
-			if (verifyResult.error) {
-				console.log("✅ Deletion verified - object no longer exists");
-			} else {
+			// Verify deletion: download throws once the object is gone
+			try {
+				await blob.download({
+					bucket: urls.bucketName,
+					key: urls.objectKey,
+				});
 				console.log("⚠️ Warning: Object still exists after signed deletion");
+			} catch {
+				console.log("✅ Deletion verified - object no longer exists");
 			}
 		} else {
 			console.error(
@@ -200,12 +190,12 @@ async function signedUrlExpiryExamples() {
 	console.log("\n⏰ Signed URL Expiry Examples\n");
 
 	// Upload test data
-	await blob.upload(
-		bucketName,
-		objectKey,
-		'{"timestamp": "2024-01-01"}',
-		"application/json",
-	);
+	await blob.upload({
+		bucket: bucketName,
+		key: objectKey,
+		data: encoder.encode('{"timestamp": "2024-01-01"}'),
+		contentType: "application/json",
+	});
 
 	const expiryTimes = [
 		{ seconds: 60, description: "1 minute" },
@@ -217,26 +207,24 @@ async function signedUrlExpiryExamples() {
 	for (const expiry of expiryTimes) {
 		console.log(`🔗 Generating ${expiry.description} expiry URL...`);
 
-		const result = await blob.getSignedUrl(bucketName, {
-			key: objectKey,
-			operation: "read",
-			expiresIn: expiry.seconds,
-		});
-
-		if (result.error) {
-			console.error(
-				`❌ Failed to generate ${expiry.description} URL:`,
-				result.error.message,
-			);
-		} else {
+		try {
+			const url = await blob.getSignedUrl({
+				bucket: bucketName,
+				options: {
+					key: objectKey,
+					expiresIn: expiry.seconds,
+				},
+			});
 			console.log(`✅ ${expiry.description} URL generated successfully`);
-			console.log(`   URL: ${result.data?.substring(0, 100)}...`);
+			console.log(`   URL: ${url.substring(0, 100)}...`);
+		} catch (error) {
+			console.error(`❌ Failed to generate ${expiry.description} URL:`, error);
 		}
 		console.log();
 	}
 
 	// Clean up
-	await blob.delete(bucketName, objectKey);
+	await blob.delete({ bucket: bucketName, key: objectKey });
 }
 
 // Share files securely with signed URLs
@@ -245,7 +233,7 @@ async function secureFileSharing() {
 	const sharedFiles = [
 		{
 			key: "shared/report.pdf",
-			content: "Annual Report 2024",
+			content: encoder.encode("Annual Report 2024"),
 			type: "application/pdf",
 		},
 		{
@@ -255,7 +243,7 @@ async function secureFileSharing() {
 		},
 		{
 			key: "shared/data.csv",
-			content: "Name,Age,City\nJohn,30,NYC\nJane,25,LA",
+			content: encoder.encode("Name,Age,City\nJohn,30,NYC\nJane,25,LA"),
 			type: "text/csv",
 		},
 	];
@@ -265,29 +253,42 @@ async function secureFileSharing() {
 	// Upload shared files
 	console.log("📤 Uploading files for sharing...");
 	for (const file of sharedFiles) {
-		await blob.upload(bucketName, file.key, file.content, file.type);
+		await blob.upload({
+			bucket: bucketName,
+			key: file.key,
+			data: file.content,
+			contentType: file.type,
+		});
 	}
 	console.log("✅ Files uploaded");
 
 	// Generate sharing URLs with different access levels
 	console.log("\n🔗 Generating sharing URLs...");
 
-	const sharingUrls = [];
+	const sharingUrls: Array<{
+		file: string;
+		url: string;
+		expiresIn: string;
+		access: string;
+	}> = [];
 	for (const file of sharedFiles) {
-		// Read-only access for 1 hour
-		const readResult = await blob.getSignedUrl(bucketName, {
-			key: file.key,
-			operation: "read",
-			expiresIn: 3600,
-		});
-
-		if (!readResult.error) {
+		try {
+			// Read-only access for 1 hour
+			const url = await blob.getSignedUrl({
+				bucket: bucketName,
+				options: {
+					key: file.key,
+					expiresIn: 3600,
+				},
+			});
 			sharingUrls.push({
 				file: file.key,
-				url: readResult.data!,
+				url,
 				expiresIn: "1 hour",
 				access: "read-only",
 			});
+		} catch (error) {
+			console.error(`❌ Could not sign ${file.key}:`, error);
 		}
 	}
 
@@ -319,7 +320,7 @@ async function secureFileSharing() {
 	// Clean up
 	console.log("\n🧹 Cleaning up shared files...");
 	for (const file of sharedFiles) {
-		await blob.delete(bucketName, file.key);
+		await blob.delete({ bucket: bucketName, key: file.key });
 	}
 	console.log("✅ Cleanup completed");
 }
@@ -333,21 +334,19 @@ async function browserUploadExample() {
 
 	// Generate signed URL for browser upload
 	console.log("🔗 Generating upload URL for browser...");
-	const uploadUrlResult = await blob.getSignedUrl(bucketName, {
-		key: uploadKey,
-		operation: "write",
-		expiresIn: 900, // 15 minutes
-	});
-
-	if (uploadUrlResult.error) {
-		console.error(
-			"❌ Failed to generate upload URL:",
-			uploadUrlResult.error.message,
-		);
+	let uploadUrl: string;
+	try {
+		uploadUrl = await blob.getSignedUrl({
+			bucket: bucketName,
+			options: {
+				key: uploadKey,
+				expiresIn: 900, // 15 minutes
+			},
+		});
+	} catch (error) {
+		console.error("❌ Failed to generate upload URL:", error);
 		return;
 	}
-
-	const uploadUrl = uploadUrlResult.data!;
 	console.log("✅ Upload URL generated for browser");
 	console.log(`   URL: ${uploadUrl.substring(0, 80)}...`);
 
@@ -370,11 +369,12 @@ async function browserUploadExample() {
 			console.log("✅ Browser upload successful");
 
 			// Verify upload
-			const verifyResult = await blob.download(bucketName, uploadKey);
-			if (!verifyResult.error) {
-				console.log("✅ Upload verified on server");
-				console.log(`   File size: ${verifyResult.data?.size} bytes`);
-			}
+			const uploaded = await blob.getMetadata({
+				bucket: bucketName,
+				key: uploadKey,
+			});
+			console.log("✅ Upload verified on server");
+			console.log(`   File size: ${uploaded.size} bytes`);
 		} else {
 			console.error("❌ Browser upload failed:", browserUploadResponse.status);
 		}
@@ -383,7 +383,7 @@ async function browserUploadExample() {
 	}
 
 	// Clean up
-	await blob.delete(bucketName, uploadKey);
+	await blob.delete({ bucket: bucketName, key: uploadKey });
 }
 
 // Run all signed URL examples

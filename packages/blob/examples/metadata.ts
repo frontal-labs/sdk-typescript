@@ -3,11 +3,16 @@
  *
  * This example demonstrates how to work with object metadata, including
  * retrieving, analyzing, and utilizing storage object metadata.
+ *
+ * `getMetadata` returns a `BlobObject` directly and throws a FrontalError
+ * when the object cannot be read.
  */
 
-import { blob } from "@frontal-labs/blob";
+import { type BlobObject, blob } from "@frontal-labs/blob";
 
 // Use the default blob singleton
+
+const encoder = new TextEncoder();
 
 // Basic metadata retrieval
 async function basicMetadataRetrieval() {
@@ -19,32 +24,28 @@ async function basicMetadataRetrieval() {
 	// Upload a file with specific content
 	console.log("📤 Uploading test file...");
 	const content = "This is a sample PDF content for metadata testing.";
-	const uploadResult = await blob.upload(
-		bucketName,
-		objectKey,
-		content,
-		"application/pdf",
-	);
-
-	if (uploadResult.error) {
-		console.error("❌ Upload failed:", uploadResult.error.message);
+	try {
+		await blob.upload({
+			bucket: bucketName,
+			key: objectKey,
+			data: encoder.encode(content),
+			contentType: "application/pdf",
+		});
+	} catch (error) {
+		console.error("❌ Upload failed:", error);
 		return;
 	}
 	console.log("✅ File uploaded successfully");
 
 	// Retrieve metadata
 	console.log("\n📊 Retrieving object metadata...");
-	const metadataResult = await blob.getMetadata(bucketName, objectKey);
-
-	if (metadataResult.error) {
-		console.error(
-			"❌ Metadata retrieval failed:",
-			metadataResult.error.message,
-		);
+	let metadata: BlobObject;
+	try {
+		metadata = await blob.getMetadata({ bucket: bucketName, key: objectKey });
+	} catch (error) {
+		console.error("❌ Metadata retrieval failed:", error);
 		return;
 	}
-
-	const metadata = metadataResult.data!;
 	console.log("✅ Metadata retrieved successfully");
 
 	// Display metadata information
@@ -65,7 +66,7 @@ async function basicMetadataRetrieval() {
 	}
 
 	// Clean up
-	await blob.delete(bucketName, objectKey);
+	await blob.delete({ bucket: bucketName, key: objectKey });
 }
 
 // Metadata analysis and comparison
@@ -102,7 +103,14 @@ async function metadataAnalysis() {
 	// Upload all test files
 	console.log("📤 Uploading test files...");
 	for (const file of files) {
-		await blob.upload(bucketName, file.key, file.content, file.type);
+		await blob.upload({
+			bucket: bucketName,
+			key: file.key,
+			data: typeof file.content === "string"
+				? encoder.encode(file.content)
+				: file.content,
+			contentType: file.type,
+		});
 	}
 	console.log(`✅ ${files.length} files uploaded`);
 
@@ -111,9 +119,12 @@ async function metadataAnalysis() {
 	const metadataList = [];
 
 	for (const file of files) {
-		const result = await blob.getMetadata(bucketName, file.key);
-		if (!result.error) {
-			metadataList.push(result.data!);
+		try {
+			metadataList.push(
+				await blob.getMetadata({ bucket: bucketName, key: file.key }),
+			);
+		} catch (error) {
+			console.error(`❌ Could not read metadata for ${file.key}:`, error);
 		}
 	}
 
@@ -129,7 +140,7 @@ async function metadataAnalysis() {
 	const maxSize = Math.max(...sizes);
 	const minSize = Math.min(...sizes);
 
-	console.log(`📊 Size Analysis:`);
+	console.log("📊 Size Analysis:");
 	console.log(`  Total size: ${totalSize} bytes`);
 	console.log(`  Average size: ${avgSize.toFixed(2)} bytes`);
 	console.log(`  Largest file: ${maxSize} bytes`);
@@ -142,7 +153,7 @@ async function metadataAnalysis() {
 			(contentTypeCounts[m.contentType] || 0) + 1;
 	});
 
-	console.log(`\n📋 Content Type Distribution:`);
+	console.log("\n📋 Content Type Distribution:");
 	Object.entries(contentTypeCounts).forEach(([type, count]) => {
 		console.log(`  ${type}: ${count} file(s)`);
 	});
@@ -155,7 +166,7 @@ async function metadataAnalysis() {
 	const newestTime = Math.max(...timestamps);
 	const timeSpan = newestTime - oldestTime;
 
-	console.log(`\n⏰ Time Analysis:`);
+	console.log("\n⏰ Time Analysis:");
 	console.log(`  Oldest: ${new Date(oldestTime).toISOString()}`);
 	console.log(`  Newest: ${new Date(newestTime).toISOString()}`);
 	console.log(`  Time span: ${timeSpan}ms`);
@@ -164,13 +175,13 @@ async function metadataAnalysis() {
 	const largestFile = metadataList.find((m) => m.size === maxSize);
 	const smallestFile = metadataList.find((m) => m.size === minSize);
 
-	console.log(`\n📂 File Details:`);
+	console.log("\n📂 File Details:");
 	console.log(`  Largest: ${largestFile?.key} (${largestFile?.size} bytes)`);
 	console.log(`  Smallest: ${smallestFile?.key} (${smallestFile?.size} bytes)`);
 
 	// Clean up
 	for (const file of files) {
-		await blob.delete(bucketName, file.key);
+		await blob.delete({ bucket: bucketName, key: file.key });
 	}
 }
 
@@ -213,7 +224,14 @@ async function metadataBasedManagement() {
 	// Upload files
 	console.log("📤 Uploading managed files...");
 	for (const file of managedFiles) {
-		await blob.upload(bucketName, file.key, file.content, file.type);
+		await blob.upload({
+			bucket: bucketName,
+			key: file.key,
+			data: typeof file.content === "string"
+				? encoder.encode(file.content)
+				: file.content,
+			contentType: file.type,
+		});
 	}
 	console.log(`✅ ${managedFiles.length} files uploaded`);
 
@@ -222,9 +240,12 @@ async function metadataBasedManagement() {
 	const allMetadata = [];
 
 	for (const file of managedFiles) {
-		const result = await blob.getMetadata(bucketName, file.key);
-		if (!result.error) {
-			allMetadata.push(result.data!);
+		try {
+			allMetadata.push(
+				await blob.getMetadata({ bucket: bucketName, key: file.key }),
+			);
+		} catch (error) {
+			console.error(`❌ Could not read metadata for ${file.key}:`, error);
 		}
 	}
 
@@ -277,7 +298,7 @@ async function metadataBasedManagement() {
 
 	// Clean up
 	for (const file of managedFiles) {
-		await blob.delete(bucketName, file.key);
+		await blob.delete({ bucket: bucketName, key: file.key });
 	}
 }
 
@@ -290,21 +311,22 @@ async function metadataValidation() {
 
 	// Upload a test file
 	const content = "This is test content for validation.";
-	await blob.upload(bucketName, objectKey, content, "text/plain");
+	await blob.upload({
+		bucket: bucketName,
+		key: objectKey,
+		data: encoder.encode(content),
+		contentType: "text/plain",
+	});
 	console.log("✅ Test file uploaded");
 
 	// Retrieve metadata
-	const metadataResult = await blob.getMetadata(bucketName, objectKey);
-
-	if (metadataResult.error) {
-		console.error(
-			"❌ Metadata retrieval failed:",
-			metadataResult.error.message,
-		);
+	let metadata: BlobObject;
+	try {
+		metadata = await blob.getMetadata({ bucket: bucketName, key: objectKey });
+	} catch (error) {
+		console.error("❌ Metadata retrieval failed:", error);
 		return;
 	}
-
-	const metadata = metadataResult.data!;
 	console.log("✅ Metadata retrieved for validation");
 
 	// Validate metadata structure
@@ -351,11 +373,13 @@ async function metadataValidation() {
 
 	// Cross-validate with actual content
 	console.log("\n🔄 Cross-validating with actual content...");
-	const downloadResult = await blob.download(bucketName, objectKey);
-
-	if (!downloadResult.error) {
-		const actualSize = downloadResult.data?.size;
-		const actualContentType = downloadResult.data?.type;
+	try {
+		const downloaded = await blob.download({
+			bucket: bucketName,
+			key: objectKey,
+		});
+		const actualSize = downloaded.size;
+		const actualContentType = downloaded.type;
 
 		const sizeMatch = metadata.size === actualSize;
 		const contentTypeMatch = metadata.contentType === actualContentType;
@@ -371,16 +395,18 @@ async function metadataValidation() {
 		console.log(
 			`\n📊 Cross-validation: ${crossValidationPassed ? "PASSED" : "FAILED"}`,
 		);
+	} catch (error) {
+		console.error("❌ Download for cross-validation failed:", error);
 	}
 
 	// Clean up
-	await blob.delete(bucketName, objectKey);
+	await blob.delete({ bucket: bucketName, key: objectKey });
 }
 
 // Metadata caching strategy
 async function metadataCaching() {
 	const bucketName = "metadata-bucket";
-	const cache = new Map<string, any>();
+	const cache = new Map<string, BlobObject>();
 	const cacheExpiry = new Map<string, number>();
 	const cacheTimeout = 30000; // 30 seconds
 
@@ -394,7 +420,12 @@ async function metadataCaching() {
 	];
 
 	for (const file of testFiles) {
-		await blob.upload(bucketName, file.key, file.content, file.type);
+		await blob.upload({
+			bucket: bucketName,
+			key: file.key,
+			data: encoder.encode(file.content),
+			contentType: file.type,
+		});
 	}
 	console.log("✅ Test files uploaded");
 
@@ -409,17 +440,14 @@ async function metadataCaching() {
 			return cache.get(cacheKey);
 		}
 
-		// Fetch from storage
+		// Fetch from storage (throws on failure, so nothing is cached)
 		console.log(`🌐 Cache MISS for ${key} - fetching from storage`);
-		const result = await blob.getMetadata(bucket, key);
+		const metadata = await blob.getMetadata({ bucket, key });
 
-		if (!result.error) {
-			// Store in cache
-			cache.set(cacheKey, result.data);
-			cacheExpiry.set(cacheKey, now + cacheTimeout);
-		}
+		cache.set(cacheKey, metadata);
+		cacheExpiry.set(cacheKey, now + cacheTimeout);
 
-		return result.data;
+		return metadata;
 	}
 
 	// Test caching behavior
@@ -446,13 +474,13 @@ async function metadataCaching() {
 	}
 
 	// Display cache statistics
-	console.log(`\n📊 Cache Statistics:`);
+	console.log("\n📊 Cache Statistics:");
 	console.log(`Cached entries: ${cache.size}`);
 	console.log(`Cache keys: ${Array.from(cache.keys()).join(", ")}`);
 
 	// Clean up
 	for (const file of testFiles) {
-		await blob.delete(bucketName, file.key);
+		await blob.delete({ bucket: bucketName, key: file.key });
 	}
 }
 

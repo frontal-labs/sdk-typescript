@@ -3,6 +3,10 @@
  *
  * This example demonstrates various file upload and download operations
  * including different data types, content types, and file handling patterns.
+ *
+ * Blob methods return their results directly and throw a FrontalError on
+ * failure, so each call is wrapped in try/catch where a failure should be
+ * reported instead of crashing the example.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -11,25 +15,26 @@ import { blob } from "@frontal-labs/blob";
 
 // Use the default blob singleton
 
+const encoder = new TextEncoder();
+
 // Upload different types of data
 async function uploadDifferentDataTypes() {
 	const bucketName = "file-operations-bucket";
 
 	console.log("📁 Upload Different Data Types Example\n");
 
-	// 1. Upload string content
+	// 1. Upload string content (encoded to bytes)
 	console.log("📝 Uploading string content...");
-	const stringResult = await blob.upload(
-		bucketName,
-		"text-files/sample.txt",
-		"Hello, World! This is a text file.",
-		"text/plain",
-	);
-
-	if (stringResult.error) {
-		console.error("❌ String upload failed:", stringResult.error.message);
-	} else {
+	try {
+		await blob.upload({
+			bucket: bucketName,
+			key: "text-files/sample.txt",
+			data: encoder.encode("Hello, World! This is a text file."),
+			contentType: "text/plain",
+		});
 		console.log("✅ String content uploaded");
+	} catch (error) {
+		console.error("❌ String upload failed:", error);
 	}
 
 	// 2. Upload JSON data
@@ -44,17 +49,16 @@ async function uploadDifferentDataTypes() {
 		},
 	};
 
-	const jsonResult = await blob.upload(
-		bucketName,
-		"data/users.json",
-		JSON.stringify(jsonData, null, 2),
-		"application/json",
-	);
-
-	if (jsonResult.error) {
-		console.error("❌ JSON upload failed:", jsonResult.error.message);
-	} else {
+	try {
+		await blob.upload({
+			bucket: bucketName,
+			key: "data/users.json",
+			data: encoder.encode(JSON.stringify(jsonData, null, 2)),
+			contentType: "application/json",
+		});
 		console.log("✅ JSON data uploaded");
+	} catch (error) {
+		console.error("❌ JSON upload failed:", error);
 	}
 
 	// 3. Upload binary data (simulated image)
@@ -92,17 +96,16 @@ async function uploadDifferentDataTypes() {
 		0x00, // Bit depth, color type, compression, filter, interlace
 	]);
 
-	const binaryResult = await blob.upload(
-		bucketName,
-		"images/tiny.png",
-		imageHeader,
-		"image/png",
-	);
-
-	if (binaryResult.error) {
-		console.error("❌ Binary upload failed:", binaryResult.error.message);
-	} else {
+	try {
+		await blob.upload({
+			bucket: bucketName,
+			key: "images/tiny.png",
+			data: imageHeader,
+			contentType: "image/png",
+		});
 		console.log("✅ Binary data uploaded");
+	} catch (error) {
+		console.error("❌ Binary upload failed:", error);
 	}
 
 	// 4. Upload CSV data
@@ -112,17 +115,16 @@ John Doe,john@example.com,30
 Jane Smith,jane@example.com,25
 Bob Johnson,bob@example.com,35`;
 
-	const csvResult = await blob.upload(
-		bucketName,
-		"data/users.csv",
-		csvData,
-		"text/csv",
-	);
-
-	if (csvResult.error) {
-		console.error("❌ CSV upload failed:", csvResult.error.message);
-	} else {
+	try {
+		await blob.upload({
+			bucket: bucketName,
+			key: "data/users.csv",
+			data: encoder.encode(csvData),
+			contentType: "text/csv",
+		});
 		console.log("✅ CSV data uploaded");
+	} catch (error) {
+		console.error("❌ CSV upload failed:", error);
 	}
 
 	return bucketName;
@@ -134,40 +136,40 @@ async function downloadAndProcessFiles(bucketName: string) {
 
 	// Download text file
 	console.log("📝 Downloading text file...");
-	const textResult = await blob.download(
-		bucketName,
-		"text-files/sample.txt",
-	);
-
-	if (!textResult.error) {
-		const textContent = await textResult.data?.text();
+	try {
+		const textFile = await blob.download({
+			bucket: bucketName,
+			key: "text-files/sample.txt",
+		});
 		console.log("✅ Text file downloaded");
-		console.log("Content:", textContent);
-		console.log("Size:", textResult.data?.size, "bytes");
-	} else {
-		console.error("❌ Text download failed:", textResult.error.message);
+		console.log("Content:", await textFile.text());
+		console.log("Size:", textFile.size, "bytes");
+	} catch (error) {
+		console.error("❌ Text download failed:", error);
 	}
 
 	// Download JSON file
 	console.log("\n📋 Downloading JSON file...");
-	const jsonResult = await blob.download(bucketName, "data/users.json");
-
-	if (!jsonResult.error) {
-		const jsonContent = await jsonResult.data?.text();
-		const parsedData = JSON.parse(jsonContent);
+	try {
+		const jsonFile = await blob.download({
+			bucket: bucketName,
+			key: "data/users.json",
+		});
+		const parsedData = JSON.parse(await jsonFile.text());
 		console.log("✅ JSON file downloaded");
 		console.log("Parsed data:", parsedData);
-	} else {
-		console.error("❌ JSON download failed:", jsonResult.error.message);
+	} catch (error) {
+		console.error("❌ JSON download failed:", error);
 	}
 
 	// Download binary file
 	console.log("\n🖼️ Downloading binary file...");
-	const binaryResult = await blob.download(bucketName, "images/tiny.png");
-
-	if (!binaryResult.error) {
-		const arrayBuffer = await binaryResult.data?.arrayBuffer();
-		const uint8Array = new Uint8Array(arrayBuffer);
+	try {
+		const binaryFile = await blob.download({
+			bucket: bucketName,
+			key: "images/tiny.png",
+		});
+		const uint8Array = new Uint8Array(await binaryFile.arrayBuffer());
 		console.log("✅ Binary file downloaded");
 		console.log("Size:", uint8Array.length, "bytes");
 		console.log(
@@ -176,17 +178,18 @@ async function downloadAndProcessFiles(bucketName: string) {
 				.map((b) => `0x${b.toString(16).toUpperCase().padStart(2, "0")}`)
 				.join(" "),
 		);
-	} else {
-		console.error("❌ Binary download failed:", binaryResult.error.message);
+	} catch (error) {
+		console.error("❌ Binary download failed:", error);
 	}
 
 	// Download CSV file
 	console.log("\n📊 Downloading CSV file...");
-	const csvResult = await blob.download(bucketName, "data/users.csv");
-
-	if (!csvResult.error) {
-		const csvContent = await csvResult.data?.text();
-		const lines = csvContent.split("\n");
+	try {
+		const csvFile = await blob.download({
+			bucket: bucketName,
+			key: "data/users.csv",
+		});
+		const lines = (await csvFile.text()).split("\n");
 		const headers = lines[0].split(",");
 		console.log("✅ CSV file downloaded");
 		console.log("Headers:", headers);
@@ -194,8 +197,8 @@ async function downloadAndProcessFiles(bucketName: string) {
 			"Data rows:",
 			lines.slice(1).filter((line) => line.trim()),
 		);
-	} else {
-		console.error("❌ CSV download failed:", csvResult.error.message);
+	} catch (error) {
+		console.error("❌ CSV download failed:", error);
 	}
 }
 
@@ -214,37 +217,29 @@ async function uploadFromLocalFile() {
 	console.log(`📝 Created local file: ${filePath}`);
 
 	// Read file and upload
+	const bucketName = "file-operations-bucket";
+	const objectKey = `uploads/${fileName}`;
 	try {
 		const fileBuffer = readFileSync(filePath);
-		const bucketName = "file-operations-bucket";
+		await blob.upload({
+			bucket: bucketName,
+			key: objectKey,
+			data: fileBuffer,
+			contentType: "text/plain",
+		});
+		console.log("✅ Local file uploaded successfully");
 
-		const uploadResult = await blob.upload(
-			bucketName,
-			`uploads/${fileName}`,
-			fileBuffer,
-			"text/plain",
+		// Verify by downloading
+		const downloaded = await blob.download({
+			bucket: bucketName,
+			key: objectKey,
+		});
+		console.log(
+			"✅ Upload verified - content matches:",
+			(await downloaded.text()) === fileContent,
 		);
-
-		if (uploadResult.error) {
-			console.error("❌ Local file upload failed:", uploadResult.error.message);
-		} else {
-			console.log("✅ Local file uploaded successfully");
-
-			// Verify by downloading
-			const downloadResult = await blob.download(
-				bucketName,
-				`uploads/${fileName}`,
-			);
-			if (!downloadResult.error) {
-				const downloadedContent = await downloadResult.data?.text();
-				console.log(
-					"✅ Upload verified - content matches:",
-					downloadedContent === fileContent,
-				);
-			}
-		}
 	} catch (error) {
-		console.error("❌ File system error:", error);
+		console.error("❌ Local file upload or verification failed:", error);
 	}
 }
 
@@ -256,16 +251,12 @@ async function downloadToLocalFile() {
 	const sourceKey = "text-files/sample.txt";
 	const localPath = "/tmp/downloaded-file.txt";
 
-	const downloadResult = await blob.download(bucketName, sourceKey);
-
-	if (downloadResult.error) {
-		console.error("❌ Download failed:", downloadResult.error.message);
-		return;
-	}
-
 	try {
-		const arrayBuffer = await downloadResult.data?.arrayBuffer();
-		const buffer = Buffer.from(arrayBuffer);
+		const downloaded = await blob.download({
+			bucket: bucketName,
+			key: sourceKey,
+		});
+		const buffer = Buffer.from(await downloaded.arrayBuffer());
 		writeFileSync(localPath, buffer);
 
 		console.log(`✅ File downloaded and saved to: ${localPath}`);
@@ -277,7 +268,7 @@ async function downloadToLocalFile() {
 			`${savedContent.substring(0, 50)}...`,
 		);
 	} catch (error) {
-		console.error("❌ Local save error:", error);
+		console.error("❌ Download or local save failed:", error);
 	}
 }
 
@@ -304,15 +295,20 @@ async function batchOperations() {
 		},
 	];
 
-	// Batch upload
+	// Batch upload. Promise.allSettled keeps going when one call throws.
 	console.log("📤 Batch uploading files...");
-	const uploadPromises = files.map((file) =>
-		blob.upload(bucketName, file.key, file.content, file.type),
+	const uploadResults = await Promise.allSettled(
+		files.map((file) =>
+			blob.upload({
+				bucket: bucketName,
+				key: file.key,
+				data: encoder.encode(file.content),
+				contentType: file.type,
+			}),
+		),
 	);
-
-	const uploadResults = await Promise.all(uploadPromises);
 	const successfulUploads = uploadResults.filter(
-		(result) => !result.error,
+		(result) => result.status === "fulfilled",
 	).length;
 	console.log(
 		`✅ ${successfulUploads}/${files.length} files uploaded successfully`,
@@ -320,26 +316,25 @@ async function batchOperations() {
 
 	// List uploaded files
 	console.log("\n📋 Listing batch files...");
-	const listResult = await blob.list(bucketName, "batch/");
-
-	if (!listResult.error) {
+	try {
+		const listed = await blob.list({ bucket: bucketName, prefix: "batch/" });
 		console.log(
-			`Found ${listResult.data?.objects.length} files in batch/ directory:`,
+			`Found ${listed.objects.length} files in batch/ directory:`,
 		);
-		listResult.data?.objects.forEach((obj: any) => {
+		listed.objects.forEach((obj) => {
 			console.log(`  - ${obj.key} (${obj.size} bytes)`);
 		});
+	} catch (error) {
+		console.error("❌ List failed:", error);
 	}
 
 	// Batch download
 	console.log("\n📥 Batch downloading files...");
-	const downloadPromises = files.map((file) =>
-		blob.download(bucketName, file.key),
+	const downloadResults = await Promise.allSettled(
+		files.map((file) => blob.download({ bucket: bucketName, key: file.key })),
 	);
-
-	const downloadResults = await Promise.all(downloadPromises);
 	const successfulDownloads = downloadResults.filter(
-		(result) => !result.error,
+		(result) => result.status === "fulfilled",
 	).length;
 	console.log(
 		`✅ ${successfulDownloads}/${files.length} files downloaded successfully`,
@@ -347,13 +342,11 @@ async function batchOperations() {
 
 	// Batch cleanup
 	console.log("\n🗑️ Batch cleaning up files...");
-	const deletePromises = files.map((file) =>
-		blob.delete(bucketName, file.key),
+	const deleteResults = await Promise.allSettled(
+		files.map((file) => blob.delete({ bucket: bucketName, key: file.key })),
 	);
-
-	const deleteResults = await Promise.all(deletePromises);
 	const successfulDeletes = deleteResults.filter(
-		(result) => !result.error,
+		(result) => result.status === "fulfilled",
 	).length;
 	console.log(
 		`✅ ${successfulDeletes}/${files.length} files deleted successfully`,
@@ -372,11 +365,9 @@ async function cleanup(bucketName: string) {
 		"uploads/temp-upload.txt",
 	];
 
-	const deletePromises = filesToDelete.map((file) =>
-		blob.delete(bucketName, file),
+	await Promise.all(
+		filesToDelete.map((key) => blob.delete({ bucket: bucketName, key })),
 	);
-
-	await Promise.all(deletePromises);
 	console.log("✅ Cleanup completed");
 }
 

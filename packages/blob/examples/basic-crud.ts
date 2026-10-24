@@ -2,88 +2,61 @@
  * Basic CRUD Operations Example
  *
  * This example demonstrates the fundamental create, read, update, and delete
- * operations using the Frontal Storage SDK.
+ * operations using the Frontal Blob SDK. Methods return their results directly
+ * and throw a FrontalError on failure.
  */
 
 import { blob } from "@frontal-labs/blob";
 
-// Initialize the storage client
 // Use the default blob singleton
 
 async function basicCrudExample() {
 	const bucketName = "my-app-bucket";
 	const objectKey = "documents/report.txt";
-	const content = "This is a sample document content.";
 
 	console.log("🚀 Starting Basic CRUD Operations Example\n");
 
 	// CREATE: Upload a new object
 	console.log("📝 Creating object...");
-	const uploadResult = await blob.upload(
-		bucketName,
-		objectKey,
-		content,
-		"text/plain",
-	);
-
-	if (uploadResult.error) {
-		console.error("❌ Upload failed:", uploadResult.error.message);
-		return;
-	}
+	await blob.upload({
+		bucket: bucketName,
+		key: objectKey,
+		data: new TextEncoder().encode("This is a sample document content."),
+		contentType: "text/plain",
+	});
 	console.log("✅ Object uploaded successfully");
 
 	// READ: Download the object
 	console.log("\n📖 Reading object...");
-	const downloadResult = await blob.download(bucketName, objectKey);
-
-	if (downloadResult.error) {
-		console.error("❌ Download failed:", downloadResult.error.message);
-		return;
-	}
-
-	const downloadedContent = await downloadResult.data?.text();
+	const downloaded = await blob.download({ bucket: bucketName, key: objectKey });
 	console.log("✅ Object downloaded successfully");
-	console.log("Content:", downloadedContent);
+	console.log("Content:", await downloaded.text());
 
-	// UPDATE: Upload new content to the same key
+	// UPDATE: Upload new content to the same key (overwrites the object)
 	console.log("\n✏️ Updating object...");
-	const updatedContent = "This is the updated document content.";
-	const updateResult = await blob.upload(
-		bucketName,
-		objectKey,
-		updatedContent,
-		"text/plain",
-	);
-
-	if (updateResult.error) {
-		console.error("❌ Update failed:", updateResult.error.message);
-		return;
-	}
+	await blob.upload({
+		bucket: bucketName,
+		key: objectKey,
+		data: new TextEncoder().encode("This is the updated document content."),
+		contentType: "text/plain",
+	});
 	console.log("✅ Object updated successfully");
 
 	// Verify the update
-	const verifyResult = await blob.download(bucketName, objectKey);
-	if (!verifyResult.error) {
-		const verifyContent = await verifyResult.data?.text();
-		console.log("Updated content:", verifyContent);
-	}
+	const verified = await blob.download({ bucket: bucketName, key: objectKey });
+	console.log("Updated content:", await verified.text());
 
 	// DELETE: Remove the object
 	console.log("\n🗑️ Deleting object...");
-	const deleteResult = await blob.delete(bucketName, objectKey);
-
-	if (deleteResult.error) {
-		console.error("❌ Delete failed:", deleteResult.error.message);
-		return;
-	}
+	await blob.delete({ bucket: bucketName, key: objectKey });
 	console.log("✅ Object deleted successfully");
 
-	// Verify deletion
-	const verifyDeletion = await blob.download(bucketName, objectKey);
-	if (verifyDeletion.error) {
-		console.log("✅ Deletion verified - object no longer exists");
-	} else {
+	// Verify deletion: a download of a missing object throws a FrontalError
+	try {
+		await blob.download({ bucket: bucketName, key: objectKey });
 		console.log("⚠️ Warning: Object still exists after deletion");
+	} catch {
+		console.log("✅ Deletion verified - object no longer exists");
 	}
 }
 
@@ -94,35 +67,29 @@ async function listObjectsExample() {
 	console.log("\n📋 Listing Objects Example");
 
 	// Upload some test objects first
-	await blob.upload(
-		bucketName,
-		"docs/README.md",
-		"# README",
-		"text/markdown",
-	);
-	await blob.upload(
-		bucketName,
-		"docs/config.json",
-		'{"version": "1.0"}',
-		"application/json",
-	);
-	await blob.upload(
-		bucketName,
-		"images/logo.png",
-		new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
-		"image/png",
-	);
+	await blob.upload({
+		bucket: bucketName,
+		key: "docs/README.md",
+		data: new TextEncoder().encode("# README"),
+		contentType: "text/markdown",
+	});
+	await blob.upload({
+		bucket: bucketName,
+		key: "docs/config.json",
+		data: new TextEncoder().encode('{"version": "1.0"}'),
+		contentType: "application/json",
+	});
+	await blob.upload({
+		bucket: bucketName,
+		key: "images/logo.png",
+		data: new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+		contentType: "image/png",
+	});
 
 	// List all objects
 	console.log("\n📁 All objects in bucket:");
-	const listResult = await blob.list(bucketName);
-
-	if (listResult.error) {
-		console.error("❌ List failed:", listResult.error.message);
-		return;
-	}
-
-	listResult.data?.objects.forEach((obj, index) => {
+	const all = await blob.list({ bucket: bucketName });
+	all.objects.forEach((obj, index) => {
 		console.log(
 			`${index + 1}. ${obj.key} (${obj.size} bytes, ${obj.contentType})`,
 		);
@@ -130,20 +97,17 @@ async function listObjectsExample() {
 
 	// List objects with prefix
 	console.log("\n📁 Objects with 'docs/' prefix:");
-	const docsResult = await blob.list(bucketName, "docs/");
-
-	if (!docsResult.error) {
-		docsResult.data?.objects.forEach((obj, index) => {
-			console.log(
-				`${index + 1}. ${obj.key} (${obj.size} bytes, ${obj.contentType})`,
-			);
-		});
-	}
+	const docs = await blob.list({ bucket: bucketName, prefix: "docs/" });
+	docs.objects.forEach((obj, index) => {
+		console.log(
+			`${index + 1}. ${obj.key} (${obj.size} bytes, ${obj.contentType})`,
+		);
+	});
 
 	// Clean up
-	await blob.delete(bucketName, "docs/README.md");
-	await blob.delete(bucketName, "docs/config.json");
-	await blob.delete(bucketName, "images/logo.png");
+	await blob.delete({ bucket: bucketName, key: "docs/README.md" });
+	await blob.delete({ bucket: bucketName, key: "docs/config.json" });
+	await blob.delete({ bucket: bucketName, key: "images/logo.png" });
 }
 
 // Copy and move operations
@@ -156,56 +120,50 @@ async function copyMoveExample() {
 	console.log("\n🔄 Copy and Move Operations Example");
 
 	// Upload source file
-	await blob.upload(bucketName, sourceKey, "Original content", "text/plain");
+	await blob.upload({
+		bucket: bucketName,
+		key: sourceKey,
+		data: new TextEncoder().encode("Original content"),
+		contentType: "text/plain",
+	});
 
 	// Copy operation
 	console.log("📋 Copying object...");
-	const copyResult = await blob.copyObject(
-		bucketName,
+	await blob.copyObject({
+		sourceBucket: bucketName,
 		sourceKey,
-		bucketName,
+		destBucket: bucketName,
 		destKey,
-	);
-
-	if (copyResult.error) {
-		console.error("❌ Copy failed:", copyResult.error.message);
-		return;
-	}
+	});
 	console.log("✅ Object copied successfully");
 
 	// Move operation
 	console.log("➡️ Moving object...");
-	const moveResult = await blob.moveObject(
-		bucketName,
-		destKey,
-		bucketName,
-		movedKey,
-	);
-
-	if (moveResult.error) {
-		console.error("❌ Move failed:", moveResult.error.message);
-		return;
-	}
+	await blob.moveObject({
+		sourceBucket: bucketName,
+		sourceKey: destKey,
+		destBucket: bucketName,
+		destKey: movedKey,
+	});
 	console.log("✅ Object moved successfully");
 
-	// Verify operations
-	const originalExists = !(await storage
-		.download(bucketName, sourceKey)
-		.then((r) => r.error));
-	const copiedExists = !(await storage
-		.download(bucketName, destKey)
-		.then((r) => r.error));
-	const movedExists = !(await storage
-		.download(bucketName, movedKey)
-		.then((r) => r.error));
+	// Verify operations with getMetadata, which throws when the object is missing
+	const exists = async (key: string) => {
+		try {
+			await blob.getMetadata({ bucket: bucketName, key });
+			return true;
+		} catch {
+			return false;
+		}
+	};
 
-	console.log(`Original "${sourceKey}" exists: ${originalExists}`);
-	console.log(`Copied "${destKey}" exists: ${copiedExists}`);
-	console.log(`Moved "${movedKey}" exists: ${movedExists}`);
+	console.log(`Original "${sourceKey}" exists: ${await exists(sourceKey)}`);
+	console.log(`Copied "${destKey}" exists: ${await exists(destKey)}`);
+	console.log(`Moved "${movedKey}" exists: ${await exists(movedKey)}`);
 
 	// Clean up
-	await blob.delete(bucketName, sourceKey);
-	await blob.delete(bucketName, movedKey);
+	await blob.delete({ bucket: bucketName, key: sourceKey });
+	await blob.delete({ bucket: bucketName, key: movedKey });
 }
 
 // Run all examples
