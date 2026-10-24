@@ -434,7 +434,9 @@ type ClientConfigOutput = z.output<typeof clientConfigSchema>
 
 ### APIResponse
 
-Standard API response structure.
+Envelope type exported for compatibility. It is still exported from
+`@frontal-labs/core` and re-exported by `@frontal-labs/ai` and
+`@frontal-labs/blob`, but nothing in the SDK produces it.
 
 ```typescript
 interface APIResponse<T> {
@@ -443,6 +445,13 @@ interface APIResponse<T> {
   headers: Record<string, string> | null
 }
 ```
+
+SDK methods return results directly and throw on failure. `HttpClient` methods
+(`get`, `post`, `put`, `patch`, `delete`) resolve to the parsed response body,
+and failures throw a `FrontalError` (or a subclass such as `NotFoundError` or
+`RateLimitError`). Do not branch on an `error` field, and do not read `.data`
+from a result. Use `APIResponse<T>` only when a type annotation must match an
+existing envelope-shaped contract.
 
 ### PageResult
 
