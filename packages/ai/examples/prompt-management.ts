@@ -50,22 +50,15 @@ async function promptManagementExample() {
 
 		const retrievedPrompt = ai.getPrompt("welcome-message");
 
-		if (retrievedPrompt.error) {
-			console.error(
-				"❌ Error retrieving prompt:",
-				retrievedPrompt.error.message,
-			);
-		} else {
-			console.log("✅ Retrieved prompt:");
-			console.log("   Name:", retrievedPrompt.data.name);
-			console.log("   Template:", retrievedPrompt.data.template);
+		console.log("✅ Retrieved prompt:");
+		console.log("   Name:", retrievedPrompt.name);
+		console.log("   Template:", retrievedPrompt.template);
 
-			// Simulate filling the template
-			const filledTemplate = retrievedPrompt.data.template
-				.replace("{name}", "Alice")
-				.replace("{service}", "the AI Assistant");
-			console.log("   Filled template:", filledTemplate);
-		}
+		// Simulate filling the template
+		const filledTemplate = retrievedPrompt.template
+			.replace("{name}", "Alice")
+			.replace("{service}", "the AI Assistant");
+		console.log("   Filled template:", filledTemplate);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -83,13 +76,9 @@ async function promptManagementExample() {
 			},
 		});
 
-		if (updatedPrompt.error) {
-			console.error("❌ Error updating prompt:", updatedPrompt.error.message);
-		} else {
-			console.log("✅ Updated prompt:");
-			console.log("   New template:", updatedPrompt.data.template);
-			console.log("   Version:", updatedPrompt.data.metadata?.version);
-		}
+		console.log("✅ Updated prompt:");
+		console.log("   New template:", updatedPrompt.template);
+		console.log("   Version:", updatedPrompt.metadata?.version);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -186,13 +175,13 @@ Please provide insights and recommendations.
 		const promptChain = ai.chainPrompts(
 			summarizationPrompt,
 			sentimentPrompt,
-			recommendationPrompt,
+			recommendationPrompt
 		);
 
 		console.log(
 			"✅ Created prompt chain with",
 			promptChain.prompts.length,
-			"prompts:",
+			"prompts:"
 		);
 		promptChain.prompts.forEach((prompt, index) => {
 			console.log(`   ${index + 1}. ${prompt.name}`);
@@ -347,7 +336,7 @@ Next Steps:
 				nextSteps: { type: "string", description: "Next steps" },
 			},
 		},
-	];
+	] as const;
 
 	for (const useCase of useCases) {
 		const _prompt = ai.createPrompt({
@@ -401,12 +390,8 @@ async function promptVersioningExample() {
 		},
 	});
 
-	if (v2Prompt.error) {
-		console.error("❌ Error updating to v2.0:", v2Prompt.error.message);
-	} else {
-		console.log("✅ Updated to v2.0 prompt");
-		console.log("   New variables:", Object.keys(v2Prompt.data.variables));
-	}
+	console.log("✅ Updated to v2.0 prompt");
+	console.log("   New variables:", Object.keys(v2Prompt.variables));
 
 	// Version 3.0 - Added audience and purpose
 	const v3Prompt = ai.updatePrompt("content-generator", {
@@ -435,12 +420,8 @@ Format: {format}
 		},
 	});
 
-	if (v3Prompt.error) {
-		console.error("❌ Error updating to v3.0:", v3Prompt.error.message);
-	} else {
-		console.log("✅ Updated to v3.0 prompt");
-		console.log("   Final variables:", Object.keys(v3Prompt.data.variables));
-	}
+	console.log("✅ Updated to v3.0 prompt");
+	console.log("   Final variables:", Object.keys(v3Prompt.variables));
 }
 
 // Run the examples

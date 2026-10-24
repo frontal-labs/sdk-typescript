@@ -1,41 +1,43 @@
 # AI Integration Guide
 
-This guide provides in-depth information on using the `@frontal-labs/ai` package to build intelligent applications.
+This guide shows how to use the `@frontal-labs/ai` package to build intelligent applications.
 
 ## Table of Contents
 
 1. [Authentication](#authentication)
 2. [Text Generation](#text-generation)
 3. [Structured Output](#structured-output)
-4. [Multimodal (Image, Voice, Video)](#multimodal)
-5. [Transcription & Moderation](#transcription--moderation)
-6. [Prompt Management](#prompt-management)
-7. [Tool Usage](#tool-usage)
+4. [Embeddings](#embeddings)
+5. [Multimodal (Image, Voice, Video)](#multimodal)
+6. [Transcription & Moderation](#transcription--moderation)
+7. [Prompt Management](#prompt-management)
+8. [Tool Usage](#tool-usage)
+9. [Errors](#errors)
 
 ## Authentication
 
-The AI client requires a Frontal API Key.
+The AI client requires a Frontal API key.
 
 ```typescript
-import { AI } from '@frontal-labs/ai';
+import { createAIClient } from '@frontal-labs/ai';
 
-const ai = new AI({ apiKey: process.env.FRONTAL_API_KEY });
+const ai = createAIClient({ apiKey: process.env.FRONTAL_API_KEY! });
 ```
+
+Methods return their results directly. Failures throw (see [Errors](#errors)), so there is no `result.data` or `result.error` to check.
 
 ## Text Generation
 
 Use `generateText` for standard LLM interactions.
 
 ```typescript
-const result = await ai.generateText({
+const { text, usage } = await ai.generateText({
   model: 'gpt-4o',
   prompt: 'Explain quantum entanglement simply.',
   temperature: 0.7,
 });
 
-if (result.data) {
-  console.log(result.data.text);
-}
+console.log(text, usage.totalTokens);
 ```
 
 ### Streaming
@@ -55,7 +57,7 @@ for await (const chunk of textStream) {
 
 ## Structured Output
 
-Generate JSON that strictly follows a Zod schema.
+Generate JSON that follows a Zod schema. The result is validated before it is returned.
 
 ```typescript
 import { z } from "zod";
@@ -66,59 +68,84 @@ const UserSchema = z.object({
   age: z.number(),
 });
 
-const result = await ai.generateObject({
+const { object } = await ai.generateObject({
   model: 'gpt-4o',
   prompt: 'Generate a fictional user profile.',
   schema: UserSchema,
+  maxRetries: 2,
 });
 
-console.log(result.data?.object); // Typed as { name: string, bio: string, age: number }
+console.log(object); // Typed as { name: string, bio: string, age: number }
+```
+
+## Embeddings
+
+`embed` takes one string or an array and returns vectors in input order.
+
+```typescript
+const { embeddings, usage } = await ai.embed({
+  model: 'text-embedding-3-small',
+  input: ['How to reset account password', 'Billing history export'],
+});
+
+console.log(embeddings[0].length, usage.totalTokens);
+```
+
+There is no default embedding model, so always pass `model`. To reorder search results with a reranker:
+
+```typescript
+const { scores } = await ai.rerank({
+  model: reranker, // from ai.getDefaultModels()
+  query: 'reset password',
+  documents: ['Account settings', 'Password reset steps'],
+  topK: 1,
+});
 ```
 
 ## Multimodal
 
 ### Image Generation
 ```typescript
-const image = await ai.generateImage({
+const { images } = await ai.generateImage({
   prompt: "A cyberpunk city at night",
   model: "dall-e-3",
   size: "1024x1024"
 });
-console.log(image.data?.images[0].url);
+console.log(images[0].url);
 ```
 
 ### Speech Generation (TTS)
 ```typescript
-const speech = await ai.generateSpeech({
+const audio = await ai.generateSpeech({
   text: "Hello from Frontal AI",
   voice: "alloy"
 });
-// result.data is an ArrayBuffer
+// audio is an ArrayBuffer
 ```
 
 ## Transcription & Moderation
 
 ### Audio Transcription
 ```typescript
-const transcript = await ai.transcribe({
+const { text } = await ai.transcribe({
   file: myAudioFile, // File or Blob
   model: "whisper-1"
 });
-console.log(transcript.data?.text);
+console.log(text);
 ```
 
 ### Content Moderation
 Check if text violates safety policies.
 ```typescript
-const mod = await ai.moderate({ input: "Some user content" });
-if (mod.data?.results[0].flagged) {
+const { results } = await ai.moderate({ input: "Some user content" });
+if (results[0].flagged) {
   console.warn("Content flagged!");
 }
 ```
 
 ## Prompt Management
 
-Manage templates centrally.
+Prompt templates are kept in client memory. They are not stored on the server.
 
 ```typescript
 // Create
@@ -128,27 +155,52 @@ ai.createPrompt({
   variables: { name: { type: "string" } }
 });
 
-// Use (check response.error)
-const response = ai.getPrompt("welcome-email");
-if (response.error) throw new Error(response.error.message);
-const template = response.data;
+// Use. Throws if the name is unknown.
+const template = ai.getPrompt("welcome-email");
 // Combine with generateText...
 ```
 
 ## Tool Usage
 
-Define and execute tools.
+Define tools with `tool()` and pass them to `generateText`. With `maxSteps` greater than 1, the SDK runs the tools and asks the model again with the results.
 
 ```typescript
-const calcTool = ai.defineTool({
-  name: "add",
-  description: "Adds two numbers",
-  parameters: z.object({ a: z.number(), b: z.number() }),
-  execute: async ({ a, b }) => a + b
+import { tool } from "@frontal-labs/ai";
+import { z } from "zod";
+
+const { text } = await ai.generateText({
+  model: 'gpt-4o',
+  prompt: 'What is 10 + 5?',
+  tools: {
+    add: tool({
+      description: 'Adds two numbers',
+      inputSchema: z.object({ a: z.number(), b: z.number() }),
+      execute: async ({ a, b }) => a + b,
+    }),
+  },
+  maxSteps: 3,
 });
+```
 
-ai.registerTool(calcTool);
+Tools without `execute` are not run. Their calls come back in `toolCalls` so your code can run them.
 
-const result = await ai.executeTool("add", { a: 10, b: 5 });
-// Check result.error; result.data contains the return value
+## Errors
+
+Every method throws on failure:
+
+- `FrontalError` (from `@frontal-labs/core`) for API errors. Check `retryable` to decide whether to retry, and show `fix` when it is set.
+- `ZodError` for invalid options. These are thrown before any request is sent.
+
+```typescript
+import { FrontalError } from "@frontal-labs/core";
+
+try {
+  await ai.generateText({ model: 'gpt-4o', prompt: 'Hi' });
+} catch (err) {
+  if (err instanceof FrontalError) {
+    console.error(err.statusCode, err.code, err.fix ?? '');
+  } else {
+    throw err;
+  }
+}
 ```

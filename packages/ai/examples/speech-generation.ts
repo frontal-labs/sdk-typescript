@@ -22,16 +22,12 @@ async function speechGeneration() {
 			model: "tts-1",
 		});
 
-		if (result1.error) {
-			console.error("❌ Error:", result1.error.message);
-		} else {
-			console.log("✅ Speech generated successfully!");
-			console.log("📏 Audio size:", result1.data.byteLength, "bytes");
+		console.log("✅ Speech generated successfully!");
+		console.log("📏 Audio size:", result1.byteLength, "bytes");
 
-			// Save the audio to a file
-			writeFileSync("output1.mp3", Buffer.from(result1.data));
-			console.log("💾 Saved as output1.mp3");
-		}
+		// Save the audio to a file
+		writeFileSync("output1.mp3", Buffer.from(result1));
+		console.log("💾 Saved as output1.mp3");
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -46,14 +42,10 @@ async function speechGeneration() {
 				model: "tts-1",
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with ${voice}:`, result.error.message);
-			} else {
-				writeFileSync(`voice_${voice}.mp3`, Buffer.from(result.data));
-				console.log(
-					`✅ Generated ${voice} voice sample (${result.data.byteLength} bytes)`,
-				);
-			}
+			writeFileSync(`voice_${voice}.mp3`, Buffer.from(result));
+			console.log(
+				`✅ Generated ${voice} voice sample (${result.byteLength} bytes)`
+			);
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -70,15 +62,9 @@ async function speechGeneration() {
 				format: format,
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with ${format}:`, result.error.message);
-			} else {
-				const filename = `format_${format}.${format}`;
-				writeFileSync(filename, Buffer.from(result.data));
-				console.log(
-					`✅ Generated ${format} format (${result.data.byteLength} bytes)`,
-				);
-			}
+			const filename = `format_${format}.${format}`;
+			writeFileSync(filename, Buffer.from(result));
+			console.log(`✅ Generated ${format} format (${result.byteLength} bytes)`);
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -95,15 +81,9 @@ async function speechGeneration() {
 				speed: speed,
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with speed ${speed}:`, result.error.message);
-			} else {
-				const filename = `speed_${speed}x.mp3`;
-				writeFileSync(filename, Buffer.from(result.data));
-				console.log(
-					`✅ Generated ${speed}x speed (${result.data.byteLength} bytes)`,
-				);
-			}
+			const filename = `speed_${speed}x.mp3`;
+			writeFileSync(filename, Buffer.from(result));
+			console.log(`✅ Generated ${speed}x speed (${result.byteLength} bytes)`);
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -124,18 +104,14 @@ async function speechGeneration() {
 			model: "tts-1-hd", // Use HD model for better quality
 		});
 
-		if (result5.error) {
-			console.error("❌ Error:", result5.error.message);
-		} else {
-			writeFileSync("long_speech.mp3", Buffer.from(result5.data));
-			console.log("✅ Generated long speech sample");
-			console.log("📏 Audio size:", result5.data.byteLength, "bytes");
-			console.log(
-				"⏱️ Estimated duration:",
-				Math.round(result5.data.byteLength / 16000),
-				"seconds",
-			);
-		}
+		writeFileSync("long_speech.mp3", Buffer.from(result5));
+		console.log("✅ Generated long speech sample");
+		console.log("📏 Audio size:", result5.byteLength, "bytes");
+		console.log(
+			"⏱️ Estimated duration:",
+			Math.round(result5.byteLength / 16000),
+			"seconds"
+		);
 	} catch (error) {
 		console.error("❌ Unexpected error:", error);
 	}
@@ -160,15 +136,9 @@ async function multiLanguageExample() {
 			model: "tts-1",
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${lang}:`, result.error.message);
-		} else {
-			const filename = `multilang_${lang.toLowerCase()}.mp3`;
-			writeFileSync(filename, Buffer.from(result.data));
-			console.log(
-				`✅ Generated ${lang} speech (${result.data.byteLength} bytes)`,
-			);
-		}
+		const filename = `multilang_${lang.toLowerCase()}.mp3`;
+		writeFileSync(filename, Buffer.from(result));
+		console.log(`✅ Generated ${lang} speech (${result.byteLength} bytes)`);
 	}
 }
 
@@ -206,15 +176,9 @@ async function audioBookExample() {
 			speed: 0.9, // Slightly slower for better narration
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with paragraph ${i + 1}:`, result.error.message);
-		} else {
-			const filename = `chapter_01_part_${String(i + 1).padStart(2, "0")}.mp3`;
-			writeFileSync(filename, Buffer.from(result.data));
-			console.log(
-				`✅ Generated paragraph ${i + 1} (${result.data.byteLength} bytes)`,
-			);
-		}
+		const filename = `chapter_01_part_${String(i + 1).padStart(2, "0")}.mp3`;
+		writeFileSync(filename, Buffer.from(result));
+		console.log(`✅ Generated paragraph ${i + 1} (${result.byteLength} bytes)`);
 	}
 }
 
@@ -235,15 +199,11 @@ async function voiceCharacteristicsExample() {
 			model: "tts-1-hd",
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${voice}:`, result.error.message);
-		} else {
-			const filename = `voice_comparison_${voice}.mp3`;
-			writeFileSync(filename, Buffer.from(result.data));
-			console.log(
-				`✅ Generated ${voice} comparison sample (${result.data.byteLength} bytes)`,
-			);
-		}
+		const filename = `voice_comparison_${voice}.mp3`;
+		writeFileSync(filename, Buffer.from(result));
+		console.log(
+			`✅ Generated ${voice} comparison sample (${result.byteLength} bytes)`
+		);
 	}
 
 	console.log("\n📊 Voice characteristics:");

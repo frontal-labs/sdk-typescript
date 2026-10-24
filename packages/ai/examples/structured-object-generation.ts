@@ -38,7 +38,7 @@ const RecipeSchema = z.object({
 			name: z.string(),
 			amount: z.string(),
 			unit: z.string(),
-		}),
+		})
 	),
 	instructions: z.array(z.string()),
 	difficulty: z.enum(["easy", "medium", "hard"]),
@@ -57,13 +57,9 @@ async function structuredObjectGeneration() {
 			temperature: 0.7,
 		});
 
-		if (result1.error) {
-			console.error("❌ Error:", result1.error.message);
-		} else {
-			console.log("✅ Generated person:");
-			console.log(JSON.stringify(result1.data.object, null, 2));
-			console.log("📊 Usage:", result1.data.usage);
-		}
+		console.log("✅ Generated person:");
+		console.log(JSON.stringify(result1.object, null, 2));
+		console.log("📊 Usage:", result1.usage);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -76,13 +72,9 @@ async function structuredObjectGeneration() {
 			temperature: 0.5,
 		});
 
-		if (result2.error) {
-			console.error("❌ Error:", result2.error.message);
-		} else {
-			console.log("✅ Generated product:");
-			console.log(JSON.stringify(result2.data.object, null, 2));
-			console.log("📊 Usage:", result2.data.usage);
-		}
+		console.log("✅ Generated product:");
+		console.log(JSON.stringify(result2.object, null, 2));
+		console.log("📊 Usage:", result2.usage);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -95,13 +87,9 @@ async function structuredObjectGeneration() {
 			temperature: 0.6,
 		});
 
-		if (result3.error) {
-			console.error("❌ Error:", result3.error.message);
-		} else {
-			console.log("✅ Generated recipe:");
-			console.log(JSON.stringify(result3.data.object, null, 2));
-			console.log("📊 Usage:", result3.data.usage);
-		}
+		console.log("✅ Generated recipe:");
+		console.log(JSON.stringify(result3.object, null, 2));
+		console.log("📊 Usage:", result3.usage);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -119,7 +107,7 @@ async function structuredObjectGeneration() {
 							name: z.string(),
 							role: z.string(),
 							department: z.string(),
-						}),
+						})
 					),
 				}),
 			}),
@@ -127,13 +115,9 @@ async function structuredObjectGeneration() {
 			maxRetries: 3,
 		});
 
-		if (result4.error) {
-			console.error("❌ Error:", result4.error.message);
-		} else {
-			console.log("✅ Generated complex object:");
-			console.log(JSON.stringify(result4.data.object, null, 2));
-			console.log("📊 Usage:", result4.data.usage);
-		}
+		console.log("✅ Generated complex object:");
+		console.log(JSON.stringify(result4.object, null, 2));
+		console.log("📊 Usage:", result4.usage);
 	} catch (error) {
 		console.error("❌ Unexpected error:", error);
 	}
@@ -155,7 +139,7 @@ async function dynamicSchemaExample() {
 				type: z.enum(["string", "number", "boolean", "array"]),
 				required: z.boolean(),
 				description: z.string(),
-			}),
+			})
 		),
 	});
 
@@ -166,31 +150,19 @@ async function dynamicSchemaExample() {
 		temperature: 0.3,
 	});
 
-	if (schemaResult.error) {
-		console.error("❌ Error generating schema:", schemaResult.error.message);
-		return;
-	}
-
 	console.log("✅ Generated schema definition:");
-	console.log(JSON.stringify(schemaResult.data.object, null, 2));
+	console.log(JSON.stringify(schemaResult.object, null, 2));
 
 	// Now use the generated schema to create actual data
 	const sampleDataResult = await ai.generateObject({
 		model: "gpt-3.5-turbo",
 		prompt: "Generate sample customer feedback data based on the schema.",
-		schema: z.record(z.any()), // Use a flexible schema since we don't know the exact structure
+		schema: z.record(z.string(), z.any()), // Use a flexible schema since we don't know the exact structure
 		temperature: 0.7,
 	});
 
-	if (sampleDataResult.error) {
-		console.error(
-			"❌ Error generating sample data:",
-			sampleDataResult.error.message,
-		);
-	} else {
-		console.log("\n✅ Generated sample data:");
-		console.log(JSON.stringify(sampleDataResult.data.object, null, 2));
-	}
+	console.log("\n✅ Generated sample data:");
+	console.log(JSON.stringify(sampleDataResult.object, null, 2));
 }
 
 // Example: Data extraction and transformation
@@ -228,7 +200,7 @@ async function dataExtractionExample() {
 			z.object({
 				name: z.string(),
 				price: z.number(),
-			}),
+			})
 		),
 		shippingAddress: z.object({
 			street: z.string(),
@@ -248,13 +220,9 @@ async function dataExtractionExample() {
 		temperature: 0.2,
 	});
 
-	if (result.error) {
-		console.error("❌ Error:", result.error.message);
-	} else {
-		console.log("✅ Extracted order data:");
-		console.log(JSON.stringify(result.data.object, null, 2));
-		console.log("📊 Usage:", result.data.usage);
-	}
+	console.log("✅ Extracted order data:");
+	console.log(JSON.stringify(result.object, null, 2));
+	console.log("📊 Usage:", result.usage);
 }
 
 // Example: Validation with custom error handling
@@ -283,13 +251,8 @@ async function validationExample() {
 		maxRetries: 2,
 	});
 
-	if (result.error) {
-		console.log("❌ Failed after retries:", result.error.message);
-		console.log("This demonstrates the retry mechanism when validation fails.");
-	} else {
-		console.log("✅ Generated valid user profile:");
-		console.log(JSON.stringify(result.data.object, null, 2));
-	}
+	console.log("✅ Generated valid user profile:");
+	console.log(JSON.stringify(result.object, null, 2));
 }
 
 // Run the examples

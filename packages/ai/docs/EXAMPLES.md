@@ -17,26 +17,26 @@ This page contains practical examples and tutorials for using the Frontal AI SDK
 ### Simple Text Generation
 
 ```typescript
-import { generateText } from '@frontal-labs/ai';
+import { ai } from '@frontal-labs/ai';
 
-const response = await generateText({
+const response = await ai.generateText({
   model: 'frontal-ai-fast',
   prompt: 'What is artificial intelligence?',
   maxTokens: 100,
   temperature: 0.7
 });
 
-console.log(response.data?.text);
+console.log(response.text);
 ```
 
-### Using the AI Class
+### Using a Custom Client
 
 ```typescript
-import { AI } from '@frontal-labs/ai';
+import { createAIClient } from '@frontal-labs/ai';
 
-const ai = new AI({
+const ai = createAIClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.frontal.dev/v1'
+  baseUrl: 'https://ai.frontal.dev'
 });
 
 const result = await ai.generateText({
@@ -51,7 +51,7 @@ const result = await ai.generateText({
 ### Conversation Handling
 
 ```typescript
-import { generateText } from '@frontal-labs/ai';
+import { ai } from '@frontal-labs/ai';
 
 const messages = [
   { role: 'system', content: 'You are a helpful assistant.' },
@@ -60,7 +60,7 @@ const messages = [
   { role: 'user', content: 'What is its population?' }
 ];
 
-const response = await generateText({
+const response = await ai.generateText({
   model: 'frontal-ai-fast',
   messages,
   maxTokens: 50
@@ -71,7 +71,7 @@ const response = await generateText({
 
 ```typescript
 // Creative writing (high temperature)
-const creative = await generateText({
+const creative = await ai.generateText({
   model: 'frontal-ai-fast',
   prompt: 'Write a short story about time travel',
   temperature: 0.9,
@@ -79,7 +79,7 @@ const creative = await generateText({
 });
 
 // Factual responses (low temperature)
-const factual = await generateText({
+const factual = await ai.generateText({
   model: 'frontal-ai-fast',
   prompt: 'What are the primary colors?',
   temperature: 0.1,
@@ -105,7 +105,7 @@ const result = await ai.generateText({
 });
 
 // Check actual usage
-console.log(`Actual usage: ${result.data?.usage.totalTokens}`);
+console.log(`Actual usage: ${result.usage.totalTokens}`);
 ```
 
 ## Streaming
@@ -113,9 +113,9 @@ console.log(`Actual usage: ${result.data?.usage.totalTokens}`);
 ### Basic Streaming
 
 ```typescript
-import { streamText } from '@frontal-labs/ai';
+import { ai } from '@frontal-labs/ai';
 
-const stream = streamText({
+const stream = ai.streamText({
   model: 'frontal-ai-fast',
   prompt: 'Tell me a story',
   onChunk: (chunk) => {
@@ -134,7 +134,7 @@ console.log(`\nTotal tokens: ${usage.totalTokens}`);
 ### Streaming with UI Updates
 
 ```typescript
-import { streamText } from '@frontal-labs/ai';
+import { ai } from '@frontal-labs/ai';
 
 class ChatUI {
   private outputElement: HTMLElement;
@@ -145,7 +145,7 @@ class ChatUI {
   }
 
   async streamResponse(prompt: string) {
-    const stream = streamText({
+    const stream = ai.streamText({
       model: 'frontal-ai-fast',
       prompt,
       onChunk: (chunk) => {
@@ -168,11 +168,11 @@ class ChatUI {
 ### Streaming with Error Handling
 
 ```typescript
-import { streamText } from '@frontal-labs/ai';
+import { ai } from '@frontal-labs/ai';
 
 async function safeStream(prompt: string) {
   try {
-    const stream = streamText({
+    const stream = ai.streamText({
       model: 'frontal-ai-fast',
       prompt
     });
@@ -200,15 +200,15 @@ async function safeStream(prompt: string) {
 ### Single Text Embedding
 
 ```typescript
-import { embed } from '@frontal-labs/ai';
+import { ai } from '@frontal-labs/ai';
 
-const result = await embed({
-  model: 'text-embedding-ada-002',
+const result = await ai.embed({
+  model: 'text-embedding-3-small',
   input: 'Hello, world!'
 });
 
-console.log('Embedding:', result.data?.embeddings[0]);
-console.log('Tokens used:', result.data?.usage.totalTokens);
+console.log('Embedding:', result.embeddings[0]);
+console.log('Tokens used:', result.usage.totalTokens);
 ```
 
 ### Batch Embeddings
@@ -220,12 +220,12 @@ const texts = [
   'Birds fly in the sky'
 ];
 
-const result = await embed({
-  model: 'text-embedding-ada-002',
+const result = await ai.embed({
+  model: 'text-embedding-3-small',
   input: texts
 });
 
-result.data?.embeddings.forEach((embedding, index) => {
+result.embeddings.forEach((embedding, index) => {
   console.log(`Text ${index + 1}:`, embedding.slice(0, 5)); // Show first 5 values
 });
 ```
@@ -237,28 +237,21 @@ class SemanticSearch {
   private documents: Array<{ text: string; embedding: number[] }> = [];
 
   async addDocument(text: string) {
-    const result = await embed({
-      model: 'text-embedding-ada-002',
+    const { embeddings } = await ai.embed({
+      model: 'text-embedding-3-small',
       input: text
     });
 
-    if (result.data) {
-      this.documents.push({
-        text,
-        embedding: result.data.embeddings[0]
-      });
-    }
+    this.documents.push({ text, embedding: embeddings[0] });
   }
 
   async search(query: string, topK: number = 3) {
-    const queryResult = await embed({
-      model: 'text-embedding-ada-002',
+    const { embeddings } = await ai.embed({
+      model: 'text-embedding-3-small',
       input: query
     });
 
-    if (!queryResult.data) return [];
-
-    const queryEmbedding = queryResult.data.embeddings[0];
+    const queryEmbedding = embeddings[0];
     const similarities = this.documents.map(doc => ({
       text: doc.text,
       similarity: this.cosineSimilarity(queryEmbedding, doc.embedding)
@@ -300,12 +293,10 @@ const result = await ai.generateObject({
   temperature: 0.3
 });
 
-if (result.data) {
-  console.log('Generated person:', result.data.object);
-  // Type-safe access
-  console.log('Name:', result.data.object.name);
-  console.log('Hobbies:', result.data.object.hobbies.join(', '));
-}
+console.log('Generated person:', result.object);
+// Type-safe access
+console.log('Name:', result.object.name);
+console.log('Hobbies:', result.object.hobbies.join(', '));
 ```
 
 ### Complex Object Generation
@@ -352,9 +343,7 @@ async function generateWithRetry<T>(
         maxRetries: 0 // We handle retries manually
       });
 
-      if (result.data) {
-        return result.data.object;
-      }
+      return result.object;
     } catch (error) {
       console.warn(`Attempt ${attempt} failed:`, error);
       if (attempt === maxRetries) throw error;
@@ -383,15 +372,13 @@ const audioBuffer = await ai.generateSpeech({
   format: 'mp3'
 });
 
-if (audioBuffer.data) {
-  // Save to file or play in browser
-  const blob = new Blob([audioBuffer.data], { type: 'audio/mpeg' });
-  const url = URL.createObjectURL(blob);
-  
-  // Play in browser
-  const audio = new Audio(url);
-  audio.play();
-}
+// Save to file or play in browser
+const blob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+const url = URL.createObjectURL(blob);
+
+// Play in browser
+const audio = new Audio(url);
+audio.play();
 ```
 
 ### Image Generation
@@ -406,14 +393,13 @@ const imageResult = await ai.generateImage({
   n: 2
 });
 
-if (imageResult.data) {
-  imageResult.data.images.forEach((image, index) => {
+imageResult.images.forEach((image, index) => {
     if (image.url) {
       console.log(`Image ${index + 1}: ${image.url}`);
-    } else if (image.b64_json) {
+    } else if (image.b64Json) {
       // Convert base64 to blob
       const blob = new Blob([
-        Buffer.from(image.b64_json, 'base64')
+        Buffer.from(image.b64Json, 'base64')
       ], { type: 'image/png' });
       console.log(`Image ${index + 1} created as blob`);
     }
@@ -435,10 +421,10 @@ if (file) {
     file,
     model: 'whisper-1',
     language: 'en',
-    response_format: 'json'
+    responseFormat: 'json'
   });
 
-  console.log('Transcription:', transcription.data?.text);
+  console.log('Transcription:', transcription.text);
 }
 ```
 
@@ -451,15 +437,11 @@ async function moderateContent(text: string): Promise<boolean> {
     model: 'text-moderation-latest'
   });
 
-  if (result.data) {
-    const flagged = result.data.results[0]?.flagged || false;
-    if (flagged) {
-      console.log('Content flagged:', result.data.results[0]?.categories);
-    }
-    return flagged;
+  const flagged = result.results[0]?.flagged || false;
+  if (flagged) {
+    console.log('Content flagged:', result.results[0]?.categories);
   }
-
-  return false;
+  return flagged;
 }
 
 // Usage
@@ -474,34 +456,36 @@ if (isFlagged) {
 ### Tool System
 
 ```typescript
-import { ai, z } from '@frontal-labs/ai';
+import { ai, tool } from '@frontal-labs/ai';
+import { z } from 'zod';
 
-// Define a tool
-const weatherTool = ai.defineTool({
-  name: 'get_weather',
-  description: 'Get current weather for a location',
-  parameters: z.object({
-    location: z.string(),
-    units: z.enum(['celsius', 'fahrenheit']).default('celsius')
-  }),
-  execute: async ({ location, units }) => {
-    // Call weather API
-    const response = await fetch(
-      `https://api.weather.com/weather?q=${location}&units=${units}`
-    );
-    return response.json();
-  }
-});
+// Define a tool. Keys in the ToolSet are the names the model sees.
+const tools = {
+  get_weather: tool({
+    description: 'Get current weather for a location',
+    inputSchema: z.object({
+      location: z.string(),
+      units: z.enum(['celsius', 'fahrenheit']).default('celsius')
+    }),
+    execute: async ({ location, units }) => {
+      // Call weather API
+      const response = await fetch(
+        `https://api.weather.com/weather?q=${location}&units=${units}`
+      );
+      return response.json();
+    }
+  })
+};
 
-// Register the tool
-ai.registerTool(weatherTool);
-
-// Use in conversation
-const result = await ai.generateText({
-  model: 'frontal-ai-fast',
+// Let the SDK run tools and feed results back to the model (up to 3 calls)
+const { text } = await ai.generateText({
+  model: 'gpt-4o-mini',
   prompt: 'What is the weather like in New York?',
-  tools: [weatherTool]
+  tools,
+  maxSteps: 3
 });
+
+console.log(text);
 ```
 
 ### Prompt Management
@@ -545,32 +529,24 @@ const result = await ai.generateText({
 
 ```typescript
 class RobustAIClient {
-  constructor(private ai: AI) {}
+  constructor(private ai: AISdk) {}
 
   async generateWithRetry(
     options: GenerateTextOptions,
     maxRetries: number = 3
-  ): Promise<APIResponse<GenerateTextResult>> {
+  ): Promise<GenerateTextResult> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const result = await this.ai.generateText(options);
-        
-        if (result.error) {
-          // Retry on server errors
-          if (result.error.statusCode >= 500) {
-            lastError = new Error(result.error.message);
-            await this.delay(Math.pow(2, attempt) * 1000); // Exponential backoff
-            continue;
-          }
-        }
-        
-        return result;
+        return await this.ai.generateText(options);
       } catch (error) {
         lastError = error as Error;
+        // Retry only on errors the gateway marks as retryable
+        const retryable = error instanceof FrontalError ? error.retryable : false;
+        if (!retryable) throw error;
         if (attempt < maxRetries) {
-          await this.delay(Math.pow(2, attempt) * 1000);
+          await this.delay(Math.pow(2, attempt) * 1000); // Exponential backoff
         }
       }
     }
@@ -594,23 +570,19 @@ class CostTracker {
   async trackGeneration(options: GenerateTextOptions): Promise<string> {
     const result = await ai.generateText(options);
     
-    if (result.data) {
-      const cost = ai.estimateCost({
-        model: options.model,
-        inputTokens: result.data.usage.promptTokens,
-        outputTokens: result.data.usage.completionTokens
-      });
+    const cost = ai.estimateCost({
+      model: options.model,
+      inputTokens: result.usage.promptTokens,
+      outputTokens: result.usage.completionTokens
+    });
 
-      this.totalCost += cost;
-      this.requestCount++;
+    this.totalCost += cost;
+    this.requestCount++;
 
-      console.log(`Request ${this.requestCount}: $${cost.toFixed(6)}`);
-      console.log(`Total cost: $${this.totalCost.toFixed(6)}`);
-      
-      return result.data.text;
-    }
+    console.log(`Request ${this.requestCount}: $${cost.toFixed(6)}`);
+    console.log(`Total cost: $${this.totalCost.toFixed(6)}`);
 
-    throw new Error('Generation failed');
+    return result.text;
   }
 
   getTotalCost(): number {
@@ -645,9 +617,7 @@ async function processBatch(
         ...options
       });
 
-      if (result.data) {
-        results[index] = result.data.text;
-      }
+      results[index] = result.text;
     } finally {
       semaphore.release();
     }

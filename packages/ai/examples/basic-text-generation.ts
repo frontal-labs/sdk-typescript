@@ -5,6 +5,7 @@
  * for simple text generation using large language models.
  */
 
+import { FrontalError } from "@frontal-labs/core";
 import { ai } from "../src";
 
 // Initialize the AI client
@@ -23,13 +24,9 @@ async function basicTextGeneration() {
 			temperature: 0.7,
 		});
 
-		if (result1.error) {
-			console.error("[ERROR] Error:", result1.error.message);
-		} else {
-			console.log("[SUCCESS] Generated text:", result1.data.text);
-			console.log("[USAGE] Usage:", result1.data.usage);
-			console.log("[FINISH] Finish reason:", result1.data.finishReason);
-		}
+		console.log("[SUCCESS] Generated text:", result1.text);
+		console.log("[USAGE] Usage:", result1.usage);
+		console.log("[FINISH] Finish reason:", result1.finishReason);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -47,12 +44,8 @@ async function basicTextGeneration() {
 			temperature: 0.3,
 		});
 
-		if (result2.error) {
-			console.error("[ERROR] Error:", result2.error.message);
-		} else {
-			console.log("[SUCCESS] Response:", result2.data.text);
-			console.log("[USAGE] Usage:", result2.data.usage);
-		}
+		console.log("[SUCCESS] Response:", result2.text);
+		console.log("[USAGE] Usage:", result2.usage);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -69,14 +62,14 @@ async function basicTextGeneration() {
 			stopSequences: ["6.", "6)"],
 		});
 
-		if (result3.error) {
-			console.error("[ERROR] Error:", result3.error.message);
+		console.log("[SUCCESS] Generated list:", result3.text);
+		console.log("[USAGE] Usage:", result3.usage);
+	} catch (err) {
+		if (err instanceof FrontalError) {
+			console.error("[ERROR]", err.statusCode, err.message, err.fix ?? "");
 		} else {
-			console.log("[SUCCESS] Generated list:", result3.data.text);
-			console.log("[USAGE] Usage:", result3.data.usage);
+			throw err;
 		}
-	} catch (error) {
-		console.error("[ERROR] Unexpected error:", error);
 	}
 }
 

@@ -128,11 +128,19 @@ node examples/basic-text-generation.ts
 ## Best Practices
 
 ### Error Handling
-All examples include comprehensive error handling:
+Methods return their result directly (for example `{ embeddings, usage }` from `ai.embed()`). Failures are thrown as `FrontalError` (from `@frontal-labs/core`) or as a `ZodError` for invalid input:
 ```typescript
-if (result.error) {
-  console.error("❌ Error:", result.error.message);
-  return;
+import { FrontalError } from "@frontal-labs/core";
+
+try {
+  const { embeddings } = await ai.embed({
+    model: "text-embedding-3-small",
+    input: "Hello world",
+  });
+  console.log(embeddings[0].length);
+} catch (err) {
+  if (err instanceof FrontalError) console.error(err.statusCode, err.message, err.fix ?? "");
+  else throw err;
 }
 ```
 
@@ -151,13 +159,15 @@ Examples leverage TypeScript for type safety:
 
 ### 1. Initialization
 ```typescript
-import { AI } from "@frontal-labs/ai";
+import { ai, createAIClient } from "@frontal-labs/ai";
 
-const ai = new AI();
-// Or with custom config
-const ai = new AI({
+// Default singleton, configured from environment variables
+const models = await ai.listModels(); // string[]
+
+// Or with an explicit configuration
+const client = createAIClient({
   apiKey: "your-key",
-  baseUrl: "custom-endpoint"
+  baseUrl: "custom-endpoint",
 });
 ```
 
@@ -169,11 +179,7 @@ const result = await ai.generateText({
   temperature: 0.7,
 });
 
-if (result.error) {
-  // Handle error
-} else {
-  // Use result.data
-}
+console.log(result.text, result.usage);
 ```
 
 ### 3. Streaming

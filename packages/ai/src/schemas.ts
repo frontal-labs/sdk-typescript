@@ -1,9 +1,4 @@
-import type {
-  APIResponse,
-  SdkError,
-  ToolCall,
-  ToolSet,
-} from "@frontal-labs/core";
+import type { SdkError, ToolCall, ToolSet } from "@frontal-labs/core";
 import { z } from "zod";
 import type { TextStreamPart } from "./stream";
 import type { ToolChoice } from "./tool";
@@ -221,9 +216,7 @@ export interface IAIClient {
   /**
    * Generates text based on the provided options.
    */
-  generateText(
-    options: GenerateTextOptions
-  ): Promise<APIResponse<GenerateTextResult>>;
+  generateText(options: GenerateTextOptions): Promise<GenerateTextResult>;
   /**
    * Streams text based on the provided options.
    */
@@ -231,53 +224,45 @@ export interface IAIClient {
   /**
    * Generates embeddings for the provided input.
    */
-  embed(options: EmbedOptions): Promise<APIResponse<EmbedResult>>;
+  embed(options: EmbedOptions): Promise<EmbedResult>;
   /**
    * Generates structured object based on the provided options.
    */
   generateObject<T>(
     options: GenerateObjectOptions<T>
-  ): Promise<APIResponse<GenerateObjectResult<T>>>;
+  ): Promise<GenerateObjectResult<T>>;
   /**
    * Generates speech from text.
    */
-  generateSpeech(
-    options: GenerateSpeechOptions
-  ): Promise<APIResponse<ArrayBuffer>>;
+  generateSpeech(options: GenerateSpeechOptions): Promise<ArrayBuffer>;
   /**
    * Generates an image from a prompt.
    */
-  generateImage(
-    options: GenerateImageOptions
-  ): Promise<APIResponse<GenerateImageResult>>;
+  generateImage(options: GenerateImageOptions): Promise<GenerateImageResult>;
   /**
    * Generates a video from a prompt.
    */
-  generateVideo(
-    options: GenerateVideoOptions
-  ): Promise<APIResponse<GenerateVideoResult>>;
+  generateVideo(options: GenerateVideoOptions): Promise<GenerateVideoResult>;
   /**
    * Transcribes audio to text.
    */
-  transcribe(
-    options: TranscriptionOptions
-  ): Promise<APIResponse<TranscriptionResult>>;
+  transcribe(options: TranscriptionOptions): Promise<TranscriptionResult>;
   /**
    * Moderates content.
    */
-  moderate(options: ModerationOptions): Promise<APIResponse<ModerationResult>>;
+  moderate(options: ModerationOptions): Promise<ModerationResult>;
   /**
    * Retrieves a prompt by name.
    */
-  getPrompt(name: string, version?: string): APIResponse<Prompt>;
+  getPrompt(name: string, version?: string): Prompt;
   /**
    * Updates an existing prompt.
    */
-  updatePrompt(name: string, updates: Partial<Prompt>): APIResponse<Prompt>;
+  updatePrompt(name: string, updates: Partial<Prompt>): Prompt;
   /**
    * Executes a registered tool by name.
    */
-  executeTool(name: string, params: unknown): Promise<APIResponse<unknown>>;
+  executeTool(name: string, params: unknown): Promise<unknown>;
 }
 
 /**

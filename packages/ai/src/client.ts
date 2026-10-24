@@ -34,6 +34,11 @@ export interface AIClientConfig {
  * Creates an {@link AISdk} from either an existing {@link FrontalClient}
  * or a plain configuration object.
  *
+ * The AI gateway (`https://ai.frontal.dev`) is a separate host from the
+ * public API, so both forms always target it. A FrontalClient's credentials
+ * and transport settings are reused, but its `baseUrl` is not: pass
+ * `baseUrl` to {@link AIClientConfig} to point at a different gateway.
+ *
  * @param clientOrConfig - A pre-configured FrontalClient or config options.
  * @returns A fully-initialized AISdk.
  */
@@ -44,12 +49,16 @@ export function createAIClient(
   clientOrConfig: FrontalClient | AIClientConfig
 ): AISdk {
   if (clientOrConfig instanceof FrontalClient) {
-    return new AISdk(clientOrConfig.httpClient);
+    return new AISdk(
+      new HttpClient({
+        ...clientOrConfig.config,
+        baseUrl: DEFAULT_AI_BASE_URL,
+      })
+    );
   }
   const http = new HttpClient({
     apiKey: clientOrConfig.apiKey,
-    baseUrl:
-      clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_AI_BASE_URL,
+    baseUrl: clientOrConfig.baseUrl ?? DEFAULT_AI_BASE_URL,
     timeout: clientOrConfig.timeout ?? DEFAULT_TIMEOUT,
     maxRetries: clientOrConfig.maxRetries ?? DEFAULT_MAX_RETRIES,
     retryDelay: DEFAULT_RETRY_DELAY,

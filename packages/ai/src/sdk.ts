@@ -740,11 +740,12 @@ export class AISdk {
    * @deprecated Pass `tools` to `generateText` / `streamText` instead.
    * @param tool - The tool to register.
    */
-  registerTool(tool: Tool): void {
+  registerTool<TParams, TResult>(tool: Tool<TParams, TResult>): void {
     if (this.tools.has(tool.name)) {
       console.warn(`Overwriting existing tool: ${tool.name}`);
     }
-    this.tools.set(tool.name, tool);
+    // Stored as Tool<unknown, unknown>; executeTool validates input first.
+    this.tools.set(tool.name, tool as unknown as Tool);
   }
 
   /**

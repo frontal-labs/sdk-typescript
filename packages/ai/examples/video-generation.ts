@@ -23,12 +23,8 @@ async function videoGenerationExample() {
 			resolution: "1280x720",
 		});
 
-		if (result1.error) {
-			console.error("❌ Error:", result1.error.message);
-		} else {
-			console.log("✅ Video generated successfully!");
-			console.log("🔗 Video URL:", result1.data.videoUrl);
-		}
+		console.log("✅ Video generated successfully!");
+		console.log("🔗 Video URL:", result1.videoUrl);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -44,11 +40,7 @@ async function videoGenerationExample() {
 				resolution: "1024x576",
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with ${duration}s:`, result.error.message);
-			} else {
-				console.log(`✅ Generated ${duration}s video: ${result.data.videoUrl}`);
-			}
+			console.log(`✅ Generated ${duration}s video: ${result.videoUrl}`);
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -70,14 +62,7 @@ async function videoGenerationExample() {
 				resolution: resolution,
 			});
 
-			if (result.error) {
-				console.error(
-					`❌ Error with ${name} (${resolution}):`,
-					result.error.message,
-				);
-			} else {
-				console.log(`✅ Generated ${name} video: ${result.data.videoUrl}`);
-			}
+			console.log(`✅ Generated ${name} video: ${result.videoUrl}`);
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -99,14 +84,7 @@ async function videoGenerationExample() {
 				aspectRatio: ratio,
 			});
 
-			if (result.error) {
-				console.error(
-					`❌ Error with ${name} (${ratio}):`,
-					result.error.message,
-				);
-			} else {
-				console.log(`✅ Generated ${name} video: ${result.data.videoUrl}`);
-			}
+			console.log(`✅ Generated ${name} video: ${result.videoUrl}`);
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -124,11 +102,7 @@ async function videoGenerationExample() {
 				fps: fps,
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with ${fps}fps:`, result.error.message);
-			} else {
-				console.log(`✅ Generated ${fps}fps video: ${result.data.videoUrl}`);
-			}
+			console.log(`✅ Generated ${fps}fps video: ${result.videoUrl}`);
 		}
 	} catch (error) {
 		console.error("❌ Unexpected error:", error);
@@ -183,11 +157,7 @@ async function themedVideoExample() {
 				resolution: "1024x576",
 			});
 
-			if (result.error) {
-				console.error(`❌ Error:`, result.error.message);
-			} else {
-				console.log(`✅ Generated: ${result.data.videoUrl}`);
-			}
+			console.log(`✅ Generated: ${result.videoUrl}`);
 		}
 	}
 }
@@ -235,14 +205,7 @@ async function productDemoExample() {
 			fps: 30,
 		});
 
-		if (result.error) {
-			console.error(
-				`❌ Error creating ${product.name} video:`,
-				result.error.message,
-			);
-		} else {
-			console.log(`✅ ${product.name} demo: ${result.data.videoUrl}`);
-		}
+		console.log(`✅ ${product.name} demo: ${result.videoUrl}`);
 	}
 }
 
@@ -283,7 +246,7 @@ async function educationalContentExample() {
 
 	for (const content of educationalTopics) {
 		console.log(
-			`\n📚 Creating ${content.subject} video about ${content.topic}:`,
+			`\n📚 Creating ${content.subject} video about ${content.topic}:`
 		);
 
 		const result = await ai.generateVideo({
@@ -294,17 +257,8 @@ async function educationalContentExample() {
 			fps: 24, // Cinematic frame rate for educational content
 		});
 
-		if (result.error) {
-			console.error(
-				`❌ Error creating ${content.topic} video:`,
-				result.error.message,
-			);
-		} else {
-			console.log(
-				`✅ ${content.topic} educational video: ${result.data.videoUrl}`,
-			);
-			console.log(`   Duration: ${content.duration}s`);
-		}
+		console.log(`✅ ${content.topic} educational video: ${result.videoUrl}`);
+		console.log(`   Duration: ${content.duration}s`);
 	}
 }
 
@@ -352,11 +306,7 @@ async function artStyleExample() {
 			resolution: "1024x576",
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${style.name} style:`, result.error.message);
-		} else {
-			console.log(`✅ ${style.name} style video: ${result.data.videoUrl}`);
-		}
+		console.log(`✅ ${style.name} style video: ${result.videoUrl}`);
 	}
 }
 
@@ -413,13 +363,9 @@ async function videoOptimizationExample() {
 		const endTime = Date.now();
 		const generationTime = endTime - startTime;
 
-		if (result.error) {
-			console.error(`❌ Error:`, result.error.message);
-		} else {
-			console.log(`✅ Generated in ${generationTime}ms`);
-			console.log(`   Video URL: ${result.data.videoUrl}`);
-			console.log(`   Estimated file size: ~${test.duration * test.fps * 2}MB`); // Rough estimate
-		}
+		console.log(`✅ Generated in ${generationTime}ms`);
+		console.log(`   Video URL: ${result.videoUrl}`);
+		console.log(`   Estimated file size: ~${test.duration * test.fps * 2}MB`); // Rough estimate
 	}
 }
 

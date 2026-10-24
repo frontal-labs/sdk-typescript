@@ -6,6 +6,7 @@
  * similarity comparison, and other vector operations.
  */
 
+import { FrontalError } from "@frontal-labs/core";
 import { ai } from "../src";
 
 // Initialize the AI client
@@ -17,24 +18,14 @@ async function embeddingsExample() {
 		// Example 1: Single text embedding
 		console.log("[EXAMPLE] Example 1: Single text embedding");
 		const result1 = await ai.embed({
-			model: "text-embedding-ada-002",
+			model: "text-embedding-3-small",
 			input: "The quick brown fox jumps over the lazy dog.",
 		});
 
-		if (result1.error) {
-			console.error("[ERROR] Error:", result1.error.message);
-		} else {
-			console.log("[SUCCESS] Embedding generated successfully!");
-			console.log(
-				"[VECTOR] Embedding dimensions:",
-				result1.data.embeddings[0].length,
-			);
-			console.log("[USAGE] Usage:", result1.data.usage);
-			console.log(
-				"[VALUES] First 5 values:",
-				result1.data.embeddings[0].slice(0, 5),
-			);
-		}
+		console.log("[SUCCESS] Embedding generated successfully!");
+		console.log("[VECTOR] Embedding dimensions:", result1.embeddings[0].length);
+		console.log("[USAGE] Usage:", result1.usage);
+		console.log("[VALUES] First 5 values:", result1.embeddings[0].slice(0, 5));
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -48,24 +39,14 @@ async function embeddingsExample() {
 		];
 
 		const result2 = await ai.embed({
-			model: "text-embedding-ada-002",
+			model: "text-embedding-3-small",
 			input: texts,
 		});
 
-		if (result2.error) {
-			console.error("[ERROR] Error:", result2.error.message);
-		} else {
-			console.log("[SUCCESS] Multiple embeddings generated!");
-			console.log(
-				"[COUNT] Number of embeddings:",
-				result2.data.embeddings.length,
-			);
-			console.log(
-				"[VECTOR] Embedding dimensions:",
-				result2.data.embeddings[0].length,
-			);
-			console.log("[USAGE] Usage:", result2.data.usage);
-		}
+		console.log("[SUCCESS] Multiple embeddings generated!");
+		console.log("[COUNT] Number of embeddings:", result2.embeddings.length);
+		console.log("[VECTOR] Embedding dimensions:", result2.embeddings[0].length);
+		console.log("[USAGE] Usage:", result2.usage);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -79,36 +60,32 @@ async function embeddingsExample() {
 		];
 
 		const result3 = await ai.embed({
-			model: "text-embedding-ada-002",
+			model: "text-embedding-3-small",
 			input: similarityTexts,
 		});
 
-		if (result3.error) {
-			console.error("❌ Error:", result3.error.message);
-		} else {
-			const embeddings = result3.data.embeddings;
+		const vecs3 = result3.embeddings;
 
-			// Calculate cosine similarity between first two texts (should be high)
-			const similarity = cosineSimilarity(embeddings[0], embeddings[1]);
-			console.log(
-				"[SIMILARITY] Similarity between first two texts:",
-				similarity.toFixed(4),
-			);
+		// Calculate cosine similarity between first two texts (should be high)
+		const similarity = cosineSimilarity(vecs3[0], vecs3[1]);
+		console.log(
+			"[SIMILARITY] Similarity between first two texts:",
+			similarity.toFixed(4)
+		);
 
-			// Calculate cosine similarity between first and third texts (should be lower)
-			const similarity2 = cosineSimilarity(embeddings[0], embeddings[2]);
-			console.log(
-				"[SIMILARITY] Similarity between first and third texts:",
-				similarity2.toFixed(4),
-			);
+		// Calculate cosine similarity between first and third texts (should be lower)
+		const similarity2 = cosineSimilarity(vecs3[0], vecs3[2]);
+		console.log(
+			"[SIMILARITY] Similarity between first and third texts:",
+			similarity2.toFixed(4)
+		);
 
-			// Calculate cosine similarity between first and fourth texts (should be very low)
-			const similarity3 = cosineSimilarity(embeddings[0], embeddings[3]);
-			console.log(
-				"[SIMILARITY] Similarity between first and fourth texts:",
-				similarity3.toFixed(4),
-			);
-		}
+		// Calculate cosine similarity between first and fourth texts (should be very low)
+		const similarity3 = cosineSimilarity(vecs3[0], vecs3[3]);
+		console.log(
+			"[SIMILARITY] Similarity between first and fourth texts:",
+			similarity3.toFixed(4)
+		);
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -128,35 +105,35 @@ async function embeddingsExample() {
 		// Generate embeddings for all documents and the query
 		const allTexts = [...documents, query];
 		const result4 = await ai.embed({
-			model: "text-embedding-ada-002",
+			model: "text-embedding-3-small",
 			input: allTexts,
 		});
 
-		if (result4.error) {
-			console.error("❌ Error:", result4.error.message);
+		const vecs4 = result4.embeddings;
+		const queryEmbedding = vecs4[vecs4.length - 1]; // Last one is the query
+		const documentEmbeddings = vecs4.slice(0, -1);
+
+		// Calculate similarities and rank documents
+		const similarities = documentEmbeddings.map((docEmbedding, index) => ({
+			document: documents[index],
+			similarity: cosineSimilarity(queryEmbedding, docEmbedding),
+		}));
+
+		// Sort by similarity (descending)
+		similarities.sort((a, b) => b.similarity - a.similarity);
+
+		console.log(`[SEARCH] Search results for query: "${query}"`);
+		similarities.forEach((item, index) => {
+			console.log(
+				`${index + 1}. [${item.similarity.toFixed(4)}] ${item.document}`
+			);
+		});
+	} catch (err) {
+		if (err instanceof FrontalError) {
+			console.error("[ERROR]", err.statusCode, err.message, err.fix ?? "");
 		} else {
-			const embeddings = result4.data.embeddings;
-			const queryEmbedding = embeddings[embeddings.length - 1]; // Last one is the query
-			const documentEmbeddings = embeddings.slice(0, -1);
-
-			// Calculate similarities and rank documents
-			const similarities = documentEmbeddings.map((docEmbedding, index) => ({
-				document: documents[index],
-				similarity: cosineSimilarity(queryEmbedding, docEmbedding),
-			}));
-
-			// Sort by similarity (descending)
-			similarities.sort((a, b) => b.similarity - a.similarity);
-
-			console.log(`[SEARCH] Search results for query: "${query}"`);
-			similarities.forEach((item, index) => {
-				console.log(
-					`${index + 1}. [${item.similarity.toFixed(4)}] ${item.document}`,
-				);
-			});
+			throw err;
 		}
-	} catch (error) {
-		console.error("[ERROR] Unexpected error:", error);
 	}
 }
 
@@ -202,17 +179,10 @@ async function clusteringExample() {
 		"BMW presents new electric car",
 	];
 
-	const result = await ai.embed({
-		model: "text-embedding-ada-002",
+	const { embeddings } = await ai.embed({
+		model: "text-embedding-3-small",
 		input: texts,
 	});
-
-	if (result.error) {
-		console.error("❌ Error:", result.error.message);
-		return;
-	}
-
-	const embeddings = result.data.embeddings;
 
 	// Simple clustering based on similarity threshold
 	const clusters: string[][] = [];
