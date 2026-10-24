@@ -41,7 +41,7 @@
     "type-check": "turbo run type-check",
     "clean": "turbo run clean",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && bun scripts/sync-versions.ts",
     "release": "changeset publish",
     "publish:github": "bun run scripts/publish-github.ts",
     "prepare": "lefthook install",
