@@ -177,7 +177,7 @@ clientConfigSchema = {
 **Purpose**: Core type definitions
 
 **Key Types**:
-- `APIResponse<T>` - Standard API response structure
+- `APIResponse<T>` - Envelope type kept for compatibility (exported, not produced by `HttpClient` or the service SDKs, which return results directly and throw `FrontalError` on failure)
 - `PageResult<T>` - Paginated response interface
 - `QueryBuilder<T>` - Query builder interface
 - `ErrorResponse` - Error response structure

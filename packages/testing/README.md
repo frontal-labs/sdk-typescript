@@ -199,7 +199,7 @@ Steps for the same endpoint answer in order. `on` is an alias from
 ### Vitest setup
 
 `@frontal-labs/testing/src/setup.ts` stubs `globalThis.fetch` and sets
-`FRONTAL_API_KEY`/`FRONTAL_ENV=test` for you:
+`FRONTAL_API_KEY`, `NODE_ENV=test`, and `CI=true` for you (via `setupTestEnvironment()`):
 
 ```ts
 // vitest.config.ts
@@ -215,4 +215,5 @@ export default defineConfig({
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `FRONTAL_API_KEY` | No | `frt_test-api-key-...` | Set automatically by `setupTestEnvironment()` |
-| `FRONTAL_ENV` | No | `test` | Set automatically by `setupTestEnvironment()` |
+| `NODE_ENV` | No | `test` | Set automatically by `setupTestEnvironment()` |
+| `CI` | No | `true` | Set automatically by `setupTestEnvironment()` |
