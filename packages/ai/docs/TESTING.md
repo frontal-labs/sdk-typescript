@@ -16,17 +16,17 @@ This guide covers testing strategies and patterns for the Frontal AI SDK.
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AI } from '@frontal-labs/ai';
+import { createAIClient } from '@frontal-labs/ai';
 
 describe('AI Client', () => {
-  let ai: AI;
+  let ai: ReturnType<typeof createAIClient>;
   let mockFetch: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockFetch = vi.fn();
     global.fetch = mockFetch;
     
-    ai = new AI({
+    ai = createAIClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://test.api.frontal.dev'
     });
@@ -56,25 +56,20 @@ describe('AI Client', () => {
         prompt: 'Test prompt'
       });
 
-      expect(result.error).toBeNull();
-      expect(result.data?.text).toBe('Generated text response');
-      expect(result.data?.usage.totalTokens).toBe(15);
+      expect(result.text).toBe('Generated text response');
+      expect(result.usage.totalTokens).toBe(15);
     });
 
-    it('should handle API errors', async () => {
+    it('should throw FrontalError on API errors', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error'
       });
 
-      const result = await ai.generateText({
-        model: 'test-model',
-        prompt: 'Test prompt'
-      });
-
-      expect(result.data).toBeNull();
-      expect(result.error?.statusCode).toBe(500);
+      await expect(
+        ai.generateText({ model: 'test-model', prompt: 'Test prompt' })
+      ).rejects.toMatchObject({ statusCode: 500 });
     });
   });
 
@@ -101,9 +96,8 @@ describe('AI Client', () => {
         input: 'Test text'
       });
 
-      expect(result.error).toBeNull();
-      expect(result.data?.embeddings).toEqual([[0.1, 0.2, 0.3]]);
-      expect(result.data?.usage.totalTokens).toBe(5);
+      expect(result.embeddings).toEqual([[0.1, 0.2, 0.3]]);
+      expect(result.usage.totalTokens).toBe(5);
     });
   });
 });
@@ -172,8 +166,7 @@ describe('Integration Tests', () => {
       maxTokens: 10
     });
 
-    expect(result.error).toBeNull();
-    expect(result.data?.text).toBeTruthy();
+    expect(result.text).toBeTruthy();
   });
 });
 ```
@@ -194,7 +187,7 @@ describe('Performance Tests', () => {
     const duration = Date.now() - startTime;
     
     expect(duration).toBeLessThan(5000); // 5 seconds
-    expect(result.error).toBeNull();
+    expect(result.text).toBeTruthy();
   });
 
   it('should handle concurrent requests', async () => {
@@ -239,13 +232,9 @@ export class MockAI implements Partial<IAIClient> {
     if (response) return response;
 
     return {
-      data: {
-        text: `Mock response for: ${options.prompt}`,
-        finishReason: 'stop',
-        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 }
-      },
-      error: null,
-      headers: null
+      text: `Mock response for: ${options.prompt}`,
+      finishReason: 'stop',
+      usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 }
     };
   }
 
@@ -256,12 +245,8 @@ export class MockAI implements Partial<IAIClient> {
     const input = Array.isArray(options.input) ? options.input : [options.input];
     
     return {
-      data: {
-        embeddings: input.map(() => [0.1, 0.2, 0.3]),
-        usage: { totalTokens: input.length * 2 }
-      },
-      error: null,
-      headers: null
+      embeddings: input.map(() => [0.1, 0.2, 0.3]),
+      usage: { totalTokens: input.length * 2 }
     };
   }
 
@@ -309,13 +294,9 @@ describe('Component with AI', () => {
 
   it('should handle AI response', async () => {
     mockAI.setMockResponse('generateText', {
-      data: {
-        text: 'Custom mock response',
-        finishReason: 'stop',
-        usage: { promptTokens: 5, completionTokens: 3, totalTokens: 8 }
-      },
-      error: null,
-      headers: null
+      text: 'Custom mock response',
+      finishReason: 'stop',
+      usage: { promptTokens: 5, completionTokens: 3, totalTokens: 8 }
     });
 
     const result = await mockAI.generateText({
@@ -323,7 +304,7 @@ describe('Component with AI', () => {
       prompt: 'Test'
     });
 
-    expect(result.data?.text).toBe('Custom mock response');
+    expect(result.text).toBe('Custom mock response');
   });
 });
 ```
@@ -334,12 +315,9 @@ describe('Component with AI', () => {
 
 ```typescript
 export class TestUtils {
-  static createMockAIResponse(data: any, error: any = null) {
-    return {
-      data,
-      error,
-      headers: null
-    };
+  /** Returns the value a mocked method should resolve with. */
+  static createMockAIResponse<T>(value: T): T {
+    return value;
   }
 
   static createMockStream(chunks: string[]): StreamTextResult {
@@ -390,22 +368,18 @@ export class TestUtils {
 
 ```typescript
 export class AIAssertions {
-  static assertValidTextResult(result: APIResponse<GenerateTextResult>) {
+  static assertValidTextResult(result: GenerateTextResult) {
     expect(result).toBeDefined();
-    expect(result.error).toBeNull();
-    expect(result.data).toBeDefined();
-    expect(result.data!.text).toBeTruthy();
-    expect(result.data!.usage).toBeDefined();
-    expect(result.data!.usage.totalTokens).toBeGreaterThanOrEqual(0);
+    expect(result.text).toBeTruthy();
+    expect(result.usage).toBeDefined();
+    expect(result.usage.totalTokens).toBeGreaterThanOrEqual(0);
   }
 
-  static assertValidEmbedResult(result: APIResponse<EmbedResult>) {
+  static assertValidEmbedResult(result: EmbedResult) {
     expect(result).toBeDefined();
-    expect(result.error).toBeNull();
-    expect(result.data).toBeDefined();
-    expect(result.data!.embeddings).toBeInstanceOf(Array);
-    expect(result.data!.embeddings[0]).toBeInstanceOf(Array);
-    expect(result.data!.usage.totalTokens).toBeGreaterThanOrEqual(0);
+    expect(result.embeddings).toBeInstanceOf(Array);
+    expect(result.embeddings[0]).toBeInstanceOf(Array);
+    expect(result.usage.totalTokens).toBeGreaterThanOrEqual(0);
   }
 
   static assertValidStreamResult(result: StreamTextResult) {
@@ -423,7 +397,7 @@ export class AIAssertions {
 ```typescript
 describe('AI Feature', () => {
   // Arrange
-  let ai: AI;
+  let ai: ReturnType<typeof createAIClient>;
   let mockFetch: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -485,33 +459,18 @@ global.AIAssertions = AIAssertions;
 // tests/fixtures/ai-responses.ts
 export const AI_RESPONSES = {
   textGeneration: {
-    data: {
-      text: 'Sample response',
-      finishReason: 'stop',
-      usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 }
-    },
-    error: null,
-    headers: null
+    text: 'Sample response',
+    finishReason: 'stop',
+    usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 }
   },
-  
+
   embeddings: {
-    data: {
-      embeddings: [[0.1, 0.2, 0.3]],
-      usage: { totalTokens: 5 }
-    },
-    error: null,
-    headers: null
-  },
-  
-  error: {
-    data: null,
-    error: {
-      message: 'API Error',
-      statusCode: 500,
-      name: 'api_error'
-    },
-    headers: null
+    embeddings: [[0.1, 0.2, 0.3]],
+    usage: { totalTokens: 5 }
   }
+
+  // For error paths, make the mock reject with a FrontalError instead of
+  // returning a fixture. See "Error Handling" below.
 };
 ```
 
@@ -522,23 +481,16 @@ describe('Error Handling', () => {
   it('should handle network errors', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
     
-    const result = await ai.generateText({
-      model: 'test-model',
-      prompt: 'Test'
-    });
-
-    expect(result.data).toBeNull();
-    expect(result.error?.name).toBe('application_error');
+    await expect(
+      ai.generateText({ model: 'test-model', prompt: 'Test' })
+    ).rejects.toThrow('Network error');
   });
 
   it('should handle validation errors', async () => {
-    const result = await ai.generateText({
-      model: '', // Invalid
-      prompt: 'Test'
-    });
-
-    expect(result.data).toBeNull();
-    expect(result.error?.name).toBe('validation_error');
+    // Options are validated with Zod before any request is sent
+    await expect(
+      ai.embed({ model: 'embedding-model', input: 42 as unknown as string })
+    ).rejects.toThrow();
   });
 });
 ```

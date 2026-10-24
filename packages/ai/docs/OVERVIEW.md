@@ -12,7 +12,7 @@ The **Frontal AI SDK** is the definitive toolkit for building intelligent applic
     - **Audio**: Text-to-Speech (TTS) and Transcription (STT).
     - **Video**: Generation support.
 - **Developer Tools**: Built-in Prompt Management and Tool execution systems.
-- **Production Ready**: Integrated with Helicone AI Gateway for observability, caching, and rate limiting.
+- **Production Ready**: Built on the Frontal AI Gateway, with typed errors (`FrontalError`), retries, and configurable timeouts.
 
 ## Installation
 
@@ -23,9 +23,9 @@ bun add @frontal-labs/ai
 ## Quick Start
 
 ```typescript
-import { AI } from "@frontal-labs/ai";
+import { ai } from "@frontal-labs/ai";
 
-const ai = new AI();
+// `ai` is a lazy default client, configured from FRONTAL_API_KEY.
 
 const { text } = await ai.generateText({
   model: "gpt-4o",

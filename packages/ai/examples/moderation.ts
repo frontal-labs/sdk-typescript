@@ -20,24 +20,20 @@ async function moderationExample() {
 				"This is a harmless, positive message about technology and innovation.",
 		});
 
-		if (result1.error) {
-			console.error("❌ Error:", result1.error.message);
-		} else {
-			console.log("✅ Moderation completed!");
-			console.log("📊 Results:", JSON.stringify(result1.data, null, 2));
+		console.log("✅ Moderation completed!");
+		console.log("📊 Results:", JSON.stringify(result1, null, 2));
 
-			const flagged = result1.data.results[0].flagged;
-			console.log(`🚩 Flagged: ${flagged ? "Yes" : "No"}`);
+		const flagged = result1.results[0].flagged;
+		console.log(`🚩 Flagged: ${flagged ? "Yes" : "No"}`);
 
-			if (flagged) {
-				console.log("⚠️ Categories flagged:");
-				const categories = result1.data.results[0].categories;
-				Object.entries(categories).forEach(([category, isFlagged]) => {
-					if (isFlagged) {
-						console.log(`   - ${category}`);
-					}
-				});
-			}
+		if (flagged) {
+			console.log("⚠️ Categories flagged:");
+			const categories = result1.results[0].categories;
+			Object.entries(categories).forEach(([category, isFlagged]) => {
+				if (isFlagged) {
+					console.log(`   - ${category}`);
+				}
+			});
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -55,24 +51,20 @@ async function moderationExample() {
 			input: texts,
 		});
 
-		if (result2.error) {
-			console.error("❌ Error:", result2.error.message);
-		} else {
-			console.log("✅ Batch moderation completed!");
-			result2.data.results.forEach((result, index) => {
-				console.log(`\nText ${index + 1}: "${texts[index]}"`);
-				console.log(`   Flagged: ${result.flagged ? "Yes" : "No"}`);
+		console.log("✅ Batch moderation completed!");
+		result2.results.forEach((result, index) => {
+			console.log(`\nText ${index + 1}: "${texts[index]}"`);
+			console.log(`   Flagged: ${result.flagged ? "Yes" : "No"}`);
 
-				if (result.flagged) {
-					console.log("   Flagged categories:");
-					Object.entries(result.categories).forEach(([category, isFlagged]) => {
-						if (isFlagged) {
-							console.log(`     - ${category}`);
-						}
-					});
-				}
-			});
-		}
+			if (result.flagged) {
+				console.log("   Flagged categories:");
+				Object.entries(result.categories).forEach(([category, isFlagged]) => {
+					if (isFlagged) {
+						console.log(`     - ${category}`);
+					}
+				});
+			}
+		});
 
 		console.log(`\n${"=".repeat(50)}\n`);
 
@@ -94,20 +86,16 @@ async function moderationExample() {
 				input: content,
 			});
 
-			if (result.error) {
-				console.error(`❌ Error:`, result.error.message);
-			} else {
-				const moderationResult = result.data.results[0];
-				console.log(`   Flagged: ${moderationResult.flagged ? "Yes" : "No"}`);
+			const moderationResult = result.results[0];
+			console.log(`   Flagged: ${moderationResult.flagged ? "Yes" : "No"}`);
 
-				// Show category scores
-				console.log("   Category scores:");
-				Object.entries(moderationResult.category_scores).forEach(
-					([category, score]) => {
-						console.log(`     - ${category}: ${(score * 100).toFixed(2)}%`);
-					},
-				);
-			}
+			// Show category scores
+			console.log("   Category scores:");
+			Object.entries(moderationResult.categoryScores).forEach(
+				([category, score]) => {
+					console.log(`     - ${category}: ${(score * 100).toFixed(2)}%`);
+				}
+			);
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -124,14 +112,8 @@ async function moderationExample() {
 				model: model,
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with ${model}:`, result.error.message);
-			} else {
-				console.log(`   Model used: ${result.data.model}`);
-				console.log(
-					`   Flagged: ${result.data.results[0].flagged ? "Yes" : "No"}`,
-				);
-			}
+			console.log(`   Model used: ${result.model}`);
+			console.log(`   Flagged: ${result.results[0].flagged ? "Yes" : "No"}`);
 		}
 	} catch (error) {
 		console.error("❌ Unexpected error:", error);
@@ -169,26 +151,21 @@ async function realTimeFilteringExample() {
 			input: comment.comment,
 		});
 
-		if (result.error) {
-			console.error(`❌ Error moderating comment:`, result.error.message);
-			console.log("⚠️ Comment approved by default (moderation failed)");
-		} else {
-			const moderationResult = result.data.results[0];
+		const moderationResult = result.results[0];
 
-			if (moderationResult.flagged) {
-				console.log("🚩 COMMENT BLOCKED - Inappropriate content detected");
-				console.log("   Reason(s):");
-				Object.entries(moderationResult.categories).forEach(
-					([category, isFlagged]) => {
-						if (isFlagged) {
-							const score = moderationResult.category_scores[category];
-							console.log(`     - ${category}: ${(score * 100).toFixed(2)}%`);
-						}
-					},
-				);
-			} else {
-				console.log("✅ COMMENT APPROVED - Safe to display");
-			}
+		if (moderationResult.flagged) {
+			console.log("🚩 COMMENT BLOCKED - Inappropriate content detected");
+			console.log("   Reason(s):");
+			Object.entries(moderationResult.categories).forEach(
+				([category, isFlagged]) => {
+					if (isFlagged) {
+						const score = moderationResult.categoryScores[category];
+						console.log(`     - ${category}: ${(score * 100).toFixed(2)}%`);
+					}
+				}
+			);
+		} else {
+			console.log("✅ COMMENT APPROVED - Safe to display");
 		}
 	}
 }
@@ -223,26 +200,22 @@ async function contentSafetyLevelsExample() {
 			input: test.content,
 		});
 
-		if (result.error) {
-			console.error(`❌ Error:`, result.error.message);
-		} else {
-			const moderationResult = result.data.results[0];
-			console.log(
-				`   Overall flagged: ${moderationResult.flagged ? "Yes" : "No"}`,
-			);
+		const moderationResult = result.results[0];
+		console.log(
+			`   Overall flagged: ${moderationResult.flagged ? "Yes" : "No"}`
+		);
 
-			// Detailed category analysis
-			console.log("   Detailed analysis:");
-			Object.entries(moderationResult.categories).forEach(
-				([category, flagged]) => {
-					const score = moderationResult.category_scores[category];
-					const status = flagged ? "⚠️ FLAGGED" : "✅ Safe";
-					console.log(
-						`     - ${category}: ${status} (${(score * 100).toFixed(2)}%)`,
-					);
-				},
-			);
-		}
+		// Detailed category analysis
+		console.log("   Detailed analysis:");
+		Object.entries(moderationResult.categories).forEach(
+			([category, flagged]) => {
+				const score = moderationResult.categoryScores[category];
+				const status = flagged ? "⚠️ FLAGGED" : "✅ Safe";
+				console.log(
+					`     - ${category}: ${status} (${(score * 100).toFixed(2)}%)`
+				);
+			}
+		);
 	}
 }
 
@@ -271,17 +244,13 @@ async function multiLanguageModerationExample() {
 			input: content,
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${language}:`, result.error.message);
-		} else {
-			const moderationResult = result.data.results[0];
-			console.log(`   Flagged: ${moderationResult.flagged ? "Yes" : "No"}`);
+		const moderationResult = result.results[0];
+		console.log(`   Flagged: ${moderationResult.flagged ? "Yes" : "No"}`);
 
-			if (!moderationResult.flagged) {
-				console.log("   ✅ Content is safe");
-			} else {
-				console.log("   ⚠️ Content flagged for review");
-			}
+		if (!moderationResult.flagged) {
+			console.log("   ✅ Content is safe");
+		} else {
+			console.log("   ⚠️ Content flagged for review");
 		}
 	}
 }
@@ -307,26 +276,21 @@ async function customThresholdsExample() {
 		input: testContent,
 	});
 
-	if (result.error) {
-		console.error("❌ Error:", result.error.message);
-		return;
-	}
-
-	const moderationResult = result.data.results[0];
+	const moderationResult = result.results[0];
 
 	for (const threshold of thresholds) {
 		console.log(`\n📊 ${threshold.name} threshold (${threshold.value}):`);
 
 		let customFlagged = false;
-		const flaggedCategories = [];
+		const flaggedCategories: string[] = [];
 
-		Object.entries(moderationResult.category_scores).forEach(
+		Object.entries(moderationResult.categoryScores).forEach(
 			([category, score]) => {
 				if (score >= threshold.value) {
 					customFlagged = true;
 					flaggedCategories.push(`${category} (${(score * 100).toFixed(2)}%)`);
 				}
-			},
+			}
 		);
 
 		console.log(`   Custom flagged: ${customFlagged ? "Yes" : "No"}`);

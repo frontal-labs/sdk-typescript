@@ -25,37 +25,38 @@ bun add @frontal-labs/ai
 ## Quick Start
 
 ```typescript
-import { ai, generateText, streamText, embed } from '@frontal-labs/ai';
+import { ai } from '@frontal-labs/ai';
 
 // Text generation
-const result = await generateText({
-  model: 'frontal-ai-fast',
+const { text } = await ai.generateText({
+  model: 'gpt-4o-mini',
   prompt: 'Write a story about a robot learning to paint.',
   maxTokens: 500,
   temperature: 0.7
 });
 
-console.log(result.data?.text);
+console.log(text);
 
 // Streaming
-const stream = streamText({
-  model: 'frontal-ai-fast',
-  prompt: 'Tell me about artificial intelligence',
-  onChunk: (chunk) => console.log(chunk)
+const stream = ai.streamText({
+  model: 'gpt-4o-mini',
+  prompt: 'Tell me about artificial intelligence'
 });
 
 for await (const chunk of stream.textStream) {
-  console.log(chunk);
+  process.stdout.write(chunk);
 }
 
 // Embeddings
-const embeddings = await embed({
-  model: 'text-embedding-ada-002',
+const { embeddings } = await ai.embed({
+  model: 'text-embedding-3-small',
   input: 'Hello, world!'
 });
 
-console.log(embeddings.data?.embeddings);
+console.log(embeddings[0].length);
 ```
+
+Methods return their results directly and throw a `FrontalError` on failure.
 
 ## Configuration
 
@@ -63,17 +64,16 @@ Configure the SDK using environment variables:
 
 ```bash
 FRONTAL_API_KEY=your_api_key
-FRONTAL_BASE_URL=https://api.frontal.dev/v1
 ```
 
 Or create a custom client:
 
 ```typescript
-import { AI } from '@frontal-labs/ai';
+import { createAIClient } from '@frontal-labs/ai';
 
-const ai = new AI({
+const ai = createAIClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.frontal.dev/v1'
+  baseUrl: 'https://ai.frontal.dev'
 });
 ```
 

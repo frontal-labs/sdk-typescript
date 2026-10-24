@@ -23,22 +23,18 @@ async function imageGeneration() {
 			size: "1024x1024",
 		});
 
-		if (result1.error) {
-			console.error("❌ Error:", result1.error.message);
-		} else {
-			console.log("✅ Image generated successfully!");
-			console.log("📏 Number of images:", result1.data.images.length);
+		console.log("✅ Image generated successfully!");
+		console.log("📏 Number of images:", result1.images.length);
 
-			if (result1.data.images[0].url) {
-				console.log("🔗 Image URL:", result1.data.images[0].url);
-			}
-			if (result1.data.images[0].b64_json) {
-				// Save base64 image
-				const base64Data = result1.data.images[0].b64_json;
-				const buffer = Buffer.from(base64Data, "base64");
-				writeFileSync("sunset_lake.png", buffer);
-				console.log("💾 Saved as sunset_lake.png");
-			}
+		if (result1.images[0].url) {
+			console.log("🔗 Image URL:", result1.images[0].url);
+		}
+		if (result1.images[0].b64Json) {
+			// Save base64 image
+			const base64Data = result1.images[0].b64Json;
+			const buffer = Buffer.from(base64Data, "base64");
+			writeFileSync("sunset_lake.png", buffer);
+			console.log("💾 Saved as sunset_lake.png");
 		}
 
 		console.log(`\n${"=".repeat(50)}\n`);
@@ -55,13 +51,9 @@ async function imageGeneration() {
 				n: 1,
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with size ${size}:`, result.error.message);
-			} else {
-				console.log(`✅ Generated ${size} image`);
-				if (result.data.images[0].url) {
-					console.log(`   URL: ${result.data.images[0].url}`);
-				}
+			console.log(`✅ Generated ${size} image`);
+			if (result.images[0].url) {
+				console.log(`   URL: ${result.images[0].url}`);
 			}
 		}
 
@@ -80,16 +72,9 @@ async function imageGeneration() {
 				n: 1,
 			});
 
-			if (result.error) {
-				console.error(
-					`❌ Error with quality ${quality}:`,
-					result.error.message,
-				);
-			} else {
-				console.log(`✅ Generated ${quality} quality image`);
-				if (result.data.images[0].url) {
-					console.log(`   URL: ${result.data.images[0].url}`);
-				}
+			console.log(`✅ Generated ${quality} quality image`);
+			if (result.images[0].url) {
+				console.log(`   URL: ${result.images[0].url}`);
 			}
 		}
 
@@ -108,13 +93,9 @@ async function imageGeneration() {
 				n: 1,
 			});
 
-			if (result.error) {
-				console.error(`❌ Error with style ${style}:`, result.error.message);
-			} else {
-				console.log(`✅ Generated ${style} style image`);
-				if (result.data.images[0].url) {
-					console.log(`   URL: ${result.data.images[0].url}`);
-				}
+			console.log(`✅ Generated ${style} style image`);
+			if (result.images[0].url) {
+				console.log(`   URL: ${result.images[0].url}`);
 			}
 		}
 
@@ -129,16 +110,12 @@ async function imageGeneration() {
 			size: "1024x1024",
 		});
 
-		if (result5.error) {
-			console.error("❌ Error:", result5.error.message);
-		} else {
-			console.log(`✅ Generated ${result5.data.images.length} images`);
-			result5.data.images.forEach((image, index) => {
-				if (image.url) {
-					console.log(`   Image ${index + 1}: ${image.url}`);
-				}
-			});
-		}
+		console.log(`✅ Generated ${result5.images.length} images`);
+		result5.images.forEach((image, index) => {
+			if (image.url) {
+				console.log(`   Image ${index + 1}: ${image.url}`);
+			}
+		});
 	} catch (error) {
 		console.error("❌ Unexpected error:", error);
 	}
@@ -169,13 +146,9 @@ async function artStyleExploration() {
 			quality: "standard",
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${style}:`, result.error.message);
-		} else {
-			console.log(`✅ Generated ${style}`);
-			if (result.data.images[0].url) {
-				console.log(`   URL: ${result.data.images[0].url}`);
-			}
+		console.log(`✅ Generated ${style}`);
+		if (result.images[0].url) {
+			console.log(`   URL: ${result.images[0].url}`);
 		}
 	}
 }
@@ -216,13 +189,9 @@ async function productVisualization() {
 			style: "natural",
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${product.name}:`, result.error.message);
-		} else {
-			console.log(`✅ Generated ${product.name} visualization`);
-			if (result.data.images[0].url) {
-				console.log(`   URL: ${result.data.images[0].url}`);
-			}
+		console.log(`✅ Generated ${product.name} visualization`);
+		if (result.images[0].url) {
+			console.log(`   URL: ${result.images[0].url}`);
 		}
 	}
 }
@@ -264,13 +233,9 @@ async function characterDesign() {
 			style: "vivid",
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${character.name}:`, result.error.message);
-		} else {
-			console.log(`✅ Generated ${character.name} character`);
-			if (result.data.images[0].url) {
-				console.log(`   URL: ${result.data.images[0].url}`);
-			}
+		console.log(`✅ Generated ${character.name} character`);
+		if (result.images[0].url) {
+			console.log(`   URL: ${result.images[0].url}`);
 		}
 	}
 }
@@ -312,13 +277,9 @@ async function architecturalVisualization() {
 			style: "natural",
 		});
 
-		if (result.error) {
-			console.error(`❌ Error with ${arch.name}:`, result.error.message);
-		} else {
-			console.log(`✅ Generated ${arch.name} visualization`);
-			if (result.data.images[0].url) {
-				console.log(`   URL: ${result.data.images[0].url}`);
-			}
+		console.log(`✅ Generated ${arch.name} visualization`);
+		if (result.images[0].url) {
+			console.log(`   URL: ${result.images[0].url}`);
 		}
 	}
 }

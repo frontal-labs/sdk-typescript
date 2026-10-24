@@ -44,7 +44,6 @@ async function streamingTextGeneration() {
 
 		// Process the stream manually
 		const reader = result2.textStream.getReader();
-		const decoder = new TextDecoder();
 		let _fullText = "";
 
 		console.log("🔄 Streaming response:");
@@ -52,7 +51,7 @@ async function streamingTextGeneration() {
 			const { done, value } = await reader.read();
 			if (done) break;
 
-			const chunk = decoder.decode(value, { stream: true });
+			const chunk = value;
 			_fullText += chunk;
 			process.stdout.write(chunk);
 		}
@@ -103,7 +102,7 @@ async function streamingTextGeneration() {
 			try {
 				await reader4.read();
 			} catch (streamError) {
-				console.log("❌ Stream error caught:", streamError.message);
+				console.log("❌ Stream error caught:", (streamError as Error).message);
 			}
 		} catch (error) {
 			console.log("❌ Initialization error caught:", error);

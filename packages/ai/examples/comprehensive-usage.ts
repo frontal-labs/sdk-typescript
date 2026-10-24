@@ -6,7 +6,23 @@
  */
 
 import { z } from "zod";
-import { ai } from "../src";
+import { FrontalError } from "@frontal-labs/core";
+import { ai, parseToolInput, tool, type ToolDefinition } from "../src";
+
+// Local registry for the examples. Tools are built with `tool()` and run
+// through `parseToolInput`, the same validation the model-call path uses.
+const registry = new Map<string, ToolDefinition>();
+
+function registerTool(name: string, def: ToolDefinition) {
+	registry.set(name, def);
+}
+
+async function executeTool(name: string, input: unknown): Promise<unknown> {
+	const def = registry.get(name);
+	if (!def?.execute) throw new Error(`Tool not found: ${name}`);
+	const parsed = parseToolInput({ [name]: def }, name, input);
+	return def.execute(parsed);
+}
 
 // Initialize the AI client
 
@@ -26,12 +42,7 @@ async function comprehensiveUsageExample() {
 			input: userInput,
 		});
 
-		if (moderationResult.error) {
-			console.error("❌ Moderation failed:", moderationResult.error.message);
-			return;
-		}
-
-		const isSafe = !moderationResult.data.results[0].flagged;
+		const isSafe = !moderationResult.results[0].flagged;
 		console.log(`✅ Content analysis: ${isSafe ? "Safe" : "Flagged"}`);
 
 		if (!isSafe) {
@@ -42,22 +53,14 @@ async function comprehensiveUsageExample() {
 		// Step 2: Generate embedding for semantic search
 		console.log("\n🔍 Step 2: Generate embedding for semantic search");
 		const embeddingResult = await ai.embed({
-			model: "text-embedding-ada-002",
+			model: "text-embedding-3-small",
 			input: userInput,
 		});
-
-		if (embeddingResult.error) {
-			console.error(
-				"❌ Embedding generation failed:",
-				embeddingResult.error.message,
-			);
-			return;
-		}
 
 		console.log("✅ Embedding generated");
 		console.log(
 			"📏 Embedding dimensions:",
-			embeddingResult.data.embeddings[0].length,
+			embeddingResult.embeddings[0].length
 		);
 
 		// Step 3: Generate structured response using object generation
@@ -78,15 +81,7 @@ async function comprehensiveUsageExample() {
 			temperature: 0.3,
 		});
 
-		if (structuredResult.error) {
-			console.error(
-				"❌ Structured generation failed:",
-				structuredResult.error.message,
-			);
-			return;
-		}
-
-		const responseData = structuredResult.data.object;
+		const responseData = structuredResult.object;
 		console.log("✅ Structured response generated");
 		console.log("📊 Complexity:", responseData.complexity);
 		console.log("🏷️ Topics:", responseData.topics.join(", "));
@@ -118,12 +113,8 @@ async function comprehensiveUsageExample() {
 			speed: 1.0,
 		});
 
-		if (speechResult.error) {
-			console.error("❌ Speech generation failed:", speechResult.error.message);
-		} else {
-			console.log("✅ Speech generated");
-			console.log("📏 Audio size:", speechResult.data.byteLength, "bytes");
-		}
+		console.log("✅ Speech generated");
+		console.log("📏 Audio size:", speechResult.byteLength, "bytes");
 
 		// Step 6: Generate related image
 		console.log("\n🎨 Step 6: Generate related illustration");
@@ -138,22 +129,17 @@ async function comprehensiveUsageExample() {
 			n: 1,
 		});
 
-		if (imageResult.error) {
-			console.error("❌ Image generation failed:", imageResult.error.message);
-		} else {
-			console.log("✅ Illustration generated");
-			if (imageResult.data.images[0].url) {
-				console.log("🔗 Image URL:", imageResult.data.images[0].url);
-			}
+		console.log("✅ Illustration generated");
+		if (imageResult.images[0].url) {
+			console.log("🔗 Image URL:", imageResult.images[0].url);
 		}
 
 		// Step 7: Create and use custom tools
 		console.log("\n🛠️ Step 7: Create and use custom tools");
 
-		const mathTool = ai.defineTool({
-			name: "calculate_learning_metrics",
+		const mathTool = tool({
 			description: "Calculate learning metrics for neural networks",
-			parameters: z.object({
+			inputSchema: z.object({
 				epochs: z.number(),
 				accuracy: z.number(),
 				loss: z.number(),
@@ -175,22 +161,18 @@ async function comprehensiveUsageExample() {
 			},
 		});
 
-		ai.registerTool(mathTool);
+		registerTool("calculate_learning_metrics", mathTool);
 		console.log("✅ Math tool registered");
 
 		// Use the tool
-		const toolResult = await ai.executeTool("calculate_learning_metrics", {
+		const toolResult = await executeTool("calculate_learning_metrics", {
 			epochs: 100,
 			accuracy: 0.96,
 			loss: 0.008,
 		});
 
-		if (toolResult.error) {
-			console.error("❌ Tool execution failed:", toolResult.error.message);
-		} else {
-			console.log("✅ Tool executed successfully");
-			console.log("📊 Metrics:", JSON.stringify(toolResult.data, null, 2));
-		}
+		console.log("✅ Tool executed successfully");
+		console.log("📊 Metrics:", JSON.stringify(toolResult, null, 2));
 
 		// Step 8: Create and manage prompts
 		console.log("\n📋 Step 8: Create and manage prompts");
@@ -221,45 +203,34 @@ Language: {language}
 		console.log("✅ Analysis prompt created");
 
 		const retrievedPrompt = ai.getPrompt("ml-concept-analysis");
-		if (retrievedPrompt.error) {
-			console.error(
-				"❌ Prompt retrieval failed:",
-				retrievedPrompt.error.message,
-			);
-		} else {
-			console.log("✅ Prompt retrieved successfully");
+		console.log("✅ Prompt retrieved successfully");
 
-			// Use the prompt with streaming
-			const promptStreamResult = ai.streamText({
-				model: "gpt-3.5-turbo",
-				prompt: retrievedPrompt.data.template
-					.replace("{concept}", "gradient descent")
-					.replace("{level}", "intermediate")
-					.replace("{includeTopics}", "true")
-					.replace("{language}", "English"),
-				maxTokens: 300,
-				onChunk: (chunk) => {
-					process.stdout.write(chunk);
-				},
-			});
+		// Use the prompt with streaming
+		const promptStreamResult = ai.streamText({
+			model: "gpt-3.5-turbo",
+			prompt: retrievedPrompt.template
+				.replace("{concept}", "gradient descent")
+				.replace("{level}", "intermediate")
+				.replace("{includeTopics}", "true")
+				.replace("{language}", "English"),
+			maxTokens: 300,
+			onChunk: (chunk) => {
+				process.stdout.write(chunk);
+			},
+		});
 
-			console.log("\n🔄 Using prompt for gradient descent:");
-			await promptStreamResult.usage;
-			console.log("\n✅ Prompt-based streaming completed");
-		}
+		console.log("\n🔄 Using prompt for gradient descent:");
+		await promptStreamResult.usage;
+		console.log("\n✅ Prompt-based streaming completed");
 
 		// Step 9: List available models
 		console.log("\n🤖 Step 9: List available models");
 
 		const modelsResult = await ai.listModels();
-		if (modelsResult.error) {
-			console.error("❌ Failed to list models:", modelsResult.error.message);
-		} else {
-			console.log("✅ Available models:");
-			modelsResult.data.forEach((model, index) => {
-				console.log(`   ${index + 1}. ${model}`);
-			});
-		}
+		console.log("✅ Available models:");
+		modelsResult.forEach((model, index) => {
+			console.log(`   ${index + 1}. ${model}`);
+		});
 
 		// Step 10: Token counting and cost estimation
 		console.log("\n💰 Step 10: Token counting and cost estimation");
@@ -289,8 +260,17 @@ Language: {language}
 		console.log("   ✅ Prompt management");
 		console.log("   ✅ Model listing");
 		console.log("   ✅ Token counting and cost estimation");
-	} catch (error) {
-		console.error("❌ Unexpected error in comprehensive example:", error);
+	} catch (err) {
+		if (err instanceof FrontalError) {
+			console.error(
+				"❌ Comprehensive example failed:",
+				err.statusCode,
+				err.message,
+				err.fix ?? ""
+			);
+		} else {
+			throw err;
+		}
 	}
 }
 
@@ -328,11 +308,7 @@ async function multiModalAssistantExample() {
 				temperature: 0.5,
 			});
 
-			if (!textResult.error) {
-				console.log(
-					`🤖 AI Response: ${textResult.data.text.substring(0, 100)}...`,
-				);
-			}
+			console.log(`🤖 AI Response: ${textResult.text.substring(0, 100)}...`);
 		}
 
 		// Image generation
@@ -345,9 +321,7 @@ async function multiModalAssistantExample() {
 				n: 1,
 			});
 
-			if (!imageResult.error) {
-				console.log("🎨 Generated diagram for visualization");
-			}
+			console.log("🎨 Generated diagram for visualization");
 		}
 
 		// Speech generation
@@ -360,17 +334,13 @@ async function multiModalAssistantExample() {
 				temperature: 0.3,
 			});
 
-			if (!textResult.error) {
-				const speechResult = await ai.generateSpeech({
-					text: textResult.data.text,
-					voice: "alloy",
-					model: "tts-1",
-				});
+			const speechResult = await ai.generateSpeech({
+				text: textResult.text,
+				voice: "alloy",
+				model: "tts-1",
+			});
 
-				if (!speechResult.error) {
-					console.log("🔊 Generated audio explanation");
-				}
-			}
+			console.log("🔊 Generated audio explanation");
 		}
 
 		// Moderation
@@ -383,12 +353,10 @@ async function multiModalAssistantExample() {
 				input: previousResponse,
 			});
 
-			if (!moderationResult.error) {
-				const isSafe = !moderationResult.data.results[0].flagged;
-				console.log(
-					`🛡️ Content safety check: ${isSafe ? "Safe" : "Needs review"}`,
-				);
-			}
+			const isSafe = !moderationResult.results[0].flagged;
+			console.log(
+				`🛡️ Content safety check: ${isSafe ? "Safe" : "Needs review"}`
+			);
 		}
 	}
 }
@@ -419,14 +387,12 @@ async function performanceExample() {
 		const endTime = Date.now();
 		const duration = endTime - startTime;
 
-		if (!result.error) {
-			console.log(`   ⏱️ Response time: ${duration}ms`);
-			console.log(`   📊 Tokens used: ${result.data.usage.totalTokens}`);
-			console.log(`   📝 Response length: ${result.data.text.length} chars`);
-			console.log(
-				`   ⚡ Tokens/second: ${(result.data.usage.totalTokens / (duration / 1000)).toFixed(2)}`,
-			);
-		}
+		console.log(`   ⏱️ Response time: ${duration}ms`);
+		console.log(`   📊 Tokens used: ${result.usage.totalTokens}`);
+		console.log(`   📝 Response length: ${result.text.length} chars`);
+		console.log(
+			`   ⚡ Tokens/second: ${(result.usage.totalTokens / (duration / 1000)).toFixed(2)}`
+		);
 	}
 
 	// Test streaming vs non-streaming performance
@@ -454,11 +420,7 @@ async function performanceExample() {
 	console.log(`📊 Non-streaming: ${nonStreamEnd - nonStreamStart}ms`);
 	console.log(`📊 Streaming: ${streamEnd - streamStart}ms`);
 
-	if (!nonStreamResult.error) {
-		console.log(
-			`📏 Non-streaming tokens: ${nonStreamResult.data.usage.totalTokens}`,
-		);
-	}
+	console.log(`📏 Non-streaming tokens: ${nonStreamResult.usage.totalTokens}`);
 }
 
 // Run the examples
