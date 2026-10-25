@@ -49,7 +49,7 @@ extracted by `scripts/extract-examples.ts` and type-checked in CI
 
 ### 4. AI (`@frontal-labs/ai`)
 
-Unified type-safe access to LLMs, embeddings, and AI inference with support for
+Unified type-safe access to LLMs, structured decisions, and AI inference with support for
 streaming responses.
 
 ### 5. Agents (`@frontal-labs/agents`)

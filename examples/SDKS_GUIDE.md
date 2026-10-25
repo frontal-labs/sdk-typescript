@@ -131,7 +131,7 @@ Inference SDK for `ai.frontal.dev`:
 ### Example: generate + stream + embeddings
 
 ```ts
-import { createAIClient } from "@frontal-labs/ai";
+import { choice, createAIClient, noul } from "@frontal-labs/ai";
 
 const ai = createAIClient({
   apiKey: process.env.FRONTAL_API_KEY!,
@@ -151,10 +151,15 @@ const stream = ai.streamText({
 
 for await (const _chunk of stream.textStream as any) {}
 
-const emb = await ai.embed({
-  model: "text-embedding-3-small",
-  input: "How to reset account password"
+const decision = await ai.decisions.decide({
+  model: "frontal-labs/decision-4B",
+  state: { ticket: "I was charged twice. Please fix this ASAP." },
+  questions: {
+    billing: noul("Is this about billing?"),
+    category: choice("What is this ticket about?", { billing: null, technical: null })
+  }
 });
+console.log(decision.answers.category.choice);
 ```
 
 ### Example: structured object generation
