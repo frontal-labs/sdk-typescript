@@ -19,7 +19,7 @@ const AI_OPENAPI = join(
 	ROOT,
 	"contracts",
 	"openapi",
-	"ai.openapi.generated.json",
+	"ai.openapi.json",
 );
 const OUT = join(ROOT, "contracts", "reports", "migration-matrix.md");
 

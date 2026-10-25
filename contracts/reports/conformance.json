@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-11T10:37:59.204Z",
+  "generatedAt": "2026-10-25T12:17:57.706Z",
   "packages": [
     "agents",
     "ai",
@@ -2254,8 +2254,8 @@
         "unmatched": 13
       },
       "ai": {
-        "total": 9,
-        "matched": 9,
+        "total": 4,
+        "matched": 4,
         "unmatched": 0
       },
       "audit": {
@@ -3314,10 +3314,31 @@
       },
       "ai": {
         "surface": "ai",
-        "specTotal": 7,
-        "covered": 7,
-        "coveragePct": 100,
-        "uncovered": []
+        "specTotal": 9,
+        "covered": 4,
+        "coveragePct": 44.4,
+        "uncovered": [
+          {
+            "method": "GET",
+            "path": "/internal/models"
+          },
+          {
+            "method": "GET",
+            "path": "/internal/models/defaults"
+          },
+          {
+            "method": "POST",
+            "path": "/internal/embeddings"
+          },
+          {
+            "method": "POST",
+            "path": "/internal/predictions"
+          },
+          {
+            "method": "POST",
+            "path": "/internal/rerank"
+          }
+        ]
       }
     }
   }
