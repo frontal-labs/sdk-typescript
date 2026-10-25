@@ -61,6 +61,12 @@ export const clientConfigSchema = z
         error: loggerFnSchema.optional(),
       })
       .optional(),
+    /**
+     * `"zstd"` compresses request bodies of 1 KiB or more. Off by default: the
+     * server must accept `Content-Encoding: zstd`, and the runtime must provide
+     * zstd (Node.js 22.15+, Bun).
+     */
+    compression: z.enum(["zstd"]).or(z.literal(false)).default(false),
     circuitBreaker: z
       .object({
         failureThreshold: z.number().int().positive().default(5),

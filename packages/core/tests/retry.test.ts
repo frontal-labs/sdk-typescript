@@ -361,8 +361,10 @@ describe("Retry Logic", () => {
         const endTime = performance.now();
         const duration = endTime - startTime;
 
-        // Should complete quickly (less than 100ms for 10k operations)
-        expect(duration).toBeLessThan(100);
+        // 10k operations take well under 100ms uninstrumented. The bound is
+        // looser so v8 coverage instrumentation does not make it flaky; it still
+        // catches a gross regression.
+        expect(duration).toBeLessThan(500);
       });
 
       it("should produce deterministic results without jitter", () => {

@@ -30,6 +30,8 @@ export {
   isRetryableError,
   NetworkError,
   NotFoundError,
+  PayloadTooLargeError,
+  PaymentRequiredError,
   parseFrontalError,
   RateLimitError,
   ServiceError,
@@ -38,14 +40,15 @@ export {
   ValidationError,
 } from "./errors";
 // HTTP client for API requests
+export type { RequestOptions } from "./http";
 export { HttpClient } from "./http";
 // Interceptors for cross-cutting concerns (governance, audit, etc.)
 export {
-  type Interceptor,
+  BaseInterceptor,
   composeInterceptors,
   createInterceptedClient,
+  type Interceptor,
   type InterceptorConfig,
-  BaseInterceptor,
 } from "./interceptors";
 // Environment variable management
 export { env } from "./keys";

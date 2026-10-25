@@ -57,7 +57,7 @@ describe("HttpClient extended methods", () => {
         }),
       });
 
-      const iter = http.postStream("/ai/chat");
+      const iter = http.postStream("/ai/chat")[Symbol.asyncIterator]();
       await expect(iter.next()).rejects.toThrow();
     });
   });

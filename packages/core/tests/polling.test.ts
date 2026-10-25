@@ -6,7 +6,7 @@ describe("pollUntil", () => {
   it("resolves immediately when condition is met on first call", async () => {
     const fn = vi.fn().mockResolvedValue({ status: "completed" });
     const result = await pollUntil(fn, {
-      until: (r) => r.status === "completed",
+      until: (r: { status: string }) => r.status === "completed",
     });
     expect(result).toEqual({ status: "completed" });
     expect(fn).toHaveBeenCalledTimes(1);
@@ -20,7 +20,7 @@ describe("pollUntil", () => {
     });
 
     const result = await pollUntil(fn, {
-      until: (r) => r.status === "completed",
+      until: (r: { status: string }) => r.status === "completed",
       interval: 10,
       timeout: 5000,
     });
@@ -34,7 +34,7 @@ describe("pollUntil", () => {
 
     await expect(
       pollUntil(fn, {
-        until: (r) => r.status === "completed",
+        until: (r: { status: string }) => r.status === "completed",
         interval: 10,
         timeout: 50,
       })
@@ -61,7 +61,7 @@ describe("pollUntil", () => {
 
     await expect(
       pollUntil(fn, {
-        until: (r) => r.status === "completed",
+        until: (r: { status: string }) => r.status === "completed",
         interval: 10,
         signal: controller.signal,
       })
