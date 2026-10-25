@@ -1,7 +1,7 @@
 /**
  * Writes the decisions routes and schemas into `contracts/openapi/ai.openapi.json`,
  * the single AI contract. The sections are derived from the Zod wire schemas in
- * `packages/ai/src/decision-wire.ts`, so the spec cannot drift from the client.
+ * `packages/ai/src/schemas.ts`, so the spec cannot drift from the client.
  *
  * `contract-sync` uses the same builder when it regenerates the gateway
  * routes, so the decisions sections survive a sync.
@@ -17,7 +17,7 @@ import {
 	decisionModelsSpecSchema,
 	decisionRequestWireSchema,
 	decisionResponseSpecSchema,
-} from "../packages/ai/src/decision-wire";
+} from "../packages/ai/src/schemas";
 
 export const AI_OPENAPI_PATH = fileURLToPath(
 	new URL("../contracts/openapi/ai.openapi.json", import.meta.url),

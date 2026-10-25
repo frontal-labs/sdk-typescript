@@ -13,7 +13,7 @@ import {
   noul,
   score,
 } from "../src/decisions";
-import { type DecisionPolicy, evaluateDecision } from "../src/decisions-policy";
+import { type DecisionPolicy, evaluateDecision } from "../src/policy";
 
 const questions = {
   billing: noul("Is this about billing?"),

@@ -10,7 +10,7 @@ import { createServer, type IncomingMessage, type Server } from "node:http";
 import { zstdDecompressSync } from "node:zlib";
 import { PaymentRequiredError } from "@frontal-labs/core";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { decisionRequestWireSchema } from "../src/decision-wire";
+import { decisionRequestWireSchema } from "../src/schemas";
 import {
   choice,
   createAIClient,

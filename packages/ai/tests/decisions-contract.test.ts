@@ -21,7 +21,7 @@ import {
   decisionModelsWireSchema,
   decisionResponseSpecSchema,
   decisionResponseWireSchema,
-} from "../src/decision-wire";
+} from "../src/schemas";
 
 const committed = JSON.parse(
   readFileSync(AI_OPENAPI_PATH, "utf8")

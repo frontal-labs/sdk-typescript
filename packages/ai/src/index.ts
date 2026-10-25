@@ -45,10 +45,52 @@ export type {
   DecisionRule,
   DecisionRuleMatch,
   DecisionVerdict,
-} from "./decisions-policy";
-export { evaluateDecision } from "./decisions-policy";
-export type { ToolLoopStep, ToolResult } from "./schemas";
-export * from "./schemas";
+} from "./policy";
+export { evaluateDecision } from "./policy";
+
+// Schemas
+export {
+  messageSchema,
+  type Message,
+  generateTextOptionsSchema,
+  type GenerateTextOptions,
+  generateTextResultSchema,
+  type GenerateTextResult,
+  type ToolResult,
+  type ToolLoopStep,
+  streamTextOptionsSchema,
+  type StreamTextOptions,
+  type StreamTextResult,
+  aiConfigSchema,
+  type AIConfig,
+  generateObjectOptionsSchema,
+  type GenerateObjectOptions,
+  type GenerateObjectResult,
+  type VariableDefinition,
+  type Prompt,
+  type PromptChain,
+  type Tool,
+  chatMessageSchema,
+  type ChatMessage,
+  chatCompletionRequestSchema,
+  type ChatCompletionRequest,
+  chatCompletionResponseSchema,
+  type ChatCompletionResponse,
+  chatCompletionChunkSchema,
+  type ChatCompletionChunk,
+  // Decision wire schemas
+  decisionChoiceLabelWireSchema,
+  decisionQuestionWireSchema,
+  decisionLabelProbabilityWireSchema,
+  decisionAnswerWireSchema,
+  decisionRequestWireSchema,
+  decisionResponseSpecSchema,
+  decisionResponseWireSchema,
+  decisionModelSpecSchema,
+  decisionModelsSpecSchema,
+  decisionModelsWireSchema,
+} from "./schemas";
+
 export { AISdk } from "./sdk";
 export type {
   StreamControlOptions,

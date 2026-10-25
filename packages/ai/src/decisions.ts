@@ -6,7 +6,7 @@ import {
   type decisionQuestionWireSchema,
   type decisionRequestWireSchema,
   decisionResponseWireSchema,
-} from "./decision-wire";
+} from "./schemas";
 
 /**
  * Typed decision questions for structured-judgment models (`decision-4B`).
