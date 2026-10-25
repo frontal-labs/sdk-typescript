@@ -39,7 +39,7 @@ const checks: Array<() => Promise<CheckResult>> = [
 	async () => {
 		const ontology = createOntologyClient({ apiKey, baseUrl: apiBaseUrl });
 		return runCheck("ontology.list", async () => {
-			await ontology.list({ limit: 1 });
+			await ontology.objects.listObjectTypes({ limit: 1 });
 		});
 	},
 	async () => {
@@ -64,7 +64,7 @@ const checks: Array<() => Promise<CheckResult>> = [
 		}
 		const blob = createBlobClient({ apiKey, baseUrl: apiBaseUrl });
 		return runCheck("blob.list", async () => {
-			await blob.list(blobBucket);
+			await blob.list({ bucket: blobBucket });
 		});
 	},
 ];
