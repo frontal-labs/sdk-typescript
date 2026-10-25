@@ -3,6 +3,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { z } from "zod";
 import {
   type ErrorField,
   errorFieldSchema,
@@ -15,7 +16,6 @@ import {
   pageResultSchema,
   paginationMetaSchema,
   type ResponseMeta,
-  type RetryConfig,
   responseMetaSchema,
   retryConfigSchema,
   timestampSchema,
@@ -408,7 +408,7 @@ describe("Schemas", () => {
       expect(result.requestId).toBe("req_1234567890");
       expect(result.docs).toBe("https://docs.test.com/errors/validation");
       expect(result.fields).toHaveLength(2);
-      expect(result.fields[0]).toEqual({
+      expect(result.fields?.[0]).toEqual({
         field: "email",
         code: "INVALID_FORMAT",
         message: "Invalid email format",
@@ -595,7 +595,7 @@ describe("Schemas", () => {
     });
 
     it("should infer correct TypeScript type", () => {
-      const validConfig: RetryConfig = {
+      const validConfig: z.input<typeof retryConfigSchema> = {
         maxAttempts: 3,
         strategy: "linear",
       };
@@ -1012,9 +1012,9 @@ describe("Schemas", () => {
       const result = errorResponseSchema.parse(errorResponse);
 
       expect(result.fields).toHaveLength(3);
-      expect(result.fields[0].field).toBe("email");
-      expect(result.fields[1].code).toBe("TOO_SHORT");
-      expect(result.fields[2].message).toContain("between 0 and 120");
+      expect(result.fields?.[0]?.field).toBe("email");
+      expect(result.fields?.[1]?.code).toBe("TOO_SHORT");
+      expect(result.fields?.[2]?.message).toContain("between 0 and 120");
     });
 
     it("should handle complex filter conditions", () => {
@@ -1044,9 +1044,9 @@ describe("Schemas", () => {
         contains: "John",
         startsWith: "J",
       });
-      expect(result.age.gte).toBe(18);
-      expect(result.age.lte).toBe(65);
-      expect(result.status.in).toEqual(["active", "pending"]);
+      expect(result.age).toMatchObject({ gte: 18 });
+      expect(result.age).toMatchObject({ lte: 65 });
+      expect(result.status).toMatchObject({ in: ["active", "pending"] });
       expect(result.tags).toEqual(["vip", "premium"]);
       expect(result.archived).toBe(false);
     });

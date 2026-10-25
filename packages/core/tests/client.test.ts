@@ -327,10 +327,6 @@ describe("FrontalClient", () => {
         message: "User deleted successfully",
         deletedAt: "2023-01-01T00:00:00Z",
       };
-      const deleteSchema = z.object({
-        message: z.string(),
-        deletedAt: z.string(),
-      });
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -339,7 +335,7 @@ describe("FrontalClient", () => {
         json: async () => responseData,
       });
 
-      const result = await client.delete("/users/123", deleteSchema);
+      const result = await client.delete("/users/123");
 
       expect(result).toEqual(responseData);
     });

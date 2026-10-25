@@ -75,7 +75,9 @@ describe("HttpClient branches", () => {
           },
         })
     );
-    const err = await http.get("/x").catch((e) => e);
+    const err = (await http
+      .get("/x")
+      .catch((e: unknown) => e)) as RateLimitError;
     expect(RateLimitError.isInstance(err)).toBe(true);
     expect(err.retryAfter).toBe(7);
     expect(err.rateLimit).toEqual({ limit: 10, remaining: 0, reset: 100 });
