@@ -64,6 +64,11 @@ jobs:
       # cross-surface calls, or any regression below the committed API coverage
       # floor (contracts/coverage-floor.json). This is the migration-validation +
       # coverage-enforcement gate — coverage can only rise, never silently drop.
+      # The decisions routes and schemas in contracts/openapi/ai.openapi.json are
+      # generated from the Zod wire schemas; fail if they drifted.
+      - name: Decisions contract up to date
+        run: bun run contract:decisions:check
+
       - name: Contract & coverage gate
         run: bun run contract:endpoints
 

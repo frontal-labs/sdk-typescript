@@ -40,6 +40,7 @@ const SERVICE_ORDER = [
 /** Headline operations exposed to MCP/agent tooling. */
 const TOOLS = [
   { name: "ai.generateText", pkg: "ai", docs: "packages/ai/README.md" },
+  { name: "ai.decisions.decide", pkg: "ai", docs: "packages/ai/README.md" },
   { name: "ai.streamText", pkg: "ai", docs: "packages/ai/README.md" },
   { name: "agents.define", pkg: "agents", docs: "packages/agents/README.md" },
   {

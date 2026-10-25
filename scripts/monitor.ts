@@ -137,8 +137,8 @@ interface CheckDef { name: string; service: string; fn: () => Promise<void>; ski
 
 const checks: CheckDef[] = [
   {
-    name: "ai.listModels", service: "ai",
-    fn: async () => { const m = await ai.listModels(); if (!Array.isArray(m)) throw new Error("not an array"); },
+    name: "ai.decisions.models", service: "ai",
+    fn: async () => { const m = await ai.decisions.models(); if (!Array.isArray(m)) throw new Error("not an array"); },
   },
   {
     name: "agents.list", service: "agents",
