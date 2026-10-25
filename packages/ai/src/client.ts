@@ -20,12 +20,15 @@ import { AISdk } from "./sdk";
  * @property baseUrl - Override the default AI gateway base URL.
  * @property timeout - Request timeout in milliseconds (default 30_000).
  * @property maxRetries - Maximum number of retry attempts (default 3).
+ * @property compression - `"zstd"` compresses request bodies of 1 KiB or more.
+ *   Off by default; enable only where the gateway accepts zstd request bodies.
  */
 export interface AIClientConfig {
   apiKey: string;
   baseUrl?: string;
   timeout?: number;
   maxRetries?: number;
+  compression?: "zstd" | false;
   /** Optional interceptor(s) applied to the HTTP client (e.g. governance policy enforcement). */
   interceptors?: Interceptor[];
 }
@@ -62,6 +65,7 @@ export function createAIClient(
     timeout: clientOrConfig.timeout ?? DEFAULT_TIMEOUT,
     maxRetries: clientOrConfig.maxRetries ?? DEFAULT_MAX_RETRIES,
     retryDelay: DEFAULT_RETRY_DELAY,
+    compression: clientOrConfig.compression ?? false,
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
