@@ -94,8 +94,10 @@ console.log(embeddings[0].length, usage.totalTokens);
 There is no default embedding model, so always pass `model`. To reorder search results with a reranker:
 
 ```typescript
+// Default model IDs by capability, e.g. "reranking" (key name per the client docs)
+const defaults = await ai.getDefaultModels();
 const { scores } = await ai.rerank({
-  model: reranker, // from ai.getDefaultModels()
+  model: defaults.reranking,
   query: 'reset password',
   documents: ['Account settings', 'Password reset steps'],
   topK: 1,

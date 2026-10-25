@@ -51,9 +51,9 @@ const result = await ai.generateText({
 ### Conversation Handling
 
 ```typescript
-import { ai } from '@frontal-labs/ai';
+import { ai, type Message } from '@frontal-labs/ai';
 
-const messages = [
+const messages: Message[] = [
   { role: 'system', content: 'You are a helpful assistant.' },
   { role: 'user', content: 'What is the capital of France?' },
   { role: 'assistant', content: 'The capital of France is Paris.' },
@@ -62,6 +62,7 @@ const messages = [
 
 const response = await ai.generateText({
   model: 'frontal-ai-fast',
+  prompt: '', // required by the type; ignored because messages is set
   messages,
   maxTokens: 50
 });
@@ -403,8 +404,7 @@ imageResult.images.forEach((image, index) => {
       ], { type: 'image/png' });
       console.log(`Image ${index + 1} created as blob`);
     }
-  });
-}
+});
 ```
 
 ### Audio Transcription

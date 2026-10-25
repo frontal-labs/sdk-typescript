@@ -29,7 +29,7 @@ ai.generateText({ model: "gpt-4o-mini", prompt: "Hello" });
 Methods return their result directly and throw on failure:
 
 - `FrontalError` (from `@frontal-labs/core`) for API errors: `code`, `statusCode`, `requestId`, `retryable`, optional `fix`.
-- `ZodError` for invalid options, thrown before any request is sent.
+- `ZodError` for invalid options on the methods that validate them (`embed`, `generateImage`, `generateSpeech`, `generateVideo`, `transcribe`, `moderate`), thrown before any request is sent. `generateText`, `streamText`, and `generateObject` send their options as given.
 
 ```typescript
 import { FrontalError } from "@frontal-labs/core";

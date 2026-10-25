@@ -245,10 +245,9 @@ async function toolSystemExample() {
 		// Example 5: List all registered tools
 		console.log("📝 Example 5: List all registered tools");
 
-		const allTools = ai.getTools();
 		console.log("✅ Registered tools:");
-		allTools.forEach((tool, index) => {
-			console.log(`   ${index + 1}. ${tool.name}: ${tool.description}`);
+		[...registry.entries()].forEach(([name, def], index) => {
+			console.log(`   ${index + 1}. ${name}: ${def.description}`);
 		});
 	} catch (error) {
 		console.error("❌ Unexpected error:", error);
@@ -385,11 +384,12 @@ async function errorHandlingExample() {
 
 	// Test failed execution
 	console.log("\n🧪 Testing failed execution:");
-	const failResult = await executeTool("unstable_operation", {
-		shouldFail: true,
-	});
-
-	console.log("❌ Unexpected success");
+	try {
+		await executeTool("unstable_operation", { shouldFail: true });
+		console.log("❌ Unexpected success");
+	} catch (error) {
+		console.log("✅ Failure reported:", error instanceof Error ? error.message : error);
+	}
 }
 
 // Example: Tool with complex data structures
