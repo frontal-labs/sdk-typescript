@@ -131,13 +131,109 @@ for (const call of result.toolCalls) {
 
 The same `ToolSet` type is accepted by `agents.define(name, { tools })`.
 
-### Embeddings
+### Structured decisions
+
+Ask typed questions about a state and get typed answers. Names and labels are
+plain values, so any string works as a question name or choice label.
 
 ```ts
-const emb = await ai.embed({
-  model: "text-embedding-3-small",
-  input: "How to reset account password",
+import { choice, noul, score } from "@frontal-labs/ai";
+
+const decision = await ai.decisions.decide({
+  model: "frontal-labs/decision-4B",
+  state: { ticket: "I was charged twice. Please fix this ASAP." },
+  questions: {
+    billing: noul("Is this about billing?"),
+    category: choice("What is this ticket about?", {
+      billing: null,
+      technical: null,
+      other: null,
+    }),
+    severity: score("How severe is it?", ["low", "medium", "high"]),
+  },
 });
+console.log(decision.answers.category.choice, decision.requestId);
+```
+
+Input is checked before any request is sent, so an invalid question or a
+non-finite number in `state` throws `DecisionRequestError` without network
+traffic.
+
+#### Policy and audit
+
+A model's answer is an input to a decision, not the decision. Evaluate a
+deterministic policy over the answers, and record each decision for audit.
+`onDecision` receives a digest of the state, never the state itself, and a
+throwing hook fails the call so an unaudited decision is never returned.
+
+```ts
+import { evaluateDecision, noul, type DecisionPolicy } from "@frontal-labs/ai";
+
+const policy: DecisionPolicy<{ billing: ReturnType<typeof noul> }> = [
+  {
+    id: "billing-needs-review",
+    question: "billing",
+    action: "review",
+    reason: "Billing changes are reviewed by a person",
+    matches: (answer) => answer.noul > 0.8,
+  },
+];
+
+const auditTrail: unknown[] = [];
+const decision = await ai.decisions.decide(
+  {
+    model: "frontal-labs/decision-4B",
+    state: "I was charged twice.",
+    questions: { billing: noul("Is this about billing?") },
+  },
+  {
+    // Store requestId, stateDigest, answers and usage. Never the raw state.
+    onDecision: (record) => void auditTrail.push(record),
+  },
+);
+
+const verdict = evaluateDecision(decision, policy);
+if (verdict.action !== "allow") {
+  console.log(verdict.matched); // which rules fired, and why
+}
+```
+
+A rule matches its own question's typed answer, so `answer.noul` is a
+compile error on a `choice` question. The verdict is `reject` if any reject
+rule fires, otherwise `review` if any review rule fires, otherwise `allow`.
+
+#### Compression
+
+Large states can be compressed with zstd. It is off by default, because the
+gateway must accept `Content-Encoding: zstd` request bodies.
+
+```ts
+import { createAIClient } from "@frontal-labs/ai";
+
+const compressed = createAIClient({ apiKey: process.env.FRONTAL_API_KEY!, compression: "zstd" });
+```
+
+#### Testing
+
+`mockDecisionModel` scripts the decision model at the transport layer, so the
+real client, parsing, and validation run in your tests.
+
+```ts
+import { createTestHttpClient, mockDecisionModel } from "@frontal-labs/testing";
+import { AISdk, noul } from "@frontal-labs/ai";
+
+const model = mockDecisionModel({
+  answer: (q) => (q.name === "billing" ? { type: "noul", noul: 0.9 } : { type: "noul", noul: 0.1 }),
+});
+const { http } = createTestHttpClient(model.routes);
+const ai = new AISdk(http);
+const result = await ai.decisions.decide({
+  model: "frontal-labs/decision-4B",
+  state: "charged twice",
+  questions: { billing: noul("Is this about billing?") },
+});
+result.answers.billing.noul; // 0.9
+model.calls; // every request the model received
 ```
 
 ### Structured output

@@ -29,7 +29,8 @@ ai.generateText({ model: "gpt-4o-mini", prompt: "Hello" });
 Methods return their result directly and throw on failure:
 
 - `FrontalError` (from `@frontal-labs/core`) for API errors: `code`, `statusCode`, `requestId`, `retryable`, optional `fix`.
-- `ZodError` for invalid options on the methods that validate them (`embed`, `generateImage`, `generateSpeech`, `generateVideo`, `transcribe`, `moderate`), thrown before any request is sent. `generateText`, `streamText`, and `generateObject` send their options as given.
+- `DecisionRequestError` for decision input that breaks a rule (for example a non-finite number in `state`, or a `noul` with neither instructions nor criteria), thrown before any request is sent. `generateText`, `streamText`, and `generateObject` send their options as given.
+- `DecisionResponseError` when a decision response does not match the questions asked: a missing, duplicate, or unexpected answer, or an answer of the wrong type.
 
 ```typescript
 import { FrontalError } from "@frontal-labs/core";
@@ -105,87 +106,35 @@ Generates JSON that matches a schema. The schema is sent to the model as JSON-mo
   - `maxRetries?`: number. Retries on 5xx, 429, empty output, and invalid JSON. Default `0`.
 - **Returns**: `{ object: T, usage }`
 
-### Embeddings
+### Structured Decisions
 
-#### `embed(options): Promise<EmbedResult>`
+Typed questions about a state, answered with typed results. Names and labels are plain values, so any string works.
 
-- **Options**: `EmbedOptions`
-  - `model`: string (e.g. `"text-embedding-3-small"`). There is no default embedding model; pass one explicitly.
-  - `input`: string | string[]
-- **Returns**: `{ embeddings: number[][], usage: { totalTokens } }`. `embeddings` is in input order.
+#### `decisions.decide(request, options?): Promise<DecisionResult<Q>>`
 
-#### `rerank(options): Promise<{ scores: number[], usage? }>`
+- **Request**: `{ model, state, questions }`.
+  - `model`: string, for example `"frontal-labs/decision-4B"`.
+  - `state`: text, or any JSON-serializable value (serialized once before sending). Non-finite numbers are rejected.
+  - `questions`: a record of `noul(...)`, `choice(...)`, and `score(...)` questions, keyed by name.
+- **Returns**: `{ answers, model, requestId, usage }`. `answers` is keyed by question name and typed per question: `noul` gives `{ noul: number }`, `choice` gives `{ choice, probabilities, confidence }`, `score` gives `{ score, level, probabilities, confidence }`.
+- **Options**: per-call `RequestOptions`. Decisions are read-only, so a transient failure is retried.
 
-Scores documents by relevance to a query. Returns one score per document, in input order.
+#### `decisions.models(options?): Promise<DecisionModel[]>`
 
-- **Options**
-  - `model`: string (reranking model; see `getDefaultModels()`)
-  - `query`: string
-  - `documents`: (string | `{ content, sourcePath?, chunkIndex?, metadata? }`)[]
-  - `topK?`: number
-  - `criteria?`: string
+Lists the decision models the account can use: `{ name, description, releaseDate }`.
 
-### Multimodal Methods
+#### Options and audit
 
-#### `generateImage(options): Promise<GenerateImageResult>`
+- **`onDecision(record)`**: optional hook on `decide`'s options, called once after a successful decision. `record` holds `requestId`, `model`, `stateDigest` (SHA-256 hex of the state as sent), `questions` (name and type), `answers`, `usage` and `recordedAt`. The state itself is never passed. A throwing hook fails the call.
+- **Compression**: `createAIClient({ compression: "zstd" })` compresses bodies of 1 KiB or more. Off by default; needs gateway support for `Content-Encoding: zstd`. Throws at construction on a runtime without zstd.
 
-- **Options**: `GenerateImageOptions`
-  - `prompt`: string
-  - `model?`: string (default `"dall-e-3"`)
-  - `size?`: string (e.g. `"1024x1024"`; default `"1024x1024"`)
-  - `quality?`: `"standard"` | `"hd"`
-  - `style?`: `"natural"` | `"vivid"`
-  - `n?`: number (1–10; default `1`)
-- **Returns**: `{ images: { url?, b64Json? }[] }`
+#### Policy
 
-#### `generateSpeech(options): Promise<ArrayBuffer>`
+- **`evaluateDecision(result, policy)`**: returns `{ action, matched }`, where `action` is `"reject"`, `"review"` or `"allow"`, and `matched` lists every rule that fired with its `id`, `action` and `reason`.
+- **`DecisionPolicy<Q>`**: an array of rules. Each rule names a question and a `matches(answer)` function typed to that question's answer.
 
-- **Options**: `GenerateSpeechOptions`
-  - `text`: string
-  - `voice`: string (e.g. `"alloy"`, `"echo"`)
-  - `model?`: string (default `"tts-1"`)
-  - `speed?`: number (0.25–4.0)
-  - `format?`: `"mp3"` | `"wav"` | `"opus"`
-- **Returns**: the audio bytes as an `ArrayBuffer`
 
-#### `transcribe(options): Promise<TranscriptionResult>`
-
-- **Options**: `TranscriptionOptions`
-  - `file`: File | Blob
-  - `model`: string (e.g. `"whisper-1"`)
-  - `language?`: string
-  - `prompt?`: string
-  - `responseFormat?`: `"json"` | `"text"` | `"srt"` | `"verbose_json"` | `"vtt"`
-  - `temperature?`: number
-- **Returns**: `{ text: string }`
-
-#### `generateVideo(options): Promise<GenerateVideoResult>`
-
-- **Options**: `GenerateVideoOptions`
-  - `prompt`: string
-  - `model?`: string
-  - `duration?`: number
-  - `resolution?`: string
-  - `fps?`: number
-  - `aspectRatio?`: string
-- **Returns**: `{ videoUrl: string, ... }`
-
-### Safety & Utilities
-
-#### `moderate(options): Promise<ModerationResult>`
-
-- **Options**: `ModerationOptions`
-  - `input`: string | string[]
-  - `model?`: string (default `"text-moderation-latest"`)
-- **Returns**: `{ id, model, results: { flagged, categories, categoryScores }[] }`
-
-#### `listModels(): Promise<string[]>`
-
-Model IDs available from the gateway.
-
-#### `getDefaultModels(): Promise<Record<string, string>>`
-
-The gateway's default model ID per capability (for example chat, reranking, embedding).
+### Utilities
 
 #### `health(): Promise<{ status: string }>`
 

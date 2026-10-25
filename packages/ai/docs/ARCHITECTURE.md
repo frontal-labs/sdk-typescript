@@ -1,6 +1,6 @@
 # AI SDK Architecture
 
-The `@frontal-labs/ai` SDK is a type-safe client for the Frontal AI Gateway (`https://ai.frontal.dev` by default). The gateway exposes an OpenAI-compatible chat API plus internal endpoints for embeddings, predictions (speech, images, video, transcription, moderation), reranking, and model discovery. The SDK maps typed options onto those endpoints and returns typed results.
+The `@frontal-labs/ai` SDK is a type-safe client for the Frontal AI Gateway (`https://ai.frontal.dev` by default). The gateway exposes an OpenAI-compatible chat API and the structured decisions API. The SDK maps typed options onto those endpoints and returns typed results. The SDK does not call the gateway's `/internal/` routes.
 
 ## Core Components
 
@@ -13,7 +13,8 @@ The entry point, created with `createAIClient()` or the `ai` singleton (`src/cli
 
 ### 2. Type System (Zod)
 We use [Zod](https://zod.dev) for runtime validation and static type inference.
-- **Input validation**: option schemas (`embedOptionsSchema`, `generateSpeechOptionsSchema`, …) are parsed before any request is sent. Invalid input throws a `ZodError`.
+- **Input validation**: decision input is checked before any request is sent (`assertValidDecision` in `src/decisions.ts`). Invalid input throws `DecisionRequestError` listing every issue.
+- **Wire validation**: responses are parsed with the Zod wire schemas in `src/schemas.ts`. User names and labels travel as values inside arrays, never as object keys, so the snake_case/camelCase transform cannot rewrite them.
 - **Output typing**: result types are declared in `src/schemas.ts` and returned directly.
 
 ### 3. API Gateway Integration
@@ -22,13 +23,11 @@ Paths are relative to the gateway base URL:
 | Capability | Method | Path |
 |------------|--------|------|
 | Text / chat (incl. tools, JSON mode) | `generateText`, `streamText`, `generateObject` | `/ai/chat/completions` |
-| Embeddings | `embed` | `/internal/embeddings` |
-| Speech, images, video, transcription, moderation | `generateSpeech`, `generateImage`, `generateVideo`, `transcribe`, `moderate` | `/internal/predictions` (transcription uses multipart form data) |
-| Reranking | `rerank` | `/internal/rerank` |
-| Model discovery | `listModels`, `getDefaultModels` | `/internal/models`, `/internal/models/defaults` |
+| Structured decisions | `decisions.decide` | `/ai/decisions` |
+| Decision models | `decisions.models` | `/ai/decisions/models` |
 | Health | `health` | `/health` |
 
-The chat endpoint follows the OpenAI request/response shape (`messages`, `tools`, `choices[0].message`, `usage.promptTokens`), and the embeddings endpoint returns OpenAI-style `data[].embedding`.
+The chat endpoint follows the OpenAI request/response shape (`messages`, `tools`, `choices[0].message`, `usage.promptTokens`).
 
 ### 4. Response Handling
 Methods return their result object directly, not a wrapper:

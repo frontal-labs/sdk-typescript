@@ -7,12 +7,10 @@ This guide shows how to use the `@frontal-labs/ai` package to build intelligent 
 1. [Authentication](#authentication)
 2. [Text Generation](#text-generation)
 3. [Structured Output](#structured-output)
-4. [Embeddings](#embeddings)
-5. [Multimodal (Image, Voice, Video)](#multimodal)
-6. [Transcription & Moderation](#transcription--moderation)
-7. [Prompt Management](#prompt-management)
-8. [Tool Usage](#tool-usage)
-9. [Errors](#errors)
+4. [Structured Decisions](#structured-decisions)
+5. [Prompt Management](#prompt-management)
+6. [Tool Usage](#tool-usage)
+7. [Errors](#errors)
 
 ## Authentication
 
@@ -78,72 +76,29 @@ const { object } = await ai.generateObject({
 console.log(object); // Typed as { name: string, bio: string, age: number }
 ```
 
-## Embeddings
+## Structured Decisions
 
-`embed` takes one string or an array and returns vectors in input order.
+Ask typed questions about a state and get typed answers. Use `noul` for yes/no, `choice` for one label from a set, and `score` for an ordered rubric. Ask one narrow question per entry and combine the answers in code, rather than one broad question.
 
-```typescript
-const { embeddings, usage } = await ai.embed({
-  model: 'text-embedding-3-small',
-  input: ['How to reset account password', 'Billing history export'],
+```ts
+import { choice, noul, score } from '@frontal-labs/ai';
+
+const decision = await ai.decisions.decide({
+  model: 'frontal-labs/decision-4B',
+  state: { ticket: 'I was charged twice. Please fix this ASAP.' },
+  questions: {
+    billing: noul('Is this about billing?'),
+    category: choice('What is this ticket about?', { billing: null, technical: null, other: null }),
+    severity: score('How severe is it?', ['low', 'medium', 'high']),
+  },
 });
 
-console.log(embeddings[0].length, usage.totalTokens);
+decision.answers.billing.noul;        // probability in [0, 1]
+decision.answers.category.choice;     // "billing" | "technical" | "other"
+decision.answers.severity.level;      // "low" | "medium" | "high"
 ```
 
-There is no default embedding model, so always pass `model`. To reorder search results with a reranker:
-
-```typescript
-// Default model IDs by capability, e.g. "reranking" (key name per the client docs)
-const defaults = await ai.getDefaultModels();
-const { scores } = await ai.rerank({
-  model: defaults.reranking,
-  query: 'reset password',
-  documents: ['Account settings', 'Password reset steps'],
-  topK: 1,
-});
-```
-
-## Multimodal
-
-### Image Generation
-```typescript
-const { images } = await ai.generateImage({
-  prompt: "A cyberpunk city at night",
-  model: "dall-e-3",
-  size: "1024x1024"
-});
-console.log(images[0].url);
-```
-
-### Speech Generation (TTS)
-```typescript
-const audio = await ai.generateSpeech({
-  text: "Hello from Frontal AI",
-  voice: "alloy"
-});
-// audio is an ArrayBuffer
-```
-
-## Transcription & Moderation
-
-### Audio Transcription
-```typescript
-const { text } = await ai.transcribe({
-  file: myAudioFile, // File or Blob
-  model: "whisper-1"
-});
-console.log(text);
-```
-
-### Content Moderation
-Check if text violates safety policies.
-```typescript
-const { results } = await ai.moderate({ input: "Some user content" });
-if (results[0].flagged) {
-  console.warn("Content flagged!");
-}
-```
+Confidence is the model's own figure. Do not treat it as a calibrated probability of being correct. Keep `requestId` and `model` with each decision so the outcome can be audited, and send high-risk or hard-to-reverse actions to a person before acting on them.
 
 ## Prompt Management
 
