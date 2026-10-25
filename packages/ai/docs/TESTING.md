@@ -224,7 +224,7 @@ export class MockAI implements Partial<IAIClient> {
     this.delays.set(method, delayMs);
   }
 
-  async generateText(options: GenerateTextOptions) {
+  async generateText(options: GenerateTextOptions): Promise<GenerateTextResult> {
     const delay = this.delays.get('generateText') || 0;
     if (delay > 0) await new Promise(r => setTimeout(r, delay));
 
@@ -234,7 +234,10 @@ export class MockAI implements Partial<IAIClient> {
     return {
       text: `Mock response for: ${options.prompt}`,
       finishReason: 'stop',
-      usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 }
+      usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+      toolCalls: [],
+      toolResults: [],
+      steps: []
     };
   }
 
