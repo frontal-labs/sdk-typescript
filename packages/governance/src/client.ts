@@ -11,11 +11,11 @@ import {
   DEFAULT_RETRY_DELAY,
   DEFAULT_TIMEOUT,
 } from "./constants";
-import { GovernanceSdk } from "./sdk";
 import {
-  governanceInterceptor,
   type GovernanceInterceptorConfig,
+  governanceInterceptor,
 } from "./interceptor";
+import { GovernanceSdk } from "./sdk";
 
 /** Configuration options for creating a Governance API client. */
 export interface GovernanceClientConfig {

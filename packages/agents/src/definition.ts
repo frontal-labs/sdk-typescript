@@ -27,7 +27,7 @@ export interface AgentDefinitionOptions<
   /** Human-readable description shown in the console. */
   description?: string;
   /** Event name(s) that start a run. */
-  triggers?: string | string[] | Schemas.TriggerDefinitionInput[];
+  triggers?: string | Array<string | Schemas.TriggerDefinitionInput>;
   /** Free-form tags. */
   tags?: string[];
   /** Schema for the run's state; `state` events are parsed with it. */

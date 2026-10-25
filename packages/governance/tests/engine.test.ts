@@ -8,6 +8,7 @@ import {
   LocalPolicyEngine,
   PolicyViolationError,
 } from "../src/index";
+import type { ConditionValue } from "../src/schemas";
 
 const engine = new LocalPolicyEngine();
 
@@ -75,7 +76,7 @@ describe("LocalPolicyEngine", () => {
   });
 
   describe("matchers", () => {
-    const policyFor = (cond: Record<string, unknown>) =>
+    const policyFor = (cond: Record<string, ConditionValue>) =>
       definePolicy({
         id: "p",
         name: "p",

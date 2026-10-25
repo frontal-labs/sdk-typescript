@@ -6,13 +6,16 @@
  * validation at compile time.
  */
 
-import type { Policy, Effect, ConditionValue } from "./schemas";
+import type { ConditionValue, Effect, Policy } from "./schemas";
 
 // Export the internal types we reference
-export type { PolicyRule } from "./schemas";
-export type { PolicyRuleEffect } from "./schemas";
-export type { ConditionMatcher, ConditionValue } from "./schemas";
-export type { Effect } from "./schemas";
+export type {
+  ConditionMatcher,
+  ConditionValue,
+  Effect,
+  PolicyRule,
+  PolicyRuleEffect,
+} from "./schemas";
 
 /**
  * A single policy rule definition.

@@ -8,22 +8,25 @@ import { ObservabilitySdk } from "../src/sdk";
 const { http, mock } = createTestHttpClient(catchAllRoutes());
 const sdk = new ObservabilitySdk(http);
 
+// Payloads are not inspected here: these cases assert the route and method only.
+const payload = {} as never;
+
 const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   [
     "sdk.logs.query",
-    () => sdk.logs.query({}),
+    () => sdk.logs.query(payload),
     "POST",
     /\/observability\/logs\/query$/,
   ],
   [
     "sdk.logs.ingest",
-    () => sdk.logs.ingest({}, {}),
+    () => sdk.logs.ingest(payload),
     "POST",
     /\/observability\/logs\/ingest$/,
   ],
   [
     "sdk.metrics.query",
-    () => sdk.metrics.query("r_1", {}),
+    () => sdk.metrics.query("r_1", payload),
     "GET",
     /\/observability\/metrics$/,
   ],
@@ -35,7 +38,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.metrics.ingest",
-    () => sdk.metrics.ingest({}, {}),
+    () => sdk.metrics.ingest(payload),
     "POST",
     /\/observability\/metrics\/ingest$/,
   ],
@@ -65,7 +68,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.alerts.create",
-    () => sdk.alerts.create({}, {}),
+    () => sdk.alerts.create(payload),
     "POST",
     /\/observability\/alerts$/,
   ],
@@ -113,7 +116,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.dashboards.create",
-    () => sdk.dashboards.create({}, {}),
+    () => sdk.dashboards.create(payload),
     "POST",
     /\/observability\/dashboards$/,
   ],
@@ -137,13 +140,13 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.events.report",
-    () => sdk.events.report("r_1", {}),
+    () => sdk.events.report(payload),
     "POST",
     /\/observability\/events$/,
   ],
   [
     "sdk.events.reportBatch",
-    () => sdk.events.reportBatch("r_1", {}),
+    () => sdk.events.reportBatch(payload),
     "POST",
     /\/observability\/events\/batch$/,
   ],
@@ -155,19 +158,19 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.events.logs.query",
-    () => sdk.events.logs.query({}),
+    () => sdk.events.logs.query(payload),
     "POST",
     /\/observability\/logs\/query$/,
   ],
   [
     "sdk.events.logs.ingest",
-    () => sdk.events.logs.ingest({}, {}),
+    () => sdk.events.logs.ingest(payload),
     "POST",
     /\/observability\/logs\/ingest$/,
   ],
   [
     "sdk.events.metrics.query",
-    () => sdk.events.metrics.query("r_1", {}),
+    () => sdk.events.metrics.query("r_1", payload),
     "GET",
     /\/observability\/metrics$/,
   ],
@@ -179,7 +182,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.events.metrics.ingest",
-    () => sdk.events.metrics.ingest({}, {}),
+    () => sdk.events.metrics.ingest(payload),
     "POST",
     /\/observability\/metrics\/ingest$/,
   ],

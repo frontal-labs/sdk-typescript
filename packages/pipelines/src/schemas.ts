@@ -230,6 +230,12 @@ export type PipelineSource = z.infer<typeof PipelineSourceSchema>;
 export type PipelineStep = z.infer<typeof PipelineStepSchema>;
 /** Pipeline definition (input) type. */
 export type PipelineDefinition = z.infer<typeof PipelineDefinitionSchema>;
+
+/**
+ * What callers pass in: defaulted fields (`retryPolicy`, `errorHandling`,
+ * `tags`) are optional, as the schema fills them in.
+ */
+export type PipelineDefinitionInput = z.input<typeof PipelineDefinitionSchema>;
 /** Full pipeline resource type. */
 export type Pipeline = z.infer<typeof PipelineSchema>;
 /** Pipeline run (execution) type. */

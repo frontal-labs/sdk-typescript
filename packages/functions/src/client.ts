@@ -37,12 +37,11 @@ export interface FunctionsClientConfig {
  * @returns A configured `FunctionsSdk` instance.
  */
 export function createFunctionsClient(
-  config: FunctionsClientConfig | FrontalClient
-): FunctionsSdk;
-
-export function createFunctionsClient(
-  clientOrConfig: FrontalClient | FunctionsClientConfig
+  clientOrConfig: FunctionsClientConfig | FrontalClient | HttpClient
 ): FunctionsSdk {
+  if (clientOrConfig instanceof HttpClient) {
+    return new FunctionsSdk(clientOrConfig);
+  }
   if (clientOrConfig instanceof FrontalClient) {
     return new FunctionsSdk(clientOrConfig.httpClient);
   }

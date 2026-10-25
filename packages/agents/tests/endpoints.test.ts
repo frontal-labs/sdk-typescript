@@ -63,7 +63,7 @@ describe("AgentsSdk endpoints", () => {
       .autoExecuteAbove(0.95)
       .escalateBelow(0.2)
       .memory({ type: "persistent" })
-      .retry({ maxAttempts: 2 })
+      .retry({ maxRetries: 2 })
       .timeout("10s")
       .rateLimit({ maxConcurrent: 1 })
       .tags("t")

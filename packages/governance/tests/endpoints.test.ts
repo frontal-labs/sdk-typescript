@@ -8,11 +8,14 @@ import { GovernanceSdk } from "../src/sdk";
 const { http, mock } = createTestHttpClient(catchAllRoutes());
 const sdk = new GovernanceSdk(http);
 
+// Payloads are not inspected here: these cases assert the route and method only.
+const payload = {} as never;
+
 const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ["sdk.policies.list", () => sdk.policies.list({}), "GET", /\/policies$/],
   [
     "sdk.policies.create",
-    () => sdk.policies.create({}, {}),
+    () => sdk.policies.create(payload),
     "POST",
     /\/policies$/,
   ],
@@ -48,13 +51,13 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.policies.fromTemplate",
-    () => sdk.policies.fromTemplate({}),
+    () => sdk.policies.fromTemplate(payload),
     "POST",
     /\/policies\/from-template$/,
   ],
   [
     "sdk.policies.validate",
-    () => sdk.policies.validate({}),
+    () => sdk.policies.validate(payload),
     "POST",
     /\/policies\/validate$/,
   ],
@@ -66,7 +69,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.compliance.runAssessment",
-    () => sdk.compliance.runAssessment({}),
+    () => sdk.compliance.runAssessment(payload),
     "POST",
     /\/compliance\/assessments$/,
   ],
@@ -102,7 +105,12 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   ["sdk.roles.list", () => sdk.roles.list({}), "GET", /\/roles$/],
   ["sdk.roles.get", () => sdk.roles.get("r_1"), "GET", /\/roles\/[^/]+$/],
-  ["sdk.roles.create", () => sdk.roles.create(["a"]), "POST", /\/roles$/],
+  [
+    "sdk.roles.create",
+    () => sdk.roles.create({ name: "a", permissions: [] }),
+    "POST",
+    /\/roles$/,
+  ],
   [
     "sdk.roles.delete",
     () => sdk.roles.delete("r_1"),
@@ -123,13 +131,13 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.permissions.create",
-    () => sdk.permissions.create({}),
+    () => sdk.permissions.create(payload),
     "POST",
     /\/permissions$/,
   ],
   [
     "sdk.access.check",
-    () => sdk.access.check(["a"]),
+    () => sdk.access.check({ userId: "u", roleNames: ["a"], action: "read" }),
     "POST",
     /\/access\/check$/,
   ],

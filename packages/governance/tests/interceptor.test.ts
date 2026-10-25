@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
 import type { HttpClient } from "@frontal-labs/core";
+import { describe, expect, it, vi } from "vitest";
+import { PolicyViolationError } from "../src/engine";
 import { governanceInterceptor } from "../src/interceptor";
 import { commonPolicies } from "../src/policy-dsl";
-import { PolicyViolationError } from "../src/engine";
 
 /** Minimal HttpClient-shaped fake that records calls and returns canned data. */
 function fakeClient(overrides: Partial<Record<string, unknown>> = {}) {

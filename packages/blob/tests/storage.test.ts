@@ -58,19 +58,19 @@ describe("BlobSdk", () => {
   describe("download()", () => {
     it("downloads data as a blob", async () => {
       const { http } = createTestHttpClient([]);
-      const mockBlobSdk = new BlobSdk(["file content"], { type: "text/plain" });
+      const mockBlob = new Blob(["file content"], { type: "text/plain" });
       const getRawSpy = vi
         .spyOn(
           http as unknown as {
             getRaw: () => Promise<{
-              blob: () => Promise<BlobSdk>;
+              blob: () => Promise<Blob>;
               body: null;
             }>;
           },
           "getRaw"
         )
         .mockResolvedValue({
-          blob: async () => mockBlobSdk,
+          blob: async () => mockBlob,
           body: null,
         });
 
@@ -80,7 +80,7 @@ describe("BlobSdk", () => {
         key: "file.txt",
       });
 
-      expect(result).toBeInstanceOf(BlobSdk);
+      expect(result).toBe(mockBlob);
       expect(getRawSpy).toHaveBeenCalledWith("/blob/object/my-bucket/file.txt");
       getRawSpy.mockRestore();
     });

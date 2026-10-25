@@ -10,8 +10,6 @@ export {
   governance,
 } from "./client";
 export { DEFAULT_GOVERNANCE_BASE_URL, VERSION } from "./constants";
-export * from "./schemas";
-export { GovernanceSdk } from "./sdk";
 export {
   DeniedError,
   LocalPolicyEngine,
@@ -19,26 +17,28 @@ export {
   PolicyViolationError,
 } from "./engine";
 export {
-  type ConditionMatcher,
-  type ConditionValue,
-  type Effect,
-  allow,
-  allowRule,
-  commonPolicies,
-  conditions,
-  definePolicy,
-  deny,
-  denyRule,
-  policies,
-  policy,
-  type PolicyDefinition,
-  type RuleDefinition,
-  where,
-} from "./policy-dsl";
-export {
   type GovernanceInterceptorConfig,
   type GovernOptions,
   govern,
   governanceInterceptor,
   type PolicyContext,
 } from "./interceptor";
+export {
+  allow,
+  allowRule,
+  type ConditionMatcher,
+  type ConditionValue,
+  commonPolicies,
+  conditions,
+  definePolicy,
+  deny,
+  denyRule,
+  type Effect,
+  type PolicyDefinition,
+  policies,
+  policy,
+  type RuleDefinition,
+  where,
+} from "./policy-dsl";
+export * from "./schemas";
+export { GovernanceSdk } from "./sdk";

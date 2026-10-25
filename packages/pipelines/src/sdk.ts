@@ -71,7 +71,7 @@ export class PipelinesSdk {
    * Creates a new pipeline from a definition.
    * @param definition - The pipeline definition (validated before sending).
    */
-  async create(definition: S.PipelineDefinition): Promise<S.Pipeline> {
+  async create(definition: S.PipelineDefinitionInput): Promise<S.Pipeline> {
     const body = S.PipelineDefinitionSchema.parse(definition);
     return this.http.post("/data/pipelines/pipelines", {
       operation: "pipelines.create",
@@ -361,7 +361,9 @@ export class PipelineAccessor {
    * Partially updates the pipeline definition.
    * @param definition - Fields to update.
    */
-  async update(definition: Partial<S.PipelineDefinition>): Promise<S.Pipeline> {
+  async update(
+    definition: Partial<S.PipelineDefinitionInput>
+  ): Promise<S.Pipeline> {
     return this.http.post(
       "/data/pipelines/pipelines",
       this.command("pipelines.update", { definition })
