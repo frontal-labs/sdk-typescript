@@ -164,6 +164,11 @@
       "package": "@frontal-labs/ai"
     },
     {
+      "name": "ai.decisions.decide",
+      "docs": "packages/ai/README.md",
+      "package": "@frontal-labs/ai"
+    },
+    {
       "name": "ai.streamText",
       "docs": "packages/ai/README.md",
       "package": "@frontal-labs/ai"
