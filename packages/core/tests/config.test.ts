@@ -38,6 +38,7 @@ describe("Configuration", () => {
           headers: {},
           environment: "production",
           debug: false,
+          compression: false,
           fetch: undefined,
           logger: undefined,
         });
@@ -72,6 +73,7 @@ describe("Configuration", () => {
           },
           environment: "development",
           debug: true,
+          compression: false,
           fetch: undefined,
           logger: undefined,
         });
@@ -199,7 +201,7 @@ describe("Configuration", () => {
           const input = {
             apiKey: "frt_1234567890abcdef",
             baseUrl: url,
-          } as ClientConfigInput;
+          } as unknown as ClientConfigInput;
           expect(() => clientConfigSchema.parse(input)).toThrow();
         });
       });
@@ -239,7 +241,7 @@ describe("Configuration", () => {
           const input = {
             apiKey: "frt_1234567890abcdef",
             timeout,
-          } as ClientConfigInput;
+          } as unknown as ClientConfigInput;
           expect(() => clientConfigSchema.parse(input)).toThrow();
         });
       });
@@ -280,7 +282,7 @@ describe("Configuration", () => {
           const input = {
             apiKey: "frt_1234567890abcdef",
             maxRetries,
-          } as ClientConfigInput;
+          } as unknown as ClientConfigInput;
           expect(() => clientConfigSchema.parse(input)).toThrow();
         });
       });
@@ -320,7 +322,7 @@ describe("Configuration", () => {
           const input = {
             apiKey: "frt_1234567890abcdef",
             retryDelay,
-          } as ClientConfigInput;
+          } as unknown as ClientConfigInput;
           expect(() => clientConfigSchema.parse(input)).toThrow();
         });
       });
@@ -362,7 +364,7 @@ describe("Configuration", () => {
           const input = {
             apiKey: "frt_1234567890abcdef",
             headers,
-          } as ClientConfigInput;
+          } as unknown as ClientConfigInput;
           expect(() => clientConfigSchema.parse(input)).toThrow();
         });
       });

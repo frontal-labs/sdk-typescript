@@ -136,11 +136,11 @@ import { Frontal } from "@frontal-labs/sdk";
 import { createTestClient } from "@frontal-labs/testing";
 
 const { client, mock } = createTestClient([
-  { method: "GET", path: "/internal/models", body: { data: [] } },
+  { method: "GET", path: "/ai/decisions/models", body: { models: [] } },
 ]);
 const f = new Frontal(client);
-await f.ai.listModels();
-mock.expectCalled("GET", "/internal/models");
+await f.ai.decisions.models();
+mock.expectCalled("GET", "/ai/decisions/models");
 ```
 
 See [`docs/TESTING.md`](../../docs/TESTING.md) for model mocks and scenarios.

@@ -1,0 +1,621 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Frontal AI Gateway Public Contract",
+    "version": "1.0.0-generated",
+    "description": "Generated from gateway router sources and infrastructure host topology."
+  },
+  "servers": [
+    {
+      "url": "https://ai.frontal.dev",
+      "description": "Global latency endpoint"
+    },
+    {
+      "url": "https://ai.us.frontal.dev",
+      "description": "US regional endpoint"
+    },
+    {
+      "url": "https://ai.eu.frontal.dev",
+      "description": "EU regional endpoint"
+    },
+    {
+      "url": "https://ai.ap.frontal.dev",
+      "description": "AP regional endpoint"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "aiGatewayHealth",
+        "tags": [
+          "gateway"
+        ],
+        "responses": {
+          "200": {
+            "description": "Gateway health"
+          }
+        }
+      }
+    },
+    "/ai/chat/completions": {
+      "post": {
+        "operationId": "unified_ai_chat_completions",
+        "tags": [
+          "unified-api"
+        ],
+        "x_route_class": "public",
+        "responses": {
+          "200": {
+            "description": "Unified API response"
+          }
+        }
+      }
+    },
+    "/internal/embeddings": {
+      "post": {
+        "operationId": "runtime_internal_embeddings",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/models": {
+      "get": {
+        "operationId": "runtime_internal_models",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "public-sdk",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/models/defaults": {
+      "get": {
+        "operationId": "runtime_internal_models_defaults",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "public-sdk",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/predictions": {
+      "post": {
+        "operationId": "runtime_internal_predictions",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/rerank": {
+      "post": {
+        "operationId": "runtime_internal_rerank",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/ai/decisions": {
+      "post": {
+        "operationId": "aiDecide",
+        "tags": [
+          "decisions"
+        ],
+        "x_route_class": "public-sdk",
+        "description": "Answers typed questions about a state. Keys are user data (question names and choice labels) and travel as values, not object keys.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answers to every question, one per name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Balance or plan does not cover the request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unknown model or unsupported question",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited; honor Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/decisions/models": {
+      "get": {
+        "operationId": "aiDecisionModels",
+        "tags": [
+          "decisions"
+        ],
+        "x_route_class": "public-sdk",
+        "description": "Lists the decision models the account can use.",
+        "responses": {
+          "200": {
+            "description": "Decision models.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionModelList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited; honor Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DecisionRequest": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string"
+          },
+          "questions": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "noul",
+                    "choice",
+                    "score"
+                  ]
+                },
+                "instructions": {
+                  "type": "string"
+                },
+                "criteria": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "true": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "false": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "description": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "description"
+                        ]
+                      }
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "instructions"
+              ]
+            }
+          }
+        },
+        "required": [
+          "model",
+          "state",
+          "questions"
+        ]
+      },
+      "DecisionResponse": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "noul"
+                      ]
+                    },
+                    "noul": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "type",
+                    "noul"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "choice"
+                      ]
+                    },
+                    "choice": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "probabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "probability": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "probability"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "type",
+                    "choice",
+                    "probabilities",
+                    "confidence"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "score"
+                      ]
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "level": {
+                      "type": "string"
+                    },
+                    "probabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "type",
+                    "score",
+                    "level",
+                    "probabilities",
+                    "confidence"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "input_tokens": {
+                "nullable": true,
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "output_tokens": {
+                "nullable": true,
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "cached_tokens": {
+                "nullable": true,
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "additionalProperties": false
+          },
+          "request_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "model",
+          "answers",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "DecisionModelList": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": {
+                  "type": "string"
+                },
+                "release_date": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "description",
+                "release_date"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "models"
+        ],
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "request_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

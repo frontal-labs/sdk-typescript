@@ -14,8 +14,8 @@ import type { SimulateStreamOptions } from "./stream";
 export const scenarioAliases: Record<string, `${string} ${string}`> = {
   "ai.generateText": "POST /ai/chat/completions",
   "ai.streamText": "POST /ai/chat/completions",
-  "ai.embed": "POST /internal/embeddings",
-  "ai.listModels": "GET /internal/models",
+  "ai.decisions.decide": "POST /ai/decisions",
+  "ai.decisions.models": "GET /ai/decisions/models",
   "agents.list": "GET /agents",
   "agents.create": "POST /agents",
   "agents.get": "GET /agents/{param}",

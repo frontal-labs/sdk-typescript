@@ -167,7 +167,9 @@ export function createMockFetch(routes: MockRoute[] = []) {
 
       const reqHeaders: Record<string, string> = {};
       if (init?.headers) {
-        const h = new Headers(init.headers as HeadersInit);
+        const h = new Headers(
+          init.headers as ConstructorParameters<typeof Headers>[0]
+        );
         h.forEach((v, k) => {
           reqHeaders[k] = v;
         });
@@ -500,6 +502,14 @@ export {
 // Streams, model mocks, scenarios
 // ============================================================================
 
+export {
+  type MockDecisionAnswer,
+  type MockDecisionCall,
+  type MockDecisionModel,
+  type MockDecisionOptions,
+  type MockDecisionQuestion,
+  mockDecisionModel,
+} from "./decision";
 export {
   type MockLanguageModel,
   type MockLanguageModelOptions,

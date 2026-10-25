@@ -52,7 +52,7 @@
     "build": "tsup && tsc --emitDeclarationOnly",
     "build:watch": "tsup --watch",
     "type-check": "tsc --noEmit",
-    "test": "bun test",
+    "test": "vitest run",
     "lint": "biome lint src/ tests/",
     "clean": "rm -rf dist",
     "docs": "typedoc --entryPoints src/index.ts --out docs/v2 --entryPoints src/packages/* --excludePrivate --excludeProtected",

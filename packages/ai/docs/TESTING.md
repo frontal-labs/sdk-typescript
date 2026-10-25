@@ -73,31 +73,27 @@ describe('AI Client', () => {
     });
   });
 
-  describe('embed', () => {
-    it('should generate embeddings', async () => {
-      const mockResponse = {
-        data: [{
-          embedding: [0.1, 0.2, 0.3],
-          index: 0
-        }],
-        usage: {
-          prompt_tokens: 5,
-          total_tokens: 5
-        }
-      };
+  });
 
+  describe('decisions.decide', () => {
+    it('should answer questions with typed results', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockResponse
+        json: async () => ({
+          model: 'frontal-labs/decision-4B',
+          answers: [{ name: 'billing', type: 'noul', noul: 0.9 }],
+          request_id: 'req_1'
+        })
       });
 
-      const result = await ai.embed({
-        model: 'embedding-model',
-        input: 'Test text'
+      const result = await ai.decisions.decide({
+        model: 'frontal-labs/decision-4B',
+        state: 'I was charged twice',
+        questions: { billing: noul('Is this about billing?') }
       });
 
-      expect(result.embeddings).toEqual([[0.1, 0.2, 0.3]]);
-      expect(result.usage.totalTokens).toBe(5);
+      expect(result.answers.billing.noul).toBe(0.9);
+      expect(result.requestId).toBe('req_1');
     });
   });
 });
@@ -212,7 +208,7 @@ describe('Performance Tests', () => {
 ### Mock AI Client
 
 ```typescript
-export class MockAI implements Partial<IAIClient> {
+export class MockAI {
   private responses = new Map<string, any>();
   private delays = new Map<string, number>();
 
@@ -241,16 +237,14 @@ export class MockAI implements Partial<IAIClient> {
     };
   }
 
-  async embed(options: EmbedOptions) {
-    const response = this.responses.get('embed');
+  async decide(options: DecideRequest<Questions>) {
+    const response = this.responses.get('decide');
     if (response) return response;
 
-    const input = Array.isArray(options.input) ? options.input : [options.input];
-    
-    return {
-      embeddings: input.map(() => [0.1, 0.2, 0.3]),
-      usage: { totalTokens: input.length * 2 }
-    };
+    const answers = Object.fromEntries(
+      Object.keys(options.questions).map((name) => [name, { type: 'noul', noul: 0.5 }])
+    );
+    return { answers, model: options.model, requestId: 'req_mock', usage: { inputTokens: 1, outputTokens: 1 } };
   }
 
   streamText(options: StreamTextOptions): StreamTextResult {
@@ -378,11 +372,10 @@ export class AIAssertions {
     expect(result.usage.totalTokens).toBeGreaterThanOrEqual(0);
   }
 
-  static assertValidEmbedResult(result: EmbedResult) {
+  static assertValidDecisionResult(result: DecisionResult<Questions>) {
     expect(result).toBeDefined();
-    expect(result.embeddings).toBeInstanceOf(Array);
-    expect(result.embeddings[0]).toBeInstanceOf(Array);
-    expect(result.usage.totalTokens).toBeGreaterThanOrEqual(0);
+    expect(result.requestId).toBeTypeOf('string');
+    expect(result.answers).toBeTypeOf('object');
   }
 
   static assertValidStreamResult(result: StreamTextResult) {
@@ -467,9 +460,11 @@ export const AI_RESPONSES = {
     usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 }
   },
 
-  embeddings: {
-    embeddings: [[0.1, 0.2, 0.3]],
-    usage: { totalTokens: 5 }
+  decisions: {
+    answers: { billing: { type: 'noul', noul: 0.9 } },
+    model: 'frontal-labs/decision-4B',
+    requestId: 'req_fixture',
+    usage: { inputTokens: 5, outputTokens: 1 }
   }
 
   // For error paths, make the mock reject with a FrontalError instead of
@@ -492,7 +487,7 @@ describe('Error Handling', () => {
   it('should handle validation errors', async () => {
     // Options are validated with Zod before any request is sent
     await expect(
-      ai.embed({ model: 'embedding-model', input: 42 as unknown as string })
+      ai.decisions.decide({ model: 'decision-model', state: Number.NaN, questions: { ok: noul('Is it?') } })
     ).rejects.toThrow();
   });
 });

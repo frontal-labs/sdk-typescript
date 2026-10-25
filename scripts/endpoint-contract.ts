@@ -29,7 +29,7 @@ const AI_OPENAPI_PATH = join(
 	ROOT,
 	"contracts",
 	"openapi",
-	"ai.openapi.generated.json",
+	"ai.openapi.json",
 );
 const REPORT_PATH = join(ROOT, "contracts", "reports", "conformance.json");
 // No-regression coverage floor: the minimum number of spec operations each
@@ -326,12 +326,10 @@ function buildCandidatePaths(surface: Surface, sdkPath: string): string[] {
 }
 
 function surfaceAllowsPath(surface: Surface, path: string): boolean {
+	// The SDK never calls the gateway's /internal/ routes; they are not part of
+	// the public AI surface, so an SDK call to one is reported as forbidden.
 	if (surface === "ai") {
-		return (
-			path.startsWith("/ai/") ||
-			path.startsWith("/internal/") ||
-			path === "/health"
-		);
+		return path.startsWith("/ai/") || path === "/health";
 	}
 	return !path.startsWith("/ai/") && !path.startsWith("/internal/");
 }

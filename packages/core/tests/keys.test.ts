@@ -430,7 +430,7 @@ describe("Environment Variable Management", () => {
       try {
         keys.client.parse(process.env);
       } catch (error) {
-        const errorMessage = error.message;
+        const errorMessage = (error as Error).message;
         // Error message should not contain the actual API key
         expect(errorMessage).not.toContain("frt_sensitive1234567890abcdef");
       }

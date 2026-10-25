@@ -29,7 +29,9 @@ function jsonResponse(body: unknown): Response {
 
 describe("createAIClient base URL", () => {
   it("targets the AI gateway for a FrontalClient, not the public API", async () => {
-    const fetchMock = vi.fn(async () => jsonResponse(chatBody));
+    const fetchMock = vi.fn(async (_input: unknown, _init?: unknown) =>
+      jsonResponse(chatBody)
+    );
     const client = new FrontalClient({
       apiKey: API_KEY,
       baseUrl: "https://api.frontal.dev/v1",

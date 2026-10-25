@@ -394,7 +394,10 @@ describe("Integration Tests", () => {
 
       // Create a mock PageResult
       let callCount = 0;
-      const createMockPage = (startIndex: number, pageSize: number) => {
+      const createMockPage = (
+        startIndex: number,
+        pageSize: number
+      ): ReturnType<typeof createPageResult> => {
         const pageItems = items.slice(startIndex, startIndex + pageSize);
         const hasNext = startIndex + pageSize < items.length;
 
@@ -402,7 +405,7 @@ describe("Integration Tests", () => {
           {
             data: pageItems,
             pagination: {
-              cursor: hasNext ? `cursor_${startIndex}` : null,
+              cursor: hasNext ? `cursor_${startIndex}` : "cursor_end",
               hasMore: hasNext,
               total: items.length,
             },
@@ -437,7 +440,9 @@ describe("Integration Tests", () => {
       }));
 
       let callCount = 0;
-      const createMockPage = (startIndex: number) => {
+      const createMockPage = (
+        startIndex: number
+      ): ReturnType<typeof createPageResult> => {
         const pageItems = items.slice(startIndex, startIndex + 2);
         const hasNext = startIndex + 2 < items.length;
 
@@ -445,7 +450,7 @@ describe("Integration Tests", () => {
           {
             data: pageItems,
             pagination: {
-              cursor: hasNext ? `cursor_${startIndex}` : null,
+              cursor: hasNext ? `cursor_${startIndex}` : "cursor_end",
               hasMore: hasNext,
               total: items.length,
             },

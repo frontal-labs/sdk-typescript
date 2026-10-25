@@ -225,7 +225,7 @@ export class FrontalClient {
    */
   async putRaw(
     path: string,
-    body: Buffer | ReadableStream,
+    body: NonNullable<RequestInit["body"]>,
     contentType: string,
     headers: Record<string, string> = {}
   ): Promise<unknown> {

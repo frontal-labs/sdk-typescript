@@ -818,7 +818,13 @@ describe("HttpClient", () => {
 
   describe("Logging", () => {
     it("should log requests when debug is enabled", async () => {
-      const debugConfig = createMockConfig({ debug: true });
+      const debugConfig: ReturnType<typeof createMockConfig> & {
+        logger?: {
+          request?: (...args: unknown[]) => void;
+          response?: (...args: unknown[]) => void;
+          error?: (...args: unknown[]) => void;
+        };
+      } = createMockConfig({ debug: true });
       const debugClient = new HttpClient(debugConfig);
       const mockLogger = vi.fn();
       debugConfig.logger = { request: mockLogger };
@@ -836,7 +842,13 @@ describe("HttpClient", () => {
     });
 
     it("should log responses when debug is enabled", async () => {
-      const debugConfig = createMockConfig({ debug: true });
+      const debugConfig: ReturnType<typeof createMockConfig> & {
+        logger?: {
+          request?: (...args: unknown[]) => void;
+          response?: (...args: unknown[]) => void;
+          error?: (...args: unknown[]) => void;
+        };
+      } = createMockConfig({ debug: true });
       const debugClient = new HttpClient(debugConfig);
       const mockLogger = vi.fn();
       debugConfig.logger = { response: mockLogger };
@@ -854,7 +866,13 @@ describe("HttpClient", () => {
     });
 
     it("should log errors when debug is enabled", async () => {
-      const debugConfig = createMockConfig({ debug: true });
+      const debugConfig: ReturnType<typeof createMockConfig> & {
+        logger?: {
+          request?: (...args: unknown[]) => void;
+          response?: (...args: unknown[]) => void;
+          error?: (...args: unknown[]) => void;
+        };
+      } = createMockConfig({ debug: true });
       const debugClient = new HttpClient(debugConfig);
       const mockLogger = vi.fn();
       debugConfig.logger = { error: mockLogger };

@@ -113,57 +113,6 @@ describe("generateObject retry paths", () => {
 });
 
 describe("misc option branches", () => {
-  it("transcribe forwards optional fields as form data", async () => {
-    const { http, mock } = createTestHttpClient([
-      { method: "POST", path: "/internal/predictions", body: { text: "hi" } },
-    ]);
-    const ai = new AISdk(http);
-    const res = await ai.transcribe({
-      file: new Blob(["x"]),
-      model: "whisper",
-      language: "en",
-      prompt: "p",
-      responseFormat: "json",
-      temperature: 0.2,
-    });
-    expect(res.text).toBe("hi");
-    mock.expectCalled("POST", "/internal/predictions");
-  });
-
-  it("rerank normalizes string documents", async () => {
-    const { http, mock } = createTestHttpClient([
-      { method: "POST", path: "/internal/rerank", body: { scores: [1, 0.5] } },
-    ]);
-    const res = await new AISdk(http).rerank({
-      query: "q",
-      documents: ["a", { content: "b" }],
-    });
-    expect(res.scores).toEqual([1, 0.5]);
-    const body = mock.expectCalled("POST", "/internal/rerank").body as {
-      documents: unknown[];
-    };
-    expect(body.documents).toEqual([{ content: "a" }, { content: "b" }]);
-  });
-
-  it("listModels handles array and object-with-data responses", async () => {
-    const { http: a } = createTestHttpClient([
-      { method: "GET", path: "/internal/models", body: ["m1"] },
-    ]);
-    expect(await new AISdk(a).listModels()).toEqual(["m1"]);
-    const { http: b } = createTestHttpClient([
-      {
-        method: "GET",
-        path: "/internal/models",
-        body: { data: [{ id: "m2" }] },
-      },
-    ]);
-    expect(await new AISdk(b).listModels()).toEqual(["m2"]);
-    const { http: c } = createTestHttpClient([
-      { method: "GET", path: "/internal/models", body: { data: [] } },
-    ]);
-    expect(await new AISdk(c).listModels()).toEqual([]);
-  });
-
   it("generateText tolerates missing usage and unknown finish reasons", async () => {
     const { http } = createTestHttpClient([
       {
@@ -194,7 +143,7 @@ describe("misc option branches", () => {
     const p = ai.createPrompt({
       name: "greet",
       template: "Hi {{name}}",
-      variables: { name: { type: "string", required: true } },
+      variables: { name: { type: "string" } },
     });
     expect(ai.getPrompt("greet", "9.9.9").name).toBe("greet");
     expect(() => ai.getPrompt("missing")).toThrow(/not found/);

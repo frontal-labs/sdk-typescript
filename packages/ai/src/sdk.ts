@@ -6,40 +6,23 @@ import {
   toolSetToRequest,
 } from "@frontal-labs/core";
 import { z } from "zod";
-import {
-  type ChatCompletionRequest,
-  type ChatCompletionResponse,
-  type ChatMessage,
-  type EmbeddingsResponse,
-  type EmbedOptions,
-  type EmbedResult,
-  embedOptionsSchema,
-  type GenerateImageOptions,
-  type GenerateImageResult,
-  type GenerateObjectOptions,
-  type GenerateObjectResult,
-  type GenerateSpeechOptions,
-  type GenerateTextOptions,
-  type GenerateTextResult,
-  type GenerateVideoOptions,
-  type GenerateVideoResult,
-  generateImageOptionsSchema,
-  generateSpeechOptionsSchema,
-  generateVideoOptionsSchema,
-  type ModerationOptions,
-  type ModerationResult,
-  moderationOptionsSchema,
-  type Prompt,
-  type PromptChain,
-  type StreamTextOptions,
-  type StreamTextResult,
-  type Tool,
-  type ToolLoopStep,
-  type ToolResult,
-  type TranscriptionOptions,
-  type TranscriptionResult,
-  transcriptionOptionsSchema,
-  type VariableDefinition,
+import { DecisionsResource } from "./decisions";
+import type {
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  ChatMessage,
+  GenerateObjectOptions,
+  GenerateObjectResult,
+  GenerateTextOptions,
+  GenerateTextResult,
+  Prompt,
+  PromptChain,
+  StreamTextOptions,
+  StreamTextResult,
+  Tool,
+  ToolLoopStep,
+  ToolResult,
+  VariableDefinition,
 } from "./schemas";
 import { streamChatParts, toStreamTextResult } from "./stream";
 import { toolChoiceToRequest } from "./tool";
@@ -59,10 +42,15 @@ import { toolChoiceToRequest } from "./tool";
  * ```
  */
 export class AISdk {
+  /** Typed structured decisions, for example `ai.decisions.decide(...)`. */
+  readonly decisions: DecisionsResource;
+
   /**
    * @param http - The HTTP client used to make API requests.
    */
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+    this.decisions = new DecisionsResource(http);
+  }
 
   // ── Text Generation ─────────────────────────────────────────────────
 
@@ -269,35 +257,6 @@ export class AISdk {
     return toStreamTextResult(parts);
   }
 
-  // ── Embeddings ────────────────────────────────────────────────────────
-
-  /**
-   * Generates embeddings for text.
-   * @param options - Embedding options.
-   * @returns The embedding result.
-   * @throws FrontalError on API errors.
-   */
-  async embed(options: EmbedOptions): Promise<EmbedResult> {
-    const validated = embedOptionsSchema.parse(options);
-
-    const requestBody = {
-      model: validated.model,
-      input: validated.input,
-    };
-
-    const response = await this.http.post<EmbeddingsResponse>(
-      "/internal/embeddings",
-      requestBody
-    );
-
-    return {
-      embeddings: response.data.map((d) => d.embedding),
-      usage: {
-        totalTokens: response.usage.totalTokens,
-      },
-    };
-  }
-
   // ── Structured Object ─────────────────────────────────────────────────
 
   /**
@@ -378,211 +337,6 @@ export class AISdk {
     }
 
     throw lastError ?? new Error("generateObject failed after retries");
-  }
-
-  // ── Speech ────────────────────────────────────────────────────────────
-
-  /**
-   * Generates speech from text.
-   * @param options - Speech generation options.
-   * @returns The audio data as an ArrayBuffer.
-   * @throws FrontalError on API errors.
-   */
-  async generateSpeech(options: GenerateSpeechOptions): Promise<ArrayBuffer> {
-    const validated = generateSpeechOptionsSchema.parse(options);
-
-    const body = {
-      model: validated.model || "tts-1",
-      input: validated.text,
-      voice: validated.voice,
-      speed: validated.speed,
-      responseFormat: validated.format,
-    };
-
-    const response = await this.http.postRaw("/internal/predictions", body);
-    return response.arrayBuffer();
-  }
-
-  // ── Image ─────────────────────────────────────────────────────────────
-
-  /**
-   * Generates an image from a prompt.
-   * @param options - Image generation options.
-   * @returns The generated image result.
-   * @throws FrontalError on API errors.
-   */
-  async generateImage(
-    options: GenerateImageOptions
-  ): Promise<GenerateImageResult> {
-    const validated = generateImageOptionsSchema.parse(options);
-
-    const requestBody = {
-      prompt: validated.prompt,
-      model: validated.model || "dall-e-3",
-      n: validated.n || 1,
-      size: validated.size || "1024x1024",
-      quality: validated.quality,
-      style: validated.style,
-      responseFormat: "url",
-    };
-
-    const response = await this.http.post<{
-      data: { url?: string; b64Json?: string }[];
-    }>("/internal/predictions", requestBody);
-
-    return {
-      images: response.data.map((img) => ({
-        url: img.url,
-        b64Json: img.b64Json,
-      })),
-    };
-  }
-
-  // ── Video ─────────────────────────────────────────────────────────────
-
-  /**
-   * Generates a video from a prompt.
-   * @param options - Video generation options.
-   * @returns The generated video result.
-   * @throws FrontalError on API errors.
-   */
-  async generateVideo(
-    options: GenerateVideoOptions
-  ): Promise<GenerateVideoResult> {
-    const validated = generateVideoOptionsSchema.parse(options);
-    return this.http.post<GenerateVideoResult>(
-      "/internal/predictions",
-      validated
-    );
-  }
-
-  // ── Transcription ─────────────────────────────────────────────────────
-
-  /**
-   * Transcribes audio to text.
-   * @param options - Transcription options including the audio file.
-   * @returns The transcription result.
-   * @throws FrontalError on API errors.
-   */
-  async transcribe(
-    options: TranscriptionOptions
-  ): Promise<TranscriptionResult> {
-    const validated = transcriptionOptionsSchema.parse(options);
-
-    const formData = new FormData();
-    formData.append("file", validated.file);
-    formData.append("model", validated.model);
-    if (validated.language) formData.append("language", validated.language);
-    if (validated.prompt) formData.append("prompt", validated.prompt);
-    if (validated.responseFormat)
-      formData.append("response_format", validated.responseFormat);
-    if (validated.temperature !== undefined)
-      formData.append("temperature", String(validated.temperature));
-
-    return this.http.postFormData<TranscriptionResult>(
-      "/internal/predictions",
-      formData
-    );
-  }
-
-  // ── Moderation ────────────────────────────────────────────────────────
-
-  /**
-   * Moderates content for policy violations.
-   * @param options - Moderation options.
-   * @returns The moderation result.
-   * @throws FrontalError on API errors.
-   */
-  async moderate(options: ModerationOptions): Promise<ModerationResult> {
-    const validated = moderationOptionsSchema.parse(options);
-    const requestBody = {
-      input: validated.input,
-      model: validated.model || "text-moderation-latest",
-    };
-    return this.http.post<ModerationResult>(
-      "/internal/predictions",
-      requestBody
-    );
-  }
-
-  // ── Models ────────────────────────────────────────────────────────────
-
-  /**
-   * Lists available models in the Frontal AI Gateway.
-   * @returns Array of model ID strings.
-   * @throws FrontalError on API errors.
-   */
-  async listModels(): Promise<string[]> {
-    const response = await this.http.get<unknown>("/internal/models");
-
-    if (
-      response &&
-      typeof response === "object" &&
-      "data" in response &&
-      Array.isArray((response as Record<string, unknown>).data)
-    ) {
-      const data = (response as Record<string, unknown>).data as Record<
-        string,
-        unknown
-      >[];
-      if (data.length > 0 && typeof data[0].id === "string") {
-        return data.map((m) => m.id as string);
-      }
-    }
-
-    if (Array.isArray(response)) {
-      return response as string[];
-    }
-
-    return [];
-  }
-
-  /**
-   * Returns the gateway's default model ids per capability
-   * (e.g. chat, reranking, embedding).
-   */
-  async getDefaultModels(): Promise<Record<string, string>> {
-    return this.http.get<Record<string, string>>("/internal/models/defaults");
-  }
-
-  /**
-   * Reranks `documents` by relevance to `query` using a reranking model.
-   * Returns one score per input document, in input order.
-   *
-   * @param options.model - Reranking model id (see {@link getDefaultModels}).
-   * @param options.query - The query to score documents against.
-   * @param options.documents - Documents as plain strings or rich objects.
-   * @param options.topK - Optionally keep only the top-K documents.
-   * @param options.criteria - Optional natural-language relevance criteria.
-   */
-  async rerank(options: {
-    model: string;
-    query: string;
-    documents: Array<
-      | string
-      | {
-          content: string;
-          sourcePath?: string;
-          chunkIndex?: number;
-          metadata?: Record<string, string>;
-        }
-    >;
-    topK?: number;
-    criteria?: string;
-  }): Promise<{ scores: number[]; usage?: unknown }> {
-    const documents = options.documents.map((doc) =>
-      typeof doc === "string" ? { content: doc } : doc
-    );
-    return this.http.post<{ scores: number[]; usage?: unknown }>(
-      "/internal/rerank",
-      {
-        model: options.model,
-        query: options.query,
-        documents,
-        topK: options.topK,
-        criteria: options.criteria,
-      }
-    );
   }
 
   /** Health check for the AI gateway. */
@@ -786,6 +540,11 @@ export class AISdk {
   private buildMessages(
     options: GenerateTextOptions | StreamTextOptions
   ): ChatMessage[] {
+    if (options.prompt === undefined && options.messages === undefined) {
+      throw new TypeError(
+        "generateText and streamText need a prompt or messages"
+      );
+    }
     let messages: ChatMessage[] = [];
     if (typeof options.prompt === "string") {
       messages = [{ role: "user", content: options.prompt }];

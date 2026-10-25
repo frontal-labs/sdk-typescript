@@ -21,12 +21,14 @@ Object.defineProperty(console, "error", {
 });
 
 // Global test utilities
-declare global {
-  namespace Vi {
-    interface JestAssertion<T = unknown> extends JestMatchers<T> {
-      toBeValidFrontalError(): T;
-      toBeValidPageResult(): T;
-    }
+declare module "vitest" {
+  // Repeats vitest's own type parameters exactly, as the augmentation must.
+  interface Matchers<
+    R extends void | Promise<void> = void | Promise<void>,
+    T = unknown,
+  > {
+    toBeValidFrontalError(): R;
+    toBeValidPageResult(): R;
   }
 }
 

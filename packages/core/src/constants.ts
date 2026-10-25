@@ -40,6 +40,18 @@ export const EXPONENTIAL_BASE = 2;
 export const JITTER_MAX = 200;
 
 /**
+ * Largest delay (ms) a server-provided `Retry-After` may impose on a retry.
+ * Longer values are capped so one response cannot stall a caller for minutes.
+ */
+export const RETRY_AFTER_MAX_MS = 60_000;
+
+/**
+ * Largest value accepted by `setTimeout`. Larger values overflow the signed
+ * 32-bit timer and fire after about 1ms.
+ */
+export const MAX_TIMER_MS = 2_147_483_647;
+
+/**
  * SDK version string sent in the X-Frontal-Core header.
  */
 export const SDK_VERSION = "1.0.4";

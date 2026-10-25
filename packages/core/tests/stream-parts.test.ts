@@ -160,13 +160,14 @@ describe("toStreamParts", () => {
 
   it("dataParts rethrows error parts", async () => {
     const out: unknown[] = [];
-    await expect(async () => {
+    const drain = async () => {
       for await (const d of dataParts(
         toStreamParts(events([{ type: "a", data: 1 }], 0))
       )) {
         out.push(d);
       }
-    }).rejects.toThrow(/boom/);
+    };
+    await expect(drain()).rejects.toThrow(/boom/);
   });
 });
 

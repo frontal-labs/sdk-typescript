@@ -1,0 +1,88 @@
+{
+  "extends": "./packages/ai/tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "rootDir": ".",
+    "paths": {
+      "@frontal-labs/agents": [
+        "./packages/agents/src"
+      ],
+      "@frontal-labs/ai": [
+        "./packages/ai/src"
+      ],
+      "@frontal-labs/audit": [
+        "./packages/audit/src"
+      ],
+      "@frontal-labs/auth": [
+        "./packages/auth/src"
+      ],
+      "@frontal-labs/billing": [
+        "./packages/billing/src"
+      ],
+      "@frontal-labs/blob": [
+        "./packages/blob/src"
+      ],
+      "@frontal-labs/connectors": [
+        "./packages/connectors/src"
+      ],
+      "@frontal-labs/core": [
+        "./packages/core/src"
+      ],
+      "@frontal-labs/data": [
+        "./packages/data/src"
+      ],
+      "@frontal-labs/functions": [
+        "./packages/functions/src"
+      ],
+      "@frontal-labs/governance": [
+        "./packages/governance/src"
+      ],
+      "@frontal-labs/lineage": [
+        "./packages/lineage/src"
+      ],
+      "@frontal-labs/observability": [
+        "./packages/observability/src"
+      ],
+      "@frontal-labs/ontology": [
+        "./packages/ontology/src"
+      ],
+      "@frontal-labs/pipelines": [
+        "./packages/pipelines/src"
+      ],
+      "@frontal-labs/react": [
+        "./packages/react/src"
+      ],
+      "@frontal-labs/schedules": [
+        "./packages/schedules/src"
+      ],
+      "@frontal-labs/sdk": [
+        "./packages/sdk/src"
+      ],
+      "@frontal-labs/testing": [
+        "./packages/testing/src"
+      ],
+      "@frontal-labs/webhooks": [
+        "./packages/webhooks/src"
+      ],
+      "@frontal-labs/workflows": [
+        "./packages/workflows/src"
+      ]
+    },
+    "lib": [
+      "es2022",
+      "dom",
+      "dom.iterable"
+    ]
+  },
+  "include": [
+    "packages/*/tests/**/*.ts",
+    "scripts/generate-decisions-openapi.ts"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**"
+  ]
+}

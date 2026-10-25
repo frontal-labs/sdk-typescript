@@ -56,15 +56,11 @@
   "ai": [
     {
       "method": "GET",
+      "path": "/ai/decisions/models"
+    },
+    {
+      "method": "GET",
       "path": "/health"
-    },
-    {
-      "method": "GET",
-      "path": "/internal/models"
-    },
-    {
-      "method": "GET",
-      "path": "/internal/models/defaults"
     },
     {
       "method": "POST",
@@ -72,23 +68,7 @@
     },
     {
       "method": "POST",
-      "path": "/internal/embeddings"
-    },
-    {
-      "method": "POST",
-      "path": "/internal/predictions"
-    },
-    {
-      "method": "POST",
-      "path": "/internal/rerank"
-    },
-    {
-      "method": "POSTFORMDATA",
-      "path": "/internal/predictions"
-    },
-    {
-      "method": "POSTRAW",
-      "path": "/internal/predictions"
+      "path": "/ai/decisions"
     }
   ],
   "audit": [

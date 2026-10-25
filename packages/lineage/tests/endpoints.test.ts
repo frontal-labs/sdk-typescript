@@ -8,6 +8,9 @@ import { LineageSdk } from "../src/sdk";
 const { http, mock } = createTestHttpClient(catchAllRoutes());
 const sdk = new LineageSdk(http);
 
+// Payloads are not inspected here: these cases assert the route and method only.
+const payload = {} as never;
+
 const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ["sdk.graph.get", () => sdk.graph.get("r_1", {}), "GET", /\/lineage\/graph$/],
   ["sdk.nodes.list", () => sdk.nodes.list({}), "GET", /\/lineage\/nodes$/],
@@ -32,7 +35,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.impact.analyzeChange",
-    () => sdk.impact.analyzeChange("r_1", {}),
+    () => sdk.impact.analyzeChange("r_1", payload),
     "POST",
     /\/lineage\/impact$/,
   ],

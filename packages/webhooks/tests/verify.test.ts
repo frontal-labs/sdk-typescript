@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createHmac } from "node:crypto";
+import { describe, expect, it } from "vitest";
 import { extractWebhookEvent, verifyWebhookSignature } from "../src/verify";
 
 const secret = "whsec_test_12345";

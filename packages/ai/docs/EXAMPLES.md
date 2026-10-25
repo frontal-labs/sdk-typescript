@@ -7,9 +7,8 @@ This page contains practical examples and tutorials for using the Frontal AI SDK
 - [Basic Usage](#basic-usage)
 - [Text Generation](#text-generation)
 - [Streaming](#streaming)
-- [Embeddings](#embeddings)
+- [Structured Decisions](#structured-decisions)
 - [Structured Output](#structured-output)
-- [Multimodal](#multimodal)
 - [Advanced Patterns](#advanced-patterns)
 
 ## Basic Usage
@@ -196,80 +195,48 @@ async function safeStream(prompt: string) {
 }
 ```
 
-## Embeddings
+## Structured Decisions
 
-### Single Text Embedding
+### Triage a support ticket
 
-```typescript
-import { ai } from '@frontal-labs/ai';
+```ts
+import { choice, noul, score } from '@frontal-labs/ai';
 
-const result = await ai.embed({
-  model: 'text-embedding-3-small',
-  input: 'Hello, world!'
-});
-
-console.log('Embedding:', result.embeddings[0]);
-console.log('Tokens used:', result.usage.totalTokens);
-```
-
-### Batch Embeddings
-
-```typescript
-const texts = [
-  'The cat sat on the mat',
-  'The dog chased the ball',
-  'Birds fly in the sky'
-];
-
-const result = await ai.embed({
-  model: 'text-embedding-3-small',
-  input: texts
-});
-
-result.embeddings.forEach((embedding, index) => {
-  console.log(`Text ${index + 1}:`, embedding.slice(0, 5)); // Show first 5 values
-});
-```
-
-### Semantic Search
-
-```typescript
-class SemanticSearch {
-  private documents: Array<{ text: string; embedding: number[] }> = [];
-
-  async addDocument(text: string) {
-    const { embeddings } = await ai.embed({
-      model: 'text-embedding-3-small',
-      input: text
-    });
-
-    this.documents.push({ text, embedding: embeddings[0] });
-  }
-
-  async search(query: string, topK: number = 3) {
-    const { embeddings } = await ai.embed({
-      model: 'text-embedding-3-small',
-      input: query
-    });
-
-    const queryEmbedding = embeddings[0];
-    const similarities = this.documents.map(doc => ({
-      text: doc.text,
-      similarity: this.cosineSimilarity(queryEmbedding, doc.embedding)
-    }));
-
-    return similarities
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, topK);
-  }
-
-  private cosineSimilarity(a: number[], b: number[]): number {
-    const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
-    const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-    const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-    return dotProduct / (magnitudeA * magnitudeB);
-  }
+async function triage(ticket: string) {
+  const { answers, requestId } = await ai.decisions.decide({
+    model: 'frontal-labs/decision-4B',
+    state: { ticket },
+    questions: {
+      billing: noul('Is this about billing?'),
+      category: choice('What is this ticket about?', { billing: null, technical: null, other: null }),
+      severity: score('How severe is it?', ['low', 'medium', 'high']),
+    },
+  });
+  // Route on the typed answers; keep requestId for the audit trail.
+  return { category: answers.category.choice, severity: answers.severity.level, requestId };
 }
+```
+
+### Gate a hard-to-reverse action
+
+```ts
+const { answers } = await ai.decisions.decide({
+  model: 'frontal-labs/decision-4B',
+  state: { refundRequest: 'Refund the full order, order 1042.' },
+  questions: { authorized: noul('Is the requester authorized to refund this order?') },
+});
+
+// Confidence is not proof: a person approves the refund before it runs.
+if (answers.authorized.noul > 0.9) {
+  await requestHumanApproval('refund-1042');
+}
+```
+
+### Model list
+
+```ts
+const models = await ai.decisions.models();
+console.log(models.map((m) => m.name));
 ```
 
 ## Structured Output
@@ -355,99 +322,6 @@ async function generateWithRetry<T>(
   }
 
   throw new Error('All retry attempts failed');
-}
-```
-
-## Multimodal
-
-### Speech Synthesis
-
-```typescript
-import { ai } from '@frontal-labs/ai';
-
-const audioBuffer = await ai.generateSpeech({
-  text: 'Hello, this is a test of the speech synthesis system.',
-  voice: 'alloy',
-  model: 'tts-1',
-  speed: 1.0,
-  format: 'mp3'
-});
-
-// Save to file or play in browser
-const blob = new Blob([audioBuffer], { type: 'audio/mpeg' });
-const url = URL.createObjectURL(blob);
-
-// Play in browser
-const audio = new Audio(url);
-audio.play();
-```
-
-### Image Generation
-
-```typescript
-const imageResult = await ai.generateImage({
-  prompt: 'A serene mountain landscape at sunset, digital art style',
-  model: 'dall-e-3',
-  size: '1024x1024',
-  quality: 'hd',
-  style: 'natural',
-  n: 2
-});
-
-imageResult.images.forEach((image, index) => {
-    if (image.url) {
-      console.log(`Image ${index + 1}: ${image.url}`);
-    } else if (image.b64Json) {
-      // Convert base64 to blob
-      const blob = new Blob([
-        Buffer.from(image.b64Json, 'base64')
-      ], { type: 'image/png' });
-      console.log(`Image ${index + 1} created as blob`);
-    }
-});
-```
-
-### Audio Transcription
-
-```typescript
-import { ai } from '@frontal-labs/ai';
-
-// Transcribe from file
-const fileInput = document.getElementById('audio-file') as HTMLInputElement;
-const file = fileInput.files?.[0];
-
-if (file) {
-  const transcription = await ai.transcribe({
-    file,
-    model: 'whisper-1',
-    language: 'en',
-    responseFormat: 'json'
-  });
-
-  console.log('Transcription:', transcription.text);
-}
-```
-
-### Content Moderation
-
-```typescript
-async function moderateContent(text: string): Promise<boolean> {
-  const result = await ai.moderate({
-    input: text,
-    model: 'text-moderation-latest'
-  });
-
-  const flagged = result.results[0]?.flagged || false;
-  if (flagged) {
-    console.log('Content flagged:', result.results[0]?.categories);
-  }
-  return flagged;
-}
-
-// Usage
-const isFlagged = await moderateContent('This is some potentially harmful content');
-if (isFlagged) {
-  console.log('Content was flagged for moderation');
 }
 ```
 

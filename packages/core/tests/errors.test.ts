@@ -53,7 +53,7 @@ describe("Error Classes", () => {
         message: "Simple error message",
         requestId: "req_456",
       });
-      delete errorResponse.docs;
+      delete (errorResponse as { docs?: string }).docs;
 
       const error = new FrontalError(errorResponse, 500);
 
@@ -228,7 +228,7 @@ describe("Error Classes", () => {
         message: "Invalid input",
         requestId: "req_400",
       });
-      delete errorResponse.fields;
+      delete (errorResponse as { fields?: unknown }).fields;
 
       const error = new ValidationError(errorResponse);
 
@@ -713,7 +713,7 @@ describe("Error Classes", () => {
       const error = parseFrontalError(errorBody, 400);
 
       // Simulate error logging
-      const logData = {
+      const logData: Record<string, unknown> = {
         name: error.name,
         message: error.message,
         code: error.code,

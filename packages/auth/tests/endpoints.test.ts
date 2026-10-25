@@ -8,6 +8,9 @@ import { AuthSdk } from "../src/sdk";
 const { http, mock } = createTestHttpClient(catchAllRoutes());
 const sdk = new AuthSdk(http);
 
+// Payloads are not inspected here: these cases assert the route and method only.
+const payload = {} as never;
+
 const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   [
     "sdk.signUp",
@@ -68,7 +71,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ["sdk.updateUser", () => sdk.updateUser({}, {}), "PUT", /\/auth\/user$/],
   [
     "sdk.setSession",
-    () => sdk.setSession({}),
+    () => sdk.setSession(payload),
     "POST",
     /\/auth\/auth\/session$/,
   ],
@@ -91,7 +94,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
     "POST",
     /\/auth\/reauthenticate$/,
   ],
-  ["sdk.resend", () => sdk.resend({}), "POST", /\/auth\/resend$/],
+  ["sdk.resend", () => sdk.resend(payload), "POST", /\/auth\/resend$/],
   [
     "sdk.getUserIdentities",
     () => sdk.getUserIdentities(),
@@ -100,13 +103,13 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.linkIdentity",
-    () => sdk.linkIdentity({}),
+    () => sdk.linkIdentity(payload),
     "POST",
     /\/auth\/user\/identities$/,
   ],
   [
     "sdk.unlinkIdentity",
-    () => sdk.unlinkIdentity({}),
+    () => sdk.unlinkIdentity(payload),
     "DELETE",
     /\/auth\/user\/identities\/[^/]+$/,
   ],
@@ -190,19 +193,19 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.admin.users.invite",
-    () => sdk.admin.users.invite("r_1", {}, "r_1"),
+    () => sdk.admin.users.invite("r_1", {}),
     "POST",
     /\/auth\/invite$/,
   ],
   [
     "sdk.admin.invite.generateLink",
-    () => sdk.admin.invite.generateLink({}),
+    () => sdk.admin.invite.generateLink(payload),
     "POST",
     /\/auth\/admin\/generate_link$/,
   ],
   [
     "sdk.admin.session.signOut",
-    () => sdk.admin.session.signOut("r_1", {}),
+    () => sdk.admin.session.signOut("r_1", "global"),
     "POST",
     /\/auth\/admin\/logout$/,
   ],
@@ -226,7 +229,7 @@ const cases: [string, () => Promise<unknown>, string, RegExp][] = [
   ],
   [
     "sdk.account.updatePassword",
-    () => sdk.account.updatePassword({}),
+    () => sdk.account.updatePassword(payload),
     "POST",
     /\/auth\/account\/password$/,
   ],

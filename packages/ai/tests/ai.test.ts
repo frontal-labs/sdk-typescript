@@ -1,5 +1,5 @@
 import { createTestHttpClient, type MockRoute } from "@frontal-labs/testing";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { AISdk } from "../src/sdk";
 
 function createService(routes: MockRoute[] = []) {
@@ -115,44 +115,6 @@ describe("AISdk", () => {
     });
   });
 
-  describe("embed()", () => {
-    it("generates embeddings", async () => {
-      const embedResponse = {
-        data: [{ embedding: [0.1, 0.2, 0.3] }],
-        usage: { total_tokens: 5 },
-      };
-      const { service } = createService([
-        { method: "POST", path: "/internal/embeddings", body: embedResponse },
-      ]);
-
-      const result = await service.embed({
-        model: "text-embedding-ada-002",
-        input: "Hello world",
-      });
-
-      expect(result.embeddings).toHaveLength(1);
-      expect(result.embeddings[0]).toEqual([0.1, 0.2, 0.3]);
-      expect(result.usage.totalTokens).toBe(5);
-    });
-
-    it("handles multiple inputs", async () => {
-      const embedResponse = {
-        data: [{ embedding: [0.1, 0.2] }, { embedding: [0.3, 0.4] }],
-        usage: { total_tokens: 10 },
-      };
-      const { service } = createService([
-        { method: "POST", path: "/internal/embeddings", body: embedResponse },
-      ]);
-
-      const result = await service.embed({
-        model: "text-embedding-ada-002",
-        input: ["Hello", "World"],
-      });
-
-      expect(result.embeddings).toHaveLength(2);
-    });
-  });
-
   describe("generateObject()", () => {
     it("generates a structured JSON object", async () => {
       const { service } = createService([
@@ -192,145 +154,6 @@ describe("AISdk", () => {
           schema: {},
         })
       ).rejects.toThrow();
-    });
-  });
-
-  describe("generateImage()", () => {
-    it("generates an image", async () => {
-      const imageResponse = {
-        data: [{ url: "https://images.example.com/generated.png" }],
-      };
-      const { service } = createService([
-        { method: "POST", path: "/internal/predictions", body: imageResponse },
-      ]);
-
-      const result = await service.generateImage({
-        prompt: "A sunset over mountains",
-      });
-
-      expect(result.images).toHaveLength(1);
-      expect(result.images[0].url).toBe(
-        "https://images.example.com/generated.png"
-      );
-    });
-  });
-
-  describe("generateVideo()", () => {
-    it("generates a video", async () => {
-      const videoResponse = { id: "vid_1", status: "processing", url: null };
-      const { service } = createService([
-        { method: "POST", path: "/internal/predictions", body: videoResponse },
-      ]);
-
-      const result = await service.generateVideo({
-        prompt: "A cat walking",
-        model: "video-gen-1",
-      });
-
-      expect(result).toBeDefined();
-      expect("id" in result ? result.id : undefined).toBe("vid_1");
-    });
-  });
-
-  describe("generateSpeech()", () => {
-    it("generates speech and returns ArrayBuffer", async () => {
-      const { http } = createTestHttpClient([]);
-      const mockArrayBuffer = new ArrayBuffer(8);
-      vi.spyOn(
-        http as unknown as {
-          postRaw: () => Promise<{ arrayBuffer: () => Promise<ArrayBuffer> }>;
-        },
-        "postRaw"
-      ).mockResolvedValue({
-        arrayBuffer: async () => mockArrayBuffer,
-      });
-
-      const service = new AISdk(http);
-      const result = await service.generateSpeech({
-        text: "Hello world",
-        voice: "alloy",
-      });
-
-      expect(result).toBe(mockArrayBuffer);
-    });
-  });
-
-  describe("transcribe()", () => {
-    it("transcribes audio", async () => {
-      const { http } = createTestHttpClient([]);
-      const bodies: FormData[] = [];
-      vi.spyOn(
-        http as unknown as {
-          postFormData: (
-            path: string,
-            body: FormData
-          ) => Promise<{ text: string }>;
-        },
-        "postFormData"
-      ).mockImplementation(async (_path, body) => {
-        bodies.push(body);
-        return { text: "Hello world" };
-      });
-
-      const service = new AISdk(http);
-      const result = await service.transcribe({
-        file: new Blob(["audio data"]),
-        model: "whisper-1",
-        temperature: 0,
-      });
-
-      expect(result.text).toBe("Hello world");
-      expect(bodies[0]?.get("temperature")).toBe("0");
-    });
-  });
-
-  describe("moderate()", () => {
-    it("moderates content", async () => {
-      const moderationResponse = {
-        id: "mod_1",
-        results: [{ flagged: false, categories: {} }],
-      };
-      const { service } = createService([
-        {
-          method: "POST",
-          path: "/internal/predictions",
-          body: moderationResponse,
-        },
-      ]);
-
-      const result = await service.moderate({ input: "Hello, how are you?" });
-
-      expect(result).toBeDefined();
-    });
-  });
-
-  describe("listModels()", () => {
-    it("lists models in OpenAISdk format", async () => {
-      const modelsResponse = {
-        object: "list",
-        data: [{ id: "gpt-4" }, { id: "gpt-3.5-turbo" }],
-      };
-      const { service } = createService([
-        { method: "GET", path: "/internal/models", body: modelsResponse },
-      ]);
-
-      const result = await service.listModels();
-
-      expect(result).toEqual(["gpt-4", "gpt-3.5-turbo"]);
-    });
-
-    it("handles simple array format", async () => {
-      const { service } = createService([
-        {
-          method: "GET",
-          path: "/internal/models",
-          body: ["gpt-4", "gpt-3.5-turbo"],
-        },
-      ]);
-
-      const result = await service.listModels();
-
-      expect(result).toEqual(["gpt-4", "gpt-3.5-turbo"]);
     });
   });
 
@@ -375,7 +198,7 @@ describe("AISdk", () => {
       const prompt = service.createPrompt({
         name: "greeting",
         template: "Hello {{name}}!",
-        variables: { name: { type: "string", required: true } },
+        variables: { name: { type: "string" } },
       });
 
       expect(prompt.name).toBe("greeting");
@@ -474,43 +297,6 @@ describe("AISdk", () => {
   });
 
   describe("gateway endpoints", () => {
-    it("fetches default models", async () => {
-      const { service, mock } = createService([
-        {
-          method: "GET",
-          path: "/internal/models/defaults",
-          body: {
-            chatModelId: "openai/gpt-4o",
-            rerankingModelId: "cohere/rerank",
-          },
-        },
-      ]);
-      const result = await service.getDefaultModels();
-      expect(result.chatModelId).toBe("openai/gpt-4o");
-      mock.expectCalled("GET", "/internal/models/defaults");
-    });
-
-    it("reranks documents (normalizes string docs)", async () => {
-      const { service, mock } = createService([
-        {
-          method: "POST",
-          path: "/internal/rerank",
-          body: { scores: [0.9, 0.1] },
-        },
-      ]);
-      const result = await service.rerank({
-        model: "cohere/rerank",
-        query: "red shoes",
-        documents: ["a red sneaker", "a blue hat"],
-      });
-      expect(result.scores).toEqual([0.9, 0.1]);
-      mock.expectCalledWith("POST", "/internal/rerank", {
-        model: "cohere/rerank",
-        query: "red shoes",
-        documents: [{ content: "a red sneaker" }, { content: "a blue hat" }],
-      });
-    });
-
     it("checks gateway health", async () => {
       const { service } = createService([
         { method: "GET", path: "/health", body: { status: "ok" } },

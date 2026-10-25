@@ -6,6 +6,7 @@ import {
 } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
+import { buildDecisionsFragment } from "./generate-decisions-openapi";
 
 type OpenApiDoc = {
 	openapi: string;
@@ -23,7 +24,7 @@ const AI_TARGET = join(
 	ROOT,
 	"contracts",
 	"openapi",
-	"ai.openapi.generated.json",
+	"ai.openapi.json",
 );
 const MANIFEST_TARGET = join(ROOT, "contracts", "openapi", "manifest.json");
 
@@ -93,6 +94,9 @@ function hasAiPublicHostname(): boolean {
 }
 
 function buildAiSpec(): OpenApiDoc {
+	const decisions = buildDecisionsFragment() as Required<
+		Pick<OpenApiDoc, "paths" | "components">
+	>;
 	const runtimeApiPath = join(GATEWAY_ROOT, "src", "router", "runtime_api.rs");
 	const unifiedApiPath = join(GATEWAY_ROOT, "src", "router", "unified_api.rs");
 
@@ -162,7 +166,9 @@ function buildAiSpec(): OpenApiDoc {
 			{ url: "https://ai.eu.frontal.dev", description: "EU regional endpoint" },
 			{ url: "https://ai.ap.frontal.dev", description: "AP regional endpoint" },
 		],
-		paths,
+		// SDK-owned decisions routes and schemas, from the Zod wire schemas.
+		paths: { ...paths, ...decisions.paths },
+		components: decisions.components,
 	};
 }
 

@@ -11,8 +11,8 @@
       "gatewayRoot": "/Volumes/Frontal Labs IP/frontal/inference/backend/gateway",
       "infrastructureRoot": "/Volumes/Frontal Labs IP/frontal/infrastructure",
       "hasAiPublicHostname": true,
-      "targetPath": "/Volumes/Frontal Labs IP/sdk-ts/contracts/openapi/ai.openapi.generated.json",
-      "targetSha256": "a82f517d8756941080402c84281b1e3fb00557eaa46800b7039aa04fc75f2aec",
+      "targetPath": "/Volumes/Frontal Labs IP/sdk-ts/contracts/openapi/ai.openapi.json",
+      "targetSha256": "d5a191682f09672f93d1a66cc725f7b5a315654dfec1960ba6505548a9528d58",
       "derivation": {
         "runtimeApi": "src/router/runtime_api.rs",
         "unifiedApi": "src/router/unified_api.rs"

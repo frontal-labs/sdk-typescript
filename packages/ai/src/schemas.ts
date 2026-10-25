@@ -23,7 +23,8 @@ export type Message = z.infer<typeof messageSchema>;
  */
 export const generateTextOptionsSchema = z.object({
   model: z.string(),
-  prompt: z.union([z.string(), z.array(messageSchema)]),
+  /** Prompt text or messages. Provide this, `messages`, or both. */
+  prompt: z.union([z.string(), z.array(messageSchema)]).optional(),
   messages: z.array(messageSchema).optional(),
   maxTokens: z.number().optional(),
   temperature: z.number().min(0).max(2).optional(),
@@ -168,35 +169,6 @@ export interface StreamTextResult {
 }
 
 /**
- * Schema for embedding options.
- */
-export const embedOptionsSchema = z.object({
-  model: z.string(),
-  input: z.union([z.string(), z.array(z.string())]),
-});
-
-/**
- * Embedding options.
- */
-export type EmbedOptions = z.input<typeof embedOptionsSchema>;
-
-/**
- * Result of an embedding generation.
- */
-export interface EmbedResult {
-  /**
-   * The generated embeddings.
-   */
-  embeddings: number[][];
-  /**
-   * Usage statistics.
-   */
-  usage: {
-    totalTokens: number;
-  };
-}
-
-/**
  * Configuration for the Frontal AI provider.
  */
 export const aiConfigSchema = z.object({
@@ -208,62 +180,6 @@ export const aiConfigSchema = z.object({
  * Frontal configuration.
  */
 export type AIConfig = z.infer<typeof aiConfigSchema>;
-
-/**
- * Interface for the AI client.
- */
-export interface IAIClient {
-  /**
-   * Generates text based on the provided options.
-   */
-  generateText(options: GenerateTextOptions): Promise<GenerateTextResult>;
-  /**
-   * Streams text based on the provided options.
-   */
-  streamText(options: StreamTextOptions): StreamTextResult;
-  /**
-   * Generates embeddings for the provided input.
-   */
-  embed(options: EmbedOptions): Promise<EmbedResult>;
-  /**
-   * Generates structured object based on the provided options.
-   */
-  generateObject<T>(
-    options: GenerateObjectOptions<T>
-  ): Promise<GenerateObjectResult<T>>;
-  /**
-   * Generates speech from text.
-   */
-  generateSpeech(options: GenerateSpeechOptions): Promise<ArrayBuffer>;
-  /**
-   * Generates an image from a prompt.
-   */
-  generateImage(options: GenerateImageOptions): Promise<GenerateImageResult>;
-  /**
-   * Generates a video from a prompt.
-   */
-  generateVideo(options: GenerateVideoOptions): Promise<GenerateVideoResult>;
-  /**
-   * Transcribes audio to text.
-   */
-  transcribe(options: TranscriptionOptions): Promise<TranscriptionResult>;
-  /**
-   * Moderates content.
-   */
-  moderate(options: ModerationOptions): Promise<ModerationResult>;
-  /**
-   * Retrieves a prompt by name.
-   */
-  getPrompt(name: string, version?: string): Prompt;
-  /**
-   * Updates an existing prompt.
-   */
-  updatePrompt(name: string, updates: Partial<Prompt>): Prompt;
-  /**
-   * Executes a registered tool by name.
-   */
-  executeTool(name: string, params: unknown): Promise<unknown>;
-}
 
 /**
  * Zod schema for structured output generation options.
@@ -296,73 +212,6 @@ export interface GenerateObjectResult<T> {
     completionTokens: number;
     totalTokens: number;
   };
-}
-
-/**
- * Zod schema for speech generation options.
- */
-export const generateSpeechOptionsSchema = z.object({
-  text: z.string(),
-  voice: z.string(),
-  model: z.string().optional(),
-  speed: z.number().min(0.25).max(4.0).optional(),
-  format: z.enum(["mp3", "wav", "opus"]).optional(),
-});
-
-/**
- * Options for text-to-speech generation.
- */
-export type GenerateSpeechOptions = z.input<typeof generateSpeechOptionsSchema>;
-
-/**
- * Zod schema for image generation options.
- */
-export const generateImageOptionsSchema = z.object({
-  prompt: z.string(),
-  model: z.string().optional(),
-  size: z.string().optional(),
-  quality: z.enum(["standard", "hd"]).optional(),
-  style: z.enum(["natural", "vivid"]).optional(),
-  n: z.number().min(1).max(10).optional(),
-});
-
-/**
- * Options for image generation.
- */
-export type GenerateImageOptions = z.input<typeof generateImageOptionsSchema>;
-
-/**
- * Result of an image generation request.
- */
-export interface GenerateImageResult {
-  images: {
-    url?: string;
-    b64Json?: string;
-  }[];
-}
-
-/**
- * Zod schema for video generation options.
- */
-export const generateVideoOptionsSchema = z.object({
-  prompt: z.string(),
-  model: z.string().optional(),
-  duration: z.number().optional(),
-  resolution: z.string().optional(),
-  fps: z.number().optional(),
-  aspectRatio: z.string().optional(),
-});
-
-/**
- * Options for video generation.
- */
-export type GenerateVideoOptions = z.input<typeof generateVideoOptionsSchema>;
-
-/**
- * Result of a video generation request.
- */
-export interface GenerateVideoResult {
-  videoUrl: string;
 }
 
 // Prompt Management Types
@@ -516,94 +365,135 @@ export const chatCompletionChunkSchema = z.object({
  */
 export type ChatCompletionChunk = z.infer<typeof chatCompletionChunkSchema>;
 
+// ============================================================================
+// Decision Wire Schemas
+// ============================================================================
+// Wire schemas for the decisions endpoint (`/ai/decisions`, `/ai/decisions/models`).
+// This module depends only on Zod, so the contract generator can import it
+// without loading the client runtime. `scripts/generate-decisions-openapi.ts`
+// derives the committed OpenAPI fragment from these schemas.
+// User-defined names and labels travel as string values inside arrays, never
+// as object keys, so the snake_case/camelCase transform only renames the fixed
+// field names below and cannot rewrite user data.
+
+/** A labelled choice option. The label is a value, not a key. */
+export const decisionChoiceLabelWireSchema = z.object({
+  label: z.string().min(1),
+  description: z.string().nullable(),
+});
+
+/** Question as sent to the decisions endpoint. */
+export const decisionQuestionWireSchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(["noul", "choice", "score"]),
+  instructions: z.string(),
+  criteria: z
+    .union([
+      z.object({
+        true: z.string().nullable().optional(),
+        false: z.string().nullable().optional(),
+      }),
+      z.array(decisionChoiceLabelWireSchema),
+      z.array(z.string()),
+    ])
+    .optional(),
+});
+
+/** Probability of one choice label. */
+export const decisionLabelProbabilityWireSchema = z.object({
+  label: z.string().min(1),
+  probability: z.number().min(0).max(1),
+});
+
+/** One answer, tagged with the question name it answers. */
+export const decisionAnswerWireSchema = z.discriminatedUnion("type", [
+  z.object({
+    name: z.string().min(1),
+    type: z.literal("noul"),
+    noul: z.number().min(0).max(1),
+  }),
+  z.object({
+    name: z.string().min(1),
+    type: z.literal("choice"),
+    choice: z.string().min(1),
+    probabilities: z.array(decisionLabelProbabilityWireSchema),
+    confidence: z.number().min(0).max(1),
+  }),
+  z.object({
+    name: z.string().min(1),
+    type: z.literal("score"),
+    score: z.number().int().min(0),
+    level: z.string(),
+    probabilities: z.array(z.number().min(0).max(1)),
+    confidence: z.number().min(0).max(1),
+  }),
+]);
+
 /**
- * Zod schema for an OpenAI-compatible embeddings request.
+ * Request body for the decisions endpoint. `state` is serialized text, so its
+ * contents are never rewritten by the key transform. The same shape is used on
+ * the wire and in the SDK.
  */
-export const embeddingsRequestSchema = z.object({
-  input: z.union([z.string(), z.array(z.string())]),
+export const decisionRequestWireSchema = z.object({
+  model: z.string().min(1),
+  state: z.string(),
+  questions: z.array(decisionQuestionWireSchema).min(1),
+});
+
+const decisionUsageFields = {
+  input_tokens: z.number().int().nullable().optional(),
+  output_tokens: z.number().int().nullable().optional(),
+  cached_tokens: z.number().int().nullable().optional(),
+};
+
+/**
+ * Response as the server sends it (snake_case). This is the contract source
+ * for the decisions sections of `contracts/openapi/ai.openapi.json`.
+ */
+export const decisionResponseSpecSchema = z.object({
   model: z.string(),
-  encodingFormat: z.enum(["float", "base64"]).optional(),
-  dimensions: z.number().optional(),
-  user: z.string().optional(),
+  answers: z.array(decisionAnswerWireSchema),
+  usage: z.object(decisionUsageFields).optional(),
+  request_id: z.string().min(1),
 });
 
 /**
- * OpenAI-compatible embeddings request.
+ * Response as the SDK validates it, after the client's snake_case to camelCase
+ * transform. `decision-wire.test.ts` checks it stays in step with
+ * {@link decisionResponseSpecSchema}.
  */
-export type EmbeddingsRequest = z.infer<typeof embeddingsRequestSchema>;
+export const decisionResponseWireSchema = z.object({
+  model: z.string(),
+  answers: z.array(decisionAnswerWireSchema),
+  usage: z
+    .object({
+      inputTokens: z.number().int().nullable().optional(),
+      outputTokens: z.number().int().nullable().optional(),
+      cachedTokens: z.number().int().nullable().optional(),
+    })
+    .optional(),
+  requestId: z.string().min(1),
+});
 
-/**
- * Zod schema for an OpenAI-compatible embeddings response.
- */
-export const embeddingsResponseSchema = z.object({
-  object: z.literal("list"),
-  data: z.array(
+/** One decision model, as the server sends it. */
+export const decisionModelSpecSchema = z.object({
+  name: z.string().min(1),
+  description: z.string(),
+  release_date: z.string(),
+});
+
+/** Decisions model list, as the server sends it. */
+export const decisionModelsSpecSchema = z.object({
+  models: z.array(decisionModelSpecSchema),
+});
+
+/** Decisions model list, as the SDK validates it after transform. */
+export const decisionModelsWireSchema = z.object({
+  models: z.array(
     z.object({
-      object: z.literal("embedding"),
-      embedding: z.array(z.number()),
-      index: z.number(),
+      name: z.string().min(1),
+      description: z.string(),
+      releaseDate: z.string(),
     })
   ),
-  model: z.string(),
-  usage: z.object({
-    promptTokens: z.number(),
-    totalTokens: z.number(),
-  }),
 });
-
-/**
- * OpenAI-compatible embeddings response.
- */
-export type EmbeddingsResponse = z.infer<typeof embeddingsResponseSchema>;
-
-/**
- * Zod schema for audio transcription options.
- */
-export const transcriptionOptionsSchema = z.object({
-  file: z.any(),
-  model: z.string(),
-  language: z.string().optional(),
-  prompt: z.string().optional(),
-  responseFormat: z
-    .enum(["json", "text", "srt", "verbose_json", "vtt"])
-    .optional(),
-  temperature: z.number().optional(),
-});
-
-/**
- * Options for audio transcription.
- */
-export type TranscriptionOptions = z.input<typeof transcriptionOptionsSchema>;
-
-/**
- * Result of an audio transcription.
- */
-export interface TranscriptionResult {
-  text: string;
-}
-
-/**
- * Zod schema for content moderation options.
- */
-export const moderationOptionsSchema = z.object({
-  input: z.union([z.string(), z.array(z.string())]),
-  model: z.string().optional(),
-});
-
-/**
- * Options for content moderation.
- */
-export type ModerationOptions = z.input<typeof moderationOptionsSchema>;
-
-/**
- * Result of a content moderation check.
- */
-export interface ModerationResult {
-  id: string;
-  model: string;
-  results: {
-    flagged: boolean;
-    categories: Record<string, boolean>;
-    categoryScores: Record<string, number>;
-  }[];
-}

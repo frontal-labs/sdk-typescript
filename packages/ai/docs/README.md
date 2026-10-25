@@ -1,18 +1,13 @@
 # Frontal AI SDK
 
-A powerful, type-safe AI SDK for Frontal. Provides unified access to LLMs, embeddings, and more.
+A powerful, type-safe AI SDK for Frontal. Provides unified access to LLMs, structured decisions, and more.
 
 ## Features
 
 - **Text Generation**: Generate text with advanced language models
 - **Streaming**: Real-time text streaming for interactive applications
-- **Embeddings**: Generate vector embeddings for semantic search
+- **Structured Decisions**: Typed yes/no, choice and score questions with typed answers
 - **Structured Output**: Generate JSON objects with type safety
-- **Speech Synthesis**: Convert text to natural speech
-- **Image Generation**: Create images from text prompts
-- **Video Generation**: Generate videos from descriptions
-- **Audio Transcription**: Convert audio to text
-- **Content Moderation**: Filter and moderate content
 - **Prompt Management**: Organize and version prompts
 - **Tool System**: Define and execute custom tools
 
@@ -47,13 +42,19 @@ for await (const chunk of stream.textStream) {
   process.stdout.write(chunk);
 }
 
-// Embeddings
-const { embeddings } = await ai.embed({
-  model: 'text-embedding-3-small',
-  input: 'Hello, world!'
+// Structured decisions
+import { choice, noul } from '@frontal-labs/ai';
+
+const decision = await ai.decisions.decide({
+  model: 'frontal-labs/decision-4B',
+  state: { message: 'Hello, world!' },
+  questions: {
+    greeting: noul('Is this a greeting?'),
+    tone: choice('What tone is it?', { friendly: null, neutral: null }),
+  },
 });
 
-console.log(embeddings[0].length);
+console.log(decision.answers.greeting.noul, decision.answers.tone.choice);
 ```
 
 Methods return their results directly and throw a `FrontalError` on failure.

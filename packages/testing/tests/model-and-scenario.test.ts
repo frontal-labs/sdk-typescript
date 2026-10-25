@@ -203,18 +203,25 @@ describe("createScenario", () => {
   it("supports explicit METHOD /path steps, statuses, and MockFrontal namespace", async () => {
     const s = MockFrontal.scenario("rate-limited", [
       {
-        on: "GET /internal/models",
+        on: "GET /ai/decisions/models",
         status: 429,
         return: { code: "RATE_LIMITED", message: "slow", request_id: "r" },
         headers: { "retry-after": "2" },
       },
-      { on: "GET /internal/models", return: { data: [{ id: "m1" }] } },
+      {
+        on: "GET /ai/decisions/models",
+        return: {
+          models: [
+            { name: "m1", description: "d", release_date: "2026-01-01" },
+          ],
+        },
+      },
     ]);
     const ai = new AISdk(s.client.httpClient);
-    await expect(ai.listModels()).rejects.toSatisfy((e) =>
+    await expect(ai.decisions.models()).rejects.toSatisfy((e) =>
       RateLimitError.isInstance(e)
     );
-    expect(await ai.listModels()).toEqual(["m1"]);
+    expect((await ai.decisions.models()).map((m) => m.name)).toEqual(["m1"]);
     s.assertAllHit();
   });
 

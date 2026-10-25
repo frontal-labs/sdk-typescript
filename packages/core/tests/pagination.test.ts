@@ -411,7 +411,7 @@ describe("Pagination", () => {
         })
       );
 
-      const pageResults = [];
+      const pageResults: ReturnType<typeof createPageResult>[] = [];
       for (let i = 0; i < totalPages; i++) {
         const start = i * itemsPerPage;
         const end = start + itemsPerPage;
@@ -429,7 +429,12 @@ describe("Pagination", () => {
 
       // Chain the fetchNextPage functions
       for (let i = 0; i < pageResults.length - 1; i++) {
-        pageResults[i]._fetchNextPage = async () => pageResults[i + 1];
+        // _fetchNextPage is internal: the chain is wired by the page itself.
+        (
+          pageResults[i] as unknown as {
+            _fetchNextPage: () => Promise<unknown>;
+          }
+        )._fetchNextPage = async () => pageResults[i + 1];
       }
 
       const firstPage = pageResults[0];
@@ -486,7 +491,7 @@ describe("Pagination", () => {
       const nextPageData = [{ id: 2, name: "Item 2" }];
       const nextPagePagination = createMockPaginationMeta({ hasMore: false });
 
-      let resolvePromise: (value: unknown) => void;
+      let resolvePromise: ((value: unknown) => void) | undefined;
       const fetchNextPage = vi.fn().mockImplementation(() => {
         return new Promise((resolve) => {
           resolvePromise = resolve;

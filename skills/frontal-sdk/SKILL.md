@@ -77,8 +77,8 @@ transport.
 | Fast, cheap, most tasks | `claude-sonnet-5` |
 | Cheapest / classification | `claude-haiku-4-5-20251001` |
 
-Pass `model` on every `f.ai.*` call. `f.ai.listModels()` returns what the
-gateway currently serves — prefer it over a hard-coded list in long-lived code.
+Pass `model` on every `f.ai.*` call. The SDK does not list chat models; for
+decisions, `f.ai.decisions.models()` returns the models the gateway serves.
 
 ## Error taxonomy
 

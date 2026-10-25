@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { parseRetryAfterMs } from "./retry";
 import { type ErrorField, errorResponseSchema } from "./schemas";
 
 type ErrorResponseInput = z.infer<typeof errorResponseSchema>;
@@ -223,6 +224,30 @@ export class RateLimitError extends FrontalError {
 }
 
 /**
+ * Thrown when the API returns a 402 status (the account's balance or plan
+ * does not cover the request). Callers can branch on this to top up or fall
+ * back.
+ */
+export class PaymentRequiredError extends FrontalError {
+  static isInstance = byName<PaymentRequiredError>("PaymentRequiredError");
+  constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
+    super(r, 402, rateLimit);
+    this.name = "PaymentRequiredError";
+  }
+}
+
+/**
+ * Thrown when the API returns a 413 status (the request body is too large).
+ */
+export class PayloadTooLargeError extends FrontalError {
+  static isInstance = byName<PayloadTooLargeError>("PayloadTooLargeError");
+  constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
+    super(r, 413, rateLimit);
+    this.name = "PayloadTooLargeError";
+  }
+}
+
+/**
  * Thrown when the API returns a 5xx status code.
  */
 export class ServiceError extends FrontalError {
@@ -368,13 +393,15 @@ export function parseFrontalError(
       return new NotFoundError(normalized, rateLimit);
     case 409:
       return new ConflictError(normalized, rateLimit);
+    case 402:
+      return new PaymentRequiredError(normalized, rateLimit);
+    case 413:
+      return new PayloadTooLargeError(normalized, rateLimit);
     case 429: {
-      const parsedRetry = retryAfter
-        ? Number.parseInt(retryAfter, 10)
-        : Number.NaN;
+      const retryAfterMs = parseRetryAfterMs(retryAfter);
       return new RateLimitError(
         normalized,
-        Number.isFinite(parsedRetry) ? parsedRetry : 60,
+        retryAfterMs !== undefined ? retryAfterMs / 1000 : 60,
         rateLimit
       );
     }

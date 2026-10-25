@@ -115,7 +115,7 @@ describe("AuthService — client-side", () => {
       const result = await service.signInWithOtp({
         email: "test@frontal.dev",
       });
-      expect(result.data.messageId).toBe("msg_1");
+      expect(result.data).toMatchObject({ messageId: "msg_1" });
       mock.expectCalled("POST", "/auth/otp");
     });
 
@@ -178,7 +178,7 @@ describe("AuthService — client-side", () => {
       ]);
       const result = await service.getUser();
       expect(result.data.user).toBeDefined();
-      expect(result.data.user.email).toBe("test@frontal.dev");
+      expect(result.data.user?.email).toBe("test@frontal.dev");
     });
 
     it("signs out", async () => {
@@ -203,7 +203,7 @@ describe("AuthService — client-side", () => {
         },
       ]);
       const result = await service.refreshSession({
-        refresh_token: "ref_xxx",
+        refreshToken: "ref_xxx",
       });
       expect(result.data.user).toBeDefined();
       mock.expectCalled("POST", "/auth/token");
@@ -219,7 +219,10 @@ describe("AuthService — client-side", () => {
           body: data({ id: "mfa_1", type: "totp" }),
         },
       ]);
-      const result = await service.mfa.enroll({ factorType: "totp" });
+      // The SDK returns the envelope unchanged; enroll is typed `unknown`.
+      const result = (await service.mfa.enroll({ factorType: "totp" })) as {
+        data: unknown;
+      };
       expect(result.data).toBeDefined();
       mock.expectCalled("POST", "/auth/factors");
     });
@@ -337,7 +340,7 @@ describe("AuthAdminService — admin operations", () => {
       },
     ]);
     const result = await service.admin.users.get("usr_abc123");
-    expect(result.data.user.id).toBe("usr_abc123");
+    expect(result.data.user?.id).toBe("usr_abc123");
   });
 
   it("updates user by id", async () => {
@@ -352,7 +355,7 @@ describe("AuthAdminService — admin operations", () => {
     const result = await service.admin.users.update("usr_abc123", {
       email: "updated@frontal.dev",
     });
-    expect(result.data.user.email).toBe("updated@frontal.dev");
+    expect(result.data.user?.email).toBe("updated@frontal.dev");
   });
 
   it("deletes a user", async () => {

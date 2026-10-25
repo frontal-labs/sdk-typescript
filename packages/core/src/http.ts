@@ -1,9 +1,14 @@
 import type { z } from "zod";
 import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
-import { SDK_VERSION } from "./constants";
+import { MAX_TIMER_MS, RETRY_AFTER_MAX_MS, SDK_VERSION } from "./constants";
 import { NetworkError, parseFrontalError, TimeoutError } from "./errors";
-import { calculateDelay } from "./retry";
+import { composeInterceptors, type Interceptor } from "./interceptors";
+import {
+  calculateDelay,
+  parseRetryAfterMs,
+  parseRetryAfterMsHeader,
+} from "./retry";
 import { type StreamOptions, type StreamPart, toStreamParts } from "./stream";
 import {
   createHttpSpan,
@@ -13,12 +18,82 @@ import {
   tagRequestId,
 } from "./tracing";
 import { deepCamelToSnake, deepSnakeToCamel } from "./transform";
-import { composeInterceptors, type Interceptor } from "./interceptors";
 
 interface ResponseTimeout {
   readonly timedOut: boolean;
   readonly deadline: Promise<never>;
+  /** Effective timeout for this request in ms, used in the error message. */
+  readonly ms: number;
   cleanup: () => void;
+}
+
+/**
+ * Per-call overrides for a single request. Every field is optional; omitted
+ * fields fall back to the client configuration.
+ */
+export interface RequestOptions {
+  /** Aborts the request, including any pending retry delay. */
+  signal?: AbortSignal;
+  /** Timeout for each attempt, in ms. Overrides the client timeout. */
+  timeout?: number;
+  /** Extra headers merged over the client's default headers. */
+  headers?: Record<string, string>;
+  retry?: {
+    /** Retry attempts for this call. Overrides the client `maxRetries`. */
+    maxRetries?: number;
+    /**
+     * Allow retries for a non-GET request. Only set this when the endpoint is
+     * idempotent: a retried write could otherwise run twice.
+     */
+    idempotent?: boolean;
+  };
+}
+
+/** Any body `fetch` accepts: bytes, a blob, text, or a stream. */
+type RequestBody = NonNullable<RequestInit["body"]>;
+
+/** Request bodies at least this many bytes are compressed when opted in. */
+export const COMPRESSION_MIN_BYTES = 1024;
+
+interface ZstdCodec {
+  /** Node and Bun return a Buffer, which is backed by an ArrayBuffer. */
+  zstdCompressSync(input: Uint8Array): Uint8Array<ArrayBuffer>;
+}
+
+/**
+ * Returns the runtime's zstd codec, or throws when it is unavailable. Node and
+ * Bun expose `zlib` through `process.getBuiltinModule`, which keeps `zlib` out
+ * of browser bundles.
+ */
+function requireZstd(): ZstdCodec {
+  const getBuiltin = (
+    globalThis as {
+      process?: { getBuiltinModule?: (id: string) => unknown };
+    }
+  ).process?.getBuiltinModule;
+  const zlib = getBuiltin?.("node:zlib") as Partial<ZstdCodec> | undefined;
+  if (typeof zlib?.zstdCompressSync !== "function") {
+    throw new TypeError(
+      'compression: "zstd" needs a runtime with zstd support (Node.js 22.15+ or Bun). Set compression: false to send uncompressed bodies.'
+    );
+  }
+  return zlib as ZstdCodec;
+}
+
+/**
+ * Returns a copy of a request init safe to pass to logs and telemetry: the
+ * bearer credential in `Authorization` is masked, keeping the scheme visible.
+ */
+function redactRequestInit(init: RequestInit): RequestInit {
+  if (!init.headers) return init;
+  const headers = { ...(init.headers as Record<string, string>) };
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() !== "authorization") continue;
+    headers[key] = headers[key]?.startsWith("Bearer ")
+      ? "Bearer [REDACTED]"
+      : "[REDACTED]";
+  }
+  return { ...init, headers };
 }
 
 /**
@@ -33,10 +108,13 @@ export class HttpClient {
   private readonly interceptedClient: HttpClient;
 
   constructor(
-    private readonly config: ClientConfigOutput & {
+    private readonly config: Omit<ClientConfigOutput, "compression"> & {
+      /** Defaults to `false`: request bodies are sent uncompressed. */
+      compression?: ClientConfigOutput["compression"];
       interceptors?: Interceptor[];
     }
   ) {
+    if (config.compression === "zstd") requireZstd();
     if (config.circuitBreaker) {
       this.breaker = new CircuitBreaker({
         failureThreshold: config.circuitBreaker.failureThreshold,
@@ -65,9 +143,22 @@ export class HttpClient {
     path: string,
     params?: Record<string, unknown>,
     schema?: z.ZodType<T>,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    options?: RequestOptions
   ): Promise<T> {
-    return this.request("GET", path, undefined, params, schema, 0, headers);
+    return this.request(
+      "GET",
+      path,
+      undefined,
+      params,
+      schema,
+      0,
+      {
+        ...headers,
+        ...options?.headers,
+      },
+      options
+    );
   }
 
   /**
@@ -76,9 +167,21 @@ export class HttpClient {
   private async postImpl<T>(
     path: string,
     body?: unknown,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.request("POST", path, body ?? {}, undefined, schema);
+    return this.request(
+      "POST",
+      path,
+      body ?? {},
+      undefined,
+      schema,
+      0,
+      {
+        ...options?.headers,
+      },
+      options
+    );
   }
 
   /**
@@ -87,9 +190,21 @@ export class HttpClient {
   private async putImpl<T>(
     path: string,
     body?: unknown,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.request("PUT", path, body ?? {}, undefined, schema);
+    return this.request(
+      "PUT",
+      path,
+      body ?? {},
+      undefined,
+      schema,
+      0,
+      {
+        ...options?.headers,
+      },
+      options
+    );
   }
 
   /**
@@ -98,9 +213,21 @@ export class HttpClient {
   private async patchImpl<T>(
     path: string,
     body?: unknown,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.request("PATCH", path, body ?? {}, undefined, schema);
+    return this.request(
+      "PATCH",
+      path,
+      body ?? {},
+      undefined,
+      schema,
+      0,
+      {
+        ...options?.headers,
+      },
+      options
+    );
   }
 
   /**
@@ -109,9 +236,21 @@ export class HttpClient {
   private async deleteImpl<T = void>(
     path: string,
     params?: Record<string, unknown>,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.request("DELETE", path, {}, params, schema);
+    return this.request(
+      "DELETE",
+      path,
+      {},
+      params,
+      schema,
+      0,
+      {
+        ...options?.headers,
+      },
+      options
+    );
   }
 
   /**
@@ -119,7 +258,7 @@ export class HttpClient {
    */
   private async putRawImpl(
     path: string,
-    body: Buffer | ReadableStream,
+    body: RequestBody,
     contentType: string,
     headers: Record<string, string> = {}
   ): Promise<unknown> {
@@ -255,9 +394,10 @@ export class HttpClient {
     path: string,
     params?: Record<string, unknown>,
     schema?: z.ZodType<T>,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    options?: RequestOptions
   ): Promise<T> {
-    return this.getImpl(path, params, schema, headers);
+    return this.getImpl(path, params, schema, headers, options);
   }
 
   /**
@@ -269,9 +409,10 @@ export class HttpClient {
   async post<T>(
     path: string,
     body?: unknown,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.postImpl(path, body, schema);
+    return this.postImpl(path, body, schema, options);
   }
 
   /**
@@ -283,9 +424,10 @@ export class HttpClient {
   async put<T>(
     path: string,
     body?: unknown,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.putImpl(path, body, schema);
+    return this.putImpl(path, body, schema, options);
   }
 
   /**
@@ -297,9 +439,10 @@ export class HttpClient {
   async patch<T>(
     path: string,
     body?: unknown,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.patchImpl(path, body, schema);
+    return this.patchImpl(path, body, schema, options);
   }
 
   /**
@@ -311,9 +454,10 @@ export class HttpClient {
   async delete<T = void>(
     path: string,
     params?: Record<string, unknown>,
-    schema?: z.ZodType<T>
+    schema?: z.ZodType<T>,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.deleteImpl(path, params, schema);
+    return this.deleteImpl(path, params, schema, options);
   }
 
   /**
@@ -326,7 +470,7 @@ export class HttpClient {
    */
   async putRaw(
     path: string,
-    body: Buffer | ReadableStream,
+    body: RequestBody,
     contentType: string,
     headers: Record<string, string> = {}
   ): Promise<unknown> {
@@ -537,7 +681,7 @@ export class HttpClient {
       const finalEvent = dispatchEvent();
       if (finalEvent) yield finalEvent;
     } catch (error) {
-      if (timeout?.timedOut) throw this.makeTimeoutError();
+      if (timeout?.timedOut) throw this.makeTimeoutError(timeout.ms);
       throw error;
     } finally {
       signal?.removeEventListener("abort", onAbort);
@@ -555,7 +699,8 @@ export class HttpClient {
     params?: Record<string, unknown>,
     schema?: z.ZodType<T>,
     attempt = 0,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    options: RequestOptions = {}
   ): Promise<T> {
     const url = this.buildUrl(path, params);
     const requestId = crypto.randomUUID();
@@ -596,21 +741,34 @@ export class HttpClient {
     const transformedBody =
       body !== undefined && body !== null ? deepCamelToSnake(body) : body;
 
+    const encoded =
+      method !== "GET"
+        ? this.encodeBody(JSON.stringify(transformedBody ?? {}))
+        : undefined;
     const reqInit: RequestInit = {
       method,
-      headers: this.buildHeaders({ "X-Request-Id": requestId, ...headers }),
-      ...(method !== "GET"
-        ? { body: JSON.stringify(transformedBody ?? {}) }
-        : { body: undefined }),
+      headers: this.buildHeaders({
+        "X-Request-Id": requestId,
+        ...headers,
+        ...encoded?.headers,
+      }),
+      body: encoded?.body,
     };
 
-    this.config.logger?.request?.(method, url, reqInit);
+    this.config.logger?.request?.(method, url, redactRequestInit(reqInit));
 
     const executeRequest = async (): Promise<Response> => {
       try {
-        return await this.fetchWithTimeout(url, reqInit);
+        return await this.fetchWithTimeout(
+          url,
+          reqInit,
+          options.signal,
+          options.timeout ?? this.config.timeout
+        );
       } catch (error) {
         this.config.logger?.error?.(error);
+        // A caller's abort is not a network failure: surface it unchanged.
+        if (options.signal?.aborted) throw error;
         if (error instanceof TimeoutError) throw error;
         throw new NetworkError(error);
       }
@@ -632,29 +790,30 @@ export class HttpClient {
     this.config.logger?.response?.(res);
 
     if (!res.ok) {
-      const retrySafe = method === "GET";
+      const retrySafe = method === "GET" || options.retry?.idempotent === true;
+      const maxRetries = options.retry?.maxRetries ?? this.config.maxRetries;
       const shouldRetry =
         retrySafe &&
         [429, 500, 502, 503, 504].includes(res.status) &&
-        attempt < this.config.maxRetries;
+        attempt < maxRetries;
 
       if (shouldRetry) {
-        const retryAfterValue = res.headers.get("Retry-After");
-        const retryAfterSeconds = retryAfterValue
-          ? Number.parseInt(retryAfterValue, 10)
-          : Number.NaN;
-        const delay = Number.isFinite(retryAfterSeconds)
-          ? retryAfterSeconds * 1000
-          : calculateDelay(
-              attempt,
-              "exponential",
-              this.config.retryDelay,
-              true
-            );
+        const serverDelay =
+          parseRetryAfterMsHeader(res.headers.get("retry-after-ms")) ??
+          parseRetryAfterMs(res.headers.get("Retry-After"));
+        const delay =
+          serverDelay !== undefined
+            ? Math.min(serverDelay, RETRY_AFTER_MAX_MS)
+            : calculateDelay(
+                attempt,
+                "exponential",
+                this.config.retryDelay,
+                true
+              );
 
         report(res.status, undefined, serverRequestId);
         this.releaseResponse(res);
-        await sleep(delay);
+        await sleep(delay, options.signal);
         return this.request(
           method,
           path,
@@ -662,7 +821,8 @@ export class HttpClient {
           params,
           schema,
           attempt + 1,
-          headers
+          headers,
+          options
         );
       }
 
@@ -800,10 +960,28 @@ export class HttpClient {
     };
   }
 
+  /**
+   * Encodes a JSON body. Bodies of {@link COMPRESSION_MIN_BYTES} or more are
+   * zstd-compressed when the client opted in; everything else is sent as text.
+   */
+  private encodeBody(json: string): {
+    body: RequestInit["body"];
+    headers?: Record<string, string>;
+  } {
+    if (this.config.compression !== "zstd") return { body: json };
+    const bytes = new TextEncoder().encode(json);
+    if (bytes.byteLength < COMPRESSION_MIN_BYTES) return { body: json };
+    return {
+      body: requireZstd().zstdCompressSync(bytes),
+      headers: { "Content-Encoding": "zstd" },
+    };
+  }
+
   private async fetchWithTimeout(
     url: string,
     init: RequestInit,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    timeoutMs: number = this.config.timeout
   ): Promise<Response> {
     const controller = new AbortController();
     let timedOut = false;
@@ -819,24 +997,32 @@ export class HttpClient {
         return timedOut;
       },
       deadline,
+      ms: timeoutMs,
       cleanup: () => {
         clearTimeout(timer);
         signal?.removeEventListener("abort", forward);
       },
     };
-    timer = setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-      rejectDeadline(this.makeTimeoutError());
-    }, this.config.timeout);
+    timer = setTimeout(
+      () => {
+        timedOut = true;
+        controller.abort();
+        rejectDeadline(this.makeTimeoutError(timeoutMs));
+      },
+      Math.min(timeoutMs, MAX_TIMER_MS)
+    );
     if (signal?.aborted) {
       forward();
     } else {
       signal?.addEventListener("abort", forward, { once: true });
     }
+    // Call through a plain binding, not `this.config.fetch(...)`: a member
+    // call passes the config object as `this`, which native fetch rejects
+    // with "Illegal invocation" in browsers.
+    const fetchImpl = this.config.fetch ?? fetch;
     try {
       const response = await Promise.race([
-        (this.config.fetch ?? fetch)(url, {
+        fetchImpl(url, {
           ...init,
           signal: controller.signal,
         }),
@@ -846,7 +1032,7 @@ export class HttpClient {
       return response;
     } catch (error) {
       timeout.cleanup();
-      if (timedOut) throw this.makeTimeoutError();
+      if (timedOut) throw this.makeTimeoutError(timeoutMs);
       throw error;
     }
   }
@@ -861,7 +1047,7 @@ export class HttpClient {
         ? await Promise.race([consume(), timeout.deadline])
         : await consume();
     } catch (error) {
-      if (timeout?.timedOut) throw this.makeTimeoutError();
+      if (timeout?.timedOut) throw this.makeTimeoutError(timeout.ms);
       throw error;
     } finally {
       this.releaseResponse(response);
@@ -874,14 +1060,30 @@ export class HttpClient {
     this.responseTimeouts.delete(response);
   }
 
-  private makeTimeoutError(): TimeoutError {
-    return new TimeoutError(`Request timed out after ${this.config.timeout}ms`);
+  private makeTimeoutError(ms: number = this.config.timeout): TimeoutError {
+    return new TimeoutError(`Request timed out after ${ms}ms`);
   }
 }
 
-const sleep = async (ms: number): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
+/**
+ * Waits `ms`, rejecting early with the signal's reason if it aborts, so a
+ * cancelled call does not sit through a retry delay.
+ */
+const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
+  new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal?.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
   });
 
 const safeJson = (value: unknown): string => {

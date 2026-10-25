@@ -26,8 +26,8 @@ const blobBucket = process.env.FRONTAL_BLOB_BUCKET;
 const checks: Array<() => Promise<CheckResult>> = [
 	async () => {
 		const ai = createAIClient({ apiKey, baseUrl: aiBaseUrl });
-		return runCheck("ai.listModels", async () => {
-			await ai.listModels();
+		return runCheck("ai.decisions.models", async () => {
+			await ai.decisions.models();
 		});
 	},
 	async () => {
