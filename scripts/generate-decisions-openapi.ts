@@ -18,10 +18,33 @@ import {
 	decisionRequestWireSchema,
 	decisionResponseSpecSchema,
 } from "../packages/ai/src/schemas";
+import {
+	extractionRequestSpecSchema,
+	extractionResponseSpecSchema,
+	vocabularyDetailSpecSchema,
+	vocabularyRefListSpecSchema,
+} from "../packages/ai/src/extractions";
 
 export const AI_OPENAPI_PATH = fileURLToPath(
 	new URL("../contracts/openapi/ai.openapi.json", import.meta.url),
 );
+
+/** Extraction routes the SDK calls, and the schemas they use. */
+export const EXTRACTION_PATHS = [
+	"/ai/extractions",
+	"/ai/extractions/vocabularies",
+	"/ai/extractions/vocabularies/{pin}",
+] as const;
+export const EXTRACTION_SCHEMAS = [
+	"ExtractionRequest",
+	"ExtractionResponse",
+	"VocabularyRefList",
+	"VocabularyDetail",
+	"ExtractionErrorResponse",
+] as const;
+
+/** Route prefixes this generator owns. Other routes are left untouched. */
+const OWNED_PREFIXES = ["/ai/decisions", "/ai/extractions"] as const;
 
 /** Decisions routes and schemas, as they appear in the AI spec. */
 export const DECISION_PATHS = ["/ai/decisions", "/ai/decisions/models"] as const;
@@ -117,6 +140,109 @@ export function buildDecisionsFragment(): JsonObject {
 	};
 }
 
+/** The extraction routes the SDK calls, from the same wire schemas. */
+export function buildExtractionsFragment(): {
+	paths: Record<string, unknown>;
+	components: { schemas: Record<string, unknown> };
+} {
+	const error = { "application/json": { schema: { $ref: "#/components/schemas/ExtractionErrorResponse" } } };
+	const ok = (ref: string) => ({
+		"application/json": { schema: { $ref: `#/components/schemas/${ref}` } },
+	});
+	return {
+		paths: {
+			"/ai/extractions": {
+				post: {
+					operationId: "createExtraction",
+					tags: ["inference"],
+					x_route_class: "public-sdk",
+					description:
+						"Extracts intent and entities from `input` against a pinned vocabulary. Requires an Idempotency-Key header.",
+					parameters: [
+						{
+							name: "Idempotency-Key",
+							in: "header",
+							required: true,
+							schema: { type: "string", minLength: 1, maxLength: 255 },
+							description: "Reused on retries of the same call, so a retried request is not charged twice.",
+						},
+					],
+					requestBody: {
+						required: true,
+						content: ok("ExtractionRequest"),
+					},
+					responses: {
+						"200": {
+							description: "The validated extraction.",
+							content: ok("ExtractionResponse"),
+						},
+						"400": { description: "invalid_input, unknown_vocabulary or vocabulary_mismatch", content: error },
+						"403": { description: "model_not_allowed", content: error },
+						"502": { description: "extraction_failed", content: error },
+						"503": { description: "extraction_unavailable", content: error },
+					},
+				},
+			},
+			"/ai/extractions/vocabularies": {
+				get: {
+					operationId: "listExtractionVocabularies",
+					tags: ["catalog"],
+					x_route_class: "public-sdk",
+					description: "The vocabulary the parser currently serves.",
+					responses: {
+						"200": {
+							description: "Served vocabularies.",
+							content: ok("VocabularyRefList"),
+						},
+					},
+				},
+			},
+			"/ai/extractions/vocabularies/{pin}": {
+				get: {
+					operationId: "getExtractionVocabulary",
+					tags: ["catalog"],
+					x_route_class: "public-sdk",
+					description: "One vocabulary by exact pin (id@x.y.z), with its schema.",
+					parameters: [
+						{
+							name: "pin",
+							in: "path",
+							required: true,
+							schema: { type: "string" },
+						},
+					],
+					responses: {
+						"200": {
+							description: "The vocabulary and its schema.",
+							content: ok("VocabularyDetail"),
+						},
+						"404": { description: "unknown_vocabulary", content: error },
+					},
+				},
+			},
+		},
+		components: {
+			schemas: {
+				ExtractionRequest: toOpenApi(extractionRequestSpecSchema, "input"),
+				ExtractionResponse: toOpenApi(extractionResponseSpecSchema, "output"),
+				VocabularyRefList: toOpenApi(vocabularyRefListSpecSchema, "output"),
+				VocabularyDetail: toOpenApi(vocabularyDetailSpecSchema, "output"),
+				ExtractionErrorResponse: toOpenApi(extractionErrorSpec, "output"),
+			},
+		},
+	};
+}
+
+/** Error envelope the gateway returns for extraction routes. */
+const extractionErrorSpec = z.object({
+	error: z.object({
+		message: z.string(),
+		type: z.string(),
+		param: z.string().nullable(),
+		code: z.string(),
+	}),
+});
+
 /** The parts of an OpenAPI document this generator reads and writes. */
 export interface OpenApiDocument {
 	paths: Record<string, unknown>;
@@ -129,13 +255,23 @@ export interface OpenApiDocument {
  * output. Other routes and schemas are left as they are.
  */
 export function applyDecisions(doc: OpenApiDocument): OpenApiDocument {
-	const fragment = buildDecisionsFragment() as {
+	const decisions = buildDecisionsFragment() as {
 		paths: Record<string, unknown>;
 		components: { schemas: Record<string, unknown> };
 	};
+	const extractions = buildExtractionsFragment();
+	const fragment = {
+		paths: { ...decisions.paths, ...extractions.paths },
+		components: {
+			schemas: {
+				...decisions.components.schemas,
+				...extractions.components.schemas,
+			},
+		},
+	};
 	const paths = Object.fromEntries(
 		Object.entries(doc.paths).filter(
-			([route]) => !route.startsWith("/ai/decisions"),
+			([route]) => !OWNED_PREFIXES.some((prefix) => route.startsWith(prefix)),
 		),
 	);
 	return {

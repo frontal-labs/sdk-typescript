@@ -379,6 +379,9 @@ export class DecisionsResource {
       decisionResponseWireSchema,
       {
         ...requestOptions,
+        // One key per call, reused on retries: the gateway requires it on writes.
+        idempotencyKey:
+          requestOptions.idempotencyKey ?? globalThis.crypto.randomUUID(),
         retry: { ...requestOptions.retry, idempotent: true },
       }
     );

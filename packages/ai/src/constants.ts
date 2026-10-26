@@ -6,7 +6,7 @@ export const DEFAULT_AI_BASE_URL = "https://ai.frontal.dev";
 /**
  * Default model to use if none is specified.
  */
-export const DEFAULT_MODEL = "gpt-4o-mini";
+export const DEFAULT_MODEL = "claude-opus-5-5";
 
 /**
  * Package version.

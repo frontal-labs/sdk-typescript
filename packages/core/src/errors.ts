@@ -326,7 +326,30 @@ export function isRetryableError(error: unknown): boolean {
   );
 }
 
-function normalizeErrorBody(body: unknown): ErrorResponseInput {
+/**
+ * The gateway's nested envelope, `{"error":{message,type,param,code}}`, mapped to
+ * the flat shape. Other bodies pass through unchanged.
+ */
+function fromNestedEnvelope(body: unknown): unknown {
+  if (typeof body !== "object" || body === null) return body;
+  const record = body as Record<string, unknown>;
+  const detail = record.error;
+  if (typeof detail !== "object" || detail === null) return body;
+  const inner = detail as Record<string, unknown>;
+  if (typeof inner.message !== "string") return body;
+  const requestId = record.requestId ?? record.request_id;
+  return {
+    code:
+      typeof inner.code === "string" && inner.code.length > 0
+        ? inner.code
+        : "UNKNOWN_ERROR",
+    message: inner.message,
+    requestId,
+  };
+}
+
+function normalizeErrorBody(raw: unknown): ErrorResponseInput {
+  const body = fromNestedEnvelope(raw);
   const parsed = errorResponseSchema.safeParse(body);
   if (parsed.success) return parsed.data;
 

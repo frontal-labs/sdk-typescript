@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-25T12:17:57.706Z",
+  "generatedAt": "2026-10-26T01:22:05.673Z",
   "packages": [
     "agents",
     "ai",
@@ -2254,8 +2254,8 @@
         "unmatched": 13
       },
       "ai": {
-        "total": 4,
-        "matched": 4,
+        "total": 7,
+        "matched": 7,
         "unmatched": 0
       },
       "audit": {
@@ -3314,9 +3314,9 @@
       },
       "ai": {
         "surface": "ai",
-        "specTotal": 9,
-        "covered": 4,
-        "coveragePct": 44.4,
+        "specTotal": 12,
+        "covered": 7,
+        "coveragePct": 58.3,
         "uncovered": [
           {
             "method": "GET",

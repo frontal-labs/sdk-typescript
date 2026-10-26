@@ -60,6 +60,14 @@
     },
     {
       "method": "GET",
+      "path": "/ai/extractions/vocabularies"
+    },
+    {
+      "method": "GET",
+      "path": "/ai/extractions/vocabularies/{param}"
+    },
+    {
+      "method": "GET",
       "path": "/health"
     },
     {
@@ -69,6 +77,10 @@
     {
       "method": "POST",
       "path": "/ai/decisions"
+    },
+    {
+      "method": "POST",
+      "path": "/ai/extractions"
     }
   ],
   "audit": [

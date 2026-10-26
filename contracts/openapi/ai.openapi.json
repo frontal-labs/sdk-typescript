@@ -274,6 +274,155 @@
           }
         }
       }
+    },
+    "/ai/extractions": {
+      "post": {
+        "operationId": "createExtraction",
+        "tags": [
+          "inference"
+        ],
+        "x_route_class": "public-sdk",
+        "description": "Extracts intent and entities from `input` against a pinned vocabulary. Requires an Idempotency-Key header.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "description": "Reused on retries of the same call, so a retried request is not charged twice."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The validated extraction.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_input, unknown_vocabulary or vocabulary_mismatch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "model_not_allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "extraction_failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "extraction_unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/extractions/vocabularies": {
+      "get": {
+        "operationId": "listExtractionVocabularies",
+        "tags": [
+          "catalog"
+        ],
+        "x_route_class": "public-sdk",
+        "description": "The vocabulary the parser currently serves.",
+        "responses": {
+          "200": {
+            "description": "Served vocabularies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyRefList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/extractions/vocabularies/{pin}": {
+      "get": {
+        "operationId": "getExtractionVocabulary",
+        "tags": [
+          "catalog"
+        ],
+        "x_route_class": "public-sdk",
+        "description": "One vocabulary by exact pin (id@x.y.z), with its schema.",
+        "parameters": [
+          {
+            "name": "pin",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The vocabulary and its schema.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "unknown_vocabulary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractionErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -613,6 +762,303 @@
           "code",
           "message",
           "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "ExtractionRequest": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "vocabulary": {
+            "type": "string",
+            "pattern": "^[^@]+@\\d+\\.\\d+\\.\\d+$"
+          },
+          "vocabulary_checksum": {
+            "type": "string"
+          },
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          }
+        },
+        "required": [
+          "vocabulary",
+          "input"
+        ],
+        "additionalProperties": false
+      },
+      "ExtractionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model": {
+            "type": "string"
+          },
+          "model_version": {
+            "type": "string"
+          },
+          "vocabulary": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "checksum": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "version",
+              "checksum"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "needs_clarification",
+              "low_confidence"
+            ]
+          },
+          "intent": {
+            "nullable": true,
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                },
+                "span": {
+                  "type": "object",
+                  "properties": {
+                    "start": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "end": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "start",
+                    "end"
+                  ],
+                  "additionalProperties": false
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "type",
+                "value",
+                "span",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "clarification": {
+            "type": "object",
+            "properties": {
+              "ambiguous_slot": {
+                "type": "string"
+              },
+              "candidates": {
+                "type": "array",
+                "items": {}
+              },
+              "question": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ambiguous_slot",
+              "candidates",
+              "question"
+            ],
+            "additionalProperties": false
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "input_tokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "output_tokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "input_tokens",
+              "output_tokens"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "model",
+          "model_version",
+          "vocabulary",
+          "status",
+          "intent",
+          "confidence",
+          "entities",
+          "parameters",
+          "usage"
+        ],
+        "additionalProperties": false
+      },
+      "VocabularyRefList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "version": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "checksum": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "version",
+                "checksum"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "VocabularyDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "checksum": {
+            "type": "string",
+            "minLength": 1
+          },
+          "intents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "entity_types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "schema": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "checksum",
+          "intents",
+          "entity_types",
+          "schema"
+        ],
+        "additionalProperties": false
+      },
+      "ExtractionErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "param": {
+                "nullable": true,
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "message",
+              "type",
+              "param",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
         ],
         "additionalProperties": false
       }

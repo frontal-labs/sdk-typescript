@@ -38,6 +38,16 @@ export interface RequestOptions {
   timeout?: number;
   /** Extra headers merged over the client's default headers. */
   headers?: Record<string, string>;
+  /**
+   * Sent as `Idempotency-Key`. Retries of the same call reuse it, so the server
+   * can deduplicate a write (the gateway requires the header on every `POST`).
+   */
+  idempotencyKey?: string;
+  /**
+   * Top-level response keys copied through exactly as sent, instead of being
+   * camelCased. Use for user data keyed by name, such as a `parameters` object.
+   */
+  preserveKeys?: readonly string[];
   retry?: {
     /** Retry attempts for this call. Overrides the client `maxRetries`. */
     maxRetries?: number;
@@ -78,6 +88,19 @@ function requireZstd(): ZstdCodec {
     );
   }
   return zlib as ZstdCodec;
+}
+
+/**
+ * The error body as text. Real responses are read as text; a response that
+ * only offers `json()` is re-serialised, so both shapes reach the same parse.
+ */
+async function readErrorText(res: Response): Promise<string> {
+  try {
+    if (typeof res.text === "function") return await res.text();
+    return JSON.stringify(await res.json());
+  } catch {
+    return "";
+  }
 }
 
 /**
@@ -751,6 +774,9 @@ export class HttpClient {
         "X-Request-Id": requestId,
         ...headers,
         ...encoded?.headers,
+        ...(options.idempotencyKey
+          ? { "Idempotency-Key": options.idempotencyKey }
+          : {}),
       }),
       body: encoded?.body,
     };
@@ -845,10 +871,7 @@ export class HttpClient {
           ? await res.json()
           : await res.text();
 
-        const transformedPayload =
-          typeof payload === "object" && payload !== null
-            ? deepSnakeToCamel(payload)
-            : payload;
+        const transformedPayload = this.transformPayload(payload, options);
 
         const tagId = serverRequestId ?? requestId;
         if (telemetry?.recordOutputs) {
@@ -890,12 +913,43 @@ export class HttpClient {
     return undefined;
   }
 
+  /**
+   * Converts a response body to camelCase, except the top-level keys named in
+   * `options.preserveKeys`, which are copied through exactly as sent.
+   */
+  private transformPayload(payload: unknown, options: RequestOptions): unknown {
+    if (typeof payload !== "object" || payload === null) return payload;
+    const converted = deepSnakeToCamel(payload) as Record<string, unknown>;
+    for (const key of options.preserveKeys ?? []) {
+      if (key in (payload as Record<string, unknown>)) {
+        converted[key] = (payload as Record<string, unknown>)[key];
+      }
+    }
+    return converted;
+  }
+
   private async throwError(res: Response): Promise<never> {
+    // Read the body once as text, so an error that is not JSON (a plain-text
+    // refusal from the gateway's auth layer) keeps its message.
+    const text = await readErrorText(res);
     let body: unknown;
     try {
-      body = await res.json();
+      body = JSON.parse(text);
     } catch {
-      body = {};
+      body =
+        text.length > 0
+          ? { code: "UNKNOWN_ERROR", message: text.slice(0, 500) }
+          : {};
+    }
+    const requestId = res.headers.get("x-request-id");
+    if (
+      requestId &&
+      typeof body === "object" &&
+      body !== null &&
+      !("requestId" in body) &&
+      !("request_id" in body)
+    ) {
+      body = { ...body, requestId };
     }
     const retryAfter = res.headers.get("Retry-After") ?? undefined;
     const rateLimit = this.parseRateLimit(res);
