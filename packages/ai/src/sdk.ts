@@ -7,6 +7,7 @@ import {
 } from "@frontal-labs/core";
 import { z } from "zod";
 import { DecisionsResource } from "./decisions";
+import { ExtractionsResource } from "./extractions";
 import type {
   ChatCompletionRequest,
   ChatCompletionResponse,
@@ -44,12 +45,15 @@ import { toolChoiceToRequest } from "./tool";
 export class AISdk {
   /** Typed structured decisions, for example `ai.decisions.decide(...)`. */
   readonly decisions: DecisionsResource;
+  /** Structured extraction against a pinned vocabulary. */
+  readonly extractions: ExtractionsResource;
 
   /**
    * @param http - The HTTP client used to make API requests.
    */
   constructor(private readonly http: HttpClient) {
     this.decisions = new DecisionsResource(http);
+    this.extractions = new ExtractionsResource(http);
   }
 
   // ── Text Generation ─────────────────────────────────────────────────

@@ -511,6 +511,13 @@ export {
   mockDecisionModel,
 } from "./decision";
 export {
+  type MockEntity,
+  type MockExtractionCall,
+  type MockExtractionModel,
+  type MockExtractionOptions,
+  mockExtractionModel,
+} from "./extraction";
+export {
   type MockLanguageModel,
   type MockLanguageModelOptions,
   mockLanguageModel,

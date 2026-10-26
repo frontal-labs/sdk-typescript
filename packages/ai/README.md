@@ -236,6 +236,39 @@ result.answers.billing.noul; // 0.9
 model.calls; // every request the model received
 ```
 
+### Structured extraction
+
+Extract an intent and typed entities from text, against a vocabulary pinned by
+version. Pins are typed: `latest` does not compile.
+
+```ts
+const extraction = await ai.extractions.create({
+  vocabulary: "support-tasks@1.1.0",
+  input: "I was charged twice for invoice INV-2024-0042",
+});
+
+extraction.intent; // "billing.refund_request", or null
+for (const entity of extraction.entities) {
+  // Spans are JavaScript string offsets: the slice is the entity's value.
+  extraction.parameters; // slot values keyed by ontology slot name
+  console.log(entity.type, entity.value, entity.span);
+}
+```
+
+`create` sends one `Idempotency-Key` per call and reuses it on retries, so a
+retried request is not billed twice. Input is checked before any request:
+empty input, NUL, or more than 8000 characters (counted as code points) throws
+`ExtractionRequestError`. A span that does not label its value throws
+`ExtractionResponseError` rather than return wrong offsets.
+
+The vocabulary the parser serves is available to inspect:
+
+```ts
+const served = await ai.extractions.vocabularies.list();
+const detail = await ai.extractions.vocabularies.get("support-tasks@1.1.0");
+detail.entityTypes; // the entity types the vocabulary defines
+```
+
 ### Structured output
 
 ```ts

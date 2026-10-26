@@ -14,6 +14,8 @@ import {
   applyDecisions,
   DECISION_PATHS,
   DECISION_SCHEMAS,
+  EXTRACTION_PATHS,
+  EXTRACTION_SCHEMAS,
   type OpenApiDocument,
 } from "../../../scripts/generate-decisions-openapi";
 import {
@@ -62,6 +64,15 @@ describe("decisions sections of ai.openapi.json", () => {
     );
     expect(Object.keys(committed.components?.schemas ?? {})).toEqual(
       expect.arrayContaining([...DECISION_SCHEMAS])
+    );
+  });
+
+  it("declare the extraction routes and their schemas", () => {
+    expect(Object.keys(committed.paths)).toEqual(
+      expect.arrayContaining([...EXTRACTION_PATHS])
+    );
+    expect(Object.keys(committed.components?.schemas ?? {})).toEqual(
+      expect.arrayContaining([...EXTRACTION_SCHEMAS])
     );
   });
 
