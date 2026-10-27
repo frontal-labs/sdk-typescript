@@ -6,7 +6,7 @@ export const DEFAULT_AUDIT_BASE_URL = "https://api.frontal.dev/v1";
 /**
  * Package version.
  */
-export const VERSION = "0.0.7";
+export const VERSION = "1.0.0";
 
 /**
  * Default timeout.

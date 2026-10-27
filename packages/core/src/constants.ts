@@ -54,4 +54,4 @@ export const MAX_TIMER_MS = 2_147_483_647;
 /**
  * SDK version string sent in the X-Frontal-Core header.
  */
-export const SDK_VERSION = "1.0.4";
+export const SDK_VERSION = "1.1.0";

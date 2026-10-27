@@ -11,7 +11,7 @@ export const DEFAULT_MODEL = "claude-opus-5-5";
 /**
  * Package version.
  */
-export const VERSION = "0.1.3";
+export const VERSION = "0.2.0";
 
 /**
  * Default timeout.

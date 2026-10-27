@@ -1,7 +1,7 @@
 {
   "$schema": "https://frontal.dev/schemas/mcp-manifest.v1.json",
   "name": "frontal-sdk",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "description": "Docs and headline operations of the Frontal TypeScript SDK, for MCP servers and agent tooling.",
   "install": "bun add @frontal-labs/sdk",
   "entry": {

@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/core",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Frontal platform — shared client, schemas, and utilities",
   "type": "module",
   "main": "dist/index.cjs",
