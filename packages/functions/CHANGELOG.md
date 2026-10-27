@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.2
+
+### Patch Changes
+
+- Republish under a new version: `0.0.1` was unpublished from npm and cannot be reused.
+
 ## 0.0.1
 
 ### Initial Release
