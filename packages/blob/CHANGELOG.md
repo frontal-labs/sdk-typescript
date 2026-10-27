@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.1.0
+
+### Minor Changes
+
+- d0edb12: `IBlobClient` now declares the return types the client implements: methods return
+  their results directly (`Promise<void>`, `Promise<Blob>`, `Promise<ListObjectsResult>`,
+  and so on) and throw on failure, instead of `Promise<APIResponse<...>>`. The
+  `list` parameters also include `limit` and `offset`, and `upload` accepts the same
+  data types as `BlobSdk.upload`. The `APIResponse` type re-export remains.
+  
+  `upload` now reads `ReadableStream`, `ArrayBuffer`, `Uint8Array`, and `Buffer` input
+  into the uploaded file. Before, a stream was stored as the text "[object ReadableStream]".
+  `SignedUrlOptions.operation` is deprecated: it was validated but never sent, so it had
+  no effect. `VERSION` now reports the package version (`1.0.3`).
+
+### Patch Changes
+
+- e4a35e6: Input option types now derive from `z.input`, so schema-defaulted fields (e.g. `AuditEventInput.status`, `SemanticSearchOptions.threshold`) are optional for callers as intended.
+- e4a35e6: Fix `main`/`exports.require` pointing at `dist/index.cjs`, which tsup never emitted for these packages (CommonJS consumers got a missing-file error). They now point at the emitted `dist/index.js`.
+- Updated dependencies [d7c7a05]
+- Updated dependencies [6bb6903]
+- Updated dependencies [e4a35e6]
+- Updated dependencies [af9e479]
+- Updated dependencies [f50d2da]
+  - @frontal-labs/core@1.1.0
+
 ## 1.0.3
 
 ### Patch Changes
