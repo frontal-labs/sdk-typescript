@@ -6,7 +6,7 @@ import {
 } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
-import { buildDecisionsFragment } from "./generate-decisions-openapi";
+import { applyDecisions } from "./generate-decisions-openapi";
 
 type OpenApiDoc = {
 	openapi: string;
@@ -94,9 +94,6 @@ function hasAiPublicHostname(): boolean {
 }
 
 function buildAiSpec(): OpenApiDoc {
-	const decisions = buildDecisionsFragment() as Required<
-		Pick<OpenApiDoc, "paths" | "components">
-	>;
 	const runtimeApiPath = join(GATEWAY_ROOT, "src", "router", "runtime_api.rs");
 	const unifiedApiPath = join(GATEWAY_ROOT, "src", "router", "unified_api.rs");
 
@@ -131,6 +128,9 @@ function buildAiSpec(): OpenApiDoc {
 	}
 
 	for (const route of internalRoutes) {
+		// Embeddings are served on the public /v1/embeddings route, which the
+		// generator owns, so the internal copy is not published in the contract.
+		if (route === "/internal/embeddings") continue;
 		if (route === "/internal/models" || route === "/internal/models/defaults") {
 			paths[route] = {
 				get: {
@@ -152,7 +152,9 @@ function buildAiSpec(): OpenApiDoc {
 		}
 	}
 
-	return {
+	// SDK-owned routes (decisions, extractions, embeddings) come from the Zod
+	// wire schemas via applyDecisions, so a sync never drops them.
+	return applyDecisions({
 		openapi: "3.0.3",
 		info: {
 			title: "Frontal AI Gateway Public Contract",
@@ -166,10 +168,9 @@ function buildAiSpec(): OpenApiDoc {
 			{ url: "https://ai.eu.frontal.dev", description: "EU regional endpoint" },
 			{ url: "https://ai.ap.frontal.dev", description: "AP regional endpoint" },
 		],
-		// SDK-owned decisions routes and schemas, from the Zod wire schemas.
-		paths: { ...paths, ...decisions.paths },
-		components: decisions.components,
-	};
+		paths,
+		components: {},
+	});
 }
 
 async function fetchApiSpec(url: string): Promise<string> {

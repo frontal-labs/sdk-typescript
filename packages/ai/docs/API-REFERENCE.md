@@ -134,6 +134,30 @@ Lists the decision models the account can use: `{ name, description, releaseDate
 - **`DecisionPolicy<Q>`**: an array of rules. Each rule names a question and a `matches(answer)` function typed to that question's answer.
 
 
+### Embeddings
+
+`ai.embeddings` calls `POST /v1/embeddings` (OpenAI-compatible request and response).
+
+#### `embeddings.embed(request, options?): Promise<Embedding>`
+
+- **Request**: `{ model, input, dimensions?, user? }`, with `input` a single string.
+- **Returns**: `{ embedding: number[], model, usage: { promptTokens, totalTokens } }`.
+
+#### `embeddings.embedMany(request, options?): Promise<EmbeddingBatch>`
+
+- **Request**: `{ model, input, dimensions?, user? }`, with `input` a string array.
+- **Returns**: `{ embeddings: number[][], model, usage }`. `embeddings[i]` belongs to `input[i]`, whatever order the server sent them in.
+
+#### `embeddings.create(request, options?): Promise<EmbeddingResponse<V>>`
+
+- **Request**: `{ model, input, dimensions?, encodingFormat?, user? }`, where `input` is a string or a string array.
+- **Returns**: `{ model, data: { index, embedding }[], usage }`. `encodingFormat: "base64"` types `embedding` as `string`; otherwise it is `number[]`.
+
+All three send one `Idempotency-Key` per call, reused on retries. Pass `idempotencyKey` in `options` to make a call safe to repeat across processes.
+
+- `EmbeddingRequestError`: thrown before any request for an empty model or input, a NUL character, or non-positive or fractional `dimensions`. `issues` lists each `{ path, message }`.
+- `EmbeddingResponseError`: thrown when the response count, indices or vector lengths disagree with the request.
+
 ### Utilities
 
 #### `health(): Promise<{ status: string }>`

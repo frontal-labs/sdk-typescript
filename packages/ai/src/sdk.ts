@@ -7,6 +7,7 @@ import {
 } from "@frontal-labs/core";
 import { z } from "zod";
 import { DecisionsResource } from "./decisions";
+import { EmbeddingsResource } from "./embeddings";
 import { ExtractionsResource } from "./extractions";
 import type {
   ChatCompletionRequest,
@@ -47,6 +48,8 @@ export class AISdk {
   readonly decisions: DecisionsResource;
   /** Structured extraction against a pinned vocabulary. */
   readonly extractions: ExtractionsResource;
+  /** Text embeddings, for example `ai.embeddings.embed(...)`. */
+  readonly embeddings: EmbeddingsResource;
 
   /**
    * @param http - The HTTP client used to make API requests.
@@ -54,6 +57,7 @@ export class AISdk {
   constructor(private readonly http: HttpClient) {
     this.decisions = new DecisionsResource(http);
     this.extractions = new ExtractionsResource(http);
+    this.embeddings = new EmbeddingsResource(http);
   }
 
   // ── Text Generation ─────────────────────────────────────────────────

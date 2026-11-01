@@ -279,6 +279,29 @@ export class MockAI {
 }
 ```
 
+### Scripted Embeddings
+
+`mockEmbeddingModel` from `@frontal-labs/testing` answers `POST /v1/embeddings` in the gateway's snake_case shape, so the SDK's real validation and ordering run. Vectors are deterministic per input unless you pass `vector`.
+
+```typescript
+import { createTestHttpClient, mockEmbeddingModel } from "@frontal-labs/testing";
+import { EmbeddingsResource } from "@frontal-labs/ai";
+
+const model = mockEmbeddingModel({ dimensions: 4 });
+const { http, mock } = createTestHttpClient(model.routes);
+const embeddings = new EmbeddingsResource(http);
+
+const batch = await embeddings.embedMany({ model: "embed-small", input: ["a", "b"] });
+
+expect(batch.embeddings[0]).toHaveLength(4);
+expect(model.calls[0]).toMatchObject({ input: ["a", "b"] });
+expect(mock.callCount("POST", "/v1/embeddings")).toBe(1);
+```
+
+- `dimensions`: vector length when a request does not set one. Default `8`.
+- `vector(input)`: return the exact vector for a text, for tests that need known values.
+- `model.calls`: every request the SDK sent, in order.
+
 ### Using Mock in Tests
 
 ```typescript

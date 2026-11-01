@@ -16,6 +16,7 @@ export const scenarioAliases: Record<string, `${string} ${string}`> = {
   "ai.streamText": "POST /ai/chat/completions",
   "ai.decisions.decide": "POST /ai/decisions",
   "ai.decisions.models": "GET /ai/decisions/models",
+  "ai.embeddings.create": "POST /v1/embeddings",
   "ai.extractions.create": "POST /ai/extractions",
   "ai.extractions.vocabularies.list": "GET /ai/extractions/vocabularies",
   "agents.list": "GET /agents",

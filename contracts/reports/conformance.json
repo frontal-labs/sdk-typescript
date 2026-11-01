@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-26T01:22:05.673Z",
+  "generatedAt": "2026-11-01T11:16:58.883Z",
   "packages": [
     "agents",
     "ai",
@@ -2254,8 +2254,8 @@
         "unmatched": 13
       },
       "ai": {
-        "total": 7,
-        "matched": 7,
+        "total": 8,
+        "matched": 8,
         "unmatched": 0
       },
       "audit": {
@@ -3315,8 +3315,8 @@
       "ai": {
         "surface": "ai",
         "specTotal": 12,
-        "covered": 7,
-        "coveragePct": 58.3,
+        "covered": 8,
+        "coveragePct": 66.7,
         "uncovered": [
           {
             "method": "GET",
@@ -3325,10 +3325,6 @@
           {
             "method": "GET",
             "path": "/internal/models/defaults"
-          },
-          {
-            "method": "POST",
-            "path": "/internal/embeddings"
           },
           {
             "method": "POST",

@@ -44,7 +44,7 @@ Every service is a lazy, cached getter on `Frontal`:
 
 | Getter | Package | Use for |
 | --- | --- | --- |
-| `f.ai` | `@frontal-labs/ai` | `generateText`, `streamText`, `embed`, `generateObject`, speech/image/video |
+| `f.ai` | `@frontal-labs/ai` | `generateText`, `streamText`, `embeddings.embed` / `embedMany`, `generateObject`, speech/image/video |
 | `f.agents` | `@frontal-labs/agents` | `define(name)` builder, `use(id).message/watch/waitForCompletion/conversation` |
 | `f.workflows` | `@frontal-labs/workflows` | `define(name)` builder, workflow lifecycle, executions and approvals |
 | `f.pipelines` | `@frontal-labs/pipelines` | `define`, `use(id).trigger/backfill/health` |

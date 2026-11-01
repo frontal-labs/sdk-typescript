@@ -81,6 +81,10 @@
     {
       "method": "POST",
       "path": "/ai/extractions"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings"
     }
   ],
   "audit": [
