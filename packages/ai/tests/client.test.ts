@@ -42,6 +42,6 @@ describe("createAIClient base URL", () => {
     await ai.generateText({ model: "gpt-4o-mini", prompt: "hi" });
 
     const url = String(fetchMock.mock.calls[0]?.[0]);
-    expect(url).toBe(`${DEFAULT_AI_BASE_URL}/ai/chat/completions`);
+    expect(url).toBe(`${DEFAULT_AI_BASE_URL}/v1/chat/completions`);
   });
 });

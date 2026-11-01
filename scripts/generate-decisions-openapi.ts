@@ -35,9 +35,9 @@ export const AI_OPENAPI_PATH = fileURLToPath(
 
 /** Extraction routes the SDK calls, and the schemas they use. */
 export const EXTRACTION_PATHS = [
-	"/ai/extractions",
-	"/ai/extractions/vocabularies",
-	"/ai/extractions/vocabularies/{pin}",
+	"/v1/extractions",
+	"/v1/extractions/vocabularies",
+	"/v1/extractions/vocabularies/{pin}",
 ] as const;
 export const EXTRACTION_SCHEMAS = [
 	"ExtractionRequest",
@@ -57,13 +57,13 @@ export const EMBEDDING_SCHEMAS = [
 
 /** Route prefixes this generator owns. Other routes are left untouched. */
 const OWNED_PREFIXES = [
-	"/ai/decisions",
-	"/ai/extractions",
+	"/v1/decisions",
+	"/v1/extractions",
 	"/v1/embeddings",
 ] as const;
 
 /** Decisions routes and schemas, as they appear in the AI spec. */
-export const DECISION_PATHS = ["/ai/decisions", "/ai/decisions/models"] as const;
+export const DECISION_PATHS = ["/v1/decisions", "/v1/decisions/models"] as const;
 export const DECISION_SCHEMAS = [
 	"DecisionRequest",
 	"DecisionResponse",
@@ -101,7 +101,7 @@ const jsonContent = (ref: string) => ({
 export function buildDecisionsFragment(): JsonObject {
 	return {
 		paths: {
-			"/ai/decisions": {
+			"/v1/decisions": {
 				post: {
 					operationId: "aiDecide",
 					tags: ["decisions"],
@@ -127,7 +127,7 @@ export function buildDecisionsFragment(): JsonObject {
 					},
 				},
 			},
-			"/ai/decisions/models": {
+			"/v1/decisions/models": {
 				get: {
 					operationId: "aiDecisionModels",
 					tags: ["decisions"],
@@ -167,7 +167,7 @@ export function buildExtractionsFragment(): {
 	});
 	return {
 		paths: {
-			"/ai/extractions": {
+			"/v1/extractions": {
 				post: {
 					operationId: "createExtraction",
 					tags: ["inference"],
@@ -199,7 +199,7 @@ export function buildExtractionsFragment(): {
 					},
 				},
 			},
-			"/ai/extractions/vocabularies": {
+			"/v1/extractions/vocabularies": {
 				get: {
 					operationId: "listExtractionVocabularies",
 					tags: ["catalog"],
@@ -213,7 +213,7 @@ export function buildExtractionsFragment(): {
 					},
 				},
 			},
-			"/ai/extractions/vocabularies/{pin}": {
+			"/v1/extractions/vocabularies/{pin}": {
 				get: {
 					operationId: "getExtractionVocabulary",
 					tags: ["catalog"],

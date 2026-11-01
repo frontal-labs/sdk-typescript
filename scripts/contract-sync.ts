@@ -72,7 +72,7 @@ function parseUnifiedApiRoutes(unifiedApiPath: string): string[] {
 	const armRegex = /"([^"]+)"\s*=>\s*Ok\(Self::/g;
 	let match: RegExpExecArray | null = null;
 	while ((match = armRegex.exec(src)) !== null) {
-		routes.add(`/ai/${match[1]}`);
+		routes.add(`/v1/${match[1]}`);
 	}
 	return [...routes].sort();
 }

@@ -13,7 +13,7 @@ import {
  *
  * Holds the question primitives, answer-type inference, local request
  * validation, and the `decide` / `models` client. The answer and envelope
- * shapes are provisional until the gateway contract for `/ai/decisions` is
+ * shapes are provisional until the gateway contract for `/v1/decisions` is
  * committed (see `schemas.ts`).
  */
 
@@ -374,7 +374,7 @@ export class DecisionsResource {
     };
     const { onDecision, ...requestOptions } = options ?? {};
     const wire = await this.http.post(
-      "/ai/decisions",
+      "/v1/decisions",
       body,
       decisionResponseWireSchema,
       {
@@ -413,7 +413,7 @@ export class DecisionsResource {
   /** Lists the decision models available to the account. */
   async models(options?: RequestOptions): Promise<DecisionModel[]> {
     const wire = await this.http.get(
-      "/ai/decisions/models",
+      "/v1/decisions/models",
       undefined,
       decisionModelsWireSchema,
       {},

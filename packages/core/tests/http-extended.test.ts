@@ -28,7 +28,7 @@ describe("HttpClient extended methods", () => {
       });
 
       const events: unknown[] = [];
-      for await (const event of http.postStream("/ai/chat", {
+      for await (const event of http.postStream("/v1/chat", {
         model: "gpt-4",
       })) {
         events.push(event);
@@ -41,7 +41,7 @@ describe("HttpClient extended methods", () => {
       });
 
       const [url, init] = mockFetch.mock.calls[0];
-      expect(url).toContain("/ai/chat");
+      expect(url).toContain("/v1/chat");
       expect(init.method).toBe("POST");
       expect(JSON.parse(init.body)).toEqual({ model: "gpt-4" });
     });
@@ -57,7 +57,7 @@ describe("HttpClient extended methods", () => {
         }),
       });
 
-      const iter = http.postStream("/ai/chat")[Symbol.asyncIterator]();
+      const iter = http.postStream("/v1/chat")[Symbol.asyncIterator]();
       await expect(iter.next()).rejects.toThrow();
     });
   });
@@ -71,11 +71,11 @@ describe("HttpClient extended methods", () => {
       };
       mockFetch.mockResolvedValueOnce(mockResponse);
 
-      const res = await http.postRaw("/ai/audio/speech", { text: "Hello" });
+      const res = await http.postRaw("/v1/audio/speech", { text: "Hello" });
 
       expect(res).toBe(mockResponse);
       const [url, init] = mockFetch.mock.calls[0];
-      expect(url).toContain("/ai/audio/speech");
+      expect(url).toContain("/v1/audio/speech");
       expect(init.method).toBe("POST");
     });
 
@@ -117,7 +117,7 @@ describe("HttpClient extended methods", () => {
       formData.append("model", "whisper-1");
 
       const result = await http.postFormData<{ text: string }>(
-        "/ai/transcriptions",
+        "/v1/transcriptions",
         formData
       );
 

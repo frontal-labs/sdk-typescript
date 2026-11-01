@@ -78,7 +78,7 @@ describe("decisions sections of ai.openapi.json", () => {
 
   it("keep the gateway routes alongside the decisions routes", () => {
     expect(Object.keys(committed.paths)).toEqual(
-      expect.arrayContaining(["/ai/chat/completions", "/health"])
+      expect.arrayContaining(["/v1/chat/completions", "/health"])
     );
   });
 

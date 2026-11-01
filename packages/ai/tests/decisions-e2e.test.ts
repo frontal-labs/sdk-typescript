@@ -63,7 +63,7 @@ beforeAll(async () => {
       return send(res, 401, errorBody("UNAUTHORIZED", "Invalid API key"));
     }
 
-    if (req.method === "GET" && req.url === "/ai/decisions/models") {
+    if (req.method === "GET" && req.url === "/v1/decisions/models") {
       return send(res, 200, {
         models: [
           {
@@ -75,7 +75,7 @@ beforeAll(async () => {
       });
     }
 
-    if (req.method !== "POST" || req.url !== "/ai/decisions") {
+    if (req.method !== "POST" || req.url !== "/v1/decisions") {
       return send(res, 404, errorBody("NOT_FOUND", "No such route"));
     }
 

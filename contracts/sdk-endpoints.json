@@ -56,35 +56,35 @@
   "ai": [
     {
       "method": "GET",
-      "path": "/ai/decisions/models"
-    },
-    {
-      "method": "GET",
-      "path": "/ai/extractions/vocabularies"
-    },
-    {
-      "method": "GET",
-      "path": "/ai/extractions/vocabularies/{param}"
-    },
-    {
-      "method": "GET",
       "path": "/health"
     },
     {
-      "method": "POST",
-      "path": "/ai/chat/completions"
+      "method": "GET",
+      "path": "/v1/decisions/models"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/extractions/vocabularies"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/extractions/vocabularies/{param}"
     },
     {
       "method": "POST",
-      "path": "/ai/decisions"
+      "path": "/v1/chat/completions"
     },
     {
       "method": "POST",
-      "path": "/ai/extractions"
+      "path": "/v1/decisions"
     },
     {
       "method": "POST",
       "path": "/v1/embeddings"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/extractions"
     }
   ],
   "audit": [

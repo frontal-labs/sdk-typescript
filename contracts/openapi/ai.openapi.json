@@ -37,7 +37,7 @@
         }
       }
     },
-    "/ai/chat/completions": {
+    "/v1/chat/completions": {
       "post": {
         "operationId": "unified_ai_chat_completions",
         "tags": [
@@ -107,7 +107,7 @@
         }
       }
     },
-    "/ai/decisions": {
+    "/v1/decisions": {
       "post": {
         "operationId": "aiDecide",
         "tags": [
@@ -209,7 +209,7 @@
         }
       }
     },
-    "/ai/decisions/models": {
+    "/v1/decisions/models": {
       "get": {
         "operationId": "aiDecisionModels",
         "tags": [
@@ -261,7 +261,7 @@
         }
       }
     },
-    "/ai/extractions": {
+    "/v1/extractions": {
       "post": {
         "operationId": "createExtraction",
         "tags": [
@@ -346,7 +346,7 @@
         }
       }
     },
-    "/ai/extractions/vocabularies": {
+    "/v1/extractions/vocabularies": {
       "get": {
         "operationId": "listExtractionVocabularies",
         "tags": [
@@ -368,7 +368,7 @@
         }
       }
     },
-    "/ai/extractions/vocabularies/{pin}": {
+    "/v1/extractions/vocabularies/{pin}": {
       "get": {
         "operationId": "getExtractionVocabulary",
         "tags": [

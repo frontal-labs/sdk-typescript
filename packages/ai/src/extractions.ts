@@ -12,7 +12,7 @@ import type { HttpClient, RequestOptions } from "@frontal-labs/core";
 import { z } from "zod";
 
 /*
- * Wire schemas for `/ai/extractions` and the vocabulary reads. Zod only, so the
+ * Wire schemas for `/v1/extractions` and the vocabulary reads. Zod only, so the
  * contract generator can import this module without the client runtime.
  *
  * Each response has two shapes. The `*Spec` schema is what the server sends
@@ -396,7 +396,7 @@ export class ExtractionsResource {
       input: request.input,
     };
     const raw = await this.http.post(
-      "/ai/extractions",
+      "/v1/extractions",
       body,
       extractionResponseWireSchema,
       {
@@ -418,7 +418,7 @@ export class VocabulariesResource {
   /** The vocabulary the parser currently serves. */
   async list(options?: RequestOptions): Promise<readonly VocabularyRef[]> {
     const raw = await this.http.get(
-      "/ai/extractions/vocabularies",
+      "/v1/extractions/vocabularies",
       undefined,
       vocabularyRefListSpecSchema,
       {},
@@ -449,7 +449,7 @@ export class VocabulariesResource {
       ]);
     }
     const raw: RawVocabularyDetail = await this.http.get(
-      `/ai/extractions/vocabularies/${encodeURIComponent(pin)}`,
+      `/v1/extractions/vocabularies/${encodeURIComponent(pin)}`,
       undefined,
       vocabularyDetailSpecSchema,
       {},

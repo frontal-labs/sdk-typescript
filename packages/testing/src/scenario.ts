@@ -12,13 +12,13 @@ import type { SimulateStreamOptions } from "./stream";
  * `contracts/sdk-endpoints.json`).
  */
 export const scenarioAliases: Record<string, `${string} ${string}`> = {
-  "ai.generateText": "POST /ai/chat/completions",
-  "ai.streamText": "POST /ai/chat/completions",
-  "ai.decisions.decide": "POST /ai/decisions",
-  "ai.decisions.models": "GET /ai/decisions/models",
+  "ai.generateText": "POST /v1/chat/completions",
+  "ai.streamText": "POST /v1/chat/completions",
+  "ai.decisions.decide": "POST /v1/decisions",
+  "ai.decisions.models": "GET /v1/decisions/models",
   "ai.embeddings.create": "POST /v1/embeddings",
-  "ai.extractions.create": "POST /ai/extractions",
-  "ai.extractions.vocabularies.list": "GET /ai/extractions/vocabularies",
+  "ai.extractions.create": "POST /v1/extractions",
+  "ai.extractions.vocabularies.list": "GET /v1/extractions/vocabularies",
   "agents.list": "GET /agents",
   "agents.create": "POST /agents",
   "agents.get": "GET /agents/{param}",

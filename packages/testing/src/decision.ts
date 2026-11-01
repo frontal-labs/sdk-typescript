@@ -42,7 +42,7 @@ export interface MockDecisionOptions {
    * picks its lowest level.
    */
   answer?: (question: MockDecisionQuestion) => MockDecisionAnswer;
-  /** Models returned by `GET /ai/decisions/models`. */
+  /** Models returned by `GET /v1/decisions/models`. */
   models?: Array<{ name: string; description: string; releaseDate: string }>;
 }
 
@@ -122,7 +122,7 @@ function uniform(labels: string[]): Record<string, number> {
 
 /**
  * Creates a scripted decision model for `@frontal-labs/ai`. The routes answer
- * `POST /ai/decisions` and `GET /ai/decisions/models` with the server's
+ * `POST /v1/decisions` and `GET /v1/decisions/models` with the server's
  * snake_case envelope, so the SDK's real parsing and validation run.
  *
  * @example
@@ -142,7 +142,7 @@ export function mockDecisionModel(
 
   const decide: MockRoute = {
     method: "POST",
-    path: "/ai/decisions",
+    path: "/v1/decisions",
     handler: (request: RequestLog) => {
       const body = request.body as MockDecisionCall;
       calls.push({
@@ -165,7 +165,7 @@ export function mockDecisionModel(
 
   const models: MockRoute = {
     method: "GET",
-    path: "/ai/decisions/models",
+    path: "/v1/decisions/models",
     body: {
       models: (options.models ?? DEFAULT_MODELS).map((model) => ({
         name: model.name,

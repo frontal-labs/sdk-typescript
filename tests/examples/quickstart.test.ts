@@ -28,7 +28,7 @@ describe("sdk README quickstart (runtime)", () => {
   const mock = createMockFetch([
     {
       method: "POST",
-      path: "/ai/chat/completions",
+      path: "/v1/chat/completions",
       body: {
         id: "cmpl_1",
         object: "chat.completion",
@@ -103,7 +103,7 @@ describe("sdk README quickstart (runtime)", () => {
       console.log = originalLog;
     }
 
-    mock.expectCalled("POST", "/ai/chat/completions");
+    mock.expectCalled("POST", "/v1/chat/completions");
     mock.expectCalled("POST", "/agents/agt_ticket_triager/runs");
     expect(logs).toEqual([
       ["step", { name: "classify", tier: "enterprise" }],

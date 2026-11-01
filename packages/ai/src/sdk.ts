@@ -201,7 +201,7 @@ export class AISdk {
     };
 
     const response = await this.http.post<ChatCompletionResponse>(
-      "/ai/chat/completions",
+      "/v1/chat/completions",
       requestBody
     );
 
@@ -302,7 +302,7 @@ export class AISdk {
 
       try {
         const response = await this.http.post<ChatCompletionResponse>(
-          "/ai/chat/completions",
+          "/v1/chat/completions",
           requestBody
         );
 

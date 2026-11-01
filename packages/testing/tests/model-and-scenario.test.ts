@@ -203,13 +203,13 @@ describe("createScenario", () => {
   it("supports explicit METHOD /path steps, statuses, and MockFrontal namespace", async () => {
     const s = MockFrontal.scenario("rate-limited", [
       {
-        on: "GET /ai/decisions/models",
+        on: "GET /v1/decisions/models",
         status: 429,
         return: { code: "RATE_LIMITED", message: "slow", request_id: "r" },
         headers: { "retry-after": "2" },
       },
       {
-        on: "GET /ai/decisions/models",
+        on: "GET /v1/decisions/models",
         return: {
           models: [
             { name: "m1", description: "d", release_date: "2026-01-01" },

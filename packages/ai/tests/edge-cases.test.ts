@@ -35,7 +35,7 @@ describe("generateObject retry paths", () => {
     const { http } = createTestHttpClient([
       {
         method: "POST",
-        path: "/ai/chat/completions",
+        path: "/v1/chat/completions",
         handler: () => Response.json(answers[i++]),
       },
     ]);
@@ -55,7 +55,7 @@ describe("generateObject retry paths", () => {
     const { http } = createTestHttpClient([
       {
         method: "POST",
-        path: "/ai/chat/completions",
+        path: "/v1/chat/completions",
         handler: () => {
           calls++;
           return Response.json(
@@ -79,7 +79,7 @@ describe("generateObject retry paths", () => {
     const { http: bad } = createTestHttpClient([
       {
         method: "POST",
-        path: "/ai/chat/completions",
+        path: "/v1/chat/completions",
         status: 400,
         body: { code: "VALIDATION_ERROR", message: "nope" },
       },
@@ -117,7 +117,7 @@ describe("misc option branches", () => {
     const { http } = createTestHttpClient([
       {
         method: "POST",
-        path: "/ai/chat/completions",
+        path: "/v1/chat/completions",
         body: completion("ok", {}),
       },
     ]);

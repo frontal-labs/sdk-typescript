@@ -22,9 +22,9 @@ Paths are relative to the gateway base URL:
 
 | Capability | Method | Path |
 |------------|--------|------|
-| Text / chat (incl. tools, JSON mode) | `generateText`, `streamText`, `generateObject` | `/ai/chat/completions` |
-| Structured decisions | `decisions.decide` | `/ai/decisions` |
-| Decision models | `decisions.models` | `/ai/decisions/models` |
+| Text / chat (incl. tools, JSON mode) | `generateText`, `streamText`, `generateObject` | `/v1/chat/completions` |
+| Structured decisions | `decisions.decide` | `/v1/decisions` |
+| Decision models | `decisions.models` | `/v1/decisions/models` |
 | Health | `health` | `/health` |
 
 The chat endpoint follows the OpenAI request/response shape (`messages`, `tools`, `choices[0].message`, `usage.promptTokens`).
@@ -50,7 +50,7 @@ Failures are thrown:
 1. **User call**: `ai.generateText({ model, prompt: "Hello" })`
 2. **Validation**: options are checked (Zod for the schema-backed methods).
 3. **Transformation**: options map to a `ChatCompletionRequest` (OpenAI format), with tools converted by `toolSetToRequest`.
-4. **Network**: `HttpClient.post("/ai/chat/completions", body)` against the gateway base URL.
+4. **Network**: `HttpClient.post("/v1/chat/completions", body)` against the gateway base URL.
 5. **Gateway processing**: the gateway routes the request to the upstream provider and returns an OpenAI-shaped response.
 6. **Response mapping**: the raw JSON becomes a `GenerateTextResult` (text, finish reason, usage, tool calls, steps).
 7. **Result**: the caller receives the typed result, or a thrown error.
