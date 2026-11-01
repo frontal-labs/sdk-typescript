@@ -111,7 +111,7 @@
         "tags": [
           "runtime-api"
         ],
-        "x_route_class": "public-sdk",
+        "x_route_class": "internal",
         "responses": {
           "200": {
             "description": "Runtime API response"
@@ -125,7 +125,7 @@
         "tags": [
           "runtime-api"
         ],
-        "x_route_class": "public-sdk",
+        "x_route_class": "internal",
         "responses": {
           "200": {
             "description": "Runtime API response"
@@ -139,7 +139,7 @@
         "tags": [
           "runtime-api"
         ],
-        "x_route_class": "public-sdk",
+        "x_route_class": "internal",
         "responses": {
           "200": {
             "description": "Runtime API response"

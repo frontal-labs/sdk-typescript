@@ -144,12 +144,9 @@ function buildAiSpec(): OpenApiDoc {
 	}
 
 	for (const route of runtimeRoutes) {
-		// Models and rerank are SDK-facing; config and key management are not.
-		const sdkFacing =
-			route.path === "/v1/models" ||
-			route.path === "/v1/models/defaults" ||
-			route.path === "/v1/rerank" ||
-			route.path === "/v1/embeddings";
+		// Only embeddings is SDK-facing among runtime routes. Its operation is
+		// replaced by the generator's schema-backed one; the rest are internal.
+		const sdkFacing = route.path === "/v1/embeddings";
 		const operation = {
 			operationId: `runtime_${route.method.toLowerCase()}${route.path.replace(/[^a-zA-Z0-9]+/g, "_").replace(/_+$/, "")}`,
 			tags: ["runtime-api"],
