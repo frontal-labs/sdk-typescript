@@ -6,7 +6,7 @@ export const DEFAULT_BASE_URL = "https://api.frontal.dev/v1";
 /**
  * Package version.
  */
-export const VERSION = "2.0.0";
+export const VERSION = "2.0.1";
 
 /**
  * Default timeout.

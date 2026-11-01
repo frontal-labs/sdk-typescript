@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/sdk",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Unified Frontal SDK client",
   "type": "module",
   "main": "dist/index.cjs",
@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@frontal-labs/agents": "^2.0.0",
-    "@frontal-labs/ai": "^0.2.0",
+    "@frontal-labs/ai": "^0.3.0",
     "@frontal-labs/audit": "^1.0.0",
     "@frontal-labs/auth": "^1.0.4",
     "@frontal-labs/billing": "^1.0.3",
