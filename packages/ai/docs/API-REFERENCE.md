@@ -155,8 +155,8 @@ Lists the decision models the account can use: `{ name, description, releaseDate
 
 All three send one `Idempotency-Key` per call, reused on retries. Pass `idempotencyKey` in `options` to make a call safe to repeat across processes.
 
-- `EmbeddingRequestError`: thrown before any request for an empty model or input, a NUL character, or non-positive or fractional `dimensions`. `issues` lists each `{ path, message }`.
-- `EmbeddingResponseError`: thrown when the response count, indices or vector lengths disagree with the request.
+- `EmbeddingRequestError`: thrown before any request for an empty model, input or user, a NUL character, or non-positive or fractional `dimensions`. `issues` lists each `{ path, message }`.
+- `EmbeddingResponseError`: thrown when the response count, indices or vector lengths disagree with the request, or a vector does not match the requested `encodingFormat`.
 
 ### Utilities
 

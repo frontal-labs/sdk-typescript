@@ -173,13 +173,16 @@ function validateCreate(request: EmbeddingCreateRequest): void {
   inputs.forEach((text, position) => {
     const path =
       typeof request.input === "string" ? "input" : `input[${position}]`;
-    if (text.trim().length === 0) {
+    if (text.length === 0) {
       issues.push({ path, message: "must not be empty" });
     }
     if (text.includes("\0")) {
       issues.push({ path, message: "must not contain NUL characters" });
     }
   });
+  if (request.user !== undefined && request.user.length === 0) {
+    issues.push({ path: "user", message: "must not be empty when set" });
+  }
   if (
     request.dimensions !== undefined &&
     (!Number.isInteger(request.dimensions) || request.dimensions < 1)
@@ -189,11 +192,27 @@ function validateCreate(request: EmbeddingCreateRequest): void {
   if (issues.length > 0) throw new EmbeddingRequestError(issues);
 }
 
-/** Checks a response against the request, then returns it in input order. */
+/** Byte length of a base64 string, or a typed error if it is not base64. */
+function base64ByteLength(encoded: string, position: number): number {
+  try {
+    return atob(encoded).length;
+  } catch {
+    throw new EmbeddingResponseError(
+      `embedding ${position} is not valid base64`
+    );
+  }
+}
+
+/**
+ * Checks a response against the request, then returns it in input order. Every
+ * vector must match the requested encoding: float arrays for `float`, base64
+ * strings for `base64`.
+ */
 function toOrderedItems<V>(
   raw: RawResponse,
   expectedCount: number,
-  dimensions: number | undefined
+  dimensions: number | undefined,
+  format: EmbeddingEncodingFormat
 ): EmbeddingItem<V>[] {
   if (raw.data.length !== expectedCount) {
     throw new EmbeddingResponseError(
@@ -207,21 +226,44 @@ function toOrderedItems<V>(
         "embedding indices must be 0 through n-1, each exactly once"
       );
     }
-    if (Array.isArray(item.embedding)) {
-      if (dimensions !== undefined && item.embedding.length !== dimensions) {
+    if (format === "base64") {
+      if (typeof item.embedding !== "string") {
         throw new EmbeddingResponseError(
-          `embedding ${position} has ${item.embedding.length} dimensions, expected ${dimensions}`
+          `embedding ${position} is a float array, but base64 was requested`
         );
       }
-      if (
-        position > 0 &&
-        Array.isArray(items[0]?.embedding) &&
-        items[0].embedding.length !== item.embedding.length
-      ) {
+      const bytes = base64ByteLength(item.embedding, position);
+      if (bytes % 4 !== 0) {
         throw new EmbeddingResponseError(
-          "embeddings in one response have different lengths"
+          `embedding ${position} is not a whole number of float32 values`
         );
       }
+      if (dimensions !== undefined && bytes !== dimensions * 4) {
+        throw new EmbeddingResponseError(
+          `embedding ${position} has ${bytes / 4} dimensions, expected ${dimensions}`
+        );
+      }
+      return;
+    }
+    if (typeof item.embedding === "string") {
+      throw new EmbeddingResponseError(
+        `embedding ${position} is base64, but a float array was requested`
+      );
+    }
+    if (dimensions !== undefined && item.embedding.length !== dimensions) {
+      throw new EmbeddingResponseError(
+        `embedding ${position} has ${item.embedding.length} dimensions, expected ${dimensions}`
+      );
+    }
+    const first = items[0]?.embedding;
+    if (
+      position > 0 &&
+      Array.isArray(first) &&
+      first.length !== item.embedding.length
+    ) {
+      throw new EmbeddingResponseError(
+        "embeddings in one response have different lengths"
+      );
     }
   });
   return items as EmbeddingItem<V>[];
@@ -285,7 +327,8 @@ export class EmbeddingsResource {
       data: toOrderedItems<number[] | string>(
         raw,
         inputs.length,
-        request.dimensions
+        request.dimensions,
+        request.encodingFormat ?? "float"
       ),
       usage: {
         promptTokens: raw.usage.promptTokens,

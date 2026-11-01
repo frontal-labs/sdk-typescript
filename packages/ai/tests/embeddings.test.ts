@@ -242,8 +242,18 @@ describe("embeddings: local validation", () => {
   });
 
   it("names the offending element of a batch", async () => {
-    const { error } = await attempt({ model: "m", input: ["ok", "  "] });
+    const { error } = await attempt({ model: "m", input: ["ok", ""] });
     expect(pathsOf(error)).toEqual(["input[1]"]);
+  });
+
+  it("refuses an empty user identifier", async () => {
+    const { error, sent } = await attempt({
+      model: "m",
+      input: "a",
+      user: "",
+    });
+    expect(pathsOf(error)).toEqual(["user"]);
+    expect(sent).toBe(0);
   });
 
   it("refuses NUL characters", async () => {
@@ -332,5 +342,75 @@ describe("embeddings: types", () => {
       // @ts-expect-error only "float" or "base64" are accepted
       embeddings.create({ model: "m", input: "a", encodingFormat: "int8" });
     expect(typeof misuse).toBe("function");
+  });
+});
+
+describe("embeddings: encoding", () => {
+  it("refuses float arrays when base64 was requested", async () => {
+    const { embeddings } = resource((_, body) =>
+      Response.json(envelope(body.input as string[]))
+    );
+    await expect(
+      embeddings.create({ model: "m", input: "a", encodingFormat: "base64" })
+    ).rejects.toThrow(/base64 was requested/);
+  });
+
+  it("refuses base64 strings when a float array was requested", async () => {
+    const { embeddings } = resource((_, body) =>
+      Response.json(envelope(body.input as string[], () => "AACAPwAAAEA="))
+    );
+    await expect(embeddings.embed({ model: "m", input: "a" })).rejects.toThrow(
+      /float array was requested/
+    );
+  });
+
+  it("decodes base64 vectors to the bytes the server sent", async () => {
+    // Two little-endian float32 values: 1.0 and 2.0.
+    const encoded = "AACAPwAAAEA=";
+    const { embeddings } = resource(() =>
+      Response.json({
+        model: "m",
+        data: [{ index: 0, embedding: encoded }],
+        usage: { prompt_tokens: 1, total_tokens: 1 },
+      })
+    );
+    const response = await embeddings.create({
+      model: "m",
+      input: "a",
+      encodingFormat: "base64",
+      dimensions: 2,
+    });
+    expect(response.data[0]?.embedding).toBe(encoded);
+  });
+
+  it("refuses base64 whose decoded length differs from dimensions", async () => {
+    const { embeddings } = resource(() =>
+      Response.json({
+        model: "m",
+        data: [{ index: 0, embedding: "AACAPwAAAEA=" }],
+        usage: { prompt_tokens: 1, total_tokens: 1 },
+      })
+    );
+    await expect(
+      embeddings.create({
+        model: "m",
+        input: "a",
+        encodingFormat: "base64",
+        dimensions: 3,
+      })
+    ).rejects.toThrow(/expected 3/);
+  });
+
+  it("refuses base64 that is not valid base64", async () => {
+    const { embeddings } = resource(() =>
+      Response.json({
+        model: "m",
+        data: [{ index: 0, embedding: "not base64!!" }],
+        usage: { prompt_tokens: 1, total_tokens: 1 },
+      })
+    );
+    await expect(
+      embeddings.create({ model: "m", input: "a", encodingFormat: "base64" })
+    ).rejects.toThrow(EmbeddingResponseError);
   });
 });
