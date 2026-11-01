@@ -291,7 +291,7 @@ const model = mockEmbeddingModel({ dimensions: 4 });
 const { http, mock } = createTestHttpClient(model.routes);
 const embeddings = new EmbeddingsResource(http);
 
-const batch = await embeddings.embedMany({ model: "embed-small", input: ["a", "b"] });
+const batch = await embeddings.embedMany({ model: "openai/text-embedding-3-large", input: ["a", "b"] });
 
 expect(batch.embeddings[0]).toHaveLength(4);
 expect(model.calls[0]).toMatchObject({ input: ["a", "b"] });

@@ -43,16 +43,16 @@ describe("mockEmbeddingModel", () => {
     const embeddings = new EmbeddingsResource(http);
 
     const batch = await embeddings.embedMany({
-      model: "embed-small",
+      model: "openai/text-embedding-3-large",
       input: ["alpha", "beta"],
     });
 
     expect(batch.embeddings).toHaveLength(2);
     expect(batch.embeddings[0]).toHaveLength(4);
-    expect(batch.model).toBe("embed-small");
+    expect(batch.model).toBe("openai/text-embedding-3-large");
     expect(mock.callCount("POST", "/v1/embeddings")).toBe(1);
     expect(model.calls[0]).toMatchObject({
-      model: "embed-small",
+      model: "openai/text-embedding-3-large",
       input: ["alpha", "beta"],
     });
   });
@@ -61,8 +61,8 @@ describe("mockEmbeddingModel", () => {
     const model = mockEmbeddingModel({ dimensions: 3 });
     const { http } = createTestHttpClient(model.routes);
     const embeddings = new EmbeddingsResource(http);
-    const first = await embeddings.embed({ model: "m", input: "same" });
-    const second = await embeddings.embed({ model: "m", input: "same" });
+    const first = await embeddings.embed({ model: "openai/m", input: "same" });
+    const second = await embeddings.embed({ model: "openai/m", input: "same" });
     expect(first.embedding).toEqual(second.embedding);
   });
 
@@ -71,7 +71,7 @@ describe("mockEmbeddingModel", () => {
     const { http } = createTestHttpClient(model.routes);
     const embeddings = new EmbeddingsResource(http);
     const response = await embeddings.create({
-      model: "m",
+      model: "openai/m",
       input: "a",
       encodingFormat: "base64",
     });

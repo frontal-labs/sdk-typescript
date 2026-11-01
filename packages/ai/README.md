@@ -279,13 +279,13 @@ import { createAIClient } from "@frontal-labs/ai";
 const ai = createAIClient({ apiKey: process.env.FRONTAL_API_KEY! });
 
 const { embedding, usage } = await ai.embeddings.embed({
-  model: "embed-small",
+  model: "openai/text-embedding-3-large",
   input: "Refund requests for duplicate charges",
 });
 // embedding: number[]
 
 const { embeddings } = await ai.embeddings.embedMany({
-  model: "embed-small",
+  model: "openai/text-embedding-3-large",
   input: ["first ticket", "second ticket"],
   dimensions: 256,
 });

@@ -17,7 +17,7 @@ async function embeddingsExample() {
 
 	try {
 		const { embeddings, usage } = await ai.embeddings.embedMany({
-			model: "embed-small",
+			model: "openai/text-embedding-3-large",
 			input: inputs,
 		});
 

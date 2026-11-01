@@ -31,6 +31,18 @@ const checks: Array<() => Promise<CheckResult>> = [
 		});
 	},
 	async () => {
+		const ai = createAIClient({ apiKey, baseUrl: aiBaseUrl });
+		return runCheck("ai.embeddings.embed", async () => {
+			const result = await ai.embeddings.embed({
+				model: process.env.FRONTAL_EMBEDDING_MODEL ?? "openai/text-embedding-3-large",
+				input: "live compatibility check",
+			});
+			if (result.embedding.length === 0) {
+				throw new Error("embedding is empty");
+			}
+		});
+	},
+	async () => {
 		const agents = createAgentsClient({ apiKey, baseUrl: apiBaseUrl });
 		return runCheck("agents.list", async () => {
 			await agents.list({ limit: 1 });

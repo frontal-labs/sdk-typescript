@@ -64,7 +64,7 @@ function envelope(
   const inputs = typeof input === "string" ? [input] : input;
   return {
     object: "list",
-    model: "embed-small",
+    model: "openai/text-embedding-3-large",
     data: inputs.map((_, index) => ({
       object: "embedding",
       index,
@@ -80,7 +80,7 @@ describe("embeddings: request", () => {
       Response.json(envelope(body.input as string[]))
     );
     await embeddings.create({
-      model: "embed-small",
+      model: "openai/text-embedding-3-large",
       input: ["a", "b"],
       dimensions: 2,
       encodingFormat: "float",
@@ -88,7 +88,7 @@ describe("embeddings: request", () => {
     });
     expect(seen.paths).toEqual(["/v1/embeddings"]);
     expect(seen.bodies[0]).toEqual({
-      model: "embed-small",
+      model: "openai/text-embedding-3-large",
       input: ["a", "b"],
       dimensions: 2,
       encoding_format: "float",
@@ -104,7 +104,10 @@ describe("embeddings: request", () => {
           : Response.json(envelope(body.input as string[])),
       { maxRetries: 1 }
     );
-    await embeddings.create({ model: "embed-small", input: "a" });
+    await embeddings.create({
+      model: "openai/text-embedding-3-large",
+      input: "a",
+    });
     expect(seen.calls).toBe(2);
     expect(seen.keys[0]).toBeTruthy();
     expect(seen.keys[1]).toBe(seen.keys[0]);
@@ -115,7 +118,7 @@ describe("embeddings: request", () => {
       Response.json(envelope(body.input as string[]))
     );
     await embeddings.create(
-      { model: "embed-small", input: "a" },
+      { model: "openai/text-embedding-3-large", input: "a" },
       { idempotencyKey: "job-42" }
     );
     expect(seen.keys).toEqual(["job-42"]);
@@ -133,7 +136,7 @@ describe("embeddings: results", () => {
       return Response.json(shuffled);
     });
     const result = await embeddings.embedMany({
-      model: "embed-small",
+      model: "openai/text-embedding-3-large",
       input: ["first", "second", "third"],
     });
     expect(result.embeddings).toEqual([
@@ -148,11 +151,11 @@ describe("embeddings: results", () => {
       Response.json(envelope(body.input as string[]))
     );
     const result = await embeddings.embed({
-      model: "embed-small",
+      model: "openai/text-embedding-3-large",
       input: "hello",
     });
     expect(result.usage).toEqual({ promptTokens: 3, totalTokens: 3 });
-    expect(result.model).toBe("embed-small");
+    expect(result.model).toBe("openai/text-embedding-3-large");
   });
 
   it("embed returns one vector for one text", async () => {
@@ -160,7 +163,7 @@ describe("embeddings: results", () => {
       Response.json(envelope(body.input as string[]))
     );
     const result = await embeddings.embed({
-      model: "embed-small",
+      model: "openai/text-embedding-3-large",
       input: "hello",
     });
     expect(result.embedding).toEqual([0, 0.5]);
@@ -173,7 +176,10 @@ describe("embeddings: response checks", () => {
       Response.json({ ...envelope(["a"]), data: [] })
     );
     await expect(
-      embeddings.embedMany({ model: "embed-small", input: ["a", "b"] })
+      embeddings.embedMany({
+        model: "openai/text-embedding-3-large",
+        input: ["a", "b"],
+      })
     ).rejects.toThrow(EmbeddingResponseError);
   });
 
@@ -188,7 +194,10 @@ describe("embeddings: response checks", () => {
       })
     );
     await expect(
-      embeddings.embedMany({ model: "embed-small", input: ["a", "b"] })
+      embeddings.embedMany({
+        model: "openai/text-embedding-3-large",
+        input: ["a", "b"],
+      })
     ).rejects.toThrow(/indices/);
   });
 
@@ -197,7 +206,11 @@ describe("embeddings: response checks", () => {
       Response.json(envelope(body.input as string[], () => [1, 2, 3]))
     );
     await expect(
-      embeddings.embed({ model: "embed-small", input: "a", dimensions: 2 })
+      embeddings.embed({
+        model: "openai/text-embedding-3-large",
+        input: "a",
+        dimensions: 2,
+      })
     ).rejects.toThrow(/dimensions/);
   });
 
@@ -212,7 +225,10 @@ describe("embeddings: response checks", () => {
       })
     );
     await expect(
-      embeddings.embedMany({ model: "embed-small", input: ["a", "b"] })
+      embeddings.embedMany({
+        model: "openai/text-embedding-3-large",
+        input: ["a", "b"],
+      })
     ).rejects.toThrow(/different lengths/);
   });
 });
@@ -235,20 +251,29 @@ describe("embeddings: local validation", () => {
     expect(sent).toBe(0);
   });
 
+  it("refuses a model without a provider prefix before the network", async () => {
+    const { error, sent } = await attempt({
+      model: "text-embedding-3-large",
+      input: "a",
+    });
+    expect(pathsOf(error)).toEqual(["model"]);
+    expect(sent).toBe(0);
+  });
+
   it("refuses an empty batch", async () => {
-    const { error, sent } = await attempt({ model: "m", input: [] });
+    const { error, sent } = await attempt({ model: "openai/m", input: [] });
     expect(pathsOf(error)).toEqual(["input"]);
     expect(sent).toBe(0);
   });
 
   it("names the offending element of a batch", async () => {
-    const { error } = await attempt({ model: "m", input: ["ok", ""] });
+    const { error } = await attempt({ model: "openai/m", input: ["ok", ""] });
     expect(pathsOf(error)).toEqual(["input[1]"]);
   });
 
   it("refuses an empty user identifier", async () => {
     const { error, sent } = await attempt({
-      model: "m",
+      model: "openai/m",
       input: "a",
       user: "",
     });
@@ -257,18 +282,22 @@ describe("embeddings: local validation", () => {
   });
 
   it("refuses NUL characters", async () => {
-    const { error } = await attempt({ model: "m", input: "a\0b" });
+    const { error } = await attempt({ model: "openai/m", input: "a\0b" });
     expect(pathsOf(error)).toEqual(["input"]);
   });
 
   it("refuses non-positive dimensions", async () => {
-    const { error } = await attempt({ model: "m", input: "a", dimensions: 0 });
+    const { error } = await attempt({
+      model: "openai/m",
+      input: "a",
+      dimensions: 0,
+    });
     expect(pathsOf(error)).toEqual(["dimensions"]);
   });
 
   it("refuses fractional dimensions", async () => {
     const { error } = await attempt({
-      model: "m",
+      model: "openai/m",
       input: "a",
       dimensions: 1.5,
     });
@@ -294,7 +323,7 @@ describe("embeddings: errors", () => {
       { maxRetries: 0 }
     );
     await expect(
-      embeddings.embed({ model: "embed-small", input: "a" })
+      embeddings.embed({ model: "openai/text-embedding-3-large", input: "a" })
     ).rejects.toMatchObject({ statusCode: 403 });
   });
 });
@@ -302,9 +331,9 @@ describe("embeddings: errors", () => {
 describe("embeddings: types", () => {
   it("returns number arrays by default and strings for base64", () => {
     const { embeddings } = resource(() => Response.json({}));
-    const floats = embeddings.create({ model: "m", input: "a" });
+    const floats = embeddings.create({ model: "openai/m", input: "a" });
     const encoded = embeddings.create({
-      model: "m",
+      model: "openai/m",
       input: "a",
       encodingFormat: "base64",
     });
@@ -317,7 +346,7 @@ describe("embeddings: types", () => {
   it("types a runtime-chosen format as number[] | string", () => {
     const { embeddings } = resource(() => Response.json({}));
     const request: EmbeddingCreateRequest = {
-      model: "m",
+      model: "openai/m",
       input: "a",
       encodingFormat: Math.random() > 0.5 ? "base64" : "float",
     };
@@ -339,8 +368,12 @@ describe("embeddings: types", () => {
     const { embeddings } = resource(() => Response.json({}));
     // Type-level only: the call is never made.
     const misuse = () =>
-      // @ts-expect-error only "float" or "base64" are accepted
-      embeddings.create({ model: "m", input: "a", encodingFormat: "int8" });
+      embeddings.create({
+        model: "openai/m",
+        input: "a",
+        // @ts-expect-error only "float" or "base64" are accepted
+        encodingFormat: "int8",
+      });
     expect(typeof misuse).toBe("function");
   });
 });
@@ -351,7 +384,11 @@ describe("embeddings: encoding", () => {
       Response.json(envelope(body.input as string[]))
     );
     await expect(
-      embeddings.create({ model: "m", input: "a", encodingFormat: "base64" })
+      embeddings.create({
+        model: "openai/m",
+        input: "a",
+        encodingFormat: "base64",
+      })
     ).rejects.toThrow(/base64 was requested/);
   });
 
@@ -359,9 +396,9 @@ describe("embeddings: encoding", () => {
     const { embeddings } = resource((_, body) =>
       Response.json(envelope(body.input as string[], () => "AACAPwAAAEA="))
     );
-    await expect(embeddings.embed({ model: "m", input: "a" })).rejects.toThrow(
-      /float array was requested/
-    );
+    await expect(
+      embeddings.embed({ model: "openai/m", input: "a" })
+    ).rejects.toThrow(/float array was requested/);
   });
 
   it("decodes base64 vectors to the bytes the server sent", async () => {
@@ -369,13 +406,13 @@ describe("embeddings: encoding", () => {
     const encoded = "AACAPwAAAEA=";
     const { embeddings } = resource(() =>
       Response.json({
-        model: "m",
+        model: "openai/m",
         data: [{ index: 0, embedding: encoded }],
         usage: { prompt_tokens: 1, total_tokens: 1 },
       })
     );
     const response = await embeddings.create({
-      model: "m",
+      model: "openai/m",
       input: "a",
       encodingFormat: "base64",
       dimensions: 2,
@@ -386,14 +423,14 @@ describe("embeddings: encoding", () => {
   it("refuses base64 whose decoded length differs from dimensions", async () => {
     const { embeddings } = resource(() =>
       Response.json({
-        model: "m",
+        model: "openai/m",
         data: [{ index: 0, embedding: "AACAPwAAAEA=" }],
         usage: { prompt_tokens: 1, total_tokens: 1 },
       })
     );
     await expect(
       embeddings.create({
-        model: "m",
+        model: "openai/m",
         input: "a",
         encodingFormat: "base64",
         dimensions: 3,
@@ -404,13 +441,17 @@ describe("embeddings: encoding", () => {
   it("refuses base64 that is not valid base64", async () => {
     const { embeddings } = resource(() =>
       Response.json({
-        model: "m",
+        model: "openai/m",
         data: [{ index: 0, embedding: "not base64!!" }],
         usage: { prompt_tokens: 1, total_tokens: 1 },
       })
     );
     await expect(
-      embeddings.create({ model: "m", input: "a", encodingFormat: "base64" })
+      embeddings.create({
+        model: "openai/m",
+        input: "a",
+        encodingFormat: "base64",
+      })
     ).rejects.toThrow(EmbeddingResponseError);
   });
 });

@@ -70,7 +70,7 @@ export interface EmbeddingUsage {
 }
 
 export interface EmbeddingCreateRequest {
-  /** Embedding model id, as the gateway names it. Required. */
+  /** Embedding model as `provider/model`, for example `openai/text-embedding-3-large`. */
   readonly model: string;
   /** One string, or a batch. Results keep this order. */
   readonly input: string | readonly string[];
@@ -159,11 +159,20 @@ interface Issue {
 }
 type RawResponse = z.infer<typeof embeddingResponseWireSchema>;
 
+/** The gateway routes a model by its provider prefix, so `provider/model` is required. */
+const MODEL_PATTERN = /^[^/\s]+\/\S+$/;
+
 /** Checks a request before any network call. */
 function validateCreate(request: EmbeddingCreateRequest): void {
   const issues: Issue[] = [];
   if (request.model.trim().length === 0) {
     issues.push({ path: "model", message: "must not be empty" });
+  } else if (!MODEL_PATTERN.test(request.model)) {
+    issues.push({
+      path: "model",
+      message:
+        "must be provider/model, for example openai/text-embedding-3-large",
+    });
   }
   const inputs =
     typeof request.input === "string" ? [request.input] : request.input;
