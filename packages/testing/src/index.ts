@@ -511,6 +511,12 @@ export {
   mockDecisionModel,
 } from "./decision";
 export {
+  type MockEmbeddingCall,
+  type MockEmbeddingModel,
+  type MockEmbeddingOptions,
+  mockEmbeddingModel,
+} from "./embedding";
+export {
   type MockEntity,
   type MockExtractionCall,
   type MockExtractionModel,

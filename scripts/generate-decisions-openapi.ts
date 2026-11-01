@@ -19,6 +19,10 @@ import {
 	decisionResponseSpecSchema,
 } from "../packages/ai/src/schemas";
 import {
+	embeddingRequestSpecSchema,
+	embeddingResponseSpecSchema,
+} from "../packages/ai/src/embeddings";
+import {
 	extractionRequestSpecSchema,
 	extractionResponseSpecSchema,
 	vocabularyDetailSpecSchema,
@@ -31,9 +35,9 @@ export const AI_OPENAPI_PATH = fileURLToPath(
 
 /** Extraction routes the SDK calls, and the schemas they use. */
 export const EXTRACTION_PATHS = [
-	"/ai/extractions",
-	"/ai/extractions/vocabularies",
-	"/ai/extractions/vocabularies/{pin}",
+	"/v1/extractions",
+	"/v1/extractions/vocabularies",
+	"/v1/extractions/vocabularies/{pin}",
 ] as const;
 export const EXTRACTION_SCHEMAS = [
 	"ExtractionRequest",
@@ -43,11 +47,23 @@ export const EXTRACTION_SCHEMAS = [
 	"ExtractionErrorResponse",
 ] as const;
 
+/** Embeddings route and schemas the SDK calls. */
+export const EMBEDDING_PATHS = ["/v1/embeddings"] as const;
+export const EMBEDDING_SCHEMAS = [
+	"EmbeddingRequest",
+	"EmbeddingResponse",
+	"EmbeddingErrorResponse",
+] as const;
+
 /** Route prefixes this generator owns. Other routes are left untouched. */
-const OWNED_PREFIXES = ["/ai/decisions", "/ai/extractions"] as const;
+const OWNED_PREFIXES = [
+	"/v1/decisions",
+	"/v1/extractions",
+	"/v1/embeddings",
+] as const;
 
 /** Decisions routes and schemas, as they appear in the AI spec. */
-export const DECISION_PATHS = ["/ai/decisions", "/ai/decisions/models"] as const;
+export const DECISION_PATHS = ["/v1/decisions", "/v1/decisions/models"] as const;
 export const DECISION_SCHEMAS = [
 	"DecisionRequest",
 	"DecisionResponse",
@@ -85,7 +101,7 @@ const jsonContent = (ref: string) => ({
 export function buildDecisionsFragment(): JsonObject {
 	return {
 		paths: {
-			"/ai/decisions": {
+			"/v1/decisions": {
 				post: {
 					operationId: "aiDecide",
 					tags: ["decisions"],
@@ -111,7 +127,7 @@ export function buildDecisionsFragment(): JsonObject {
 					},
 				},
 			},
-			"/ai/decisions/models": {
+			"/v1/decisions/models": {
 				get: {
 					operationId: "aiDecisionModels",
 					tags: ["decisions"],
@@ -151,7 +167,7 @@ export function buildExtractionsFragment(): {
 	});
 	return {
 		paths: {
-			"/ai/extractions": {
+			"/v1/extractions": {
 				post: {
 					operationId: "createExtraction",
 					tags: ["inference"],
@@ -183,7 +199,7 @@ export function buildExtractionsFragment(): {
 					},
 				},
 			},
-			"/ai/extractions/vocabularies": {
+			"/v1/extractions/vocabularies": {
 				get: {
 					operationId: "listExtractionVocabularies",
 					tags: ["catalog"],
@@ -197,7 +213,7 @@ export function buildExtractionsFragment(): {
 					},
 				},
 			},
-			"/ai/extractions/vocabularies/{pin}": {
+			"/v1/extractions/vocabularies/{pin}": {
 				get: {
 					operationId: "getExtractionVocabulary",
 					tags: ["catalog"],
@@ -243,6 +259,69 @@ const extractionErrorSpec = z.object({
 	}),
 });
 
+/** The embeddings route the SDK calls, from the same wire schemas. */
+export function buildEmbeddingsFragment(): {
+	paths: Record<string, unknown>;
+	components: { schemas: Record<string, unknown> };
+} {
+	const error = {
+		"application/json": {
+			schema: { $ref: "#/components/schemas/EmbeddingErrorResponse" },
+		},
+	};
+	return {
+		paths: {
+			"/v1/embeddings": {
+				post: {
+					operationId: "createEmbeddings",
+					tags: ["inference"],
+					x_route_class: "public-sdk",
+					description:
+						"Embeds one or more texts with an OpenAI-compatible request and response. Vectors come back in input order. Requires an Idempotency-Key header.",
+					parameters: [
+						{
+							name: "Idempotency-Key",
+							in: "header",
+							required: true,
+							schema: { type: "string", minLength: 1, maxLength: 255 },
+							description:
+								"Reused on retries of the same call, so a retried request is not charged twice.",
+						},
+					],
+					requestBody: {
+						required: true,
+						content: {
+							"application/json": {
+								schema: { $ref: "#/components/schemas/EmbeddingRequest" },
+							},
+						},
+					},
+					responses: {
+						"200": {
+							description: "One embedding per input, in input order.",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/EmbeddingResponse" },
+								},
+							},
+						},
+						"400": { description: "invalid_input or unknown dimensions", content: error },
+						"403": { description: "model_not_allowed", content: error },
+						"503": { description: "embedding_unavailable", content: error },
+					},
+				},
+			},
+		},
+		components: {
+			schemas: {
+				EmbeddingRequest: toOpenApi(embeddingRequestSpecSchema, "input"),
+				EmbeddingResponse: toOpenApi(embeddingResponseSpecSchema, "output"),
+				EmbeddingErrorResponse: toOpenApi(extractionErrorSpec, "output"),
+			},
+		},
+	};
+}
+
 /** The parts of an OpenAPI document this generator reads and writes. */
 export interface OpenApiDocument {
 	paths: Record<string, unknown>;
@@ -260,12 +339,18 @@ export function applyDecisions(doc: OpenApiDocument): OpenApiDocument {
 		components: { schemas: Record<string, unknown> };
 	};
 	const extractions = buildExtractionsFragment();
+	const embeddings = buildEmbeddingsFragment();
 	const fragment = {
-		paths: { ...decisions.paths, ...extractions.paths },
+		paths: {
+			...decisions.paths,
+			...extractions.paths,
+			...embeddings.paths,
+		},
 		components: {
 			schemas: {
 				...decisions.components.schemas,
 				...extractions.components.schemas,
+				...embeddings.components.schemas,
 			},
 		},
 	};

@@ -368,7 +368,7 @@ export type ChatCompletionChunk = z.infer<typeof chatCompletionChunkSchema>;
 // ============================================================================
 // Decision Wire Schemas
 // ============================================================================
-// Wire schemas for the decisions endpoint (`/ai/decisions`, `/ai/decisions/models`).
+// Wire schemas for the decisions endpoint (`/v1/decisions`, `/v1/decisions/models`).
 // This module depends only on Zod, so the contract generator can import it
 // without loading the client runtime. `scripts/generate-decisions-openapi.ts`
 // derives the committed OpenAPI fragment from these schemas.

@@ -18,7 +18,7 @@ describe("AISdk", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/ai/chat/completions",
+          path: "/v1/chat/completions",
           body: chatResponse("Hello world"),
         },
       ]);
@@ -37,14 +37,14 @@ describe("AISdk", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ai/chat/completions",
+          path: "/v1/chat/completions",
           body: chatResponse("response"),
         },
       ]);
 
       await service.generateText({ model: "gpt-4", prompt: "test" });
 
-      mock.expectCalledWith("POST", "/ai/chat/completions", {
+      mock.expectCalledWith("POST", "/v1/chat/completions", {
         messages: [{ role: "user", content: "test" }],
       });
     });
@@ -53,7 +53,7 @@ describe("AISdk", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ai/chat/completions",
+          path: "/v1/chat/completions",
           body: chatResponse("response"),
         },
       ]);
@@ -75,7 +75,7 @@ describe("AISdk", () => {
       const { service, mock } = createService([
         {
           method: "POST",
-          path: "/ai/chat/completions",
+          path: "/v1/chat/completions",
           body: chatResponse("ok"),
         },
       ]);
@@ -88,7 +88,7 @@ describe("AISdk", () => {
         topP: 0.9,
       });
 
-      mock.expectCalledWith("POST", "/ai/chat/completions", {
+      mock.expectCalledWith("POST", "/v1/chat/completions", {
         temperature: 0.5,
         maxTokens: 100,
         topP: 0.9,
@@ -99,7 +99,7 @@ describe("AISdk", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/ai/chat/completions",
+          path: "/v1/chat/completions",
           status: 429,
           body: {
             code: "RATE_LIMITED",
@@ -120,7 +120,7 @@ describe("AISdk", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/ai/chat/completions",
+          path: "/v1/chat/completions",
           body: chatResponse('{"name":"Alice","age":30}'),
         },
       ]);
@@ -142,7 +142,7 @@ describe("AISdk", () => {
       const { service } = createService([
         {
           method: "POST",
-          path: "/ai/chat/completions",
+          path: "/v1/chat/completions",
           body: chatResponse("not valid json"),
         },
       ]);

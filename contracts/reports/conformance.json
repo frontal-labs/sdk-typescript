@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-26T01:22:05.673Z",
+  "generatedAt": "2026-11-01T12:19:15.752Z",
   "packages": [
     "agents",
     "ai",
@@ -2254,8 +2254,8 @@
         "unmatched": 13
       },
       "ai": {
-        "total": 7,
-        "matched": 7,
+        "total": 8,
+        "matched": 8,
         "unmatched": 0
       },
       "audit": {
@@ -3314,29 +3314,37 @@
       },
       "ai": {
         "surface": "ai",
-        "specTotal": 12,
-        "covered": 7,
-        "coveragePct": 58.3,
+        "specTotal": 15,
+        "covered": 8,
+        "coveragePct": 53.3,
         "uncovered": [
           {
-            "method": "GET",
-            "path": "/internal/models"
+            "method": "DELETE",
+            "path": "/v1/config/providers/{provider}"
           },
           {
             "method": "GET",
-            "path": "/internal/models/defaults"
+            "path": "/v1/config"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/models"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/models/defaults"
           },
           {
             "method": "POST",
-            "path": "/internal/embeddings"
+            "path": "/v1/config/refresh"
           },
           {
             "method": "POST",
-            "path": "/internal/predictions"
+            "path": "/v1/rerank"
           },
           {
-            "method": "POST",
-            "path": "/internal/rerank"
+            "method": "PUT",
+            "path": "/v1/config/providers/{provider}"
           }
         ]
       }

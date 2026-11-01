@@ -269,6 +269,31 @@ const detail = await ai.extractions.vocabularies.get("support-tasks@1.1.0");
 detail.entityTypes; // the entity types the vocabulary defines
 ```
 
+### Embeddings
+
+`ai.embeddings` turns text into vectors on the OpenAI-compatible `POST /v1/embeddings` route. `embed` takes one text, `embedMany` takes a batch and keeps input order.
+
+```ts
+import { createAIClient } from "@frontal-labs/ai";
+
+const ai = createAIClient({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const { embedding, usage } = await ai.embeddings.embed({
+  model: "openai/text-embedding-3-large",
+  input: "Refund requests for duplicate charges",
+});
+// embedding: number[]
+
+const { embeddings } = await ai.embeddings.embedMany({
+  model: "openai/text-embedding-3-large",
+  input: ["first ticket", "second ticket"],
+  dimensions: 256,
+});
+// embeddings[0] corresponds to "first ticket"
+```
+
+The raw `create` call returns the full response. Its return type follows `encodingFormat`: `"base64"` gives strings, and omitting it or passing `"float"` gives `number[]`. Invalid requests throw `EmbeddingRequestError` before anything is sent. Responses whose count, indices or vector lengths do not match the request throw `EmbeddingResponseError`.
+
 ### Structured output
 
 ```ts

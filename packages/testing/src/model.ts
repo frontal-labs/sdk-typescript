@@ -117,7 +117,7 @@ export function mockLanguageModel(
 
   const route: MockRoute = {
     method: "POST",
-    path: "/ai/chat/completions",
+    path: "/v1/chat/completions",
     async handler(req) {
       const call = toCall(req);
       calls.push(call);

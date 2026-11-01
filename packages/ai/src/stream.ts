@@ -128,7 +128,7 @@ export async function* streamChatParts(
     const idIndex = new Map<string, number>();
 
     const parts: AsyncIterable<StreamPart> = http.postStreamParts(
-      "/ai/chat/completions",
+      "/v1/chat/completions",
       body,
       { signal }
     );

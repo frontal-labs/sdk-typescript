@@ -116,7 +116,7 @@ Inference SDK for `ai.frontal.dev`:
 
 - text generation (`generateText`)
 - streaming text (`streamText`)
-- embeddings (`embed`)
+- embeddings (`embeddings.embed`, `embeddings.embedMany`)
 - structured outputs (`generateObject`)
 - media helpers (speech/transcription/image/video/moderation)
 - model listing
@@ -160,6 +160,20 @@ const decision = await ai.decisions.decide({
   }
 });
 console.log(decision.answers.category.choice);
+```
+
+### Example: embeddings
+
+```ts
+import { createAIClient } from "@frontal-labs/ai";
+
+const ai = createAIClient({ apiKey: process.env.FRONTAL_API_KEY! });
+
+const { embeddings } = await ai.embeddings.embedMany({
+  model: "openai/text-embedding-3-large",
+  input: ["refund for a duplicate charge", "app crashes on login"],
+});
+// embeddings[i] belongs to input[i]
 ```
 
 ### Example: structured object generation

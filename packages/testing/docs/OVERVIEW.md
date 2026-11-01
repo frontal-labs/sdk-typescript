@@ -164,16 +164,16 @@ exposes:
 import { createMockFetch } from "@frontal-labs/testing";
 
 const mock = createMockFetch([
-  { method: "POST", path: "/ai/chat/completions", body: { choices: [] } },
+  { method: "POST", path: "/v1/chat/completions", body: { choices: [] } },
 ]);
 
-await mock.fetch("https://api.test.frontal.dev/v1/ai/chat/completions", {
+await mock.fetch("https://api.test.frontal.dev/v1/chat/completions", {
   method: "POST",
   body: JSON.stringify({ model: "x" }),
 });
 
-mock.expectCalledWith("POST", "/ai/chat/completions", { model: "x" });
-console.log(mock.callCount("POST", "/ai/chat/completions")); // 1
+mock.expectCalledWith("POST", "/v1/chat/completions", { model: "x" });
+console.log(mock.callCount("POST", "/v1/chat/completions")); // 1
 mock.reset();
 ```
 

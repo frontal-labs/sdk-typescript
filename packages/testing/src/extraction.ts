@@ -56,7 +56,7 @@ function codePointIndex(input: string, unitOffset: number): number {
 
 /**
  * Creates a scripted extraction model for `@frontal-labs/ai`. The routes answer
- * `POST /ai/extractions` and the vocabulary reads with the gateway's snake_case
+ * `POST /v1/extractions` and the vocabulary reads with the gateway's snake_case
  * contract, so the SDK's real validation and span conversion run.
  *
  * @example
@@ -82,7 +82,7 @@ export function mockExtractionModel(
 
   const create: MockRoute = {
     method: "POST",
-    path: "/ai/extractions",
+    path: "/v1/extractions",
     handler: (request: RequestLog) => {
       const body = request.body as MockExtractionCall;
       calls.push({
@@ -138,7 +138,7 @@ export function mockExtractionModel(
 
   const list: MockRoute = {
     method: "GET",
-    path: "/ai/extractions/vocabularies",
+    path: "/v1/extractions/vocabularies",
     body: {
       data: [
         {
@@ -152,7 +152,7 @@ export function mockExtractionModel(
 
   const detail: MockRoute = {
     method: "GET",
-    path: "/ai/extractions/vocabularies/{param}",
+    path: "/v1/extractions/vocabularies/{param}",
     body: {
       id: vocabulary.id,
       version: vocabulary.version,

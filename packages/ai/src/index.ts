@@ -40,6 +40,22 @@ export {
   validateState,
 } from "./decisions";
 export type {
+  Embedding,
+  EmbeddingBatch,
+  EmbeddingCreateRequest,
+  EmbeddingEncodingFormat,
+  EmbeddingItem,
+  EmbeddingResponse,
+  EmbeddingUsage,
+  EmbedManyRequest,
+  EmbedRequest,
+} from "./embeddings";
+export {
+  EmbeddingRequestError,
+  EmbeddingResponseError,
+  EmbeddingsResource,
+} from "./embeddings";
+export type {
   ExtractionClarification,
   ExtractionCreateRequest,
   ExtractionEntity,

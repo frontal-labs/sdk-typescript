@@ -76,7 +76,7 @@ describe("AISdk", () => {
     });
 
     expect(result.text).toBe("Hello from AI");
-    mock.expectCalled("POST", "/ai/chat/completions");
+    mock.expectCalled("POST", "/v1/chat/completions");
   });
 });
 ```

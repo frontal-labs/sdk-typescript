@@ -47,7 +47,7 @@ The core primitive. Matches requests by method and path (string substring or
 import { createMockFetch } from "@frontal-labs/testing";
 
 const mock = createMockFetch([
-  { method: "POST", path: "/ai/chat/completions", body: { choices: [] } },
+  { method: "POST", path: "/v1/chat/completions", body: { choices: [] } },
   { method: "GET", path: /\/agents\/agt_\w+$/, status: 404, body: { code: "NOT_FOUND" } },
 ]);
 
@@ -56,7 +56,7 @@ const res = await mock.fetch("https://api.test/v1/agents/agt_1");
 console.log(res.status); // 404
 
 mock.expectCalled("GET", "/agents/agt_1");
-mock.expectCalledWith("POST", "/ai/chat/completions", { model: "x" }); // asserts body subset
+mock.expectCalledWith("POST", "/v1/chat/completions", { model: "x" }); // asserts body subset
 console.log(mock.callCount("GET", "/agents"));
 console.log(mock.requests); // [{ method, url, path, body, headers }]
 mock.reset();

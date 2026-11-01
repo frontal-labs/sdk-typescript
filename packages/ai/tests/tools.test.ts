@@ -69,7 +69,7 @@ describe("generateText with tools", () => {
     const { http, mock } = createTestHttpClient([
       {
         method: "POST",
-        path: "/ai/chat/completions",
+        path: "/v1/chat/completions",
         body: {
           id: "c",
           object: "chat.completion",
@@ -108,7 +108,7 @@ describe("generateText with tools", () => {
       { id: "call_1", toolName: "classify", input: { text: "hi" } },
     ]);
 
-    const req = mock.expectCalled("POST", "/ai/chat/completions");
+    const req = mock.expectCalled("POST", "/v1/chat/completions");
     // The mock re-camelizes the captured (snake_case) body.
     const body = req.body as {
       tools: Array<{ function: { name: string } }>;
@@ -134,7 +134,7 @@ describe("generateText with tools", () => {
     const { http } = createTestHttpClient([
       {
         method: "POST",
-        path: "/ai/chat/completions",
+        path: "/v1/chat/completions",
         body: {
           id: "c",
           object: "chat.completion",

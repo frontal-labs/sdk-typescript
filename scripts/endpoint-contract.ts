@@ -325,13 +325,26 @@ function buildCandidatePaths(surface: Surface, sdkPath: string): string[] {
 	return [sdkPath, `/v1${sdkPath}`];
 }
 
-function surfaceAllowsPath(surface: Surface, path: string): boolean {
-	// The SDK never calls the gateway's /internal/ routes; they are not part of
-	// the public AI surface, so an SDK call to one is reported as forbidden.
+/**
+ * Whether a candidate path may be called from a package on `surface`. The AI
+ * and API specs both live under /v1, so the specs decide, not the prefix: a
+ * path only the AI spec declares is AI-only, and an API package may not call it.
+ * The SDK never calls the gateway's /internal/ routes.
+ */
+function surfaceAllowsPath(
+	surface: Surface,
+	path: string,
+	ops: { api: Array<{ method: string; path: string }>; ai: Array<{ method: string; path: string }> },
+): boolean {
+	if (path.startsWith("/internal/")) return false;
+	const inAi = ops.ai.some((op) => pathMatches(op.path, path));
+	const inApi = ops.api.some((op) => pathMatches(op.path, path));
 	if (surface === "ai") {
-		return path.startsWith("/ai/") || path === "/health";
+		if (path === "/health") return true;
+		// An AI package calling a route only the API spec declares is forbidden.
+		return !(inApi && !inAi);
 	}
-	return !path.startsWith("/ai/") && !path.startsWith("/internal/");
+	return !(inAi && !inApi);
 }
 
 type CoverageReport = {
@@ -388,7 +401,9 @@ function runConformance(contract: Contract): {
 			const candidates = buildCandidatePaths(surface, endpoint.path);
 
 			if (
-				!candidates.some((candidate) => surfaceAllowsPath(surface, candidate))
+				!candidates.some((candidate) =>
+					surfaceAllowsPath(surface, candidate, { api: apiOps, ai: aiOps }),
+				)
 			) {
 				issues.push({
 					package: pkg,
