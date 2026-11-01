@@ -50,20 +50,36 @@ function sha256String(value: string): string {
 	return createHash("sha256").update(value).digest("hex");
 }
 
-function parseRuntimeApiRoutes(runtimeApiPath: string): string[] {
-	const src = readFileSync(runtimeApiPath, "utf8");
-	const routes = new Set<string>();
-	const matchBlock = src.match(
-		/match\s+route\.as_str\(\)\s*\{([\s\S]*?)\n\s*\}/m,
-	);
-	if (!matchBlock) return [];
+type RuntimeRoute = { method: "GET" | "POST" | "PUT" | "DELETE"; path: string };
 
-	const armRegex = /"([^"]+)"\s*=>\s*self\.handle_/g;
+/**
+ * Reads the runtime API's match arms, e.g.
+ * `(&http::Method::POST, ["embeddings"]) => ...`, into method and /v1 path.
+ * A bare identifier segment such as `provider` is a path parameter.
+ */
+function parseRuntimeApiRoutes(runtimeApiPath: string): RuntimeRoute[] {
+	const src = readFileSync(runtimeApiPath, "utf8");
+	const routes = new Map<string, RuntimeRoute>();
+	const armRegex =
+		/\(&http::Method::(GET|POST|PUT|DELETE|PATCH),\s*\[([^\]]*)\]\)\s*=>/g;
 	let match: RegExpExecArray | null = null;
-	while ((match = armRegex.exec(matchBlock[1])) !== null) {
-		routes.add(`/internal/${match[1]}`);
+	while ((match = armRegex.exec(src)) !== null) {
+		const method = match[1] as RuntimeRoute["method"];
+		const segments = match[2]
+			.split(",")
+			.map((segment) => segment.trim())
+			.filter((segment) => segment.length > 0)
+			.map((segment) =>
+				segment.startsWith('"')
+					? segment.slice(1, -1)
+					: `{${segment}}`,
+			);
+		const path = `/v1/${segments.join("/")}`;
+		routes.set(`${method} ${path}`, { method, path });
 	}
-	return [...routes].sort();
+	return [...routes.values()].sort((a, b) =>
+		a.path === b.path ? a.method.localeCompare(b.method) : a.path.localeCompare(b.path),
+	);
 }
 
 function parseUnifiedApiRoutes(unifiedApiPath: string): string[] {
@@ -103,7 +119,7 @@ function buildAiSpec(): OpenApiDoc {
 		);
 	}
 
-	const internalRoutes = parseRuntimeApiRoutes(runtimeApiPath);
+	const runtimeRoutes = parseRuntimeApiRoutes(runtimeApiPath);
 	const unifiedRoutes = parseUnifiedApiRoutes(unifiedApiPath);
 
 	const paths: OpenApiDoc["paths"] = {
@@ -127,29 +143,23 @@ function buildAiSpec(): OpenApiDoc {
 		};
 	}
 
-	for (const route of internalRoutes) {
-		// Embeddings are served on the public /v1/embeddings route, which the
-		// generator owns, so the internal copy is not published in the contract.
-		if (route === "/internal/embeddings") continue;
-		if (route === "/internal/models" || route === "/internal/models/defaults") {
-			paths[route] = {
-				get: {
-					operationId: `runtime${route.replace(/[^a-zA-Z0-9]+/g, "_")}`,
-					tags: ["runtime-api"],
-					x_route_class: "public-sdk",
-					responses: { "200": { description: "Runtime API response" } },
-				},
-			};
-		} else {
-			paths[route] = {
-				post: {
-					operationId: `runtime${route.replace(/[^a-zA-Z0-9]+/g, "_")}`,
-					tags: ["runtime-api"],
-					x_route_class: "internal",
-					responses: { "200": { description: "Runtime API response" } },
-				},
-			};
-		}
+	for (const route of runtimeRoutes) {
+		// Models and rerank are SDK-facing; config and key management are not.
+		const sdkFacing =
+			route.path === "/v1/models" ||
+			route.path === "/v1/models/defaults" ||
+			route.path === "/v1/rerank" ||
+			route.path === "/v1/embeddings";
+		const operation = {
+			operationId: `runtime_${route.method.toLowerCase()}${route.path.replace(/[^a-zA-Z0-9]+/g, "_").replace(/_+$/, "")}`,
+			tags: ["runtime-api"],
+			x_route_class: sdkFacing ? "public-sdk" : "internal",
+			responses: { "200": { description: "Runtime API response" } },
+		};
+		paths[route.path] = {
+			...paths[route.path],
+			[route.method.toLowerCase()]: operation,
+		};
 	}
 
 	// SDK-owned routes (decisions, extractions, embeddings) come from the Zod

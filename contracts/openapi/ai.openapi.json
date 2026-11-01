@@ -39,7 +39,7 @@
     },
     "/v1/chat/completions": {
       "post": {
-        "operationId": "unified_ai_chat_completions",
+        "operationId": "unified_v1_chat_completions",
         "tags": [
           "unified-api"
         ],
@@ -51,37 +51,9 @@
         }
       }
     },
-    "/internal/models": {
+    "/v1/config": {
       "get": {
-        "operationId": "runtime_internal_models",
-        "tags": [
-          "runtime-api"
-        ],
-        "x_route_class": "public-sdk",
-        "responses": {
-          "200": {
-            "description": "Runtime API response"
-          }
-        }
-      }
-    },
-    "/internal/models/defaults": {
-      "get": {
-        "operationId": "runtime_internal_models_defaults",
-        "tags": [
-          "runtime-api"
-        ],
-        "x_route_class": "public-sdk",
-        "responses": {
-          "200": {
-            "description": "Runtime API response"
-          }
-        }
-      }
-    },
-    "/internal/predictions": {
-      "post": {
-        "operationId": "runtime_internal_predictions",
+        "operationId": "runtime_get_v1_config",
         "tags": [
           "runtime-api"
         ],
@@ -93,13 +65,81 @@
         }
       }
     },
-    "/internal/rerank": {
-      "post": {
-        "operationId": "runtime_internal_rerank",
+    "/v1/config/providers/{provider}": {
+      "delete": {
+        "operationId": "runtime_delete_v1_config_providers_provider",
         "tags": [
           "runtime-api"
         ],
         "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      },
+      "put": {
+        "operationId": "runtime_put_v1_config_providers_provider",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/v1/config/refresh": {
+      "post": {
+        "operationId": "runtime_post_v1_config_refresh",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "operationId": "runtime_get_v1_models",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "public-sdk",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/v1/models/defaults": {
+      "get": {
+        "operationId": "runtime_get_v1_models_defaults",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "public-sdk",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/v1/rerank": {
+      "post": {
+        "operationId": "runtime_post_v1_rerank",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "public-sdk",
         "responses": {
           "200": {
             "description": "Runtime API response"

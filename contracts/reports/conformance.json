@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T12:03:01.704Z",
+  "generatedAt": "2026-11-01T12:10:21.475Z",
   "packages": [
     "agents",
     "ai",
@@ -3314,25 +3314,37 @@
       },
       "ai": {
         "surface": "ai",
-        "specTotal": 12,
+        "specTotal": 15,
         "covered": 8,
-        "coveragePct": 66.7,
+        "coveragePct": 53.3,
         "uncovered": [
           {
-            "method": "GET",
-            "path": "/internal/models"
+            "method": "DELETE",
+            "path": "/v1/config/providers/{provider}"
           },
           {
             "method": "GET",
-            "path": "/internal/models/defaults"
+            "path": "/v1/config"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/models"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/models/defaults"
           },
           {
             "method": "POST",
-            "path": "/internal/predictions"
+            "path": "/v1/config/refresh"
           },
           {
             "method": "POST",
-            "path": "/internal/rerank"
+            "path": "/v1/rerank"
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/config/providers/{provider}"
           }
         ]
       }
