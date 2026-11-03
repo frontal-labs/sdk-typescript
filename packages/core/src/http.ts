@@ -49,6 +49,17 @@ export interface RequestOptions {
    * For a list response, the keys apply to each element.
    */
   preserveKeys?: readonly string[];
+  /**
+   * Return the response body exactly as sent: keys are not camelCased, and
+   * `preserveKeys` does not apply. Use for payloads whose keys are user data,
+   * such as query results.
+   */
+  untransformed?: boolean;
+  /**
+   * Called with the response headers of a successful call, before the body is
+   * read. Use it to read a header such as `ETag` that the body does not carry.
+   */
+  onResponse?: (headers: Headers) => void;
   retry?: {
     /** Retry attempts for this call. Overrides the client `maxRetries`. */
     maxRetries?: number;
@@ -861,6 +872,8 @@ export class HttpClient {
       }
     }
 
+    options.onResponse?.(res.headers);
+
     try {
       const result = await this.consumeResponse(res, async () => {
         if (res.status === 204) return undefined as T;
@@ -872,7 +885,9 @@ export class HttpClient {
           ? await res.json()
           : await res.text();
 
-        const transformedPayload = this.transformPayload(payload, options);
+        const transformedPayload = options.untransformed
+          ? payload
+          : this.transformPayload(payload, options);
 
         const tagId = serverRequestId ?? requestId;
         if (telemetry?.recordOutputs) {

@@ -206,6 +206,21 @@ export class ConflictError extends FrontalError {
 }
 
 /**
+ * Thrown when the API returns a 412 status: a conditional request (for example
+ * `If-Match`) did not match the stored resource. The resource was changed by
+ * someone else, so re-read it and try again.
+ */
+export class PreconditionFailedError extends FrontalError {
+  static isInstance = byName<PreconditionFailedError>(
+    "PreconditionFailedError"
+  );
+  constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
+    super(r, 412, rateLimit);
+    this.name = "PreconditionFailedError";
+  }
+}
+
+/**
  * Thrown when the API returns a 429 status (rate limited).
  */
 export class RateLimitError extends FrontalError {
@@ -371,11 +386,15 @@ function normalizeErrorBody(raw: unknown): ErrorResponseInput {
     typeof fallback.detail === "string" && fallback.detail.length > 0
       ? fallback.detail
       : undefined;
-  const message =
-    hasExplicitCode &&
-    typeof fallback.message === "string" &&
-    fallback.message.length > 0
+  const explicitMessage =
+    typeof fallback.message === "string" && fallback.message.length > 0
       ? fallback.message
+      : undefined;
+  // A message is trusted only with an explicit code. Otherwise `detail`
+  // (the ontology API's text) is used, and the generic text is the last resort.
+  const message =
+    hasExplicitCode && explicitMessage !== undefined
+      ? explicitMessage
       : (detail ?? "An unknown error occurred");
 
   return {
@@ -422,6 +441,8 @@ export function parseFrontalError(
       return new NotFoundError(normalized, rateLimit);
     case 409:
       return new ConflictError(normalized, rateLimit);
+    case 412:
+      return new PreconditionFailedError(normalized, rateLimit);
     case 402:
       return new PaymentRequiredError(normalized, rateLimit);
     case 413:

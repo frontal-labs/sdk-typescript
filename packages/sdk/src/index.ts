@@ -46,6 +46,7 @@ export {
   initTracing,
   NetworkError,
   NotFoundError,
+  PreconditionFailedError,
   RateLimitError,
   ServiceError,
   TimeoutError,

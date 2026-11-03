@@ -32,6 +32,7 @@ export {
   NotFoundError,
   PayloadTooLargeError,
   PaymentRequiredError,
+  PreconditionFailedError,
   parseFrontalError,
   RateLimitError,
   ServiceError,
