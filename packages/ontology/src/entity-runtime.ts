@@ -7,6 +7,7 @@
  * ```ts
  * createFrontalClient<Ontology>(config, {
  *   entities: ["Company", "Customer"],
+ *   objectTypeIds: { Company: "ot_company", Customer: "ot_customer" },
  *   fields: {
  *     Company: { id: { kind: "string", required: true }, name: { kind: "string", required: true } },
  *     Customer: {
@@ -74,6 +75,11 @@ export interface RelationSpec {
 export interface OntologyRuntime<O> {
   /** Entity names reachable as `ontology.<Entity>`. */
   readonly entities: readonly (keyof O & string)[];
+  /**
+   * Backend `object_type_id` of each entity. Every entity must have one: it
+   * scopes `list` and is checked on every record read back.
+   */
+  readonly objectTypeIds: { readonly [K in keyof O & string]: string };
   /** Every read field of every entity, including `id`. */
   readonly fields: {
     readonly [K in keyof O & string]: {

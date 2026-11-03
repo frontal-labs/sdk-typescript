@@ -91,6 +91,19 @@ export type EntityWithRelations<O, K extends keyof O> = EntityRead<O, K> &
 /** Typed operations for one entity. Returned as `ontology.<Entity>`. */
 export interface EntityHandle<O, K extends keyof O> {
   /**
+   * Lists every entity of this type.
+   *
+   * The backend does not page this list, so the whole result is returned in
+   * one call. Every element is checked; one invalid record fails the call.
+   *
+   * @example
+   * ```ts
+   * const customers = await ontology.Customer.list();
+   * ```
+   */
+  list(): Promise<EntityWithRelations<O, K>[]>;
+
+  /**
    * Fetches an entity by id.
    *
    * @example
@@ -101,10 +114,7 @@ export interface EntityHandle<O, K extends keyof O> {
   get(id: string): Promise<EntityWithRelations<O, K>>;
 
   /**
-   * Creates an entity under a client-generated id (`crypto.randomUUID()`).
-   * Use {@link EntityHandle.put} to choose the id.
-   *
-   * ASSUMPTION: the backend accepts client-generated object ids.
+   * Creates an entity. The server generates its id.
    *
    * @example
    * ```ts
@@ -114,7 +124,8 @@ export interface EntityHandle<O, K extends keyof O> {
   create(input: EntityCreate<O, K>): Promise<EntityWithRelations<O, K>>;
 
   /**
-   * Creates or replaces the entity stored under `id`.
+   * Creates or replaces the entity stored under `id`. The stored record is
+   * replaced by `input`, so every writable field must be given.
    *
    * @example
    * ```ts

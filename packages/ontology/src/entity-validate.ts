@@ -18,6 +18,8 @@ export type ObjectRecord = Record<string, unknown>;
 /** Runtime view of one entity, built once per client from the metadata. */
 export interface EntityMeta {
   readonly name: string;
+  /** Backend `object_type_id` that every record of this entity carries. */
+  readonly objectTypeId: string;
   readonly fields: Readonly<Record<string, FieldSpec>>;
   readonly writable: ReadonlySet<string>;
   readonly relations: Readonly<
@@ -145,6 +147,76 @@ export function parseStoredRecord(
     fail("INVALID_RESPONSE", summary, problems);
   }
   return value;
+}
+
+/**
+ * Narrows an `ObjectResponse` to an entity. The HTTP client camelCases the
+ * envelope keys (`objectId`, `objectTypeId`) and copies `properties` through
+ * untouched, so property names are exactly the ontology's field names. The
+ * envelope must name the object type of `meta`; the entity is the properties
+ * plus `id = objectId`, checked like any stored record.
+ *
+ * @throws {ValidationError} with code `INVALID_RESPONSE`.
+ */
+export function parseObjectRecord(
+  meta: EntityMeta,
+  value: unknown
+): ObjectRecord {
+  const summary = `Frontal returned an invalid ${meta.name} record`;
+  if (!isObjectRecord(value)) {
+    fail("INVALID_RESPONSE", summary, [
+      problem("", "NOT_AN_OBJECT", `${meta.name} record must be an object`),
+    ]);
+  }
+  const problems: FieldProblem[] = [];
+  if (typeof value.objectId !== "string") {
+    problems.push(
+      problem("id", "MISSING_ID", `${meta.name} objectId must be a string`)
+    );
+  }
+  if (value.objectTypeId !== meta.objectTypeId) {
+    problems.push(
+      problem(
+        "objectTypeId",
+        "WRONG_TYPE",
+        `${meta.name} objectTypeId must be "${meta.objectTypeId}", got ${JSON.stringify(value.objectTypeId)}`
+      )
+    );
+  }
+  if (!isObjectRecord(value.properties)) {
+    problems.push(
+      problem(
+        "properties",
+        "NOT_AN_OBJECT",
+        `${meta.name} properties must be an object`
+      )
+    );
+  }
+  if (problems.length > 0) {
+    fail("INVALID_RESPONSE", summary, problems);
+  }
+  return parseStoredRecord(meta, {
+    ...(value.properties as ObjectRecord),
+    id: value.objectId,
+  });
+}
+
+/**
+ * Narrows a list response to entities. Every element is checked; one invalid
+ * element fails the whole list rather than being dropped silently.
+ *
+ * @throws {ValidationError} with code `INVALID_RESPONSE`.
+ */
+export function parseObjectList(
+  meta: EntityMeta,
+  value: unknown
+): ObjectRecord[] {
+  if (!Array.isArray(value)) {
+    fail("INVALID_RESPONSE", `Frontal returned an invalid ${meta.name} list`, [
+      problem("", "NOT_A_LIST", `${meta.name} list must be an array`),
+    ]);
+  }
+  return value.map((item) => parseObjectRecord(meta, item));
 }
 
 /**

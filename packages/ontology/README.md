@@ -123,6 +123,7 @@ interface Ontology {
 // `.frontal/client.ts` passes this runtime metadata (generated).
 const runtime = {
   entities: ["Company", "Customer"],
+  objectTypeIds: { Company: "ot_company", Customer: "ot_customer" },
   fields: {
     Company: {
       id: { kind: "string", required: true },
@@ -157,13 +158,18 @@ customer.status; // "active" | "closed"
 const company = await customer.company(); // Company | null
 ```
 
-### Writes
+### Writes and lists
 
 ```ts
-// Create: the id is generated client-side.
+// List: every object of the type. The backend does not page this list, so it
+// is returned in one call.
+const customers = await frontal.ontology.Customer.list();
+
+// Create: the server generates the id.
 const created = await frontal.ontology.Customer.create({ email: "a@example.com" });
 
-// Put: choose the id.
+// Put: write the whole object under an id you choose. Every writable field
+// must be given, because the stored object is replaced.
 await frontal.ontology.Customer.put("cust_2", { email: "b@example.com" });
 
 // Update: changes only the given writable fields.
@@ -185,13 +191,21 @@ atomic**: a concurrent write between the GET and the PUT can be lost.
 - Reading an entity that the ontology does not define throws a `TypeError`
   that lists the known entities.
 
+### Object model
+
+Each entity maps to one backend object type (`objectTypeIds` in the runtime
+metadata). A stored object carries its fields under `properties`; the typed
+entity exposes them at the top level, with `id` set to the object id. A record
+that belongs to another object type is rejected with `INVALID_RESPONSE`.
+
 ### Current limits
 
-- There is no `list` or `query`: the objects API has no type filter and no
-  documented query body. Use `frontal.ontology.objects` for raw access.
+- There is no `query` (filtering by field values): the backend has no
+  documented query body. Use `list` for all objects of a type.
+- `list` is not paged, so a large type returns everything in one response.
 - `hasMany` and `manyToMany` relations are not generated.
-- Records are assumed to be flat, with object-type fields at the top level, and
-  foreign keys are assumed to live on the source record.
+- A `belongsTo` relation reads the foreign key from the source record's
+  properties.
 
 ## Environment Variables
 

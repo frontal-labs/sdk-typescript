@@ -14,13 +14,29 @@ interface LooseHandle {
   update(id: string, patch: unknown): Promise<unknown>;
 }
 
+const CUSTOMER_TYPE = "ot_customer";
+
+/**
+ * Wraps a flat test record as the `ObjectResponse` the API returns: `id`
+ * becomes `object_id` and the rest become `properties`. Non-objects pass
+ * through unchanged.
+ */
+function envelope(body: unknown): unknown {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return body;
+  }
+  const { id, ...properties } = body as Record<string, unknown>;
+  return { object_id: id, object_type_id: CUSTOMER_TYPE, properties };
+}
+
 function setup(body: unknown) {
   const { http, mock } = createTestHttpClient([
-    { method: "GET", path: CUSTOMER_PATH, body },
-    { method: "PUT", path: CUSTOMER_PATH, body },
+    { method: "GET", path: CUSTOMER_PATH, body: envelope(body) },
+    { method: "PUT", path: CUSTOMER_PATH, body: envelope(body) },
   ]);
   const ontology = withEntityHandles<Ontology>(
     new OntologySdk(http),
+    http,
     ontologyRuntime
   ) as unknown as { Customer: LooseHandle };
   return { customer: ontology.Customer, mock };

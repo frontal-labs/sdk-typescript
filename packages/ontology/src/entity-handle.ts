@@ -1,3 +1,4 @@
+import { type HttpClient, raw } from "@frontal-labs/core";
 import type {
   FieldSpec,
   OntologyRuntime,
@@ -10,9 +11,25 @@ import {
   missingRelationTarget,
   type ObjectRecord,
   parseInput,
-  parseStoredRecord,
+  parseObjectList,
+  parseObjectRecord,
 } from "./entity-validate";
 import type { OntologySdk } from "./sdk";
+
+/** Collection of stored objects (`/v1/ontology/objects/objects`). */
+const OBJECTS_PATH = "/ontology/objects/objects";
+
+/**
+ * Top-level response key whose contents are user-defined property names. The
+ * HTTP client leaves it exactly as sent; every other key is camelCased.
+ */
+const PROPERTIES_KEY = ["properties"] as const;
+const PRESERVE = { preserveKeys: PROPERTIES_KEY } as const;
+
+/** Path of one stored object. */
+function objectPath(id: string): string {
+  return `${OBJECTS_PATH}/${encodeURIComponent(id)}`;
+}
 
 /**
  * Property names that probes use (`await`, `JSON.stringify`, test runners).
@@ -29,6 +46,7 @@ const PROBE_NAMES: ReadonlySet<string> = new Set([
 /** Untyped view of the runtime metadata, used after the typed boundary. */
 interface RuntimeData {
   readonly entities: readonly string[];
+  readonly objectTypeIds: Readonly<Record<string, string>>;
   readonly fields: Readonly<
     Record<string, Readonly<Record<string, FieldSpec>>>
   >;
@@ -40,6 +58,7 @@ interface RuntimeData {
 
 /** Untyped entity handle, used internally and cast once at the boundary. */
 interface RuntimeHandle {
+  list(): Promise<ObjectRecord[]>;
   get(id: string): Promise<ObjectRecord>;
   create(input: unknown): Promise<ObjectRecord>;
   put(id: string, input: unknown): Promise<ObjectRecord>;
@@ -82,6 +101,12 @@ function buildMetas(
         `Ontology entity "${name}" must list "id" in its fields.`
       );
     }
+    const objectTypeId = ownValue(data.objectTypeIds, name);
+    if (typeof objectTypeId !== "string" || objectTypeId.length === 0) {
+      throw new TypeError(
+        `Ontology entity "${name}" has no objectTypeIds entry in runtime metadata.`
+      );
+    }
     const writable = ownValue(data.writable, name) ?? [];
     for (const field of writable) {
       if (ownValue(fields, field) === undefined) {
@@ -92,6 +117,7 @@ function buildMetas(
     }
     metas.set(name, {
       name,
+      objectTypeId,
       fields,
       writable: new Set(writable),
       relations: ownValue(data.relations, name) ?? {},
@@ -121,11 +147,9 @@ function buildMetas(
 
 /** Builds the untyped handles for every entity in `metas`. */
 function buildHandles(
-  http: OntologySdk,
+  http: HttpClient,
   metas: Map<string, EntityMeta>
 ): Map<string, RuntimeHandle> {
-  const objects = http.objects;
-
   /** Attaches non-enumerable relation accessors to a stored record. */
   const withRelations = (
     record: ObjectRecord,
@@ -141,6 +165,56 @@ function buildHandles(
     }
     return record;
   };
+
+  const metaOf = (name: string): EntityMeta => {
+    const meta = metas.get(name);
+    if (meta === undefined) {
+      throw new TypeError(`Unknown ontology entity "${name}".`);
+    }
+    return meta;
+  };
+
+  /** Fetches one stored object and narrows it to `meta`'s entity. */
+  const fetchOne = async (
+    meta: EntityMeta,
+    id: string
+  ): Promise<ObjectRecord> =>
+    withRelations(
+      parseObjectRecord(
+        meta,
+        await http.get<unknown>(
+          objectPath(id),
+          undefined,
+          undefined,
+          {},
+          PRESERVE
+        )
+      ),
+      meta
+    );
+
+  /** Writes `properties` under `id` (PUT) and narrows the response. */
+  const replaceOne = async (
+    meta: EntityMeta,
+    id: string,
+    properties: ObjectRecord
+  ): Promise<ObjectRecord> =>
+    withRelations(
+      parseObjectRecord(
+        meta,
+        await http.put<unknown>(
+          objectPath(id),
+          {
+            object_type_id: meta.objectTypeId,
+            object_id: id,
+            properties: raw(properties),
+          },
+          undefined,
+          PRESERVE
+        )
+      ),
+      meta
+    );
 
   /** Fetches the target of a relation through its foreign key. */
   const resolveRelation = async (
@@ -159,65 +233,65 @@ function buildHandles(
     if (typeof key !== "string") {
       throw missingRelationTarget(meta.name, relation, spec.foreignKey);
     }
-    const target = metaOf(spec.target);
-    const raw = await objects.getObject(key);
-    return withRelations(parseStoredRecord(target, raw), target);
-  };
-
-  const metaOf = (name: string): EntityMeta => {
-    const meta = metas.get(name);
-    if (meta === undefined) {
-      throw new TypeError(`Unknown ontology entity "${name}".`);
-    }
-    return meta;
+    return fetchOne(metaOf(spec.target), key);
   };
 
   const handleFor = (meta: EntityMeta): RuntimeHandle => ({
-    async get(id) {
-      assertId(meta.name, id);
-      return withRelations(
-        parseStoredRecord(meta, await objects.getObject(id)),
-        meta
+    async list() {
+      // The backend answers with every object of the type; it is not paged.
+      const response = await http.get<unknown>(
+        OBJECTS_PATH,
+        { object_type_id: meta.objectTypeId },
+        undefined,
+        {},
+        PRESERVE
+      );
+      return parseObjectList(meta, response).map((record) =>
+        withRelations(record, meta)
       );
     },
+    async get(id) {
+      assertId(meta.name, id);
+      return fetchOne(meta, id);
+    },
     async create(input) {
-      const body = parseInput(meta, input, "create");
-      // ASSUMPTION: the backend accepts client-generated object ids.
-      const id = globalThis.crypto.randomUUID();
+      const properties = parseInput(meta, input, "create");
+      // The server generates the object id.
       return withRelations(
-        parseStoredRecord(meta, await objects.putObject(id, body)),
+        parseObjectRecord(
+          meta,
+          await http.post<unknown>(
+            OBJECTS_PATH,
+            { object_type_id: meta.objectTypeId, properties: raw(properties) },
+            undefined,
+            PRESERVE
+          )
+        ),
         meta
       );
     },
     async put(id, input) {
       assertId(meta.name, id);
-      const body = parseInput(meta, input, "put");
-      return withRelations(
-        parseStoredRecord(meta, await objects.putObject(id, body)),
-        meta
-      );
+      return replaceOne(meta, id, parseInput(meta, input, "put"));
     },
     async update(id, patch) {
       assertId(meta.name, id);
       // Validate the patch before any request, so bad keys cost no round trip.
       const changes = parseInput(meta, patch, "update");
-      const current = parseStoredRecord(meta, await objects.getObject(id));
+      const current = await fetchOne(meta, id);
       // Send only writable fields, so server-computed fields are not echoed.
-      const body: ObjectRecord = {};
+      const properties: ObjectRecord = {};
       for (const field of meta.writable) {
         if (current[field] !== undefined) {
-          body[field] = current[field];
+          properties[field] = current[field];
         }
       }
-      Object.assign(body, changes);
-      return withRelations(
-        parseStoredRecord(meta, await objects.putObject(id, body)),
-        meta
-      );
+      Object.assign(properties, changes);
+      return replaceOne(meta, id, properties);
     },
     async delete(id) {
       assertId(meta.name, id);
-      await objects.deleteObject(id);
+      await http.delete(objectPath(id));
     },
   });
 
@@ -240,16 +314,23 @@ function buildHandles(
  */
 export function withEntityHandles<O>(
   sdk: OntologySdk,
+  http: HttpClient,
   runtime: OntologyRuntime<O> | undefined
 ): OntologyClient<O> {
   // The typed metadata is structurally the untyped view; this is the single
   // point where the compile-time keys are erased.
   const data: RuntimeData | undefined = runtime as RuntimeData | undefined;
   const metas = buildMetas(
-    data ?? { entities: [], fields: {}, writable: {}, relations: {} },
+    data ?? {
+      entities: [],
+      objectTypeIds: {},
+      fields: {},
+      writable: {},
+      relations: {},
+    },
     (name) => Reflect.has(sdk, name)
   );
-  const handles = buildHandles(sdk, metas);
+  const handles = buildHandles(http, metas);
   const known = [...handles.keys()].sort();
   const describeKnown = known.length > 0 ? known.join(", ") : "(none)";
 

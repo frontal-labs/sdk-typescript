@@ -36,6 +36,11 @@ export interface Ontology {
 }
 
 export const ontologyRuntime = {
+  objectTypeIds: {
+    Company: "ot_company",
+    Customer: "ot_customer",
+    Order: "ot_order",
+  },
   entities: ["Company", "Customer", "Order"],
   fields: {
     Company: {

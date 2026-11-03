@@ -58,7 +58,8 @@ async function typeChecks(client: OntologyClient<Ontology>): Promise<void> {
   await client.Customer.create({ email: "a", nickname: "x" });
 
   // ── put (explicit id) ───────────────────────────────────────────────────
-  await client.Customer.put("cust_2", { email: "b@example.com" });
+  const put = await client.Customer.put("cust_2", { email: "b@example.com" });
+  expectTypeOf(put.id).toEqualTypeOf<string>();
 
   // @ts-expect-error put still requires the create fields
   await client.Customer.put("cust_2", { status: "active" });
@@ -78,8 +79,21 @@ async function typeChecks(client: OntologyClient<Ontology>): Promise<void> {
   await client.Customer.update("cust_1", { nickname: "x" });
 
   // ── operations outside the typed slice ──────────────────────────────────
-  // @ts-expect-error list needs a backend type filter, which does not exist yet
-  void client.Customer.list;
+  // ── list (every object of the type, not paged) ──────────────────────────
+  const everyCustomer = await client.Customer.list();
+  expectTypeOf(everyCustomer).toEqualTypeOf<
+    Awaited<ReturnType<typeof client.Customer.get>>[]
+  >();
+  expectTypeOf(everyCustomer[0]?.email).toEqualTypeOf<string>();
+
+  // @ts-expect-error list takes no arguments: the type filter is fixed
+  await client.Customer.list({ status: "active" });
+
+  // @ts-expect-error create takes the input only: the server generates the id
+  await client.Customer.create("cust_9", { email: "a@example.com" });
+
+  // @ts-expect-error put needs an explicit id as its first argument
+  await client.Customer.put({ email: "a@example.com" });
 
   // @ts-expect-error query needs a documented backend query body
   void client.Customer.query;

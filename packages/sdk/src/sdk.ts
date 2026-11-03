@@ -176,6 +176,7 @@ export class Frontal<
   get ontology(): OntologyClient<TOntology> {
     this.#ontology ??= withEntityHandles<TOntology>(
       createOntologyClient(this.#frontal),
+      this.#frontal.httpClient,
       this.#runtime
     );
     return this.#ontology;

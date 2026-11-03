@@ -4,6 +4,7 @@ import type {
   OntologySdk,
   UntypedOntology,
 } from "@frontal-labs/ontology";
+import { createTestClient } from "@frontal-labs/testing";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { createFrontalClient, type Frontal } from "../src";
 
@@ -20,6 +21,7 @@ interface SampleOntology {
 
 const sampleRuntime = {
   entities: ["Customer"],
+  objectTypeIds: { Customer: "ot_customer" },
   fields: {
     Customer: {
       id: { kind: "string", required: true },
@@ -108,5 +110,29 @@ describe("createFrontalClient with a generated ontology", () => {
       { apiKey: API_KEY },
       { entities: [], fields: {}, writable: {}, relations: {} }
     );
+  });
+});
+
+describe("typed entities through the public client", () => {
+  it("lists one object type over the client's own transport", async () => {
+    const { client, mock } = createTestClient([
+      {
+        method: "GET",
+        path: "/ontology/objects/objects",
+        body: [
+          {
+            object_id: "cust_1",
+            object_type_id: "ot_customer",
+            properties: { email: "a@example.com" },
+          },
+        ],
+      },
+    ]);
+    const f = createFrontalClient<SampleOntology>(client, sampleRuntime);
+    const customers = await f.ontology.Customer.list();
+    expect(customers.map((c) => [c.id, c.email])).toEqual([
+      ["cust_1", "a@example.com"],
+    ]);
+    expect(mock.requests[0]?.url).toContain("object_type_id=ot_customer");
   });
 });
