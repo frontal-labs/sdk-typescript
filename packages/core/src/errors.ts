@@ -365,12 +365,18 @@ function normalizeErrorBody(raw: unknown): ErrorResponseInput {
   const hasExplicitCode =
     typeof fallback.code === "string" && fallback.code.length > 0;
 
+  // Ontology routes answer `{ detail }` (FastAPI style). Use it as the message
+  // so 404/422 errors keep their reason; the code stays UNKNOWN_ERROR.
+  const detail =
+    typeof fallback.detail === "string" && fallback.detail.length > 0
+      ? fallback.detail
+      : undefined;
   const message =
     hasExplicitCode &&
     typeof fallback.message === "string" &&
     fallback.message.length > 0
       ? fallback.message
-      : "An unknown error occurred";
+      : (detail ?? "An unknown error occurred");
 
   return {
     code,

@@ -69,6 +69,23 @@ describe("nested gateway error envelope", () => {
   });
 });
 
+describe("{ detail } error bodies", () => {
+  it("uses detail as the message and keeps the status code", async () => {
+    const http = clientReturning(
+      () =>
+        new Response(JSON.stringify({ detail: "object not found" }), {
+          status: 404,
+        })
+    );
+    const error = (await http
+      .get("/x")
+      .catch((e: unknown) => e)) as FrontalError;
+    expect(error).toBeInstanceOf(FrontalError);
+    expect(error.statusCode).toBe(404);
+    expect(error.message).toBe("object not found");
+  });
+});
+
 describe("Idempotency-Key header", () => {
   it("is sent when the call supplies a key", async () => {
     const seen: { headers?: Headers } = {};
