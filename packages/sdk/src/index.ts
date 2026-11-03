@@ -5,12 +5,19 @@
  */
 
 export type {
+  EntityCreate,
   EntityHandle,
   EntityRead,
   EntityRelations,
+  EntityUpdate,
   EntityWithRelations,
+  FieldKind,
+  FieldSpec,
   OntologyClient,
+  OntologyDefinition,
   OntologyRuntime,
+  OntologyRuntimeArgs,
+  RelationSpec,
   UntypedOntology,
 } from "@frontal-labs/ontology";
 export { createFrontalClient, frontal } from "./client";

@@ -25,7 +25,9 @@ import type { ObservabilitySdk } from "@frontal-labs/observability";
 import { createObservabilityClient } from "@frontal-labs/observability";
 import type {
   OntologyClient,
+  OntologyDefinition,
   OntologyRuntime,
+  OntologyRuntimeArgs,
   UntypedOntology,
 } from "@frontal-labs/ontology";
 import {
@@ -47,9 +49,11 @@ import { resolveSdkConfig, type SdkConfig } from "./config";
  * Each service namespace is initialised on first access from the shared
  * {@link FrontalClient} connection.
  */
-export class Frontal<TOntology = UntypedOntology> {
+export class Frontal<
+  TOntology extends OntologyDefinition<TOntology> = UntypedOntology,
+> {
   readonly #frontal: FrontalClient;
-  readonly #runtime: OntologyRuntime | undefined;
+  readonly #runtime: OntologyRuntime<TOntology> | undefined;
   #governance?: GovernanceSdk;
 
   /** Blob storage service. */
@@ -200,12 +204,13 @@ export class Frontal<TOntology = UntypedOntology> {
    */
   constructor(
     configOrClient: SdkConfig | FrontalClient,
-    runtime?: OntologyRuntime
+    ...runtime: OntologyRuntimeArgs<TOntology>
   ) {
     this.#frontal =
       configOrClient instanceof FrontalClient
         ? configOrClient
         : new FrontalClient(resolveSdkConfig(configOrClient));
-    this.#runtime = runtime;
+    // The tuple is `[runtime]` or `[runtime?]`, depending on TOntology.
+    [this.#runtime] = runtime as [OntologyRuntime<TOntology>?];
   }
 }
