@@ -23,8 +23,15 @@ import type { LineageSdk } from "@frontal-labs/lineage";
 import { createLineageClient } from "@frontal-labs/lineage";
 import type { ObservabilitySdk } from "@frontal-labs/observability";
 import { createObservabilityClient } from "@frontal-labs/observability";
-import type { OntologySdk } from "@frontal-labs/ontology";
-import { createOntologyClient } from "@frontal-labs/ontology";
+import type {
+  OntologyClient,
+  OntologyRuntime,
+  UntypedOntology,
+} from "@frontal-labs/ontology";
+import {
+  createOntologyClient,
+  withEntityHandles,
+} from "@frontal-labs/ontology";
 import type { PipelinesSdk } from "@frontal-labs/pipelines";
 import { createPipelinesClient } from "@frontal-labs/pipelines";
 import type { SchedulesSdk } from "@frontal-labs/schedules";
@@ -40,8 +47,9 @@ import { resolveSdkConfig, type SdkConfig } from "./config";
  * Each service namespace is initialised on first access from the shared
  * {@link FrontalClient} connection.
  */
-export class Frontal {
+export class Frontal<TOntology = UntypedOntology> {
   readonly #frontal: FrontalClient;
+  readonly #runtime: OntologyRuntime | undefined;
   #governance?: GovernanceSdk;
 
   /** Blob storage service. */
@@ -160,9 +168,12 @@ export class Frontal {
   }
 
   /** Ontology service. */
-  #ontology?: OntologySdk;
-  get ontology(): OntologySdk {
-    this.#ontology ??= createOntologyClient(this.#frontal);
+  #ontology?: OntologyClient<TOntology>;
+  get ontology(): OntologyClient<TOntology> {
+    this.#ontology ??= withEntityHandles<TOntology>(
+      createOntologyClient(this.#frontal),
+      this.#runtime
+    );
     return this.#ontology;
   }
 
@@ -187,10 +198,14 @@ export class Frontal {
    * const { text } = await f.ai.generateText({ model: "claude-sonnet-4-6", prompt: "Hi" });
    * ```
    */
-  constructor(configOrClient: SdkConfig | FrontalClient) {
+  constructor(
+    configOrClient: SdkConfig | FrontalClient,
+    runtime?: OntologyRuntime
+  ) {
     this.#frontal =
       configOrClient instanceof FrontalClient
         ? configOrClient
         : new FrontalClient(resolveSdkConfig(configOrClient));
+    this.#runtime = runtime;
   }
 }

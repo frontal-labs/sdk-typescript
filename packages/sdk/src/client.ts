@@ -1,4 +1,5 @@
 import { type FrontalClient, getDefaultClient } from "@frontal-labs/core";
+import type { OntologyRuntime, UntypedOntology } from "@frontal-labs/ontology";
 import type { SdkConfig } from "./config";
 import { Frontal } from "./sdk";
 
@@ -8,13 +9,19 @@ import { Frontal } from "./sdk";
  *
  * Equivalent to `new Frontal(config)`.
  *
+ * Pass the generated `Ontology` type as `TOntology` to get typed entity
+ * handles on `ontology`. `runtime` is the metadata literal emitted by the
+ * Frontal CLI into `.frontal/client.ts`.
+ *
  * @param config - An existing `FrontalClient` or a config object with `apiKey`.
+ * @param runtime - Optional ontology runtime metadata (entity names, relations).
  * @returns A configured `Frontal` client with access to all service namespaces.
  */
-export function createFrontalClient(
-  config: SdkConfig | FrontalClient
-): Frontal {
-  return new Frontal(config);
+export function createFrontalClient<TOntology = UntypedOntology>(
+  config: SdkConfig | FrontalClient,
+  runtime?: OntologyRuntime
+): Frontal<TOntology> {
+  return new Frontal<TOntology>(config, runtime);
 }
 
 /**

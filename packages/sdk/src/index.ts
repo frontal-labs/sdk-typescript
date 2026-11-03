@@ -4,6 +4,15 @@
  * Unified Frontal SDK — access all services from a single client.
  */
 
+export type {
+  EntityHandle,
+  EntityRead,
+  EntityRelations,
+  EntityWithRelations,
+  OntologyClient,
+  OntologyRuntime,
+  UntypedOntology,
+} from "@frontal-labs/ontology";
 export { createFrontalClient, frontal } from "./client";
 export {
   type FrontalClientConfig,
