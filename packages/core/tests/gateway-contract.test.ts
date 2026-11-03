@@ -101,6 +101,23 @@ describe("preserveKeys", () => {
     expect(result.parameters).toEqual({ invoice_id: "INV-1", order_total: 9 });
   });
 
+  it("applies the preserved keys to every element of a list response", async () => {
+    const http = clientReturning(() =>
+      Response.json([
+        { object_id: "a", properties: { external_ref: "X-1" } },
+        { object_id: "b", properties: { external_ref: "X-2" } },
+      ])
+    );
+    const result = await http.get<
+      { objectId: string; properties: Record<string, unknown> }[]
+    >("/x", undefined, undefined, {}, { preserveKeys: ["properties"] });
+    expect(result.map((item) => item.objectId)).toEqual(["a", "b"]);
+    expect(result.map((item) => item.properties)).toEqual([
+      { external_ref: "X-1" },
+      { external_ref: "X-2" },
+    ]);
+  });
+
   it("camelCases a top-level key that is not preserved", async () => {
     const http = clientReturning(() =>
       Response.json({ parameters: { invoice_id: "INV-1" } })

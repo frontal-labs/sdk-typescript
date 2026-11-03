@@ -46,6 +46,7 @@ export interface RequestOptions {
   /**
    * Top-level response keys copied through exactly as sent, instead of being
    * camelCased. Use for user data keyed by name, such as a `parameters` object.
+   * For a list response, the keys apply to each element.
    */
   preserveKeys?: readonly string[];
   retry?: {
@@ -919,6 +920,11 @@ export class HttpClient {
    */
   private transformPayload(payload: unknown, options: RequestOptions): unknown {
     if (typeof payload !== "object" || payload === null) return payload;
+    // A top-level array is a list of records: each record is transformed on
+    // its own, so `preserveKeys` applies to every element.
+    if (Array.isArray(payload)) {
+      return payload.map((item) => this.transformPayload(item, options));
+    }
     const converted = deepSnakeToCamel(payload) as Record<string, unknown>;
     for (const key of options.preserveKeys ?? []) {
       if (key in (payload as Record<string, unknown>)) {
