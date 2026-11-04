@@ -69,6 +69,23 @@ describe("nested gateway error envelope", () => {
   });
 });
 
+describe("{ detail } error bodies", () => {
+  it("uses detail as the message and keeps the status code", async () => {
+    const http = clientReturning(
+      () =>
+        new Response(JSON.stringify({ detail: "object not found" }), {
+          status: 404,
+        })
+    );
+    const error = (await http
+      .get("/x")
+      .catch((e: unknown) => e)) as FrontalError;
+    expect(error).toBeInstanceOf(FrontalError);
+    expect(error.statusCode).toBe(404);
+    expect(error.message).toBe("object not found");
+  });
+});
+
 describe("Idempotency-Key header", () => {
   it("is sent when the call supplies a key", async () => {
     const seen: { headers?: Headers } = {};
@@ -99,6 +116,23 @@ describe("preserveKeys", () => {
     }>("/x", {}, undefined, { preserveKeys: ["parameters"] });
     expect(result.requestId).toBe("r1");
     expect(result.parameters).toEqual({ invoice_id: "INV-1", order_total: 9 });
+  });
+
+  it("applies the preserved keys to every element of a list response", async () => {
+    const http = clientReturning(() =>
+      Response.json([
+        { object_id: "a", properties: { external_ref: "X-1" } },
+        { object_id: "b", properties: { external_ref: "X-2" } },
+      ])
+    );
+    const result = await http.get<
+      { objectId: string; properties: Record<string, unknown> }[]
+    >("/x", undefined, undefined, {}, { preserveKeys: ["properties"] });
+    expect(result.map((item) => item.objectId)).toEqual(["a", "b"]);
+    expect(result.map((item) => item.properties)).toEqual([
+      { external_ref: "X-1" },
+      { external_ref: "X-2" },
+    ]);
   });
 
   it("camelCases a top-level key that is not preserved", async () => {

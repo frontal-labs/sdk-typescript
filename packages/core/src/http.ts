@@ -1,8 +1,10 @@
 import type { z } from "zod";
+import { declaredResponse } from "./boundary";
 import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { MAX_TIMER_MS, RETRY_AFTER_MAX_MS, SDK_VERSION } from "./constants";
 import { NetworkError, parseFrontalError, TimeoutError } from "./errors";
+import { isObjectRecord } from "./guards";
 import { composeInterceptors, type Interceptor } from "./interceptors";
 import {
   calculateDelay,
@@ -46,8 +48,20 @@ export interface RequestOptions {
   /**
    * Top-level response keys copied through exactly as sent, instead of being
    * camelCased. Use for user data keyed by name, such as a `parameters` object.
+   * For a list response, the keys apply to each element.
    */
   preserveKeys?: readonly string[];
+  /**
+   * Return the response body exactly as sent: keys are not camelCased, and
+   * `preserveKeys` does not apply. Use for payloads whose keys are user data,
+   * such as query results.
+   */
+  untransformed?: boolean;
+  /**
+   * Called with the response headers of a successful call, before the body is
+   * read. Use it to read a header such as `ETag` that the body does not carry.
+   */
+  onResponse?: (headers: Headers) => void;
   retry?: {
     /** Retry attempts for this call. Overrides the client `maxRetries`. */
     maxRetries?: number;
@@ -75,19 +89,35 @@ interface ZstdCodec {
  * Bun expose `zlib` through `process.getBuiltinModule`, which keeps `zlib` out
  * of browser bundles.
  */
+function isGetBuiltinModule(value: unknown): value is (id: string) => unknown {
+  return typeof value === "function";
+}
+
+function isZstdCodec(value: unknown): value is ZstdCodec {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "zstdCompressSync" in value &&
+    typeof value.zstdCompressSync === "function"
+  );
+}
+
 function requireZstd(): ZstdCodec {
-  const getBuiltin = (
-    globalThis as {
-      process?: { getBuiltinModule?: (id: string) => unknown };
-    }
-  ).process?.getBuiltinModule;
-  const zlib = getBuiltin?.("node:zlib") as Partial<ZstdCodec> | undefined;
-  if (typeof zlib?.zstdCompressSync !== "function") {
+  const proc: unknown =
+    "process" in globalThis ? globalThis.process : undefined;
+  const getBuiltin: unknown =
+    typeof proc === "object" && proc !== null && "getBuiltinModule" in proc
+      ? proc.getBuiltinModule
+      : undefined;
+  const zlib: unknown = isGetBuiltinModule(getBuiltin)
+    ? getBuiltin("node:zlib")
+    : undefined;
+  if (!isZstdCodec(zlib)) {
     throw new TypeError(
       'compression: "zstd" needs a runtime with zstd support (Node.js 22.15+ or Bun). Set compression: false to send uncompressed bodies.'
     );
   }
-  return zlib as ZstdCodec;
+  return zlib;
 }
 
 /**
@@ -107,9 +137,29 @@ async function readErrorText(res: Response): Promise<string> {
  * Returns a copy of a request init safe to pass to logs and telemetry: the
  * bearer credential in `Authorization` is masked, keeping the scheme visible.
  */
-function redactRequestInit(init: RequestInit): RequestInit {
+function headerRecord(
+  headers: NonNullable<RequestInit["headers"]>
+): Record<string, string> {
+  if (
+    !(headers instanceof Headers || Array.isArray(headers)) &&
+    typeof headers === "object"
+  ) {
+    const copy: Record<string, string> = {};
+    for (const [key, value] of Object.entries(headers)) {
+      if (typeof value === "string") copy[key] = value;
+    }
+    return copy;
+  }
+  // Header tuples and Headers instances are normalised so every credential is
+  // visible to the masking loop below.
+  const out: Record<string, string> = {};
+  for (const [key, value] of new Headers(headers)) out[key] = value;
+  return out;
+}
+
+export function redactRequestInit(init: RequestInit): RequestInit {
   if (!init.headers) return init;
-  const headers = { ...(init.headers as Record<string, string>) };
+  const headers = headerRecord(init.headers);
   for (const key of Object.keys(headers)) {
     if (key.toLowerCase() !== "authorization") continue;
     headers[key] = headers[key]?.startsWith("Bearer ")
@@ -289,7 +339,7 @@ export class HttpClient {
     const res = await this.fetchWithTimeout(url, {
       method: "PUT",
       headers: this.buildHeaders({ "Content-Type": contentType, ...headers }),
-      body: body as unknown as RequestInit["body"],
+      body,
     });
     return this.consumeResponse(res, async () => {
       if (!res.ok) await this.throwError(res);
@@ -383,7 +433,7 @@ export class HttpClient {
     return this.consumeResponse(res, async () => {
       if (!res.ok) await this.throwError(res);
       const json = await res.json();
-      return deepSnakeToCamel(json) as T;
+      return declaredResponse<T>(deepSnakeToCamel(json));
     });
   }
 
@@ -778,7 +828,7 @@ export class HttpClient {
           ? { "Idempotency-Key": options.idempotencyKey }
           : {}),
       }),
-      body: encoded?.body,
+      ...(encoded?.body !== undefined ? { body: encoded.body } : {}),
     };
 
     this.config.logger?.request?.(method, url, redactRequestInit(reqInit));
@@ -860,9 +910,12 @@ export class HttpClient {
       }
     }
 
+    options.onResponse?.(res.headers);
+
     try {
       const result = await this.consumeResponse(res, async () => {
-        if (res.status === 204) return undefined as T;
+        // A 204 has no body; the caller's declared type covers that case.
+        if (res.status === 204) return declaredResponse<T>(undefined);
 
         const contentType = (
           res.headers.get("content-type") || ""
@@ -871,7 +924,9 @@ export class HttpClient {
           ? await res.json()
           : await res.text();
 
-        const transformedPayload = this.transformPayload(payload, options);
+        const transformedPayload = options.untransformed
+          ? payload
+          : this.transformPayload(payload, options);
 
         const tagId = serverRequestId ?? requestId;
         if (telemetry?.recordOutputs) {
@@ -889,7 +944,7 @@ export class HttpClient {
           return tagRequestId(parsed.data, tagId);
         }
 
-        return tagRequestId(transformedPayload as T, tagId);
+        return tagRequestId(declaredResponse<T>(transformedPayload), tagId);
       });
       report(res.status, undefined, serverRequestId);
       return result;
@@ -918,11 +973,17 @@ export class HttpClient {
    * `options.preserveKeys`, which are copied through exactly as sent.
    */
   private transformPayload(payload: unknown, options: RequestOptions): unknown {
-    if (typeof payload !== "object" || payload === null) return payload;
-    const converted = deepSnakeToCamel(payload) as Record<string, unknown>;
+    // A top-level array is a list of records: each record is transformed on
+    // its own, so `preserveKeys` applies to every element.
+    if (Array.isArray(payload)) {
+      const items: unknown[] = payload;
+      return items.map((item: unknown) => this.transformPayload(item, options));
+    }
+    if (!isObjectRecord(payload)) return payload;
+    const converted = deepSnakeToCamel(payload);
     for (const key of options.preserveKeys ?? []) {
-      if (key in (payload as Record<string, unknown>)) {
-        converted[key] = (payload as Record<string, unknown>)[key];
+      if (key in payload) {
+        converted[key] = payload[key];
       }
     }
     return converted;
@@ -977,9 +1038,7 @@ export class HttpClient {
 
     const url = `${base}${normalizedPath}`;
 
-    const transformedParams = params
-      ? (deepCamelToSnake(params) as Record<string, unknown>)
-      : params;
+    const transformedParams = params ? deepCamelToSnake(params) : params;
 
     if (!transformedParams || Object.keys(transformedParams).length === 0) {
       return url;

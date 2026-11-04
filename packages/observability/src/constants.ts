@@ -6,7 +6,7 @@ export const DEFAULT_OBSERVABILITY_BASE_URL = "https://api.frontal.dev/v1";
 /**
  * Package version.
  */
-export const VERSION = "0.1.4";
+export const VERSION = "0.1.5";
 
 /**
  * Default timeout.

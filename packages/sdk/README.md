@@ -127,6 +127,18 @@ const ai = createAIClient({ apiKey: process.env.FRONTAL_API_KEY! });
 `FRONTAL_API_KEY` on first use, but it is deprecated in favour of the explicit
 constructor above. It will not be removed without a major version bump.
 
+## TypeScript module resolution
+
+The packages ship declaration files that work under `moduleResolution`
+`bundler`, `node16` and `nodenext`. Under `nodenext`, relative imports in the
+declarations carry explicit `.js` extensions, so `new Frontal()` keeps its
+types. Using `skipLibCheck` does not change this: a consumer whose declarations
+resolved to `any` would otherwise get no type checking at all.
+
+Node's type definitions are needed for the declarations that use `Buffer`
+(for example `@frontal-labs/blob`): add `"types": ["node"]` to your
+`tsconfig.json`, with `@types/node` installed.
+
 ## Testing
 
 `@frontal-labs/testing` provides a fetch-level mock and a pre-wired client:

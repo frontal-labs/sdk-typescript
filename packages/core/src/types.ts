@@ -31,7 +31,7 @@ export interface PageResult<T> {
    * Optional metadata about the response
    * @example { requestId: '123', timestamp: '2023-01-01T00:00:00Z' }
    */
-  meta?: ResponseMeta;
+  meta?: ResponseMeta | undefined;
   /**
    * Pagination metadata
    * @example { cursor: '123', hasMore: true, total: 100 }

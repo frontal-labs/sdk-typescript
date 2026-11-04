@@ -6,7 +6,7 @@ export const DEFAULT_BLOB_BASE_URL = "https://api.frontal.dev/v1";
 /**
  * Package version.
  */
-export const VERSION = "1.1.0";
+export const VERSION = "1.1.1";
 
 /**
  * Default timeout.

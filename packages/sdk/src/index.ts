@@ -4,6 +4,34 @@
  * Unified Frontal SDK — access all services from a single client.
  */
 
+export type {
+  EntityCreate,
+  EntityHandle,
+  EntityRead,
+  EntityRelations,
+  EntityUpdate,
+  EntityWithRelations,
+  FieldKind,
+  FieldSpec,
+  OntologyClient,
+  OntologyDefinition,
+  OntologyRuntime,
+  OntologyRuntimeArgs,
+  RelationSpec,
+  UntypedOntology,
+} from "@frontal-labs/ontology";
+/**
+ * The ontology of this application. A generated `ontology.d.ts` augments this
+ * interface (`declare module "@frontal-labs/sdk"`), so `new Frontal(...)` and
+ * `frontal` are typed without importing a generated client. With no
+ * augmentation it is empty and the client is untyped.
+ *
+ * It is declared here rather than re-exported, because TypeScript merges a
+ * module augmentation only into the declaration the module itself defines.
+ */
+// biome-ignore lint/suspicious/noEmptyInterface: augmented by generated code
+export interface FrontalOntologyRegistry {}
+
 export { createFrontalClient, frontal } from "./client";
 export {
   type FrontalClientConfig,
@@ -30,6 +58,7 @@ export {
   initTracing,
   NetworkError,
   NotFoundError,
+  PreconditionFailedError,
   RateLimitError,
   ServiceError,
   TimeoutError,

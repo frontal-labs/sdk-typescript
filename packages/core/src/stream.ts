@@ -24,7 +24,7 @@ export interface SseEvent<T = unknown> {
  * - `done`  — terminal; always emitted exactly once
  */
 export type StreamPart<T = unknown> =
-  | { type: "data"; event: string; data: T; id?: string }
+  | { type: "data"; event: string; data: T; id?: string | undefined }
   | { type: "error"; error: SdkError }
   | { type: "abort" }
   | { type: "done" };
@@ -124,7 +124,7 @@ function abortPromise(signal: AbortSignal): {
 export function toSdkError(error: unknown): SdkError {
   if (isFrontalError(error)) return error;
   if (NetworkError.isInstance(error) || TimeoutError.isInstance(error)) {
-    return error as SdkError;
+    return error;
   }
   if (error instanceof Error && error.name === "AbortError") {
     return new TimeoutError(error.message);

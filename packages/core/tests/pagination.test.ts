@@ -27,6 +27,15 @@ const realWorldItemSchema = z.object({
 
 const realWorldPageResultSchema = pageResultSchema(realWorldItemSchema);
 
+describe("createPageResult offset-only responses", () => {
+  it("accepts pagination info without a cursor, as before", () => {
+    const offsetOnly = { hasMore: false, offset: 0, limit: 2 };
+    // @ts-expect-error offset-only pagination has no cursor field in the schema
+    const page = createPageResult([{ id: 1 }, { id: 2 }], offsetOnly);
+    expect(page.data).toHaveLength(2);
+  });
+});
+
 describe("Pagination", () => {
   beforeEach(() => {
     cleanupMocks();

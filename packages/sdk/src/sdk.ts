@@ -23,8 +23,16 @@ import type { LineageSdk } from "@frontal-labs/lineage";
 import { createLineageClient } from "@frontal-labs/lineage";
 import type { ObservabilitySdk } from "@frontal-labs/observability";
 import { createObservabilityClient } from "@frontal-labs/observability";
-import type { OntologySdk } from "@frontal-labs/ontology";
-import { createOntologyClient } from "@frontal-labs/ontology";
+import type {
+  OntologyClient,
+  OntologyDefinition,
+  OntologyRuntime,
+  OntologyRuntimeArgs,
+} from "@frontal-labs/ontology";
+import {
+  createOntologyClient,
+  withEntityHandles,
+} from "@frontal-labs/ontology";
 import type { PipelinesSdk } from "@frontal-labs/pipelines";
 import { createPipelinesClient } from "@frontal-labs/pipelines";
 import type { SchedulesSdk } from "@frontal-labs/schedules";
@@ -34,14 +42,18 @@ import { createWebhooksClient } from "@frontal-labs/webhooks";
 import type { WorkflowsSdk } from "@frontal-labs/workflows";
 import { createWorkflowsClient } from "@frontal-labs/workflows";
 import { resolveSdkConfig, type SdkConfig } from "./config";
+import type { FrontalOntologyRegistry } from "./index";
 
 /**
  * Unified Frontal SDK client providing lazy access to all service namespaces.
  * Each service namespace is initialised on first access from the shared
  * {@link FrontalClient} connection.
  */
-export class Frontal {
+export class Frontal<
+  TOntology extends OntologyDefinition<TOntology> = FrontalOntologyRegistry,
+> {
   readonly #frontal: FrontalClient;
+  readonly #runtime: OntologyRuntime<TOntology> | undefined;
   #governance?: GovernanceSdk;
 
   /** Blob storage service. */
@@ -160,9 +172,13 @@ export class Frontal {
   }
 
   /** Ontology service. */
-  #ontology?: OntologySdk;
-  get ontology(): OntologySdk {
-    this.#ontology ??= createOntologyClient(this.#frontal);
+  #ontology?: OntologyClient<TOntology>;
+  get ontology(): OntologyClient<TOntology> {
+    this.#ontology ??= withEntityHandles<TOntology>(
+      createOntologyClient(this.#frontal),
+      this.#frontal.httpClient,
+      this.#runtime
+    );
     return this.#ontology;
   }
 
@@ -187,10 +203,14 @@ export class Frontal {
    * const { text } = await f.ai.generateText({ model: "claude-sonnet-4-6", prompt: "Hi" });
    * ```
    */
-  constructor(configOrClient: SdkConfig | FrontalClient) {
+  constructor(
+    configOrClient: SdkConfig | FrontalClient,
+    ...runtime: OntologyRuntimeArgs<TOntology>
+  ) {
     this.#frontal =
       configOrClient instanceof FrontalClient
         ? configOrClient
         : new FrontalClient(resolveSdkConfig(configOrClient));
+    [this.#runtime] = runtime;
   }
 }

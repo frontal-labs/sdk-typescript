@@ -1,5 +1,21 @@
 # @frontal-labs/react
 
+## 0.2.1
+
+### Patch Changes
+
+- 8c7c840: Declarations resolve under `moduleResolution: nodenext`. The build now adds
+  explicit `.js` extensions to relative imports in emitted `.d.ts` files, so
+  `new Frontal()` is typed for NodeNext consumers instead of silently `any`.
+  Runtime code is unchanged.
+- Updated dependencies [3ead735]
+- Updated dependencies [8c7c840]
+- Updated dependencies [b0c6766]
+  - @frontal-labs/core@1.1.2
+  - @frontal-labs/agents@2.0.1
+  - @frontal-labs/ai@0.3.0
+  - @frontal-labs/workflows@1.0.1
+
 ## 0.2.0
 
 ### Minor Changes

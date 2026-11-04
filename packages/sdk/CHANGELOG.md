@@ -1,5 +1,119 @@
 # @frontal-labs/sdk
 
+## 2.2.0
+
+### Minor Changes
+
+- 4885c1b: Use the SDK directly, without a generated client.
+  
+  - `new Frontal({ apiKey })` and `frontal` are typed by the generated ontology
+    once `ontology.d.ts` augments `FrontalOntologyRegistry`. With no
+    augmentation the registry is empty and the client is untyped, as before.
+  - The runtime metadata is optional. Without it, the first use of an entity
+    reads the object types from the API once per client, derives the same
+    metadata the generator emits, and caches it. Concurrent first calls share
+    one request, and a failed read is retried on the next call. A name the live
+    ontology does not contain rejects on use.
+  - With the metadata passed in (the generated `.frontal/client.ts` does this),
+    no request is made, as before.
+  - `createFrontalClient<TOntology>` and `Frontal<TOntology>` default to the
+    registry. Passing an ontology type explicitly still works.
+
+### Patch Changes
+
+- 3ead735: Core error handling for the ontology API:
+  
+  - HTTP 412 now throws `PreconditionFailedError` (status 412), exported from the
+    core and SDK entry points. It is a `FrontalError`, so existing `instanceof
+    FrontalError` checks still hold.
+  - When an error body has a `code` and a `detail` but no `message`, `detail` is
+    the error message. Other error bodies keep their previous message.
+- 8c7c840: Declarations resolve under `moduleResolution: nodenext`. The build now adds
+  explicit `.js` extensions to relative imports in emitted `.d.ts` files, so
+  `new Frontal()` is typed for NodeNext consumers instead of silently `any`.
+  Runtime code is unchanged.
+- cafacbd: Ontology contract v2 on typed entities.
+  
+  - `query({ where, limit, cursor })`: one page of matching entities. `where`
+    is typed per field: strings take `eq`, `in`, `contains`, `startsWith`;
+    numbers take `eq`, `in`, `gt`, `gte`, `lt`, `lte`; booleans take `eq`; enums
+    take `eq` and `in` with their declared values. Unknown fields and operators
+    the type does not allow are rejected before any request.
+  - `list()` follows the pages of `query` until the last one, with a limit of
+    10,000 pages.
+  - `update` is now conditional: it reads the object's `ETag` and writes with
+    `If-Match`. A write that lost a race is retried from a fresh read, up to three
+    attempts, then throws a `ConflictError` with code `PRECONDITION_FAILED`. It is
+    never written without an `ETag`.
+  - Relations carry a `cardinality`. `belongsTo` keeps its foreign key;
+    `hasOne`, `hasMany` and `manyToMany` resolve through relationship instances
+    and need a `relationshipTypeId`. `hasOne` with more than one target throws
+    `TOO_MANY_RELATIONSHIPS`.
+  
+  These endpoints are ontology contract v2. A backend that does not serve them
+  rejects the calls.
+- Updated dependencies [3ead735]
+- Updated dependencies [8c7c840]
+- Updated dependencies [cafacbd]
+- Updated dependencies [b0c6766]
+- Updated dependencies [4885c1b]
+  - @frontal-labs/core@1.1.2
+  - @frontal-labs/agents@2.0.1
+  - @frontal-labs/ai@0.3.0
+  - @frontal-labs/audit@1.0.1
+  - @frontal-labs/auth@1.0.5
+  - @frontal-labs/billing@1.0.4
+  - @frontal-labs/blob@1.1.1
+  - @frontal-labs/connectors@0.0.7
+  - @frontal-labs/data@0.1.4
+  - @frontal-labs/functions@0.0.3
+  - @frontal-labs/governance@0.0.7
+  - @frontal-labs/lineage@0.0.7
+  - @frontal-labs/observability@0.1.5
+  - @frontal-labs/ontology@1.2.0
+  - @frontal-labs/pipelines@0.0.7
+  - @frontal-labs/schedules@1.0.4
+  - @frontal-labs/webhooks@1.0.1
+  - @frontal-labs/workflows@1.0.1
+
+## 2.1.0
+
+### Minor Changes
+
+- 8baca7b: Add typed ontology entities. `createFrontalClient<TOntology>(config, runtime)`
+  accepts the generated `Ontology` type and the runtime metadata emitted by the
+  Frontal CLI, and exposes `ontology.<Entity>` with:
+  
+  - `list()`: every object of the entity's object type. The backend does not
+    page this list, so it is returned in one call.
+  - `get(id)`, `delete(id)`.
+  - `create(input)`: the server generates the id.
+  - `put(id, input)`: writes the whole object under an explicit id.
+  - `update(id, patch)`: changes only writable fields. It is a GET, merge, then
+    PUT, so it is not atomic.
+  - Lazy `belongsTo` relation accessors, such as `await customer.company()`.
+  
+  Stored fields live under the object's `properties`; the entity exposes them at
+  the top level with `id` set to the object id. Responses and inputs are checked
+  against the runtime metadata and throw `ValidationError` (`INVALID_RESPONSE` or
+  `INVALID_INPUT`) with per-field detail. A record of another object type is
+  rejected. Unknown entities throw a `TypeError` listing the known entities.
+  `OntologyDefinition` rejects invalid hand-written ontologies at compile time.
+  
+  Breaking within this release: `create(id, input)` is now `put(id, input)`, and
+  `create(input)` generates the id. `hasOne` relations are removed. The runtime
+  metadata requires `objectTypeIds` and has the shape `OntologyRuntime<O>`.
+  Existing calls without a type argument are unchanged.
+  
+  `@frontal-labs/core`: `preserveKeys` now applies to each element of a list
+  response, so property names inside `properties` are kept exactly as sent.
+
+### Patch Changes
+
+- Updated dependencies [8baca7b]
+  - @frontal-labs/ontology@1.1.0
+  - @frontal-labs/core@1.1.1
+
 ## 2.0.0
 
 ### Major Changes

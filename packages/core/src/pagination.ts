@@ -1,4 +1,5 @@
 import { type ZodType, z } from "zod";
+import { declaredResponse } from "./boundary";
 import type { PaginationMeta } from "./schemas";
 import { responseMetaSchema } from "./schemas";
 import type { PageResult } from "./types";
@@ -12,7 +13,13 @@ export function asPagePayload<T>(raw: unknown): {
   pagination: PaginationMeta;
   meta?: unknown;
 } {
-  return raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
+  // The envelope itself is checked by the caller's pagination parse; `T` is the
+  // caller's element type.
+  return declaredResponse<{
+    data: T[];
+    pagination: PaginationMeta;
+    meta?: unknown;
+  }>(raw);
 }
 
 const paginationSchema = z
@@ -41,11 +48,53 @@ export function pageResultSchema<T extends ZodType>(itemSchema: T) {
     .strict();
 }
 
+type PaginationInfo = z.infer<typeof paginationSchema>;
+
+/**
+ * A caller's page fetcher. Offset-based fetchers take no arguments and are
+ * assignable here; cursor-based fetchers receive the current cursor.
+ */
+type FetchNextPage<T> = (cursor: string) => Promise<PageResult<T> | null>;
 type FetchNext<T> = () => Promise<PageResult<T> | null>;
 type MutablePageResult<T> = PageResult<T> & {
   _fetchNextPage: FetchNext<T>;
   _fallbackFetchNextPage?: FetchNext<T>;
 };
+
+/**
+ * Pagination info is an object. Offset-only responses have no cursor, so only
+ * the shape of the object is checked, as before.
+ */
+function isPaginationInfo(value: unknown): value is PaginationInfo {
+  return typeof value === "object" && value !== null;
+}
+
+function isFetchNextPage<T>(value: unknown): value is FetchNextPage<T> {
+  return typeof value === "function";
+}
+
+/** True for pages built by this module, which carry the fallback fetcher. */
+function isMutablePage<T>(page: PageResult<T>): page is MutablePageResult<T> {
+  return "_fetchNextPage" in page;
+}
+
+function bindFetchNext<T>(
+  fetchNextPage: FetchNextPage<T> | undefined,
+  pagination: PaginationInfo
+): FetchNext<T> {
+  return async () => {
+    if (!fetchNextPage) return null;
+    return fetchNextPage(pagination.cursor);
+  };
+}
+
+/** Response metadata, or `undefined` when it is absent or malformed. */
+function parseResponseMeta(
+  value: unknown
+): z.infer<typeof responseMetaSchema> | undefined {
+  const parsed = responseMetaSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
 
 function buildPageResult<T>(
   data: T[],
@@ -57,7 +106,7 @@ function buildPageResult<T>(
 
   const page: MutablePageResult<T> = {
     data,
-    meta: meta as z.infer<typeof responseMetaSchema> | undefined,
+    meta: parseResponseMeta(meta),
     pagination,
     _fetchNextPage: fetchNext,
     async nextPage() {
@@ -69,9 +118,8 @@ function buildPageResult<T>(
             result = await this._fallbackFetchNextPage();
           }
 
-          if (result) {
-            const mutableResult = result as MutablePageResult<T>;
-            mutableResult._fallbackFetchNextPage =
+          if (result && isMutablePage(result)) {
+            result._fallbackFetchNextPage =
               this._fallbackFetchNextPage ?? this._fetchNextPage;
           }
 
@@ -97,13 +145,15 @@ function buildPageResult<T>(
     },
     [Symbol.asyncIterator]() {
       let current: PageResult<T> | null = this;
-      let index = 0;
+      let items: Iterator<T, undefined> | undefined;
 
       return {
-        async next(): Promise<IteratorResult<T>> {
+        async next(): Promise<IteratorResult<T, undefined>> {
           while (current) {
-            if (index < current.data.length) {
-              return { done: false, value: current.data[index++] };
+            items ??= current.data[Symbol.iterator]();
+            const step = items.next();
+            if (!step.done) {
+              return { done: false, value: step.value };
             }
 
             if (!current.pagination.hasMore) {
@@ -112,10 +162,10 @@ function buildPageResult<T>(
             }
 
             current = await current.nextPage();
-            index = 0;
+            items = undefined;
           }
 
-          return { done: true, value: undefined as never };
+          return { done: true, value: undefined };
         },
       };
     },
@@ -124,11 +174,18 @@ function buildPageResult<T>(
   return page;
 }
 
+/** The raw envelope form of `createPageResult`. */
+interface RawPage<T> {
+  data: T[];
+  meta?: unknown;
+  pagination: PaginationInfo;
+}
+
 /**
  * Creates a PageResult with lazy page fetching and async iteration support.
  *
  * Accepts two call signatures:
- * 1. `createPageResult(data[], pagination, fetchNext, meta?)` — array-based.
+ * 1. `createPageResult(data[], pagination, fetchNext?, meta?)` — array-based.
  * 2. `createPageResult(raw, fetchNext?)` — raw payload with embedded pagination.
  *
  * The `fetchNext` callback can take a cursor string (for cursor-based APIs)
@@ -138,64 +195,44 @@ function buildPageResult<T>(
  * @returns A PageResult with `nextPage()`, `all()`, and `Symbol.asyncIterator`.
  */
 export function createPageResult<T>(
-  dataOrRaw:
-    | T[]
-    | {
-        data: T[];
-        meta?: unknown;
-        pagination: z.infer<typeof paginationSchema>;
-      },
-  paginationOrFetchNext?:
-    | z.infer<typeof paginationSchema>
-    | (() => Promise<PageResult<T> | null>)
-    | ((cursor: string) => Promise<PageResult<T> | null>),
-  fetchNextOrMeta?:
-    | (() => Promise<PageResult<T> | null>)
-    | ((cursor: string) => Promise<PageResult<T> | null>)
-    | unknown,
+  data: T[],
+  pagination: PaginationInfo,
+  fetchNext?: FetchNextPage<T>,
+  meta?: unknown
+): PageResult<T>;
+export function createPageResult<T>(
+  raw: RawPage<T>,
+  fetchNext?: FetchNextPage<T>
+): PageResult<T>;
+export function createPageResult<T>(
+  dataOrRaw: T[] | RawPage<T>,
+  paginationOrFetchNext?: PaginationInfo | FetchNextPage<T>,
+  fetchNextOrMeta?: unknown,
   meta?: unknown
 ): PageResult<T> {
   if (Array.isArray(dataOrRaw)) {
-    const data = dataOrRaw;
-    const pagination = paginationOrFetchNext as z.infer<
-      typeof paginationSchema
-    >;
-    const fetchNextPage = fetchNextOrMeta as
-      | (() => Promise<PageResult<T> | null>)
-      | ((cursor: string) => Promise<PageResult<T> | null>)
-      | undefined;
-
-    const fetchNext: FetchNext<T> = async () => {
-      if (!fetchNextPage) return null;
-      return fetchNextPage.length > 0
-        ? (fetchNextPage as (cursor: string) => Promise<PageResult<T> | null>)(
-            pagination.cursor
-          )
-        : (fetchNextPage as () => Promise<PageResult<T> | null>)();
-    };
-
-    return buildPageResult(data, pagination, fetchNext, meta);
+    if (!isPaginationInfo(paginationOrFetchNext)) {
+      throw new TypeError(
+        "createPageResult: an item array needs pagination info as its second argument"
+      );
+    }
+    const fetchNext = bindFetchNext(
+      isFetchNextPage<T>(fetchNextOrMeta) ? fetchNextOrMeta : undefined,
+      paginationOrFetchNext
+    );
+    return buildPageResult(dataOrRaw, paginationOrFetchNext, fetchNext, meta);
   }
 
-  const raw = dataOrRaw;
-  const fetchNextPage = paginationOrFetchNext as
-    | (() => Promise<PageResult<T> | null>)
-    | ((cursor: string) => Promise<PageResult<T> | null>)
-    | undefined;
-
-  const fetchNext: FetchNext<T> = async () => {
-    if (!fetchNextPage) return null;
-    return fetchNextPage.length > 0
-      ? (fetchNextPage as (cursor: string) => Promise<PageResult<T> | null>)(
-          raw.pagination.cursor
-        )
-      : (fetchNextPage as () => Promise<PageResult<T> | null>)();
-  };
-
+  const fetchNext = bindFetchNext(
+    isFetchNextPage<T>(paginationOrFetchNext)
+      ? paginationOrFetchNext
+      : undefined,
+    dataOrRaw.pagination
+  );
   return buildPageResult(
-    Array.isArray(raw.data) ? raw.data : [],
-    raw.pagination,
+    Array.isArray(dataOrRaw.data) ? dataOrRaw.data : [],
+    dataOrRaw.pagination,
     fetchNext,
-    raw.meta
+    dataOrRaw.meta
   );
 }

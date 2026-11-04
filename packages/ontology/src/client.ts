@@ -11,6 +11,7 @@ import {
   DEFAULT_RETRY_DELAY,
   DEFAULT_TIMEOUT,
 } from "./constants";
+import { lazySingleton } from "./lazy-singleton";
 import { OntologySdk } from "./sdk";
 
 /**
@@ -59,12 +60,12 @@ export function createOntologyClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
-    interceptors: clientOrConfig.interceptors,
+    ...(clientOrConfig.interceptors === undefined
+      ? {}
+      : { interceptors: clientOrConfig.interceptors }),
   });
   return new OntologySdk(http.intercepted);
 }
-
-let _ontologyCache: OntologySdk | undefined;
 
 /**
  * Convenience singleton that lazily creates an {@link OntologySdk} using the
@@ -76,15 +77,6 @@ let _ontologyCache: OntologySdk | undefined;
  * const models = await ontology.schemas.list();
  * ```
  */
-export const ontology = new Proxy<OntologySdk>({} as OntologySdk, {
-  get(_t, prop) {
-    if (!_ontologyCache) {
-      _ontologyCache = createOntologyClient(getDefaultClient());
-    }
-    const inst = _ontologyCache;
-    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === "function"
-      ? (val as (...args: unknown[]) => unknown).bind(inst)
-      : val;
-  },
-});
+export const ontology: OntologySdk = lazySingleton(() =>
+  createOntologyClient(getDefaultClient())
+);

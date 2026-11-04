@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { declaredResponse } from "./boundary";
 import { type RawValue, raw } from "./transform";
 
 /**
@@ -33,6 +34,16 @@ export interface ToolDefinition<
 export type ToolSet = Record<string, ToolDefinition>;
 
 /** Identity helper that preserves input/output inference. */
+/** Parses `input` with `schema`; the result is typed by that schema. */
+function parseWithSchema<S extends z.ZodType>(
+  schema: S,
+  input: unknown
+): z.output<S> {
+  // zod validates `input` here; this links that validated result to the
+  // schema's output type, which zod's generic `parse` does not expose.
+  return declaredResponse<z.output<S>>(schema.parse(input));
+}
+
 export function tool<TInput extends z.ZodType, TOutput = unknown>(
   definition: ToolDefinition<TInput, TOutput>
 ): ToolDefinition<TInput, TOutput> {
@@ -60,7 +71,9 @@ export interface ToolCall<TInput = unknown> {
 /** Converts a {@link ToolSet} into the wire format sent with chat requests. */
 export function toolSetToRequest(tools: ToolSet): ChatToolSpec[] {
   return Object.entries(tools).map(([name, def]) => {
-    const schema = z.toJSONSchema(def.inputSchema) as Record<string, unknown>;
+    const schema: Record<string, unknown> = {
+      ...z.toJSONSchema(def.inputSchema),
+    };
     // The gateway does not need the meta-schema pointer.
     const { $schema: _omit, ...parameters } = schema;
     return {
@@ -88,5 +101,5 @@ export function parseToolInput<
 ): z.infer<TTools[K]["inputSchema"]> {
   const def = tools[toolName];
   if (!def) throw new Error(`Unknown tool: ${toolName}`);
-  return def.inputSchema.parse(rawInput) as z.infer<TTools[K]["inputSchema"]>;
+  return parseWithSchema<TTools[K]["inputSchema"]>(def.inputSchema, rawInput);
 }

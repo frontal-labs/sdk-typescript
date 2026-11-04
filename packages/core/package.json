@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/core",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Frontal platform — shared client, schemas, and utilities",
   "type": "module",
   "main": "dist/index.cjs",
@@ -40,7 +40,7 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsup && tsc --emitDeclarationOnly",
+    "build": "tsup && tsc --emitDeclarationOnly && bun ../../scripts/fix-dts-extensions.ts dist",
     "build:watch": "tsup --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",

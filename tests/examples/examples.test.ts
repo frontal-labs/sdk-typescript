@@ -27,12 +27,7 @@ describe("README examples", () => {
     const tsc = join(root, "node_modules/.bin/tsc");
     const res = spawnSync(
       tsc,
-      [
-        "-p",
-        join(root, "tests/examples/tsconfig.json"),
-        "--pretty",
-        "false",
-      ],
+      ["-p", join(root, "tests/examples/tsconfig.json"), "--pretty", "false"],
       { cwd: root, encoding: "utf8" }
     );
     if (res.status !== 0) {
