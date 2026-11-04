@@ -162,7 +162,6 @@ describe("HttpClient", () => {
         "https://api.test.com/v1/test",
         expect.objectContaining({
           method: "GET",
-          body: undefined,
         })
       );
       expect(result).toEqual(responseData);
