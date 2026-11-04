@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- b0c6766: Restore embeddings on the public `POST /v1/embeddings` route.
+  
+  - `@frontal-labs/ai`: new `ai.embeddings` with `embed`, `embedMany` and `create`. Results keep input order, and responses are checked against the request. Adds `EmbeddingRequestError` and `EmbeddingResponseError`. The gateway's internal embeddings route is no longer part of the contract.
+  - `@frontal-labs/testing`: new `mockEmbeddingModel` for offline tests of `ai.embeddings`.
+  - All AI routes move from `/ai/*` to `/v1/*`: `/v1/chat/completions`, `/v1/decisions`, `/v1/decisions/models`, `/v1/extractions`, `/v1/extractions/vocabularies` and `/v1/embeddings`. The gateway must route these paths for the SDK to work.
+
+### Patch Changes
+
+- 8c7c840: Declarations resolve under `moduleResolution: nodenext`. The build now adds
+  explicit `.js` extensions to relative imports in emitted `.d.ts` files, so
+  `new Frontal()` is typed for NodeNext consumers instead of silently `any`.
+  Runtime code is unchanged.
+- Updated dependencies [3ead735]
+- Updated dependencies [8c7c840]
+  - @frontal-labs/core@1.1.2
+
 ## 0.2.0
 
 ### Minor Changes

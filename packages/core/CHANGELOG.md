@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.2
+
+### Patch Changes
+
+- 3ead735: Core error handling for the ontology API:
+  
+  - HTTP 412 now throws `PreconditionFailedError` (status 412), exported from the
+    core and SDK entry points. It is a `FrontalError`, so existing `instanceof
+    FrontalError` checks still hold.
+  - When an error body has a `code` and a `detail` but no `message`, `detail` is
+    the error message. Other error bodies keep their previous message.
+- 8c7c840: Declarations resolve under `moduleResolution: nodenext`. The build now adds
+  explicit `.js` extensions to relative imports in emitted `.d.ts` files, so
+  `new Frontal()` is typed for NodeNext consumers instead of silently `any`.
+  Runtime code is unchanged.
+
 ## 1.1.1
 
 ### Patch Changes

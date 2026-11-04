@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/ai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "AI client for the Frontal Core.",
   "keywords": [
     "javascript",
@@ -77,7 +77,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@frontal-labs/core": "^1.1.0",
+    "@frontal-labs/core": "^1.1.2",
     "tslib": "^2.8.1",
     "zod": "^4.3.6"
   },
