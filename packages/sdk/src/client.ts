@@ -5,6 +5,7 @@ import type {
 } from "@frontal-labs/ontology";
 import type { SdkConfig } from "./config";
 import type { FrontalOntologyRegistry } from "./index";
+import { lazySingleton } from "./lazy-singleton";
 import { Frontal } from "./sdk";
 
 /**
@@ -32,44 +33,13 @@ export function createFrontalClient<
 }
 
 /**
- * Convenience singleton proxy for the unified Frontal SDK.
+ * Convenience singleton for the unified Frontal SDK.
  * Lazily initialises from environment variables on first property access.
  *
  * @deprecated Prefer `new Frontal({ apiKey })` so configuration is explicit
  * and testable. This export stays for back-compat and will not be removed
  * without a major version bump.
  */
-/**
- * True when `key` names a member of `obj` (own or inherited). Narrows the key
- * so the lookup is checked by the compiler instead of cast to a record.
- */
-function isOwnMember<T extends object>(
-  obj: T,
-  key: PropertyKey
-): key is keyof T {
-  return key in obj;
-}
-
-/**
- * True for a callable member. Narrowing to a concrete signature keeps
- * `bind` typed; `Function.prototype.bind` alone would return `any`.
- */
-function isCallable(value: unknown): value is (...args: unknown[]) => unknown {
-  return typeof value === "function";
-}
-
-let _frontalCache: Frontal | undefined;
-
-export const frontal = new Proxy<Frontal>({} as Frontal, {
-  get(_t, prop) {
-    if (!_frontalCache) {
-      _frontalCache = createFrontalClient(getDefaultClient());
-    }
-    const inst = _frontalCache;
-    if (!isOwnMember(inst, prop)) {
-      return undefined;
-    }
-    const val: unknown = inst[prop];
-    return isCallable(val) ? val.bind(inst) : val;
-  },
-});
+export const frontal: Frontal = lazySingleton(() =>
+  createFrontalClient(getDefaultClient())
+);

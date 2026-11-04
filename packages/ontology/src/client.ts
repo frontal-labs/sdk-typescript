@@ -11,6 +11,7 @@ import {
   DEFAULT_RETRY_DELAY,
   DEFAULT_TIMEOUT,
 } from "./constants";
+import { lazySingleton } from "./lazy-singleton";
 import { OntologySdk } from "./sdk";
 
 /**
@@ -67,27 +68,6 @@ export function createOntologyClient(
 }
 
 /**
- * True when `key` names a member of `obj` (own or inherited). Narrows the key
- * so the lookup is checked by the compiler instead of cast to a record.
- */
-function isOwnMember<T extends object>(
-  obj: T,
-  key: PropertyKey
-): key is keyof T {
-  return key in obj;
-}
-
-/**
- * True for a callable member. Narrowing to a concrete signature keeps
- * `bind` typed; `Function.prototype.bind` alone would return `any`.
- */
-function isCallable(value: unknown): value is (...args: unknown[]) => unknown {
-  return typeof value === "function";
-}
-
-let _ontologyCache: OntologySdk | undefined;
-
-/**
  * Convenience singleton that lazily creates an {@link OntologySdk} using the
  * default environment configuration.
  *
@@ -97,16 +77,6 @@ let _ontologyCache: OntologySdk | undefined;
  * const models = await ontology.schemas.list();
  * ```
  */
-export const ontology = new Proxy<OntologySdk>({} as OntologySdk, {
-  get(_t, prop) {
-    if (!_ontologyCache) {
-      _ontologyCache = createOntologyClient(getDefaultClient());
-    }
-    const inst = _ontologyCache;
-    if (!isOwnMember(inst, prop)) {
-      return undefined;
-    }
-    const val: unknown = inst[prop];
-    return isCallable(val) ? val.bind(inst) : val;
-  },
-});
+export const ontology: OntologySdk = lazySingleton(() =>
+  createOntologyClient(getDefaultClient())
+);
