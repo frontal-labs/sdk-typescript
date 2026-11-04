@@ -1,8 +1,9 @@
 import { type HttpClient, raw } from "@frontal-labs/core";
+import { deriveOntologyRuntime, OBJECT_TYPES_PATH } from "./entity-derive";
 import type {
-  FieldSpec,
   OntologyRuntime,
   RelationSpec,
+  UntypedOntologyRuntime,
 } from "./entity-runtime";
 import type { OntologyClient } from "./entity-types";
 import {
@@ -26,6 +27,9 @@ const OBJECTS_PATH = "/ontology/objects/objects";
 const PROPERTIES_KEY = ["properties"] as const;
 const PRESERVE = { preserveKeys: PROPERTIES_KEY } as const;
 
+/** Object types are read as sent, so their field names keep their case. */
+const UNTRANSFORMED = { untransformed: true } as const;
+
 /** Path of one stored object. */
 function objectPath(id: string): string {
   return `${OBJECTS_PATH}/${encodeURIComponent(id)}`;
@@ -42,19 +46,6 @@ const PROBE_NAMES: ReadonlySet<string> = new Set([
   "$$typeof",
   "nodeType",
 ]);
-
-/** Untyped view of the runtime metadata, used after the typed boundary. */
-interface RuntimeData {
-  readonly entities: readonly string[];
-  readonly objectTypeIds: Readonly<Record<string, string>>;
-  readonly fields: Readonly<
-    Record<string, Readonly<Record<string, FieldSpec>>>
-  >;
-  readonly writable: Readonly<Record<string, readonly string[]>>;
-  readonly relations: Readonly<
-    Record<string, Readonly<Record<string, RelationSpec>>>
-  >;
-}
 
 /** Untyped entity handle, used internally and cast once at the boundary. */
 interface RuntimeHandle {
@@ -80,7 +71,7 @@ function ownValue<T>(
  * in the generated client, so it throws a `TypeError` at construction.
  */
 function buildMetas(
-  data: RuntimeData,
+  data: UntypedOntologyRuntime,
   sdkMembers: (name: string) => boolean
 ): Map<string, EntityMeta> {
   const metas = new Map<string, EntityMeta>();
@@ -145,11 +136,86 @@ function buildMetas(
   return metas;
 }
 
-/** Builds the untyped handles for every entity in `metas`. */
-function buildHandles(
+/** Resolves the metadata of every entity, once per client. */
+type MetaSource = () => Promise<Map<string, EntityMeta>>;
+
+/** Reads the live object types and derives the metadata from them. */
+async function loadLiveMetas(
   http: HttpClient,
-  metas: Map<string, EntityMeta>
-): Map<string, RuntimeHandle> {
+  sdkMembers: (name: string) => boolean
+): Promise<Map<string, EntityMeta>> {
+  const response = await http.get<unknown>(
+    OBJECT_TYPES_PATH,
+    undefined,
+    undefined,
+    {},
+    UNTRANSFORMED
+  );
+  return buildMetas(deriveOntologyRuntime(response), sdkMembers);
+}
+
+/**
+ * A source that reads the live ontology on first use. Concurrent first calls
+ * share one request; a failed read is not cached, so the next call retries.
+ */
+function liveSource(
+  http: HttpClient,
+  sdkMembers: (name: string) => boolean
+): MetaSource {
+  let pending: Promise<Map<string, EntityMeta>> | undefined;
+  return () => {
+    pending ??= loadLiveMetas(http, sdkMembers).catch((error: unknown) => {
+      pending = undefined;
+      throw error;
+    });
+    return pending;
+  };
+}
+
+/** Operations shared by every entity handle, bound to one client. */
+interface Ops {
+  metaFor(entity: string): Promise<EntityMeta>;
+  fetchOne(meta: EntityMeta, id: string): Promise<ObjectRecord>;
+  replaceOne(
+    meta: EntityMeta,
+    id: string,
+    properties: ObjectRecord
+  ): Promise<ObjectRecord>;
+  withRelations(record: ObjectRecord, meta: EntityMeta): ObjectRecord;
+}
+
+function createOps(http: HttpClient, source: MetaSource): Ops {
+  const metaFor = async (entity: string): Promise<EntityMeta> => {
+    const metas = await source();
+    const meta = metas.get(entity);
+    if (meta === undefined) {
+      throw new TypeError(
+        `Entity "${entity}" is not in the live ontology; types may be out of date, run frontal sync`
+      );
+    }
+    return meta;
+  };
+
+  /** Fetches the target of a relation through its foreign key. */
+  const resolveRelation = async (
+    record: ObjectRecord,
+    meta: EntityMeta,
+    relation: string,
+    spec: RelationSpec
+  ): Promise<ObjectRecord | null> => {
+    const key = record[spec.foreignKey];
+    if (key === undefined || key === null) {
+      if (spec.optional) {
+        return null;
+      }
+      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
+    }
+    if (typeof key !== "string") {
+      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
+    }
+    return fetchOne(await metaFor(spec.target), key);
+  };
+
   /** Attaches non-enumerable relation accessors to a stored record. */
   const withRelations = (
     record: ObjectRecord,
@@ -164,14 +230,6 @@ function buildHandles(
       });
     }
     return record;
-  };
-
-  const metaOf = (name: string): EntityMeta => {
-    const meta = metas.get(name);
-    if (meta === undefined) {
-      throw new TypeError(`Unknown ontology entity "${name}".`);
-    }
-    return meta;
   };
 
   /** Fetches one stored object and narrows it to `meta`'s entity. */
@@ -216,28 +274,15 @@ function buildHandles(
       meta
     );
 
-  /** Fetches the target of a relation through its foreign key. */
-  const resolveRelation = async (
-    source: ObjectRecord,
-    meta: EntityMeta,
-    relation: string,
-    spec: RelationSpec
-  ): Promise<ObjectRecord | null> => {
-    const key = source[spec.foreignKey];
-    if (key === undefined || key === null) {
-      if (spec.optional) {
-        return null;
-      }
-      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
-    }
-    if (typeof key !== "string") {
-      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
-    }
-    return fetchOne(metaOf(spec.target), key);
-  };
+  return { metaFor, fetchOne, replaceOne, withRelations };
+}
 
-  const handleFor = (meta: EntityMeta): RuntimeHandle => ({
+/** Builds the handle for one entity name. Metadata is resolved per call. */
+function handleFor(http: HttpClient, ops: Ops, entity: string): RuntimeHandle {
+  const { metaFor, fetchOne, replaceOne, withRelations } = ops;
+  return {
     async list() {
+      const meta = await metaFor(entity);
       // The backend answers with every object of the type; it is not paged.
       const response = await http.get<unknown>(
         OBJECTS_PATH,
@@ -251,10 +296,12 @@ function buildHandles(
       );
     },
     async get(id) {
+      const meta = await metaFor(entity);
       assertId(meta.name, id);
       return fetchOne(meta, id);
     },
     async create(input) {
+      const meta = await metaFor(entity);
       const properties = parseInput(meta, input, "create");
       // The server generates the object id.
       return withRelations(
@@ -271,10 +318,12 @@ function buildHandles(
       );
     },
     async put(id, input) {
+      const meta = await metaFor(entity);
       assertId(meta.name, id);
       return replaceOne(meta, id, parseInput(meta, input, "put"));
     },
     async update(id, patch) {
+      const meta = await metaFor(entity);
       assertId(meta.name, id);
       // Validate the patch before any request, so bad keys cost no round trip.
       const changes = parseInput(meta, patch, "update");
@@ -290,24 +339,25 @@ function buildHandles(
       return replaceOne(meta, id, properties);
     },
     async delete(id) {
+      const meta = await metaFor(entity);
       assertId(meta.name, id);
       await http.delete(objectPath(id));
     },
-  });
-
-  const handles = new Map<string, RuntimeHandle>();
-  for (const meta of metas.values()) {
-    handles.set(meta.name, handleFor(meta));
-  }
-  return handles;
+  };
 }
 
 /**
- * Returns `sdk.ontology` with one typed handle per entity in `runtime`.
+ * Returns `sdk.ontology` with one typed handle per entity.
  *
- * Existing `OntologySdk` members are returned unchanged. A name that is
- * neither an SDK member nor an entity throws a `TypeError` that lists the
- * known entities, except for probe names such as `then` and `toJSON`.
+ * With `runtime`, the metadata is used as given and no request is made. Entity
+ * names outside it throw a `TypeError` that lists the known entities.
+ *
+ * Without `runtime`, the first use of any entity reads the object types from
+ * the API once per client and derives the metadata. A name the live ontology
+ * does not contain rejects on use, not on access.
+ *
+ * Existing `OntologySdk` members are returned unchanged. Probe names such as
+ * `then` and `toJSON` resolve to `undefined`.
  *
  * @internal Used by `Frontal`. Application code reaches handles as
  * `frontal.ontology.<Entity>`.
@@ -317,44 +367,53 @@ export function withEntityHandles<O>(
   http: HttpClient,
   runtime: OntologyRuntime<O> | undefined
 ): OntologyClient<O> {
+  const sdkMember = (name: string): boolean => Reflect.has(sdk, name);
   // The typed metadata is structurally the untyped view; this is the single
   // point where the compile-time keys are erased.
-  const data: RuntimeData | undefined = runtime as RuntimeData | undefined;
-  const metas = buildMetas(
-    data ?? {
-      entities: [],
-      objectTypeIds: {},
-      fields: {},
-      writable: {},
-      relations: {},
-    },
-    (name) => Reflect.has(sdk, name)
-  );
-  const handles = buildHandles(http, metas);
-  const known = [...handles.keys()].sort();
-  const describeKnown = known.length > 0 ? known.join(", ") : "(none)";
+  const pinned =
+    runtime === undefined
+      ? undefined
+      : buildMetas(runtime as unknown as UntypedOntologyRuntime, sdkMember);
+  const source: MetaSource =
+    pinned === undefined
+      ? liveSource(http, sdkMember)
+      : () => Promise.resolve(pinned);
+  const ops = createOps(http, source);
+  const pinnedNames = pinned === undefined ? undefined : new Set(pinned.keys());
+  const describeKnown = pinnedNames
+    ? [...pinnedNames].sort().join(", ") || "(none)"
+    : "";
+
+  const handles = new Map<string, RuntimeHandle>();
+  const handle = (name: string): RuntimeHandle => {
+    let cached = handles.get(name);
+    if (cached === undefined) {
+      cached = handleFor(http, ops, name);
+      handles.set(name, cached);
+    }
+    return cached;
+  };
 
   return new Proxy(sdk, {
     get(target, prop, receiver) {
       if (typeof prop === "symbol" || Reflect.has(target, prop)) {
         return Reflect.get(target, prop, receiver);
       }
-      const handle = handles.get(prop);
-      if (handle !== undefined) {
-        return handle;
-      }
       if (PROBE_NAMES.has(prop)) {
         return undefined;
       }
-      throw new TypeError(
-        `Unknown ontology entity "${prop}". Known entities: ${describeKnown}.`
-      );
+      if (pinnedNames !== undefined && !pinnedNames.has(prop)) {
+        throw new TypeError(
+          `Unknown ontology entity "${prop}". Known entities: ${describeKnown}.`
+        );
+      }
+      return handle(prop);
     },
     has(target, prop) {
-      return (
-        Reflect.has(target, prop) ||
-        (typeof prop === "string" && handles.has(prop))
-      );
+      if (Reflect.has(target, prop)) {
+        return true;
+      }
+      return typeof prop === "string" && (pinnedNames?.has(prop) ?? false);
     },
   }) as unknown as OntologyClient<O>;
 }

@@ -455,14 +455,18 @@ describe("unknown names", () => {
     ).toBeUndefined();
   });
 
-  it("reports no entities when the runtime metadata is absent", () => {
-    const { http } = createTestHttpClient();
+  it("rejects a name the live ontology does not contain", async () => {
+    const { http } = createTestHttpClient([
+      { method: "GET", path: "/ontology/objects/object-types", body: [] },
+    ]);
     const untyped = withEntityHandles(
       new OntologySdk(http),
       http,
       undefined
-    ) as unknown as Record<string, unknown>;
-    expect(() => untyped.Customer).toThrow("Known entities: (none).");
+    ) as unknown as Record<string, { get(id: string): Promise<unknown> }>;
+    await expect(untyped.Customer?.get("1")).rejects.toThrow(
+      'Entity "Customer" is not in the live ontology'
+    );
   });
 });
 

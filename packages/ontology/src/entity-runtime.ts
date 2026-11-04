@@ -104,11 +104,28 @@ export interface OntologyRuntime<O> {
 }
 
 /**
- * Runtime arguments for `createFrontalClient<O>`. The metadata is required
- * whenever the ontology has entities, and optional for the untyped client.
+ * Untyped runtime metadata: the same shape as {@link OntologyRuntime} with
+ * plain string keys. Produced by {@link deriveOntologyRuntime} and used after
+ * the compile-time boundary.
+ */
+export interface UntypedOntologyRuntime {
+  readonly entities: readonly string[];
+  readonly objectTypeIds: Readonly<Record<string, string>>;
+  readonly fields: Readonly<
+    Record<string, Readonly<Record<string, FieldSpec>>>
+  >;
+  readonly writable: Readonly<Record<string, readonly string[]>>;
+  readonly relations: Readonly<
+    Record<string, Readonly<Record<string, RelationSpec>>>
+  >;
+}
+
+/**
+ * Optional runtime metadata for `createFrontalClient<O>` and `new Frontal<O>`.
+ * When omitted, the client reads the object types from the API on first use
+ * and derives the same metadata. When given (the generated `.frontal/client.ts`
+ * does this), it is used as is and no request is made.
  */
 export type OntologyRuntimeArgs<O extends OntologyDefinition<O>> = [
-  keyof O,
-] extends [never]
-  ? [runtime?: OntologyRuntime<O>]
-  : [runtime: OntologyRuntime<O>];
+  runtime?: OntologyRuntime<O>,
+];
