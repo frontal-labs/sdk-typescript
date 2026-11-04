@@ -301,7 +301,7 @@ export class HttpClient {
     const res = await this.fetchWithTimeout(url, {
       method: "PUT",
       headers: this.buildHeaders({ "Content-Type": contentType, ...headers }),
-      body: body as unknown as RequestInit["body"],
+      body,
     });
     return this.consumeResponse(res, async () => {
       if (!res.ok) await this.throwError(res);

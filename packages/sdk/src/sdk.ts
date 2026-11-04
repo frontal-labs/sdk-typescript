@@ -211,7 +211,6 @@ export class Frontal<
       configOrClient instanceof FrontalClient
         ? configOrClient
         : new FrontalClient(resolveSdkConfig(configOrClient));
-    // The tuple is `[runtime]` or `[runtime?]`, depending on TOntology.
-    [this.#runtime] = runtime as [OntologyRuntime<TOntology>?];
+    [this.#runtime] = runtime;
   }
 }

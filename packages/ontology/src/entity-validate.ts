@@ -123,7 +123,8 @@ export function parseStoredRecord(
     ]);
   }
   const problems: FieldProblem[] = [];
-  if (typeof value.id !== "string") {
+  const { id } = value;
+  if (typeof id !== "string") {
     problems.push(
       problem("id", "MISSING_ID", `${meta.name}.id must be a string`)
     );
@@ -169,21 +170,22 @@ export function parseObjectRecord(
     ]);
   }
   const problems: FieldProblem[] = [];
-  if (typeof value.objectId !== "string") {
+  const { objectId, objectTypeId, properties } = value;
+  if (typeof objectId !== "string") {
     problems.push(
       problem("id", "MISSING_ID", `${meta.name} objectId must be a string`)
     );
   }
-  if (value.objectTypeId !== meta.objectTypeId) {
+  if (objectTypeId !== meta.objectTypeId) {
     problems.push(
       problem(
         "objectTypeId",
         "WRONG_TYPE",
-        `${meta.name} objectTypeId must be "${meta.objectTypeId}", got ${JSON.stringify(value.objectTypeId)}`
+        `${meta.name} objectTypeId must be "${meta.objectTypeId}", got ${JSON.stringify(objectTypeId)}`
       )
     );
   }
-  if (!isObjectRecord(value.properties)) {
+  if (!isObjectRecord(properties)) {
     problems.push(
       problem(
         "properties",
@@ -192,13 +194,16 @@ export function parseObjectRecord(
       )
     );
   }
-  if (problems.length > 0) {
+  // `fail` returns never, so reaching the next line proves `objectId` is a
+  // string and `properties` is an object record.
+  if (
+    problems.length > 0 ||
+    typeof objectId !== "string" ||
+    !isObjectRecord(properties)
+  ) {
     fail("INVALID_RESPONSE", summary, problems);
   }
-  return parseStoredRecord(meta, {
-    ...(value.properties as ObjectRecord),
-    id: value.objectId,
-  });
+  return parseStoredRecord(meta, { ...properties, id: objectId });
 }
 
 /**

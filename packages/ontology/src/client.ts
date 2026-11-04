@@ -59,9 +59,22 @@ export function createOntologyClient(
     headers: {},
     environment: env.FRONTAL_ENV,
     debug: env.FRONTAL_DEBUG ?? false,
-    interceptors: clientOrConfig.interceptors,
+    ...(clientOrConfig.interceptors === undefined
+      ? {}
+      : { interceptors: clientOrConfig.interceptors }),
   });
   return new OntologySdk(http.intercepted);
+}
+
+/**
+ * True when `key` names a member of `obj` (own or inherited). Narrows the key
+ * so the lookup is checked by the compiler instead of cast to a record.
+ */
+function isOwnMember<T extends object>(
+  obj: T,
+  key: PropertyKey
+): key is keyof T {
+  return key in obj;
 }
 
 let _ontologyCache: OntologySdk | undefined;
@@ -82,9 +95,10 @@ export const ontology = new Proxy<OntologySdk>({} as OntologySdk, {
       _ontologyCache = createOntologyClient(getDefaultClient());
     }
     const inst = _ontologyCache;
-    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === "function"
-      ? (val as (...args: unknown[]) => unknown).bind(inst)
-      : val;
+    if (!isOwnMember(inst, prop)) {
+      return undefined;
+    }
+    const val: unknown = inst[prop];
+    return typeof val === "function" ? val.bind(inst) : val;
   },
 });

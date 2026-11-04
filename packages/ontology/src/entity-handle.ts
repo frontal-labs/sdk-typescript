@@ -368,12 +368,10 @@ export function withEntityHandles<O>(
   runtime: OntologyRuntime<O> | undefined
 ): OntologyClient<O> {
   const sdkMember = (name: string): boolean => Reflect.has(sdk, name);
-  // The typed metadata is structurally the untyped view; this is the single
-  // point where the compile-time keys are erased.
+  // A typed `OntologyRuntime<O>` is assignable to the untyped view: the typed
+  // keys are a subset of `string`, so no cast is needed.
   const pinned =
-    runtime === undefined
-      ? undefined
-      : buildMetas(runtime as unknown as UntypedOntologyRuntime, sdkMember);
+    runtime === undefined ? undefined : buildMetas(runtime, sdkMember);
   const source: MetaSource =
     pinned === undefined
       ? liveSource(http, sdkMember)
@@ -394,6 +392,9 @@ export function withEntityHandles<O>(
     return cached;
   };
 
+  // The Proxy exposes entity handles that are not statically visible on
+  // OntologySdk. Their presence is guaranteed by the runtime check in `get` and
+  // by the generated ontology type; the cast is the single typed boundary.
   return new Proxy(sdk, {
     get(target, prop, receiver) {
       if (typeof prop === "symbol" || Reflect.has(target, prop)) {
@@ -415,5 +416,5 @@ export function withEntityHandles<O>(
       }
       return typeof prop === "string" && (pinnedNames?.has(prop) ?? false);
     },
-  }) as unknown as OntologyClient<O>;
+  }) as OntologyClient<O>;
 }

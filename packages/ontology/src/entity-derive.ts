@@ -270,10 +270,10 @@ export function deriveOntologyRuntime(
     fields[entity] = entityFields;
     writable[entity] = entityWritable;
     relations[entity] = Object.fromEntries(
-      sortedKeys(entityRelations).map((name) => [
-        name,
-        entityRelations[name] as RelationSpec,
-      ])
+      sortedKeys(entityRelations).flatMap((name) => {
+        const spec = entityRelations[name];
+        return spec === undefined ? [] : [[name, spec] as const];
+      })
     );
   }
 

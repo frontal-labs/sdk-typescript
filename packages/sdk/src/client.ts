@@ -39,6 +39,17 @@ export function createFrontalClient<
  * and testable. This export stays for back-compat and will not be removed
  * without a major version bump.
  */
+/**
+ * True when `key` names a member of `obj` (own or inherited). Narrows the key
+ * so the lookup is checked by the compiler instead of cast to a record.
+ */
+function isOwnMember<T extends object>(
+  obj: T,
+  key: PropertyKey
+): key is keyof T {
+  return key in obj;
+}
+
 let _frontalCache: Frontal | undefined;
 
 export const frontal = new Proxy<Frontal>({} as Frontal, {
@@ -47,9 +58,10 @@ export const frontal = new Proxy<Frontal>({} as Frontal, {
       _frontalCache = createFrontalClient(getDefaultClient());
     }
     const inst = _frontalCache;
-    const val = (inst as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === "function"
-      ? (val as (...args: unknown[]) => unknown).bind(inst)
-      : val;
+    if (!isOwnMember(inst, prop)) {
+      return undefined;
+    }
+    const val: unknown = inst[prop];
+    return typeof val === "function" ? val.bind(inst) : val;
   },
 });

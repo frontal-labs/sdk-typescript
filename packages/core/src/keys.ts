@@ -1,12 +1,9 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
-const runtimeProcessEnv =
-  (
-    globalThis as unknown as {
-      process?: { env?: Record<string, string | undefined> };
-    }
-  ).process?.env ?? {};
+// `process` is absent on edge runtimes, so check for it before reading `env`.
+const runtimeProcessEnv: Readonly<Record<string, string | undefined>> =
+  "process" in globalThis ? (globalThis.process?.env ?? {}) : {};
 
 const apiKeySchema = z
   .string()
