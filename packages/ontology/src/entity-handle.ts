@@ -370,7 +370,8 @@ function createOps(http: HttpClient, source: MetaSource): Ops {
     spec: Extract<RelationSpec, { cardinality: "belongsTo" }>
   ): Promise<ObjectRecord | null> => {
     const key = record[spec.foreignKey];
-    if (key === undefined || key === null) {
+    // An empty key means "no target", the same as a missing one.
+    if (key === undefined || key === null || key === "") {
       if (spec.optional) {
         return null;
       }
@@ -522,7 +523,9 @@ function handleFor(http: HttpClient, ops: Ops, entity: string): RuntimeHandle {
           cursor,
         });
         items.push(...result.items);
-        if (result.nextCursor === null) {
+        // The contract ends a list with null; an empty cursor is also an end,
+        // never a value to request.
+        if (result.nextCursor === null || result.nextCursor === "") {
           return items;
         }
         cursor = result.nextCursor;

@@ -61,15 +61,12 @@ type MutablePageResult<T> = PageResult<T> & {
   _fallbackFetchNextPage?: FetchNext<T>;
 };
 
+/**
+ * Pagination info is an object. Offset-only responses have no cursor, so only
+ * the shape of the object is checked, as before.
+ */
 function isPaginationInfo(value: unknown): value is PaginationInfo {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "cursor" in value &&
-    typeof value.cursor === "string" &&
-    "hasMore" in value &&
-    typeof value.hasMore === "boolean"
-  );
+  return typeof value === "object" && value !== null;
 }
 
 function isFetchNextPage<T>(value: unknown): value is FetchNextPage<T> {

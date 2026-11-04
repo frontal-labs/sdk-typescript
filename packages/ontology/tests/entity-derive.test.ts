@@ -296,3 +296,14 @@ describe("deriveOntologyRuntime: malformed responses", () => {
     ).toThrow(/used more than once/);
   });
 });
+
+describe("deriveOntologyRuntime: prototype names", () => {
+  it("rejects a field type that names an Object.prototype member", () => {
+    const response = [
+      objectType("Note", "ot_note", {
+        fields: { body: { type: "constructor", required: true } },
+      }),
+    ];
+    expect(() => deriveOntologyRuntime(response)).toThrow(/unknown field type/);
+  });
+});

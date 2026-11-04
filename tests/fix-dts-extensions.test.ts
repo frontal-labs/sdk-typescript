@@ -44,6 +44,14 @@ describe("addJsExtensions", () => {
     expect(out).toBe('type T = import("../core/errors.js").E;');
   });
 
+  it("adds .js to a CommonJS require in an import-equals declaration", () => {
+    const source = 'import Helper = require("./helper");\n';
+    const out = addJsExtensions(source, "/pkg/dist", (p) =>
+      p.endsWith("helper.d.ts")
+    );
+    expect(out).toBe('import Helper = require("./helper.js");\n');
+  });
+
   it("leaves specifiers that already have an extension", () => {
     const source = 'export * from "./config.js";';
     expect(addJsExtensions(source, DIR, disk(`${DIR}/config.d.ts`))).toBe(

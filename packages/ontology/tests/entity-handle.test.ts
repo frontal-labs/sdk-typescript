@@ -169,6 +169,45 @@ describe("reads", () => {
     expect((err as ValidationError).code).toBe("INVALID_RESPONSE");
   });
 
+  it("treats an empty foreign key on an optional relation as no target", async () => {
+    const { ontology, mock } = setup([
+      {
+        method: "GET",
+        path: CUSTOMER_PATH,
+        body: stored(CUSTOMER_TYPE, "cust_1", {
+          email: "a@example.com",
+          status: "active",
+          companyId: "",
+        }),
+      },
+    ]);
+    const customer = await ontology.Customer.get("cust_1");
+    expect(await customer.company()).toBeNull();
+    expect(mock.requests.map((r) => r.path)).toEqual([`/v1${CUSTOMER_PATH}`]);
+  });
+
+  it("ends a list when the next cursor is empty instead of requesting it", async () => {
+    const { ontology, mock } = setup([
+      {
+        method: "POST",
+        path: QUERY_PATH,
+        times: 1,
+        body: {
+          results: [
+            stored(CUSTOMER_TYPE, "cust_1", {
+              email: "a@example.com",
+              status: "active",
+            }),
+          ],
+          next_cursor: "",
+        },
+      },
+    ]);
+    const all = await ontology.Customer.list();
+    expect(all.map((c) => c.id)).toEqual(["cust_1"]);
+    expect(mock.requests).toHaveLength(1);
+  });
+
   it("fetches a relation target only when the accessor is called", async () => {
     const { ontology, mock } = setup([
       {

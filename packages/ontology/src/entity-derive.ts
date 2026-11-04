@@ -130,7 +130,9 @@ function kindOf(
     }
     return { enum: [...values] };
   }
-  const kind = FIELD_KINDS[field.type];
+  const kind = Object.hasOwn(FIELD_KINDS, field.type)
+    ? FIELD_KINDS[field.type]
+    : undefined;
   if (kind === undefined) {
     throw invalid(
       `${entity}.${name} has an unknown field type "${field.type}".`

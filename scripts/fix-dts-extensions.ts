@@ -22,7 +22,7 @@ import { dirname, join, resolve } from "node:path";
  * and `export * from "x"` forms. Group 2 is the quote, group 3 the path.
  */
 const SPECIFIER =
-  /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(["'])(\.\.?\/[^"']+)\2/g;
+  /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|=\s*require\s*\(\s*)(["'])(\.\.?\/[^"']+)\2/g;
 
 /** Specifiers that already name a file with an extension are left alone. */
 const HAS_EXTENSION = /\.(?:[cm]?js|json|d\.ts)$/;
