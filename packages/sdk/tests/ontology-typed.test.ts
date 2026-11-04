@@ -6,7 +6,11 @@ import type {
 } from "@frontal-labs/ontology";
 import { createTestClient } from "@frontal-labs/testing";
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { createFrontalClient, type Frontal } from "../src";
+import {
+  createFrontalClient,
+  type Frontal,
+  type FrontalOntologyRegistry,
+} from "../src";
 
 const API_KEY = "frt_test_key_123";
 
@@ -40,15 +44,16 @@ describe("createFrontalClient without an ontology", () => {
     expect(plain).toBe(f.ontology);
   });
 
-  it("throws a TypeError for entity names it does not know", () => {
+  it("returns a handle for any name, with no request until it is used", () => {
     const f = createFrontalClient({ apiKey: API_KEY });
-    expect(
-      () => (f.ontology as unknown as Record<string, unknown>).Customer
-    ).toThrow("Known entities: (none).");
+    const handle = (f.ontology as unknown as Record<string, { get?: unknown }>)
+      .Customer;
+    expect(typeof handle?.get).toBe("function");
   });
 
   it("types the untyped default without entity keys", () => {
     const f = createFrontalClient({ apiKey: API_KEY });
+    expectTypeOf(f).toEqualTypeOf<Frontal<FrontalOntologyRegistry>>();
     expectTypeOf(f).toEqualTypeOf<Frontal<UntypedOntology>>();
     // Type-only probe: the access is compile-checked and never executed.
     const probe = () =>
@@ -81,9 +86,10 @@ describe("createFrontalClient with a generated ontology", () => {
     expectTypeOf(f.ontology).toEqualTypeOf<OntologyClient<SampleOntology>>();
   });
 
-  it("requires the runtime metadata when the ontology has entities", () => {
-    // @ts-expect-error runtime metadata is required for a typed ontology
-    void createFrontalClient<SampleOntology>({ apiKey: API_KEY });
+  it("accepts omitting the runtime metadata and keeps the typed handles", () => {
+    const f = createFrontalClient<SampleOntology>({ apiKey: API_KEY });
+    expectTypeOf(f).toEqualTypeOf<Frontal<SampleOntology>>();
+    expect(typeof f.ontology.Customer.get).toBe("function");
   });
 
   it("rejects runtime metadata that does not match the ontology", () => {

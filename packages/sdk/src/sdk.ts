@@ -28,7 +28,6 @@ import type {
   OntologyDefinition,
   OntologyRuntime,
   OntologyRuntimeArgs,
-  UntypedOntology,
 } from "@frontal-labs/ontology";
 import {
   createOntologyClient,
@@ -43,6 +42,7 @@ import { createWebhooksClient } from "@frontal-labs/webhooks";
 import type { WorkflowsSdk } from "@frontal-labs/workflows";
 import { createWorkflowsClient } from "@frontal-labs/workflows";
 import { resolveSdkConfig, type SdkConfig } from "./config";
+import type { FrontalOntologyRegistry } from "./index";
 
 /**
  * Unified Frontal SDK client providing lazy access to all service namespaces.
@@ -50,7 +50,7 @@ import { resolveSdkConfig, type SdkConfig } from "./config";
  * {@link FrontalClient} connection.
  */
 export class Frontal<
-  TOntology extends OntologyDefinition<TOntology> = UntypedOntology,
+  TOntology extends OntologyDefinition<TOntology> = FrontalOntologyRegistry,
 > {
   readonly #frontal: FrontalClient;
   readonly #runtime: OntologyRuntime<TOntology> | undefined;

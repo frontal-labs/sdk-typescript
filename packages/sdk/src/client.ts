@@ -2,9 +2,9 @@ import { type FrontalClient, getDefaultClient } from "@frontal-labs/core";
 import type {
   OntologyDefinition,
   OntologyRuntimeArgs,
-  UntypedOntology,
 } from "@frontal-labs/ontology";
 import type { SdkConfig } from "./config";
+import type { FrontalOntologyRegistry } from "./index";
 import { Frontal } from "./sdk";
 
 /**
@@ -23,7 +23,7 @@ import { Frontal } from "./sdk";
  * @returns A configured `Frontal` client with access to all service namespaces.
  */
 export function createFrontalClient<
-  TOntology extends OntologyDefinition<TOntology> = UntypedOntology,
+  TOntology extends OntologyDefinition<TOntology> = FrontalOntologyRegistry,
 >(
   config: SdkConfig | FrontalClient,
   ...runtime: OntologyRuntimeArgs<TOntology>
