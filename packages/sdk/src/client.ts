@@ -50,6 +50,14 @@ function isOwnMember<T extends object>(
   return key in obj;
 }
 
+/**
+ * True for a callable member. Narrowing to a concrete signature keeps
+ * `bind` typed; `Function.prototype.bind` alone would return `any`.
+ */
+function isCallable(value: unknown): value is (...args: unknown[]) => unknown {
+  return typeof value === "function";
+}
+
 let _frontalCache: Frontal | undefined;
 
 export const frontal = new Proxy<Frontal>({} as Frontal, {
@@ -62,6 +70,6 @@ export const frontal = new Proxy<Frontal>({} as Frontal, {
       return undefined;
     }
     const val: unknown = inst[prop];
-    return typeof val === "function" ? val.bind(inst) : val;
+    return isCallable(val) ? val.bind(inst) : val;
   },
 });
