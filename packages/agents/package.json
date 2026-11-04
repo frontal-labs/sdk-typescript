@@ -49,7 +49,7 @@
     "directory": "packages/agents"
   },
   "scripts": {
-    "build": "tsup && tsc --emitDeclarationOnly",
+    "build": "tsup && tsc --emitDeclarationOnly && bun ../../scripts/fix-dts-extensions.ts dist",
     "build:watch": "tsup --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
