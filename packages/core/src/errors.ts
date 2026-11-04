@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 import { isObjectRecord } from "./guards";
 import { parseRetryAfterMs } from "./retry";
 import {
@@ -370,8 +370,6 @@ function fromNestedEnvelope(body: unknown): unknown {
   };
 }
 
-const errorFieldsSchema = z.array(errorFieldSchema);
-
 function normalizeErrorBody(raw: unknown): ErrorResponseInput {
   const body = fromNestedEnvelope(raw);
   const parsed = errorResponseSchema.safeParse(body);
@@ -405,9 +403,15 @@ function normalizeErrorBody(raw: unknown): ErrorResponseInput {
       ? explicitMessage
       : (detail ?? "An unknown error occurred");
 
-  // Field entries are kept only when they match the error-field schema, so a
-  // malformed entry cannot reach consumers typed as `ErrorField`.
-  const fieldList = errorFieldsSchema.safeParse(rawFields);
+  // Each field entry is kept only when it matches the error-field schema, so a
+  // malformed entry cannot reach consumers typed as `ErrorField`. Valid entries
+  // are kept even when a neighbour is malformed.
+  const fields = Array.isArray(rawFields)
+    ? rawFields.flatMap((entry: unknown) => {
+        const parsed = errorFieldSchema.safeParse(entry);
+        return parsed.success ? [parsed.data] : [];
+      })
+    : undefined;
 
   return {
     code,
@@ -417,7 +421,7 @@ function normalizeErrorBody(raw: unknown): ErrorResponseInput {
         ? rawRequestId
         : "unknown",
     docs: typeof rawDocs === "string" ? rawDocs : undefined,
-    fields: fieldList.success ? fieldList.data : undefined,
+    fields,
   };
 }
 

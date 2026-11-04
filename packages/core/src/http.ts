@@ -3,6 +3,7 @@ import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { MAX_TIMER_MS, RETRY_AFTER_MAX_MS, SDK_VERSION } from "./constants";
 import { NetworkError, parseFrontalError, TimeoutError } from "./errors";
+import { isObjectRecord } from "./guards";
 import { composeInterceptors, type Interceptor } from "./interceptors";
 import {
   calculateDelay,
@@ -87,19 +88,35 @@ interface ZstdCodec {
  * Bun expose `zlib` through `process.getBuiltinModule`, which keeps `zlib` out
  * of browser bundles.
  */
+function isGetBuiltinModule(value: unknown): value is (id: string) => unknown {
+  return typeof value === "function";
+}
+
+function isZstdCodec(value: unknown): value is ZstdCodec {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "zstdCompressSync" in value &&
+    typeof value.zstdCompressSync === "function"
+  );
+}
+
 function requireZstd(): ZstdCodec {
-  const getBuiltin = (
-    globalThis as {
-      process?: { getBuiltinModule?: (id: string) => unknown };
-    }
-  ).process?.getBuiltinModule;
-  const zlib = getBuiltin?.("node:zlib") as Partial<ZstdCodec> | undefined;
-  if (typeof zlib?.zstdCompressSync !== "function") {
+  const proc: unknown =
+    "process" in globalThis ? globalThis.process : undefined;
+  const getBuiltin: unknown =
+    typeof proc === "object" && proc !== null && "getBuiltinModule" in proc
+      ? proc.getBuiltinModule
+      : undefined;
+  const zlib: unknown = isGetBuiltinModule(getBuiltin)
+    ? getBuiltin("node:zlib")
+    : undefined;
+  if (!isZstdCodec(zlib)) {
     throw new TypeError(
       'compression: "zstd" needs a runtime with zstd support (Node.js 22.15+ or Bun). Set compression: false to send uncompressed bodies.'
     );
   }
-  return zlib as ZstdCodec;
+  return zlib;
 }
 
 /**
@@ -119,9 +136,29 @@ async function readErrorText(res: Response): Promise<string> {
  * Returns a copy of a request init safe to pass to logs and telemetry: the
  * bearer credential in `Authorization` is masked, keeping the scheme visible.
  */
+function headerRecord(
+  headers: NonNullable<RequestInit["headers"]>
+): Record<string, string> {
+  if (
+    !(headers instanceof Headers || Array.isArray(headers)) &&
+    typeof headers === "object"
+  ) {
+    const copy: Record<string, string> = {};
+    for (const [key, value] of Object.entries(headers)) {
+      if (typeof value === "string") copy[key] = value;
+    }
+    return copy;
+  }
+  // Header tuples and Headers instances are normalised so every credential is
+  // visible to the masking loop below.
+  const out: Record<string, string> = {};
+  for (const [key, value] of new Headers(headers)) out[key] = value;
+  return out;
+}
+
 function redactRequestInit(init: RequestInit): RequestInit {
   if (!init.headers) return init;
-  const headers = { ...(init.headers as Record<string, string>) };
+  const headers = headerRecord(init.headers);
   for (const key of Object.keys(headers)) {
     if (key.toLowerCase() !== "authorization") continue;
     headers[key] = headers[key]?.startsWith("Bearer ")
@@ -395,6 +432,8 @@ export class HttpClient {
     return this.consumeResponse(res, async () => {
       if (!res.ok) await this.throwError(res);
       const json = await res.json();
+      // Boundary: the caller declares the response type `T`; no runtime check
+      // can verify it without a schema.
       return deepSnakeToCamel(json) as T;
     });
   }
@@ -876,6 +915,7 @@ export class HttpClient {
 
     try {
       const result = await this.consumeResponse(res, async () => {
+        // Boundary: a 204 has no body, and the caller declares it as `T`.
         if (res.status === 204) return undefined as T;
 
         const contentType = (
@@ -905,6 +945,7 @@ export class HttpClient {
           return tagRequestId(parsed.data, tagId);
         }
 
+        // Boundary: an unvalidated response is typed as the caller's `T`.
         return tagRequestId(transformedPayload as T, tagId);
       });
       report(res.status, undefined, serverRequestId);
@@ -934,16 +975,17 @@ export class HttpClient {
    * `options.preserveKeys`, which are copied through exactly as sent.
    */
   private transformPayload(payload: unknown, options: RequestOptions): unknown {
-    if (typeof payload !== "object" || payload === null) return payload;
     // A top-level array is a list of records: each record is transformed on
     // its own, so `preserveKeys` applies to every element.
     if (Array.isArray(payload)) {
-      return payload.map((item) => this.transformPayload(item, options));
+      const items: unknown[] = payload;
+      return items.map((item: unknown) => this.transformPayload(item, options));
     }
-    const converted = deepSnakeToCamel(payload) as Record<string, unknown>;
+    if (!isObjectRecord(payload)) return payload;
+    const converted = deepSnakeToCamel(payload);
     for (const key of options.preserveKeys ?? []) {
-      if (key in (payload as Record<string, unknown>)) {
-        converted[key] = (payload as Record<string, unknown>)[key];
+      if (key in payload) {
+        converted[key] = payload[key];
       }
     }
     return converted;
@@ -998,9 +1040,7 @@ export class HttpClient {
 
     const url = `${base}${normalizedPath}`;
 
-    const transformedParams = params
-      ? (deepCamelToSnake(params) as Record<string, unknown>)
-      : params;
+    const transformedParams = params ? deepCamelToSnake(params) : params;
 
     if (!transformedParams || Object.keys(transformedParams).length === 0) {
       return url;

@@ -70,17 +70,17 @@ function isStream(obj: unknown): boolean {
 }
 
 /**
- * Recursively walks an object/array and transforms all keys using `transform`.
- * Skips Dates, Buffers, RegExps, FormData, Files, Blobs, streams, and class instances.
+ * Walks an arbitrary value and transforms the keys of every plain object.
+ * Works on `unknown`; every branch narrows with a guard.
  */
-export function deepTransformKeys<T>(
-  obj: T,
+function transformValue(
+  obj: unknown,
   transform: (key: string) => string,
-  skipKeys?: Set<string>
-): T {
+  skipKeys: Set<string> | undefined
+): unknown {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj !== "object") return obj;
-  if (isRaw(obj)) return obj.value as T;
+  if (isRaw(obj)) return obj.value;
   if (
     obj instanceof Date ||
     (typeof Buffer !== "undefined" && obj instanceof Buffer) ||
@@ -93,25 +93,38 @@ export function deepTransformKeys<T>(
   if (isStream(obj)) return obj;
 
   if (Array.isArray(obj)) {
-    return (obj as unknown[]).map((item) =>
-      deepTransformKeys(item, transform, skipKeys)
-    ) as T;
+    const items: unknown[] = obj;
+    return items.map((item: unknown) =>
+      transformValue(item, transform, skipKeys)
+    );
   }
 
   const proto = Object.getPrototypeOf(obj);
   if (proto !== Object.prototype && proto !== null) return obj;
+  if (!isObjectRecord(obj)) return obj;
 
   const result: Record<string, unknown> = {};
-  for (const key of Object.keys(obj as Record<string, unknown>)) {
+  for (const key of Object.keys(obj)) {
     const shouldSkip = skipKeys?.has(key) || NEVER_TRANSFORM_KEYS.has(key);
     const newKey = shouldSkip ? key : transform(key);
-    result[newKey] = deepTransformKeys(
-      (obj as Record<string, unknown>)[key],
-      transform,
-      skipKeys
-    );
+    result[newKey] = transformValue(obj[key], transform, skipKeys);
   }
-  return result as T;
+  return result;
+}
+
+/**
+ * Recursively walks an object/array and transforms all keys using `transform`.
+ * Skips Dates, Buffers, RegExps, FormData, Files, Blobs, streams, and class instances.
+ *
+ * The result has the input's shape with renamed keys. TypeScript cannot express
+ * renamed keys on `T`, so this return is the module's one documented cast.
+ */
+export function deepTransformKeys<T>(
+  obj: T,
+  transform: (key: string) => string,
+  skipKeys?: Set<string>
+): T {
+  return transformValue(obj, transform, skipKeys) as T;
 }
 
 /** Convenience: recursively converts all object keys from camelCase to snake_case. */

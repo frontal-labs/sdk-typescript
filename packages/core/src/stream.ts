@@ -124,7 +124,7 @@ function abortPromise(signal: AbortSignal): {
 export function toSdkError(error: unknown): SdkError {
   if (isFrontalError(error)) return error;
   if (NetworkError.isInstance(error) || TimeoutError.isInstance(error)) {
-    return error as SdkError;
+    return error;
   }
   if (error instanceof Error && error.name === "AbortError") {
     return new TimeoutError(error.message);

@@ -45,11 +45,12 @@ export async function pollUntil<T>(
     signal,
   } = options;
 
+  const retryOn: number[] = [];
   const retryConfig = {
     baseDelay: interval,
     strategy: backoff,
     maxAttempts: Number.POSITIVE_INFINITY,
-    on: [] as number[],
+    on: retryOn,
     jitter: true,
   };
   const start = Date.now();

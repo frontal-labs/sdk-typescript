@@ -195,8 +195,13 @@ export function tagRequestId<T>(value: T, requestId: string): T {
  */
 export function requestIdOf(value: unknown): string | undefined {
   if (typeof value !== "object" || value === null) return undefined;
-  const tagged = (value as Record<symbol, unknown>)[REQUEST_ID];
-  if (typeof tagged === "string") return tagged;
-  const asError = value as { requestId?: unknown };
-  return typeof asError.requestId === "string" ? asError.requestId : undefined;
+  if (REQUEST_ID in value) {
+    const tagged = value[REQUEST_ID];
+    if (typeof tagged === "string") return tagged;
+  }
+  if ("requestId" in value) {
+    const requestId = value.requestId;
+    return typeof requestId === "string" ? requestId : undefined;
+  }
+  return undefined;
 }
