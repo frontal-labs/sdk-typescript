@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { declaredResponse } from "./boundary";
 import { type RawValue, raw } from "./transform";
 
 /**
@@ -33,6 +34,16 @@ export interface ToolDefinition<
 export type ToolSet = Record<string, ToolDefinition>;
 
 /** Identity helper that preserves input/output inference. */
+/** Parses `input` with `schema`; the result is typed by that schema. */
+function parseWithSchema<S extends z.ZodType>(
+  schema: S,
+  input: unknown
+): z.output<S> {
+  // zod validates `input` here; this links that validated result to the
+  // schema's output type, which zod's generic `parse` does not expose.
+  return declaredResponse<z.output<S>>(schema.parse(input));
+}
+
 export function tool<TInput extends z.ZodType, TOutput = unknown>(
   definition: ToolDefinition<TInput, TOutput>
 ): ToolDefinition<TInput, TOutput> {
@@ -90,6 +101,5 @@ export function parseToolInput<
 ): z.infer<TTools[K]["inputSchema"]> {
   const def = tools[toolName];
   if (!def) throw new Error(`Unknown tool: ${toolName}`);
-  // Boundary: zod's generic `parse` returns `unknown` for a schema of this type.
-  return def.inputSchema.parse(rawInput) as z.infer<TTools[K]["inputSchema"]>;
+  return parseWithSchema<TTools[K]["inputSchema"]>(def.inputSchema, rawInput);
 }

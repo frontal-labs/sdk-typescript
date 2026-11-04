@@ -33,6 +33,7 @@ const _SKIP_TYPES = new Set([
 
 const NEVER_TRANSFORM_KEYS = new Set(["$ref", "$schema", "$id"]);
 
+import { declaredResponse } from "./boundary";
 import { isObjectRecord } from "./guards";
 
 const RAW: unique symbol = Symbol.for("frontal.raw");
@@ -124,7 +125,7 @@ export function deepTransformKeys<T>(
   transform: (key: string) => string,
   skipKeys?: Set<string>
 ): T {
-  return transformValue(obj, transform, skipKeys) as T;
+  return declaredResponse<T>(transformValue(obj, transform, skipKeys));
 }
 
 /** Convenience: recursively converts all object keys from camelCase to snake_case. */

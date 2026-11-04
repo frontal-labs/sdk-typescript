@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { declaredResponse } from "./boundary";
 import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { MAX_TIMER_MS, RETRY_AFTER_MAX_MS, SDK_VERSION } from "./constants";
@@ -156,7 +157,7 @@ function headerRecord(
   return out;
 }
 
-function redactRequestInit(init: RequestInit): RequestInit {
+export function redactRequestInit(init: RequestInit): RequestInit {
   if (!init.headers) return init;
   const headers = headerRecord(init.headers);
   for (const key of Object.keys(headers)) {
@@ -432,9 +433,7 @@ export class HttpClient {
     return this.consumeResponse(res, async () => {
       if (!res.ok) await this.throwError(res);
       const json = await res.json();
-      // Boundary: the caller declares the response type `T`; no runtime check
-      // can verify it without a schema.
-      return deepSnakeToCamel(json) as T;
+      return declaredResponse<T>(deepSnakeToCamel(json));
     });
   }
 
@@ -915,8 +914,8 @@ export class HttpClient {
 
     try {
       const result = await this.consumeResponse(res, async () => {
-        // Boundary: a 204 has no body, and the caller declares it as `T`.
-        if (res.status === 204) return undefined as T;
+        // A 204 has no body; the caller's declared type covers that case.
+        if (res.status === 204) return declaredResponse<T>(undefined);
 
         const contentType = (
           res.headers.get("content-type") || ""
@@ -945,8 +944,7 @@ export class HttpClient {
           return tagRequestId(parsed.data, tagId);
         }
 
-        // Boundary: an unvalidated response is typed as the caller's `T`.
-        return tagRequestId(transformedPayload as T, tagId);
+        return tagRequestId(declaredResponse<T>(transformedPayload), tagId);
       });
       report(res.status, undefined, serverRequestId);
       return result;

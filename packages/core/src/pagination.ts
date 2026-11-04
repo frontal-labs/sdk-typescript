@@ -1,4 +1,5 @@
 import { type ZodType, z } from "zod";
+import { declaredResponse } from "./boundary";
 import type { PaginationMeta } from "./schemas";
 import { responseMetaSchema } from "./schemas";
 import type { PageResult } from "./types";
@@ -12,9 +13,13 @@ export function asPagePayload<T>(raw: unknown): {
   pagination: PaginationMeta;
   meta?: unknown;
 } {
-  // `T` is the caller's element type, which no runtime check can verify. The
-  // envelope itself is checked by the caller's pagination parse.
-  return raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
+  // The envelope itself is checked by the caller's pagination parse; `T` is the
+  // caller's element type.
+  return declaredResponse<{
+    data: T[];
+    pagination: PaginationMeta;
+    meta?: unknown;
+  }>(raw);
 }
 
 const paginationSchema = z
