@@ -4,6 +4,8 @@ import { z } from "zod";
 // `process` is absent on edge runtimes, so check for it before reading `env`.
 const runtimeProcessEnv: Readonly<Record<string, string | undefined>> =
   "process" in globalThis ? (globalThis.process?.env ?? {}) : {};
+const { FRONTAL_ENV, FRONTAL_API_KEY, FRONTAL_API_URL, FRONTAL_DEBUG } =
+  runtimeProcessEnv;
 
 const apiKeySchema = z
   .string()
@@ -45,10 +47,10 @@ export const env = createEnv({
     FRONTAL_DEBUG: debugSchema,
   },
   runtimeEnv: {
-    FRONTAL_ENV: runtimeProcessEnv.FRONTAL_ENV,
-    FRONTAL_API_KEY: runtimeProcessEnv.FRONTAL_API_KEY,
-    FRONTAL_API_URL: runtimeProcessEnv.FRONTAL_API_URL,
-    FRONTAL_DEBUG: runtimeProcessEnv.FRONTAL_DEBUG,
+    FRONTAL_ENV,
+    FRONTAL_API_KEY,
+    FRONTAL_API_URL,
+    FRONTAL_DEBUG,
   },
   emptyStringAsUndefined: true,
 });

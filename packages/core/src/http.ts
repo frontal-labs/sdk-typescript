@@ -790,7 +790,7 @@ export class HttpClient {
           ? { "Idempotency-Key": options.idempotencyKey }
           : {}),
       }),
-      body: encoded?.body,
+      ...(encoded?.body !== undefined ? { body: encoded.body } : {}),
     };
 
     this.config.logger?.request?.(method, url, redactRequestInit(reqInit));

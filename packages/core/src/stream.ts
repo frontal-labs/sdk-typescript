@@ -24,7 +24,7 @@ export interface SseEvent<T = unknown> {
  * - `done`  — terminal; always emitted exactly once
  */
 export type StreamPart<T = unknown> =
-  | { type: "data"; event: string; data: T; id?: string }
+  | { type: "data"; event: string; data: T; id?: string | undefined }
   | { type: "error"; error: SdkError }
   | { type: "abort" }
   | { type: "done" };

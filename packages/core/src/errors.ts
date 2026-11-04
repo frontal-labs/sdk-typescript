@@ -1,6 +1,11 @@
-import type { z } from "zod";
+import { z } from "zod";
+import { isObjectRecord } from "./guards";
 import { parseRetryAfterMs } from "./retry";
-import { type ErrorField, errorResponseSchema } from "./schemas";
+import {
+  type ErrorField,
+  errorFieldSchema,
+  errorResponseSchema,
+} from "./schemas";
 
 type ErrorResponseInput = z.infer<typeof errorResponseSchema>;
 
@@ -29,8 +34,8 @@ export class FrontalError extends Error {
   readonly code: string;
   readonly requestId: string;
   readonly statusCode: number;
-  readonly docs?: string;
-  readonly rateLimit?: RateLimitInfo;
+  readonly docs?: string | undefined;
+  readonly rateLimit?: RateLimitInfo | undefined;
   /**
    * Whether retrying the same request may succeed (rate limits, transient
    * 5xx, network). UIs and agents can branch on this without a status table.
@@ -40,7 +45,7 @@ export class FrontalError extends Error {
    * Human-readable next step, when the SDK knows one
    * (e.g. "Set FRONTAL_API_KEY to a key starting with frt_").
    */
-  readonly fix?: string;
+  readonly fix?: string | undefined;
 
   /**
    * @param response - The parsed error response from the API.
@@ -98,8 +103,8 @@ export interface SerializedFrontalError {
   requestId: string;
   statusCode: number;
   retryable: boolean;
-  docs?: string;
-  fix?: string;
+  docs?: string | undefined;
+  fix?: string | undefined;
 }
 
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
@@ -138,7 +143,8 @@ export function isFrontalError(error: unknown): error is FrontalError {
   return (
     typeof error === "object" &&
     error !== null &&
-    (error as Record<symbol, unknown>)[FRONTAL_ERROR_BRAND] === true
+    FRONTAL_ERROR_BRAND in error &&
+    error[FRONTAL_ERROR_BRAND] === true
   );
 }
 
@@ -151,7 +157,7 @@ function byName<T extends FrontalError>(name: string) {
  * Thrown when the API returns a 404 status.
  */
 export class NotFoundError extends FrontalError {
-  static isInstance = byName<NotFoundError>("NotFoundError");
+  static override isInstance = byName<NotFoundError>("NotFoundError");
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 404, rateLimit);
     this.name = "NotFoundError";
@@ -162,7 +168,7 @@ export class NotFoundError extends FrontalError {
  * Thrown when the API returns a 401 status.
  */
 export class UnauthorizedError extends FrontalError {
-  static isInstance = byName<UnauthorizedError>("UnauthorizedError");
+  static override isInstance = byName<UnauthorizedError>("UnauthorizedError");
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 401, rateLimit);
     this.name = "UnauthorizedError";
@@ -173,7 +179,7 @@ export class UnauthorizedError extends FrontalError {
  * Thrown when the API returns a 403 status.
  */
 export class ForbiddenError extends FrontalError {
-  static isInstance = byName<ForbiddenError>("ForbiddenError");
+  static override isInstance = byName<ForbiddenError>("ForbiddenError");
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 403, rateLimit);
     this.name = "ForbiddenError";
@@ -184,7 +190,7 @@ export class ForbiddenError extends FrontalError {
  * Thrown when the API returns a 400 status with field-level validation details.
  */
 export class ValidationError extends FrontalError {
-  static isInstance = byName<ValidationError>("ValidationError");
+  static override isInstance = byName<ValidationError>("ValidationError");
   /** Per-field validation errors returned by the API. */
   readonly fields: ErrorField[];
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
@@ -198,7 +204,7 @@ export class ValidationError extends FrontalError {
  * Thrown when the API returns a 409 status (resource conflict).
  */
 export class ConflictError extends FrontalError {
-  static isInstance = byName<ConflictError>("ConflictError");
+  static override isInstance = byName<ConflictError>("ConflictError");
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 409, rateLimit);
     this.name = "ConflictError";
@@ -211,7 +217,7 @@ export class ConflictError extends FrontalError {
  * someone else, so re-read it and try again.
  */
 export class PreconditionFailedError extends FrontalError {
-  static isInstance = byName<PreconditionFailedError>(
+  static override isInstance = byName<PreconditionFailedError>(
     "PreconditionFailedError"
   );
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
@@ -224,7 +230,7 @@ export class PreconditionFailedError extends FrontalError {
  * Thrown when the API returns a 429 status (rate limited).
  */
 export class RateLimitError extends FrontalError {
-  static isInstance = byName<RateLimitError>("RateLimitError");
+  static override isInstance = byName<RateLimitError>("RateLimitError");
   /** Recommended delay in seconds before retrying. */
   readonly retryAfter: number;
   constructor(
@@ -244,7 +250,9 @@ export class RateLimitError extends FrontalError {
  * back.
  */
 export class PaymentRequiredError extends FrontalError {
-  static isInstance = byName<PaymentRequiredError>("PaymentRequiredError");
+  static override isInstance = byName<PaymentRequiredError>(
+    "PaymentRequiredError"
+  );
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 402, rateLimit);
     this.name = "PaymentRequiredError";
@@ -255,7 +263,9 @@ export class PaymentRequiredError extends FrontalError {
  * Thrown when the API returns a 413 status (the request body is too large).
  */
 export class PayloadTooLargeError extends FrontalError {
-  static isInstance = byName<PayloadTooLargeError>("PayloadTooLargeError");
+  static override isInstance = byName<PayloadTooLargeError>(
+    "PayloadTooLargeError"
+  );
   constructor(r: ErrorResponseInput, rateLimit?: RateLimitInfo) {
     super(r, 413, rateLimit);
     this.name = "PayloadTooLargeError";
@@ -266,7 +276,7 @@ export class PayloadTooLargeError extends FrontalError {
  * Thrown when the API returns a 5xx status code.
  */
 export class ServiceError extends FrontalError {
-  static isInstance = byName<ServiceError>("ServiceError");
+  static override isInstance = byName<ServiceError>("ServiceError");
   constructor(
     r: ErrorResponseInput,
     status: number,
@@ -290,7 +300,7 @@ export class NetworkError extends Error {
   readonly requestId?: string;
   readonly fix =
     "Check network connectivity and FRONTAL_API_URL; the request never reached the API.";
-  constructor(readonly cause: unknown) {
+  constructor(override readonly cause: unknown) {
     super("Network error — could not reach Frontal API");
     this.name = "NetworkError";
     Object.setPrototypeOf(this, new.target.prototype);
@@ -334,11 +344,9 @@ export type SdkError = FrontalError | NetworkError | TimeoutError;
  * (which are never retryable).
  */
 export function isRetryableError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    (error as { retryable?: unknown }).retryable === true
-  );
+  if (!isObjectRecord(error)) return false;
+  const { retryable } = error;
+  return retryable === true;
 }
 
 /**
@@ -346,49 +354,49 @@ export function isRetryableError(error: unknown): boolean {
  * the flat shape. Other bodies pass through unchanged.
  */
 function fromNestedEnvelope(body: unknown): unknown {
-  if (typeof body !== "object" || body === null) return body;
-  const record = body as Record<string, unknown>;
-  const detail = record.error;
-  if (typeof detail !== "object" || detail === null) return body;
-  const inner = detail as Record<string, unknown>;
-  if (typeof inner.message !== "string") return body;
-  const requestId = record.requestId ?? record.request_id;
+  if (!isObjectRecord(body)) return body;
+  const { error: detail, requestId: camelId, request_id: snakeId } = body;
+  if (!isObjectRecord(detail)) return body;
+  const { code: innerCode, message: innerMessage } = detail;
+  if (typeof innerMessage !== "string") return body;
+  const requestId = camelId ?? snakeId;
   return {
     code:
-      typeof inner.code === "string" && inner.code.length > 0
-        ? inner.code
+      typeof innerCode === "string" && innerCode.length > 0
+        ? innerCode
         : "UNKNOWN_ERROR",
-    message: inner.message,
+    message: innerMessage,
     requestId,
   };
 }
+
+const errorFieldsSchema = z.array(errorFieldSchema);
 
 function normalizeErrorBody(raw: unknown): ErrorResponseInput {
   const body = fromNestedEnvelope(raw);
   const parsed = errorResponseSchema.safeParse(body);
   if (parsed.success) return parsed.data;
 
-  const fallback =
-    typeof body === "object" && body !== null
-      ? (body as Record<string, unknown>)
-      : {};
+  const fallback: Record<string, unknown> = isObjectRecord(body) ? body : {};
+  const { code: rawCode, detail: rawDetail, message: rawMessage } = fallback;
+  const {
+    requestId: rawRequestId,
+    docs: rawDocs,
+    fields: rawFields,
+  } = fallback;
 
-  const code =
-    typeof fallback.code === "string" && fallback.code.length > 0
-      ? fallback.code
-      : "UNKNOWN_ERROR";
-  const hasExplicitCode =
-    typeof fallback.code === "string" && fallback.code.length > 0;
+  const hasExplicitCode = typeof rawCode === "string" && rawCode.length > 0;
+  const code = hasExplicitCode ? rawCode : "UNKNOWN_ERROR";
 
   // Ontology routes answer `{ detail }` (FastAPI style). Use it as the message
   // so 404/422 errors keep their reason; the code stays UNKNOWN_ERROR.
   const detail =
-    typeof fallback.detail === "string" && fallback.detail.length > 0
-      ? fallback.detail
+    typeof rawDetail === "string" && rawDetail.length > 0
+      ? rawDetail
       : undefined;
   const explicitMessage =
-    typeof fallback.message === "string" && fallback.message.length > 0
-      ? fallback.message
+    typeof rawMessage === "string" && rawMessage.length > 0
+      ? rawMessage
       : undefined;
   // A message is trusted only with an explicit code. Otherwise `detail`
   // (the ontology API's text) is used, and the generic text is the last resort.
@@ -397,17 +405,19 @@ function normalizeErrorBody(raw: unknown): ErrorResponseInput {
       ? explicitMessage
       : (detail ?? "An unknown error occurred");
 
+  // Field entries are kept only when they match the error-field schema, so a
+  // malformed entry cannot reach consumers typed as `ErrorField`.
+  const fieldList = errorFieldsSchema.safeParse(rawFields);
+
   return {
     code,
     message,
     requestId:
-      typeof fallback.requestId === "string" && fallback.requestId.length > 0
-        ? fallback.requestId
+      typeof rawRequestId === "string" && rawRequestId.length > 0
+        ? rawRequestId
         : "unknown",
-    docs: typeof fallback.docs === "string" ? fallback.docs : undefined,
-    fields: Array.isArray(fallback.fields)
-      ? (fallback.fields as ErrorField[])
-      : undefined,
+    docs: typeof rawDocs === "string" ? rawDocs : undefined,
+    fields: fieldList.success ? fieldList.data : undefined,
   };
 }
 

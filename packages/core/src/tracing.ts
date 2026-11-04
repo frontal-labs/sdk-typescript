@@ -101,8 +101,8 @@ export interface TelemetryEvent {
   /** Client-generated `X-Request-Id` (also echoed by the API when present). */
   requestId: string;
   /** Server-issued request id from the response headers, if different. */
-  serverRequestId?: string;
-  status?: number;
+  serverRequestId?: string | undefined;
+  status?: number | undefined;
   durationMs: number;
   error?: unknown;
   /** Retry attempt (0 = first try). */

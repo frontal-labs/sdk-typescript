@@ -12,6 +12,8 @@ export function asPagePayload<T>(raw: unknown): {
   pagination: PaginationMeta;
   meta?: unknown;
 } {
+  // `T` is the caller's element type, which no runtime check can verify. The
+  // envelope itself is checked by the caller's pagination parse.
   return raw as { data: T[]; pagination: PaginationMeta; meta?: unknown };
 }
 
@@ -47,6 +49,14 @@ type MutablePageResult<T> = PageResult<T> & {
   _fallbackFetchNextPage?: FetchNext<T>;
 };
 
+/** Response metadata, or `undefined` when it is absent or malformed. */
+function parseResponseMeta(
+  value: unknown
+): z.infer<typeof responseMetaSchema> | undefined {
+  const parsed = responseMetaSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
+
 function buildPageResult<T>(
   data: T[],
   pagination: z.infer<typeof paginationSchema>,
@@ -57,7 +67,7 @@ function buildPageResult<T>(
 
   const page: MutablePageResult<T> = {
     data,
-    meta: meta as z.infer<typeof responseMetaSchema> | undefined,
+    meta: parseResponseMeta(meta),
     pagination,
     _fetchNextPage: fetchNext,
     async nextPage() {
@@ -97,13 +107,15 @@ function buildPageResult<T>(
     },
     [Symbol.asyncIterator]() {
       let current: PageResult<T> | null = this;
-      let index = 0;
+      let items: Iterator<T, undefined> | undefined;
 
       return {
-        async next(): Promise<IteratorResult<T>> {
+        async next(): Promise<IteratorResult<T, undefined>> {
           while (current) {
-            if (index < current.data.length) {
-              return { done: false, value: current.data[index++] };
+            items ??= current.data[Symbol.iterator]();
+            const step = items.next();
+            if (!step.done) {
+              return { done: false, value: step.value };
             }
 
             if (!current.pagination.hasMore) {
@@ -112,10 +124,10 @@ function buildPageResult<T>(
             }
 
             current = await current.nextPage();
-            index = 0;
+            items = undefined;
           }
 
-          return { done: true, value: undefined as never };
+          return { done: true, value: undefined };
         },
       };
     },

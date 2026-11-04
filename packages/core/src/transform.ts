@@ -33,6 +33,8 @@ const _SKIP_TYPES = new Set([
 
 const NEVER_TRANSFORM_KEYS = new Set(["$ref", "$schema", "$id"]);
 
+import { isObjectRecord } from "./guards";
+
 const RAW: unique symbol = Symbol.for("frontal.raw");
 
 /** A value the key transform must pass through verbatim (see {@link raw}). */
@@ -57,19 +59,14 @@ export function raw<T>(value: T): RawValue<T> {
 
 function isRaw(obj: unknown): obj is RawValue {
   return (
-    typeof obj === "object" &&
-    obj !== null &&
-    (obj as Record<symbol, unknown>)[RAW] === true
+    typeof obj === "object" && obj !== null && RAW in obj && obj[RAW] === true
   );
 }
 
 function isStream(obj: unknown): boolean {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    (typeof (obj as Record<string, unknown>).pipe === "function" ||
-      typeof (obj as Record<string, unknown>).getReader === "function")
-  );
+  if (!isObjectRecord(obj)) return false;
+  const { pipe, getReader } = obj;
+  return typeof pipe === "function" || typeof getReader === "function";
 }
 
 /**
