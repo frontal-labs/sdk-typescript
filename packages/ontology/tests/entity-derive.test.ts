@@ -24,14 +24,22 @@ const CUSTOMER = objectType("Customer", "ot_customer", {
   },
   relationships: {
     company: { type: "belongsTo", targetEntity: "Company" },
-    primaryAddress: { type: "hasOne", targetEntity: "Address" },
+    primaryAddress: {
+      type: "hasOne",
+      targetEntity: "Address",
+      relationshipTypeId: "rt_primary_address",
+    },
   },
 });
 
 const COMPANY = objectType("Company", "ot_company", {
   fields: { name: { type: "string", required: true } },
   relationships: {
-    customers: { type: "hasMany", targetEntity: "Customer" },
+    customers: {
+      type: "hasMany",
+      targetEntity: "Customer",
+      relationshipTypeId: "rt_customer_company",
+    },
   },
 });
 
@@ -164,9 +172,15 @@ describe("deriveOntologyRuntime: relations", () => {
     const runtime = deriveOntologyRuntime(ONTOLOGY);
     expect(runtime.relations.Customer).toEqual({
       company: {
+        cardinality: "belongsTo",
         foreignKey: "companyId",
         optional: true,
         target: "Company",
+      },
+      primaryAddress: {
+        cardinality: "hasOne",
+        relationshipTypeId: "rt_primary_address",
+        target: "Address",
       },
     });
     expect(runtime.fields.Customer?.companyId).toEqual({
@@ -191,16 +205,35 @@ describe("deriveOntologyRuntime: relations", () => {
       ...ONTOLOGY,
     ]);
     expect(runtime.relations.Order?.customer).toEqual({
+      cardinality: "belongsTo",
       foreignKey: "customerRef",
       optional: false,
       target: "Customer",
     });
   });
 
-  it("skips hasOne, hasMany and manyToMany relations", () => {
+  it("derives hasMany and hasOne relations with their relationship type", () => {
     const runtime = deriveOntologyRuntime(ONTOLOGY);
-    expect(Object.keys(runtime.relations.Customer ?? {})).toEqual(["company"]);
-    expect(runtime.relations.Company).toEqual({});
+    expect(runtime.relations.Company).toEqual({
+      customers: {
+        cardinality: "hasMany",
+        relationshipTypeId: "rt_customer_company",
+        target: "Customer",
+      },
+    });
+  });
+
+  it("rejects a traversal relation with no relationship type", () => {
+    expect(() =>
+      deriveOntologyRuntime([
+        objectType("Thing", "ot_thing", {
+          fields: {},
+          relationships: {
+            ghosts: { type: "manyToMany", targetEntity: "Thing" },
+          },
+        }),
+      ])
+    ).toThrow(/needs a relationshipTypeId/);
   });
 
   it("still checks the target of a skipped relation", () => {
@@ -209,7 +242,11 @@ describe("deriveOntologyRuntime: relations", () => {
         objectType("Thing", "ot_thing", {
           fields: {},
           relationships: {
-            ghosts: { type: "hasMany", targetEntity: "Ghost" },
+            ghosts: {
+              type: "hasMany",
+              targetEntity: "Ghost",
+              relationshipTypeId: "rt_ghosts",
+            },
           },
         }),
       ])

@@ -51,6 +51,7 @@ const relationSchema = z
     type: z.enum(["belongsTo", "hasOne", "hasMany", "manyToMany"]),
     targetEntity: z.string().min(1),
     foreignKey: z.string().min(1).optional(),
+    relationshipTypeId: z.string().min(1).optional(),
   })
   .loose();
 
@@ -149,10 +150,11 @@ interface DerivedField {
  * Derives the runtime metadata for every object type. Entities are sorted by
  * name, fields by name, and relations by name, so the result is deterministic.
  *
- * Relations: only `belongsTo` produces an accessor. The foreign key defaults to
- * `<name>Id`, and an undeclared foreign key becomes an optional writable field.
- * `hasOne`, `hasMany` and `manyToMany` are skipped, because the API has no query
- * for them. Their targets are still checked.
+ * Relations: `belongsTo` reads a foreign key from the source record; the key
+ * defaults to `<name>Id`, and an undeclared key becomes an optional writable
+ * field. `hasOne`, `hasMany` and `manyToMany` resolve through relationship
+ * instances and need a `relationshipTypeId` in the schema (a `TypeError` when
+ * it is missing). Every relation's target is checked.
  *
  * @throws {ValidationError} with code `INVALID_RESPONSE` for malformed records,
  *   duplicate names, unknown relation targets, or a relation whose name matches
@@ -225,6 +227,16 @@ export function deriveOntologyRuntime(
         );
       }
       if (spec.type !== "belongsTo") {
+        if (spec.relationshipTypeId === undefined) {
+          throw new TypeError(
+            `Relation "${entity}.${relation}" is ${spec.type} and needs a relationshipTypeId in its schema.`
+          );
+        }
+        entityRelations[relation] = {
+          cardinality: spec.type,
+          relationshipTypeId: spec.relationshipTypeId,
+          target: spec.targetEntity,
+        };
         continue;
       }
       const foreignKey = spec.foreignKey ?? `${relation}Id`;
@@ -239,6 +251,7 @@ export function deriveOntologyRuntime(
         derived.set(foreignKey, foreign);
       }
       entityRelations[relation] = {
+        cardinality: "belongsTo",
         foreignKey,
         optional: !foreign.required,
         target: spec.targetEntity,

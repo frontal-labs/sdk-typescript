@@ -116,7 +116,7 @@ interface Ontology {
     read: { id: string; email: string; status: "active" | "closed"; companyId?: string | null };
     create: { email: string; status?: "active" | "closed" | null };
     update: { email?: string; status?: "active" | "closed" | null; companyId?: string | null };
-    relations: { company: { target: "Company"; optional: true } };
+    relations: { company: { cardinality: "belongsTo"; target: "Company"; optional: true } };
   };
 }
 
@@ -139,7 +139,9 @@ const runtime = {
   writable: { Company: ["name"], Customer: ["email", "status", "companyId"] },
   relations: {
     Company: {},
-    Customer: { company: { target: "Company", foreignKey: "companyId", optional: true } },
+    Customer: {
+      company: { cardinality: "belongsTo", target: "Company", foreignKey: "companyId", optional: true },
+    },
   },
 } as const satisfies OntologyRuntime<Ontology>;
 
@@ -154,15 +156,36 @@ const customer = await frontal.ontology.Customer.get("cust_1");
 customer.email; // string
 customer.status; // "active" | "closed"
 
-// Relations load on demand. Optional relations resolve to null when empty.
+// Relations load on demand. Each call fetches the target; nothing is cached.
 const company = await customer.company(); // Company | null
 ```
 
-### Writes and lists
+### Relations
+
+| Cardinality | Accessor | Resolved through |
+| --- | --- | --- |
+| `belongsTo` | `Promise<Entity>` or `Promise<Entity \| null>` when optional | the foreign key on the record |
+| `hasOne` | `Promise<Entity \| null>` | relationship instances; more than one is `TOO_MANY_RELATIONSHIPS` |
+| `hasMany` | `Promise<Entity[]>` | relationship instances, in backend order |
+| `manyToMany` | `Promise<Entity[]>` | relationship instances, in backend order |
+
+`hasOne`, `hasMany` and `manyToMany` need a `relationshipTypeId` in the object
+type's schema. Targets are fetched with bounded concurrency (8 at a time).
+
+### Query, list and writes
 
 ```ts
-// List: every object of the type. The backend does not page this list, so it
-// is returned in one call.
+// Query: one page of matches. Operators depend on the field's type: strings
+// take eq, in, contains and startsWith; numbers take eq, in, gt, gte, lt and
+// lte; booleans take eq; enums take eq and in with their declared values.
+const page = await frontal.ontology.Customer.query({
+  where: { status: { eq: "active" } },
+  limit: 100, // 1 to 500, default 50
+});
+page.items; // Customer[]
+page.nextCursor; // pass as `cursor` for the next page, or null on the last
+
+// List: every object of the type, following the pages of query until the last.
 const customers = await frontal.ontology.Customer.list();
 
 // Create: the server generates the id.
@@ -178,8 +201,11 @@ await frontal.ontology.Customer.update("cust_1", { status: "closed" });
 await frontal.ontology.Customer.delete("cust_1");
 ```
 
-`update` is a GET, a merge of the writable fields, then a PUT. It is **not
-atomic**: a concurrent write between the GET and the PUT can be lost.
+`update` reads the object with its `ETag`, merges the writable fields, and
+writes with `If-Match`. If another write got in first, it re-reads and tries
+again, up to three attempts in total; after that it throws a `ConflictError`
+with code `PRECONDITION_FAILED`. An update is never lost silently, and it is
+never written without an `ETag`.
 
 ### Errors
 
@@ -188,6 +214,10 @@ atomic**: a concurrent write between the GET and the PUT can be lost.
   required field or a value outside an enum.
 - An input with an unknown or read-only field throws a `ValidationError` with
   code `INVALID_INPUT`, before any request is sent.
+- A query with an unknown field, an operator its type does not allow, a value
+  of the wrong type, or a page size outside 1 to 500 throws a `ValidationError`
+  before any request. A rejection from the server keeps its code
+  (`UNKNOWN_PROPERTY`, `INVALID_OPERATOR`, `INVALID_CURSOR`).
 - Reading an entity that the ontology does not define throws a `TypeError`
   that lists the known entities.
 
@@ -198,14 +228,13 @@ metadata). A stored object carries its fields under `properties`; the typed
 entity exposes them at the top level, with `id` set to the object id. A record
 that belongs to another object type is rejected with `INVALID_RESPONSE`.
 
-### Current limits
+### Backend requirements
 
-- There is no `query` (filtering by field values): the backend has no
-  documented query body. Use `list` for all objects of a type.
-- `list` is not paged, so a large type returns everything in one response.
-- `hasMany` and `manyToMany` relations are not generated.
-- A `belongsTo` relation reads the foreign key from the source record's
-  properties.
+`query`, `list`, conditional `update` and the `hasOne`, `hasMany` and
+`manyToMany` traversals use the ontology contract v2: the query endpoint,
+`If-Match` on object writes, and the relationship instance endpoints. A backend
+that does not serve them rejects those calls with its own errors. `get`,
+`create`, `put`, `delete` and `belongsTo` use only the published contract.
 
 ## Environment Variables
 

@@ -24,7 +24,13 @@ function constraintChecks(): void {
       read: { id: string; companyId?: string | null };
       create: Record<never, never>;
       update: { companyId?: string | null };
-      relations: { company: { target: "Company"; optional: true } };
+      relations: {
+        company: {
+          cardinality: "belongsTo";
+          target: "Company";
+          optional: true;
+        };
+      };
     };
   }>();
 
@@ -34,7 +40,13 @@ function constraintChecks(): void {
       read: { id: string; company: string };
       create: Record<never, never>;
       update: Record<never, never>;
-      relations: { company: { target: "Customer"; optional: true } };
+      relations: {
+        company: {
+          cardinality: "belongsTo";
+          target: "Customer";
+          optional: true;
+        };
+      };
     };
   }>();
 
@@ -44,7 +56,9 @@ function constraintChecks(): void {
       read: { id: string };
       create: Record<never, never>;
       update: Record<never, never>;
-      relations: { company: { target: "Ghost"; optional: true } };
+      relations: {
+        company: { cardinality: "belongsTo"; target: "Ghost"; optional: true };
+      };
     };
   }>();
 

@@ -4,7 +4,7 @@
  * thrown together as one `ValidationError` whose `fields` list each one.
  */
 import { ValidationError } from "@frontal-labs/core";
-import type { FieldKind, FieldSpec } from "./entity-runtime";
+import type { FieldKind, FieldSpec, RelationSpec } from "./entity-runtime";
 
 /** Request id used for errors raised locally, before any HTTP call. */
 const LOCAL_REQUEST_ID = "local-validation";
@@ -22,9 +22,7 @@ export interface EntityMeta {
   readonly objectTypeId: string;
   readonly fields: Readonly<Record<string, FieldSpec>>;
   readonly writable: ReadonlySet<string>;
-  readonly relations: Readonly<
-    Record<string, { target: string; foreignKey: string; optional: boolean }>
-  >;
+  readonly relations: Readonly<Record<string, RelationSpec>>;
 }
 
 /** Human-readable description of an expected kind, for error messages. */

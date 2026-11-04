@@ -95,8 +95,19 @@ async function typeChecks(client: OntologyClient<Ontology>): Promise<void> {
   // @ts-expect-error put needs an explicit id as its first argument
   await client.Customer.put({ email: "a@example.com" });
 
-  // @ts-expect-error query needs a documented backend query body
-  void client.Customer.query;
+  // ── query (typed where, cursor paging) ──────────────────────────────────
+  const page = await client.Customer.query({
+    where: { status: { eq: "active" }, companyId: { eq: "c1" } },
+    limit: 10,
+  });
+  expectTypeOf(page.items[0]?.email).toEqualTypeOf<string>();
+  expectTypeOf(page.nextCursor).toEqualTypeOf<string | null>();
+
+  // @ts-expect-error email is a string field: "gt" is not an operator on it
+  await client.Customer.query({ where: { email: { gt: "a" } } });
+
+  // @ts-expect-error status is an enum: "archived" is not one of its values
+  await client.Customer.query({ where: { status: { eq: "archived" } } });
 
   // @ts-expect-error unknown entity
   void client.Ghost;

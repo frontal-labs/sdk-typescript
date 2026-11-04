@@ -75,7 +75,11 @@ describe("lazy ontology metadata", () => {
     const { mock, ontology } = liveClient([
       { body: OBJECT_TYPES_BODY, method: "GET", path: OBJECT_TYPES_PATH },
       CUSTOMER_ROUTE,
-      { body: [], method: "GET", path: "/ontology/objects/objects" },
+      {
+        body: { results: [], next_cursor: null },
+        method: "POST",
+        path: "/ontology/objects/objects/query",
+      },
     ]);
     await Promise.all([
       ontology.Customer?.get("cust_1"),

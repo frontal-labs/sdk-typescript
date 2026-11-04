@@ -10,7 +10,9 @@ export interface Ontology {
     read: { id: string; name: string; founderId?: string | null };
     create: { name: string; founderId?: string | null };
     update: { name?: string; founderId?: string | null };
-    relations: { founder: { target: "Customer"; optional: true } };
+    relations: {
+      founder: { cardinality: "belongsTo"; target: "Customer"; optional: true };
+    };
   };
   Customer: {
     read: {
@@ -25,13 +27,21 @@ export interface Ontology {
       status?: CustomerStatus | null;
       companyId?: string | null;
     };
-    relations: { company: { target: "Company"; optional: true } };
+    relations: {
+      company: { cardinality: "belongsTo"; target: "Company"; optional: true };
+    };
   };
   Order: {
     read: { id: string; total: number; customerId: string };
     create: { total: number; customerId: string };
     update: { total?: number; customerId?: string };
-    relations: { customer: { target: "Customer"; optional: false } };
+    relations: {
+      customer: {
+        cardinality: "belongsTo";
+        target: "Customer";
+        optional: false;
+      };
+    };
   };
 }
 
@@ -67,13 +77,24 @@ export const ontologyRuntime = {
   },
   relations: {
     Company: {
-      founder: { target: "Customer", foreignKey: "founderId", optional: true },
+      founder: {
+        cardinality: "belongsTo",
+        target: "Customer",
+        foreignKey: "founderId",
+        optional: true,
+      },
     },
     Customer: {
-      company: { target: "Company", foreignKey: "companyId", optional: true },
+      company: {
+        cardinality: "belongsTo",
+        target: "Company",
+        foreignKey: "companyId",
+        optional: true,
+      },
     },
     Order: {
       customer: {
+        cardinality: "belongsTo",
         target: "Customer",
         foreignKey: "customerId",
         optional: false,

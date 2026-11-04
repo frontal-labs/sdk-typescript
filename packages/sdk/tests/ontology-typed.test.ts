@@ -123,15 +123,18 @@ describe("typed entities through the public client", () => {
   it("lists one object type over the client's own transport", async () => {
     const { client, mock } = createTestClient([
       {
-        method: "GET",
-        path: "/ontology/objects/objects",
-        body: [
-          {
-            object_id: "cust_1",
-            object_type_id: "ot_customer",
-            properties: { email: "a@example.com" },
-          },
-        ],
+        method: "POST",
+        path: "/ontology/objects/objects/query",
+        body: {
+          results: [
+            {
+              object_id: "cust_1",
+              object_type_id: "ot_customer",
+              properties: { email: "a@example.com" },
+            },
+          ],
+          next_cursor: null,
+        },
       },
     ]);
     const f = createFrontalClient<SampleOntology>(client, sampleRuntime);
@@ -139,6 +142,10 @@ describe("typed entities through the public client", () => {
     expect(customers.map((c) => [c.id, c.email])).toEqual([
       ["cust_1", "a@example.com"],
     ]);
-    expect(mock.requests[0]?.url).toContain("object_type_id=ot_customer");
+    expect(mock.requests[0]?.body).toEqual({
+      objectTypeId: "ot_customer",
+      filter: {},
+      limit: 500,
+    });
   });
 });

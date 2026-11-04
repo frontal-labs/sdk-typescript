@@ -11,6 +11,7 @@ const CUSTOMER_PATH = "/ontology/objects/objects/cust_1";
 const ORDER_PATH = "/ontology/objects/objects/ord_1";
 const COMPANY_PATH = "/ontology/objects/objects/co_1";
 const OBJECTS_PATH = "/ontology/objects/objects";
+const QUERY_PATH = "/ontology/objects/objects/query";
 const UUID_PATH = /\/ontology\/objects\/objects\/[0-9a-f-]{36}$/;
 
 const CUSTOMER_TYPE = "ot_customer";
@@ -60,43 +61,69 @@ describe("reads", () => {
     mock.expectCalled("GET", CUSTOMER_PATH);
   });
 
-  it("list asks for one object type and returns every record as an entity", async () => {
+  it("list pages through query and returns every record as an entity", async () => {
     const { ontology, mock } = setup([
       {
-        method: "GET",
-        path: OBJECTS_PATH,
-        body: [
-          stored(CUSTOMER_TYPE, "cust_1", {
-            email: "a@example.com",
-            status: "active",
-          }),
-          stored(CUSTOMER_TYPE, "cust_2", {
-            email: "b@example.com",
-            status: "closed",
-          }),
-        ],
+        method: "POST",
+        path: QUERY_PATH,
+        times: 1,
+        body: {
+          results: [
+            stored(CUSTOMER_TYPE, "cust_1", {
+              email: "a@example.com",
+              status: "active",
+            }),
+          ],
+          next_cursor: "page-2",
+        },
+      },
+      {
+        method: "POST",
+        path: QUERY_PATH,
+        times: 1,
+        body: {
+          results: [
+            stored(CUSTOMER_TYPE, "cust_2", {
+              email: "b@example.com",
+              status: "closed",
+            }),
+          ],
+          next_cursor: null,
+        },
       },
     ]);
     const customers = await ontology.Customer.list();
     expect(customers.map((c) => c.id)).toEqual(["cust_1", "cust_2"]);
     expect(customers[1]?.status).toBe("closed");
-    const [request] = mock.requests;
-    expect(request?.method).toBe("GET");
-    expect(request?.url).toContain(`object_type_id=${CUSTOMER_TYPE}`);
+    const [first, second] = mock.requests.filter((r) => r.method === "POST");
+    expect(first?.body).toEqual({
+      objectTypeId: CUSTOMER_TYPE,
+      filter: {},
+      limit: 500,
+    });
+    expect(second?.body).toEqual({
+      objectTypeId: CUSTOMER_TYPE,
+      filter: {},
+      limit: 500,
+      cursor: "page-2",
+    });
   });
 
   it("list keeps relation accessors on every element", async () => {
     const { ontology } = setup([
       {
-        method: "GET",
-        path: OBJECTS_PATH,
-        body: [
-          stored(CUSTOMER_TYPE, "cust_1", {
-            email: "a@example.com",
-            status: "active",
-            companyId: "co_1",
-          }),
-        ],
+        method: "POST",
+        path: QUERY_PATH,
+        body: {
+          results: [
+            stored(CUSTOMER_TYPE, "cust_1", {
+              email: "a@example.com",
+              status: "active",
+              companyId: "co_1",
+            }),
+          ],
+          next_cursor: null,
+        },
       },
       {
         method: "GET",
@@ -112,34 +139,34 @@ describe("reads", () => {
   it("list fails when one element belongs to another object type", async () => {
     const { ontology } = setup([
       {
-        method: "GET",
-        path: OBJECTS_PATH,
-        body: [
-          stored(CUSTOMER_TYPE, "cust_1", {
-            email: "a@example.com",
-            status: "active",
-          }),
-          stored(COMPANY_TYPE, "co_1", { name: "Acme" }),
-        ],
+        method: "POST",
+        path: QUERY_PATH,
+        body: {
+          results: [
+            stored(CUSTOMER_TYPE, "cust_1", {
+              email: "a@example.com",
+              status: "active",
+            }),
+            stored(COMPANY_TYPE, "co_9", { name: "Other" }),
+          ],
+          next_cursor: null,
+        },
       },
     ]);
     const err = await ontology.Customer.list().catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(ValidationError);
-    expect((err as ValidationError).fields).toContainEqual(
-      expect.objectContaining({ field: "objectTypeId", code: "WRONG_TYPE" })
-    );
+    expect((err as ValidationError).code).toBe("INVALID_RESPONSE");
   });
 
-  it("list rejects a response that is not an array", async () => {
+  it("list rejects a response that is not a query page", async () => {
     const { ontology } = setup([
       {
-        method: "GET",
-        path: OBJECTS_PATH,
-        body: { results: [] },
+        method: "POST",
+        path: QUERY_PATH,
+        body: [],
       },
     ]);
     const err = await ontology.Customer.list().catch((e: unknown) => e);
-    expect((err as ValidationError).fields[0]?.code).toBe("NOT_A_LIST");
+    expect((err as ValidationError).code).toBe("INVALID_RESPONSE");
   });
 
   it("fetches a relation target only when the accessor is called", async () => {
@@ -376,6 +403,7 @@ describe("writes", () => {
       {
         method: "GET",
         path: CUSTOMER_PATH,
+        headers: { ETag: '"4"' },
         body: stored(CUSTOMER_TYPE, "cust_1", {
           email: "a@example.com",
           status: "active",
@@ -395,6 +423,7 @@ describe("writes", () => {
     ]);
     await ontology.Customer.update("cust_1", { status: "closed" });
     const put = mock.requests.find((r) => r.method === "PUT");
+    expect(put?.headers["if-match"]).toBe('"4"');
     expect(put?.body).toEqual({
       objectTypeId: CUSTOMER_TYPE,
       objectId: "cust_1",

@@ -19,8 +19,8 @@
  *   },
  *   writable: { Company: ["name"], Customer: ["email", "status", "companyId"] },
  *   relations: {
- *     Company: {},
- *     Customer: { company: { target: "Company", foreignKey: "companyId", optional: true } },
+ *     Company: { orders: { cardinality: "hasMany", target: "Customer", relationshipTypeId: "rt_orders" } },
+ *     Customer: { company: { cardinality: "belongsTo", target: "Company", foreignKey: "companyId", optional: true } },
  *   },
  * } as const);
  * ```
@@ -58,15 +58,37 @@ export interface FieldSpec {
   readonly required: boolean;
 }
 
-/** Runtime description of one `belongsTo` relation. */
-export interface RelationSpec {
+/**
+ * A `belongsTo` relation: the foreign key is a field of the source record, and
+ * an empty key resolves to `null` when `optional` is `true`.
+ */
+export interface BelongsToSpec<T extends string = string> {
+  readonly cardinality: "belongsTo";
   /** Name of the target entity. */
-  readonly target: string;
+  readonly target: T;
   /** Field on the source record that holds the target's id. */
   readonly foreignKey: string;
   /** `true` when an empty foreign key resolves to `null`. */
   readonly optional: boolean;
 }
+
+/**
+ * A relation resolved through relationship instances: `hasOne`, `hasMany` or
+ * `manyToMany`. The source is found with `source_object_id` and
+ * `relationship_type_id`; the targets are the `target_object_id`s.
+ */
+export interface TraversalSpec<T extends string = string> {
+  readonly cardinality: "hasOne" | "hasMany" | "manyToMany";
+  /** Name of the target entity. */
+  readonly target: T;
+  /** Backend `relationship_type_id` of the instances of this relation. */
+  readonly relationshipTypeId: string;
+}
+
+/** Runtime description of one relation. */
+export type RelationSpec<T extends string = string> =
+  | BelongsToSpec<T>
+  | TraversalSpec<T>;
 
 /**
  * Runtime metadata for ontology `O`. Every key is checked against the
@@ -91,14 +113,12 @@ export interface OntologyRuntime<O> {
     readonly [K in keyof O & string]: readonly (keyof UpdateOf<O[K]> &
       string)[];
   };
-  /** `belongsTo` relations per entity. */
+  /** Every declared relation of every entity. */
   readonly relations: {
     readonly [K in keyof O & string]: {
-      readonly [R in keyof RelationsOf<O[K]> & string]: {
-        readonly target: keyof O & string;
-        readonly foreignKey: string;
-        readonly optional: boolean;
-      };
+      readonly [R in keyof RelationsOf<O[K]> & string]: RelationSpec<
+        keyof O & string
+      >;
     };
   };
 }

@@ -1,8 +1,29 @@
-import { type HttpClient, raw } from "@frontal-labs/core";
+import {
+  ConflictError,
+  type HttpClient,
+  isFrontalError,
+  PreconditionFailedError,
+  raw,
+  ValidationError,
+} from "@frontal-labs/core";
 import { deriveOntologyRuntime, OBJECT_TYPES_PATH } from "./entity-derive";
+import {
+  MAX_LIST_PAGES,
+  MAX_PAGE_SIZE,
+  mapBounded,
+  parseCursor,
+  parseLimit,
+  parseQueryArgs,
+  parseResponse,
+  parseWhere,
+  queryPageSchema,
+  relationshipListSchema,
+  toEnvelope,
+} from "./entity-query";
 import type {
   OntologyRuntime,
   RelationSpec,
+  TraversalSpec,
   UntypedOntologyRuntime,
 } from "./entity-runtime";
 import type { OntologyClient } from "./entity-types";
@@ -12,13 +33,24 @@ import {
   missingRelationTarget,
   type ObjectRecord,
   parseInput,
-  parseObjectList,
   parseObjectRecord,
 } from "./entity-validate";
 import type { OntologySdk } from "./sdk";
 
 /** Collection of stored objects (`/v1/ontology/objects/objects`). */
 const OBJECTS_PATH = "/ontology/objects/objects";
+
+/** Cursor-paged query over stored objects. */
+const QUERY_PATH = `${OBJECTS_PATH}/query`;
+
+/** Relationship instances (`/v1/ontology/relationships/relationships`). */
+const RELATIONSHIPS_PATH = "/ontology/relationships/relationships";
+
+/** Writes attempted by `update` before it reports a conflict. */
+const MAX_WRITE_ATTEMPTS = 3;
+
+/** Concurrent target fetches for a relation traversal. */
+const TRAVERSAL_CONCURRENCY = 8;
 
 /**
  * Top-level response key whose contents are user-defined property names. The
@@ -27,7 +59,7 @@ const OBJECTS_PATH = "/ontology/objects/objects";
 const PROPERTIES_KEY = ["properties"] as const;
 const PRESERVE = { preserveKeys: PROPERTIES_KEY } as const;
 
-/** Object types are read as sent, so their field names keep their case. */
+/** Read as sent: keys are snake_case envelopes or user-defined names. */
 const UNTRANSFORMED = { untransformed: true } as const;
 
 /** Path of one stored object. */
@@ -47,14 +79,28 @@ const PROBE_NAMES: ReadonlySet<string> = new Set([
   "nodeType",
 ]);
 
+/** Query codes the server reports, rethrown with the same code. */
+const SERVER_QUERY_CODES: ReadonlySet<string> = new Set([
+  "UNKNOWN_PROPERTY",
+  "INVALID_OPERATOR",
+  "INVALID_CURSOR",
+]);
+
 /** Untyped entity handle, used internally and cast once at the boundary. */
 interface RuntimeHandle {
   list(): Promise<ObjectRecord[]>;
+  query(options: unknown): Promise<RuntimePage>;
   get(id: string): Promise<ObjectRecord>;
   create(input: unknown): Promise<ObjectRecord>;
   put(id: string, input: unknown): Promise<ObjectRecord>;
   update(id: string, patch: unknown): Promise<ObjectRecord>;
   delete(id: string): Promise<void>;
+}
+
+/** One page as the untyped handle returns it. */
+interface RuntimePage {
+  items: ObjectRecord[];
+  nextCursor: string | null;
 }
 
 /** Reads an own property, ignoring inherited names such as `constructor`. */
@@ -121,7 +167,10 @@ function buildMetas(
           `Relation "${meta.name}.${relation}" targets "${spec.target}", which is not an entity in the runtime metadata.`
         );
       }
-      if (ownValue(meta.fields, spec.foreignKey) === undefined) {
+      if (
+        spec.cardinality === "belongsTo" &&
+        ownValue(meta.fields, spec.foreignKey) === undefined
+      ) {
         throw new TypeError(
           `Relation "${meta.name}.${relation}" uses foreign key "${spec.foreignKey}", which is not a field of ${meta.name}.`
         );
@@ -172,6 +221,13 @@ function liveSource(
   };
 }
 
+/** A query request, validated before it is sent. */
+interface PageRequest {
+  readonly where?: unknown;
+  readonly limit?: unknown;
+  readonly cursor?: unknown;
+}
+
 /** Operations shared by every entity handle, bound to one client. */
 interface Ops {
   metaFor(entity: string): Promise<EntityMeta>;
@@ -181,6 +237,7 @@ interface Ops {
     id: string,
     properties: ObjectRecord
   ): Promise<ObjectRecord>;
+  queryPage(meta: EntityMeta, request: PageRequest): Promise<RuntimePage>;
   withRelations(record: ObjectRecord, meta: EntityMeta): ObjectRecord;
 }
 
@@ -194,42 +251,6 @@ function createOps(http: HttpClient, source: MetaSource): Ops {
       );
     }
     return meta;
-  };
-
-  /** Fetches the target of a relation through its foreign key. */
-  const resolveRelation = async (
-    record: ObjectRecord,
-    meta: EntityMeta,
-    relation: string,
-    spec: RelationSpec
-  ): Promise<ObjectRecord | null> => {
-    const key = record[spec.foreignKey];
-    if (key === undefined || key === null) {
-      if (spec.optional) {
-        return null;
-      }
-      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
-    }
-    if (typeof key !== "string") {
-      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
-    }
-    return fetchOne(await metaFor(spec.target), key);
-  };
-
-  /** Attaches non-enumerable relation accessors to a stored record. */
-  const withRelations = (
-    record: ObjectRecord,
-    meta: EntityMeta
-  ): ObjectRecord => {
-    for (const [relation, spec] of Object.entries(meta.relations)) {
-      Object.defineProperty(record, relation, {
-        enumerable: false,
-        configurable: true,
-        writable: false,
-        value: () => resolveRelation(record, meta, relation, spec),
-      });
-    }
-    return record;
   };
 
   /** Fetches one stored object and narrows it to `meta`'s entity. */
@@ -274,26 +295,249 @@ function createOps(http: HttpClient, source: MetaSource): Ops {
       meta
     );
 
-  return { metaFor, fetchOne, replaceOne, withRelations };
+  /** Runs one query page. Server rejections keep their code. */
+  const queryPage = async (
+    meta: EntityMeta,
+    request: PageRequest
+  ): Promise<RuntimePage> => {
+    const where = parseWhere(meta, request.where);
+    const limit = parseLimit(meta.name, request.limit);
+    const cursor = parseCursor(meta.name, request.cursor);
+    const body = {
+      object_type_id: meta.objectTypeId,
+      filter: raw(where),
+      ...(limit === undefined ? {} : { limit }),
+      ...(cursor === undefined ? {} : { cursor }),
+    };
+    let response: unknown;
+    try {
+      response = await http.post<unknown>(
+        QUERY_PATH,
+        body,
+        undefined,
+        UNTRANSFORMED
+      );
+    } catch (error) {
+      if (isFrontalError(error) && SERVER_QUERY_CODES.has(error.code)) {
+        throw new ValidationError({
+          code: error.code,
+          message: error.message,
+          requestId: error.requestId,
+        });
+      }
+      throw error;
+    }
+    const page = parseResponse(meta.name, queryPageSchema, response);
+    return {
+      items: page.results.map((result) =>
+        withRelations(parseObjectRecord(meta, toEnvelope(result)), meta)
+      ),
+      nextCursor: page.next_cursor,
+    };
+  };
+
+  /** The stored target ids of a relation, from its relationship instances. */
+  const linksOf = async (
+    record: ObjectRecord,
+    meta: EntityMeta,
+    relation: string,
+    spec: TraversalSpec
+  ): Promise<string[]> => {
+    const { id: sourceId } = record;
+    if (typeof sourceId !== "string") {
+      throw missingRelationTarget(meta.name, relation, "id");
+    }
+    const response = await http.get<unknown>(
+      RELATIONSHIPS_PATH,
+      {
+        source_object_id: sourceId,
+        relationship_type_id: spec.relationshipTypeId,
+      },
+      undefined,
+      {},
+      UNTRANSFORMED
+    );
+    return parseResponse(meta.name, relationshipListSchema, response).map(
+      (link) => link.target_object_id
+    );
+  };
+
+  /** Resolves a `belongsTo` relation through its foreign key. */
+  const resolveBelongsTo = async (
+    record: ObjectRecord,
+    meta: EntityMeta,
+    relation: string,
+    spec: Extract<RelationSpec, { cardinality: "belongsTo" }>
+  ): Promise<ObjectRecord | null> => {
+    const key = record[spec.foreignKey];
+    if (key === undefined || key === null) {
+      if (spec.optional) {
+        return null;
+      }
+      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
+    }
+    if (typeof key !== "string") {
+      throw missingRelationTarget(meta.name, relation, spec.foreignKey);
+    }
+    return fetchOne(await metaFor(spec.target), key);
+  };
+
+  /** Resolves `hasMany` and `manyToMany`: every linked target, in order. */
+  const resolveMany = async (
+    record: ObjectRecord,
+    meta: EntityMeta,
+    relation: string,
+    spec: TraversalSpec
+  ): Promise<ObjectRecord[]> => {
+    const targetMeta = await metaFor(spec.target);
+    const ids = await linksOf(record, meta, relation, spec);
+    return mapBounded(ids, TRAVERSAL_CONCURRENCY, (id) =>
+      fetchOne(targetMeta, id)
+    );
+  };
+
+  /** Resolves `hasOne`: none gives `null`, more than one is an error. */
+  const resolveHasOne = async (
+    record: ObjectRecord,
+    meta: EntityMeta,
+    relation: string,
+    spec: TraversalSpec
+  ): Promise<ObjectRecord | null> => {
+    const ids = await linksOf(record, meta, relation, spec);
+    const [only, ...rest] = ids;
+    if (only === undefined) {
+      return null;
+    }
+    if (rest.length > 0) {
+      throw new ValidationError({
+        code: "TOO_MANY_RELATIONSHIPS",
+        message: `${meta.name}.${relation} has ${ids.length} targets; a hasOne relation has at most one`,
+        requestId: "local-validation",
+        fields: [
+          {
+            field: relation,
+            code: "TOO_MANY_RELATIONSHIPS",
+            message: `${ids.length} targets for a hasOne relation`,
+          },
+        ],
+      });
+    }
+    return fetchOne(await metaFor(spec.target), only);
+  };
+
+  /** Resolves a relation by its cardinality. */
+  const resolveRelation = (
+    record: ObjectRecord,
+    meta: EntityMeta,
+    relation: string,
+    spec: RelationSpec
+  ): Promise<ObjectRecord | ObjectRecord[] | null> => {
+    switch (spec.cardinality) {
+      case "belongsTo":
+        return resolveBelongsTo(record, meta, relation, spec);
+      case "hasOne":
+        return resolveHasOne(record, meta, relation, spec);
+      case "hasMany":
+      case "manyToMany":
+        return resolveMany(record, meta, relation, spec);
+      default: {
+        const unreachable: never = spec;
+        throw new TypeError(
+          `Relation "${meta.name}.${relation}" has an unknown cardinality: ${JSON.stringify(unreachable)}`
+        );
+      }
+    }
+  };
+
+  /** Attaches non-enumerable relation accessors to a stored record. */
+  const withRelations = (
+    record: ObjectRecord,
+    meta: EntityMeta
+  ): ObjectRecord => {
+    for (const [relation, spec] of Object.entries(meta.relations)) {
+      Object.defineProperty(record, relation, {
+        enumerable: false,
+        configurable: true,
+        writable: false,
+        value: () => resolveRelation(record, meta, relation, spec),
+      });
+    }
+    return record;
+  };
+
+  return { metaFor, fetchOne, replaceOne, queryPage, withRelations };
+}
+
+/**
+ * Reads one stored object with its `ETag`. A response without an `ETag` cannot
+ * be written safely, so it is an error rather than a silent unconditional write.
+ */
+async function fetchWithEtag(
+  http: HttpClient,
+  meta: EntityMeta,
+  id: string
+): Promise<{ record: ObjectRecord; etag: string }> {
+  const capture: { etag: string | undefined } = { etag: undefined };
+  const response = await http.get<unknown>(
+    objectPath(id),
+    undefined,
+    undefined,
+    {},
+    {
+      preserveKeys: PROPERTIES_KEY,
+      onResponse: (headers) => {
+        capture.etag = headers.get("ETag") ?? undefined;
+      },
+    }
+  );
+  const record = parseObjectRecord(meta, response);
+  if (capture.etag === undefined) {
+    throw new ValidationError({
+      code: "INVALID_RESPONSE",
+      message: `Frontal returned ${meta.name} ${id} without an ETag; refusing an unconditional update`,
+      requestId: "local-validation",
+      fields: [
+        {
+          field: "ETag",
+          code: "MISSING",
+          message: "the ETag header is required for update",
+        },
+      ],
+    });
+  }
+  return { record, etag: capture.etag };
 }
 
 /** Builds the handle for one entity name. Metadata is resolved per call. */
 function handleFor(http: HttpClient, ops: Ops, entity: string): RuntimeHandle {
-  const { metaFor, fetchOne, replaceOne, withRelations } = ops;
+  const { metaFor, fetchOne, replaceOne, queryPage, withRelations } = ops;
   return {
     async list() {
       const meta = await metaFor(entity);
-      // The backend answers with every object of the type; it is not paged.
-      const response = await http.get<unknown>(
-        OBJECTS_PATH,
-        { object_type_id: meta.objectTypeId },
-        undefined,
-        {},
-        PRESERVE
-      );
-      return parseObjectList(meta, response).map((record) =>
-        withRelations(record, meta)
-      );
+      const items: ObjectRecord[] = [];
+      let cursor: string | undefined;
+      for (let page = 1; page <= MAX_LIST_PAGES; page += 1) {
+        const result = await queryPage(meta, {
+          limit: MAX_PAGE_SIZE,
+          cursor,
+        });
+        items.push(...result.items);
+        if (result.nextCursor === null) {
+          return items;
+        }
+        cursor = result.nextCursor;
+      }
+      throw new ValidationError({
+        code: "TOO_MANY_PAGES",
+        message: `${meta.name} list exceeded ${MAX_LIST_PAGES} pages`,
+        requestId: "local-validation",
+        fields: [],
+      });
+    },
+    async query(options) {
+      const args = parseQueryArgs(entity, options);
+      const meta = await metaFor(entity);
+      return queryPage(meta, args);
     },
     async get(id) {
       const meta = await metaFor(entity);
@@ -327,16 +571,49 @@ function handleFor(http: HttpClient, ops: Ops, entity: string): RuntimeHandle {
       assertId(meta.name, id);
       // Validate the patch before any request, so bad keys cost no round trip.
       const changes = parseInput(meta, patch, "update");
-      const current = await fetchOne(meta, id);
-      // Send only writable fields, so server-computed fields are not echoed.
-      const properties: ObjectRecord = {};
-      for (const field of meta.writable) {
-        if (current[field] !== undefined) {
-          properties[field] = current[field];
+      let lastError: unknown;
+      for (let attempt = 1; attempt <= MAX_WRITE_ATTEMPTS; attempt += 1) {
+        const { record, etag } = await fetchWithEtag(http, meta, id);
+        // Send only writable fields, so server-computed fields are not echoed.
+        const properties: ObjectRecord = {};
+        for (const field of meta.writable) {
+          if (record[field] !== undefined) {
+            properties[field] = record[field];
+          }
+        }
+        Object.assign(properties, changes);
+        try {
+          return withRelations(
+            parseObjectRecord(
+              meta,
+              await http.put<unknown>(
+                objectPath(id),
+                {
+                  object_type_id: meta.objectTypeId,
+                  object_id: id,
+                  properties: raw(properties),
+                },
+                undefined,
+                { preserveKeys: PROPERTIES_KEY, headers: { "If-Match": etag } }
+              )
+            ),
+            meta
+          );
+        } catch (error) {
+          if (!PreconditionFailedError.isInstance(error)) {
+            throw error;
+          }
+          lastError = error;
         }
       }
-      Object.assign(properties, changes);
-      return replaceOne(meta, id, properties);
+      const requestId = isFrontalError(lastError)
+        ? lastError.requestId
+        : "unknown";
+      throw new ConflictError({
+        code: "PRECONDITION_FAILED",
+        message: `${meta.name} ${id} changed on every attempt (${MAX_WRITE_ATTEMPTS}); update was not applied`,
+        requestId,
+      });
     },
     async delete(id) {
       const meta = await metaFor(entity);
