@@ -9,6 +9,7 @@ Thank you for your interest in contributing to the Frontal SDK! We want to make 
 - [Code Style](#code-style)
 - [Testing](#testing)
 - [Documentation](#documentation)
+- [Bundle Size](#bundle-size)
 - [Pull Request Process](#pull-request-process)
 - [Community](#community)
 
@@ -184,6 +185,17 @@ describe('AI Package', () => {
 - **Code Examples**: Include working examples
 - **Links**: Use relative links for internal navigation
 - **Spelling**: Use American English
+
+## Bundle Size
+
+CI fails when a package's bundled size goes over its limit in `.size-limit.mjs`. Limits are measured after `tsup` builds, brotli-compressed, with dependencies included.
+
+```sh
+bun run build && bun run size      # check sizes against limits
+bun run size:why                   # open a treemap of what is in a bundle
+```
+
+If your change legitimately grows a bundle, raise that entry's `limit` in the same PR. Keep the increase as small as possible, and say why in the PR description. Do not raise a limit just to make CI pass. Lowering a limit after a size reduction is welcome.
 
 ## Pull Request Process
 
