@@ -48,7 +48,8 @@ describe("BlobSdk.upload() payload", () => {
       data: new TextEncoder().encode("raw bytes"),
     });
 
-    const file = (post.mock.calls[0]?.[1] as FormData).get("file") as Blob;
+    const [, init] = post.mock.calls[0] ?? [];
+    const file = (init as FormData).get("file") as Blob;
     expect(await file.text()).toBe("raw bytes");
   });
 });

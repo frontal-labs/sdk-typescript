@@ -57,7 +57,7 @@ function normalizeExecution(raw: unknown): S.WorkflowExecution {
       ? execution.stepExecutions
       : [],
     triggeredBy: String(execution.startedBy ?? execution.triggeredBy ?? ""),
-    ...(startedAt !== undefined ? { startedAt } : {}),
+    ...(startedAt === undefined ? {} : { startedAt }),
   });
 }
 
@@ -82,9 +82,9 @@ function queryOptions(opts: {
   cursor?: S.Cursor;
 }): Record<string, unknown> {
   return {
-    ...(opts.status !== undefined ? { status: opts.status } : {}),
-    ...(opts.limit !== undefined ? { pageSize: opts.limit } : {}),
-    ...(opts.cursor !== undefined ? { pageToken: opts.cursor } : {}),
+    ...(opts.status === undefined ? {} : { status: opts.status }),
+    ...(opts.limit === undefined ? {} : { pageSize: opts.limit }),
+    ...(opts.cursor === undefined ? {} : { pageToken: opts.cursor }),
   };
 }
 
@@ -766,9 +766,9 @@ export class TemplatesNamespace {
     opts: { category?: string; limit?: number; cursor?: S.Cursor } = {}
   ): Promise<PageResult<S.WorkflowTemplate>> {
     const query = {
-      ...(opts.category !== undefined ? { category: opts.category } : {}),
-      ...(opts.limit !== undefined ? { pageSize: opts.limit } : {}),
-      ...(opts.cursor !== undefined ? { pageToken: opts.cursor } : {}),
+      ...(opts.category === undefined ? {} : { category: opts.category }),
+      ...(opts.limit === undefined ? {} : { pageSize: opts.limit }),
+      ...(opts.cursor === undefined ? {} : { pageToken: opts.cursor }),
     };
     const raw = await this.http.get("/workflows/templates", query);
     const page = pageFrom<unknown>(raw, "templates");
