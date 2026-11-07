@@ -55,3 +55,6 @@ bun-debug.log*
 # Extracted README examples (generated)
 .examples-build
 .examples-quickstart
+
+# size-limit: esbuild-why treemap reports (bun run size:why)
+esbuild-why-*.html
