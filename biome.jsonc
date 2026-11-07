@@ -181,16 +181,6 @@
         "noUnknownUnit": "error",
         "noUnmatchableAnbSelector": "error"
       },
-      "nursery": {
-        "useSortedClasses": {
-          "fix": "safe",
-          "level": "error",
-          "options": {
-            "attributes": ["className"],
-            "functions": ["clsx", "cva", "tw", "twMerge", "cn", "twJoin", "tv"]
-          }
-        }
-      },
       "performance": {
         "noAccumulatingSpread": "error",
         "noBarrelFile": "off",

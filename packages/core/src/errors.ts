@@ -465,7 +465,7 @@ export function parseFrontalError(
       const retryAfterMs = parseRetryAfterMs(retryAfter);
       return new RateLimitError(
         normalized,
-        retryAfterMs !== undefined ? retryAfterMs / 1000 : 60,
+        retryAfterMs === undefined ? 60 : retryAfterMs / 1000,
         rateLimit
       );
     }

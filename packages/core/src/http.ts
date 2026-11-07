@@ -815,9 +815,9 @@ export class HttpClient {
       body !== undefined && body !== null ? deepCamelToSnake(body) : body;
 
     const encoded =
-      method !== "GET"
-        ? this.encodeBody(JSON.stringify(transformedBody ?? {}))
-        : undefined;
+      method === "GET"
+        ? undefined
+        : this.encodeBody(JSON.stringify(transformedBody ?? {}));
     const reqInit: RequestInit = {
       method,
       headers: this.buildHeaders({
@@ -828,7 +828,7 @@ export class HttpClient {
           ? { "Idempotency-Key": options.idempotencyKey }
           : {}),
       }),
-      ...(encoded?.body !== undefined ? { body: encoded.body } : {}),
+      ...(encoded?.body === undefined ? {} : { body: encoded.body }),
     };
 
     this.config.logger?.request?.(method, url, redactRequestInit(reqInit));
@@ -878,14 +878,14 @@ export class HttpClient {
           parseRetryAfterMsHeader(res.headers.get("retry-after-ms")) ??
           parseRetryAfterMs(res.headers.get("Retry-After"));
         const delay =
-          serverDelay !== undefined
-            ? Math.min(serverDelay, RETRY_AFTER_MAX_MS)
-            : calculateDelay(
+          serverDelay === undefined
+            ? calculateDelay(
                 attempt,
                 "exponential",
                 this.config.retryDelay,
                 true
-              );
+              )
+            : Math.min(serverDelay, RETRY_AFTER_MAX_MS);
 
         report(res.status, undefined, serverRequestId);
         this.releaseResponse(res);
