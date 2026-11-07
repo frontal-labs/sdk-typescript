@@ -1,0 +1,47 @@
+name: Bundle size
+
+# Separate from ci.yml on purpose: ci.yml is also called by publish.yml, and a
+# called workflow cannot grant more permissions than its caller. This job needs
+# pull-requests: write, which publish.yml does not grant, so it would fail the
+# publish run at startup.
+#
+# This is comment-only. The gate that fails the build is the "Bundle size" step
+# in ci.yml. Fork PRs get a read-only token, so the comment is skipped there.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  size-report:
+    name: Bundle size comment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Helper lives outside the repo so the base and head checkouts both see it.
+      # It runs size-limit directly (the base branch may not have the `size`
+      # script yet), keeps JSON even when a limit is exceeded, and prints [] when
+      # there is no output, e.g. the base has no config yet.
+      - name: Write size JSON helper
+        run: |
+          printf '%s\n' 'out=$(bunx size-limit --json 2>/dev/null)' 'printf "%s" "${out:-[]}"' > "$RUNNER_TEMP/size-json.sh"
+
+      - name: Compare bundle sizes with base branch
+        uses: andresz1/size-limit-action@94bc357df29c36c8f8d50ea497c3e225c3c95d1d # v1.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          package_manager: bun
+          build_script: build
+          script: sh ${{ runner.temp }}/size-json.sh
