@@ -9,14 +9,14 @@ const silenceDefineAssign = (config) => ({
 export default [
   {
     "name": "agents",
-    "path": "packages/agents/dist/index.js",
-    "limit": "105 kB",
+    "path": "packages/agents/dist/index.mjs",
+    "limit": "94 kB",
     "modifyEsbuildConfig": silenceDefineAssign
   },
   {
     "name": "ai",
-    "path": "packages/ai/dist/index.js",
-    "limit": "111 kB",
+    "path": "packages/ai/dist/index.mjs",
+    "limit": "99 kB",
     "modifyEsbuildConfig": silenceDefineAssign
   },
   {
@@ -39,8 +39,8 @@ export default [
   },
   {
     "name": "blob",
-    "path": "packages/blob/dist/index.js",
-    "limit": "103 kB",
+    "path": "packages/blob/dist/index.mjs",
+    "limit": "92 kB",
     "modifyEsbuildConfig": silenceDefineAssign
   },
   {
@@ -87,14 +87,14 @@ export default [
   },
   {
     "name": "ontology",
-    "path": "packages/ontology/dist/index.js",
-    "limit": "109 kB",
+    "path": "packages/ontology/dist/index.mjs",
+    "limit": "98 kB",
     "modifyEsbuildConfig": silenceDefineAssign
   },
   {
     "name": "pipelines",
-    "path": "packages/pipelines/dist/index.js",
-    "limit": "104 kB",
+    "path": "packages/pipelines/dist/index.mjs",
+    "limit": "93 kB",
     "modifyEsbuildConfig": silenceDefineAssign
   },
   {
@@ -133,8 +133,8 @@ export default [
   },
   {
     "name": "workflows",
-    "path": "packages/workflows/dist/index.js",
-    "limit": "105 kB",
+    "path": "packages/workflows/dist/index.mjs",
+    "limit": "94 kB",
     "modifyEsbuildConfig": silenceDefineAssign
   },
   {
@@ -153,9 +153,9 @@ export default [
   },
   {
     "name": "blob: createBlobClient",
-    "path": "packages/blob/dist/index.js",
+    "path": "packages/blob/dist/index.mjs",
     "import": "{ createBlobClient }",
-    "limit": "103 kB",
+    "limit": "92 kB",
     "modifyEsbuildConfig": silenceDefineAssign
   },
   {
