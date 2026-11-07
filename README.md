@@ -102,8 +102,6 @@ bun install
 bun run build
 ```
 
-A Nix shell is available too: `nix develop`.
-
 ### Development commands
 
 ```bash
