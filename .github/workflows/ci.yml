@@ -134,4 +134,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           package_manager: bun
           build_script: build
-          script: bun run size --json
+          # Run size-limit directly: the base branch may not have the `size`
+          # script yet. Keep JSON even when a limit is exceeded, and fall back to
+          # [] when there is no output, e.g. the base has no config yet.
+          script: sh -c 'out=$(bunx size-limit --json 2>/dev/null); printf "%s" "${out:-[]}"'
