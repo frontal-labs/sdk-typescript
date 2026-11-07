@@ -38,6 +38,10 @@ jobs:
       - name: Build all packages
         run: bun run build
 
+      # Fails the job when any bundle exceeds its limit in .size-limit.mjs.
+      - name: Bundle size
+        run: bun run size
+
       - name: Lint
         run: bun run lint
 
@@ -105,3 +109,29 @@ jobs:
 
       - name: Load ESM and CommonJS package entries
         run: bun run runtime:smoke
+
+  size-report:
+    name: Bundle size comment
+    # Comment only: the `ci` job's "Bundle size" step is the gate. Fork PRs get
+    # a read-only token, so the comment is skipped there.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Compare bundle sizes with base branch
+        uses: andresz1/size-limit-action@94bc357df29c36c8f8d50ea497c3e225c3c95d1d # v1.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          package_manager: bun
+          build_script: build
+          script: bun run size --json
