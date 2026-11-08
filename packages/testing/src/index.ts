@@ -570,3 +570,6 @@ export function catchAllRoutes(body?: Record<string, unknown>): MockRoute[] {
     method,
   }));
 }
+
+export type { ExpectedFrontalError, MockErrorOptions } from "./errors";
+export { expectFrontalError, mockError } from "./errors";
