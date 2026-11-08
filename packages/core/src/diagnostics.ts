@@ -1,5 +1,8 @@
-/** Matches a Frontal API key anywhere in a string. */
-const API_KEY_PATTERN = /frt_[A-Za-z0-9_-]+/g;
+/**
+ * Matches a Frontal API key anywhere in a string: the current `frt_` prefix and
+ * the legacy `fr_typed` prefix that `FRONTAL_API_KEY` still accepts.
+ */
+const API_KEY_PATTERN = /(?:frt_|fr_typed)[A-Za-z0-9_-]+/g;
 
 /**
  * Safe, log-ready view of an SDK error. Unlike `toJSON()`, it never includes
@@ -35,6 +38,15 @@ function redactDeep(value: unknown): unknown {
   return value;
 }
 
+/** `String(value)` that cannot throw, for values with no usable `toString`. */
+function safeString(value: unknown): string {
+  try {
+    return String(value);
+  } catch {
+    return "[unprintable value]";
+  }
+}
+
 /** Optional SDK fields read from any thrown value. */
 interface SdkErrorFields {
   code?: string;
@@ -52,7 +64,7 @@ interface SdkErrorFields {
  */
 export function describeSdkError(error: unknown): SdkErrorDiagnostics {
   if (!(error instanceof Error)) {
-    const message = redactSecrets(String(error));
+    const message = redactSecrets(safeString(error));
     return {
       name: "NonError",
       code: "UNKNOWN_ERROR",

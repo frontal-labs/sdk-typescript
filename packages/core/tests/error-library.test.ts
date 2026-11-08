@@ -160,6 +160,14 @@ describe("@frontal-labs/error integration", () => {
       expect(error.message).toBe("Gateway said no");
     });
 
+    it("never throws when a JavaScript caller omits the code", () => {
+      const error = new NotFoundError(
+        { message: "m", requestId: "r" } as never,
+        undefined
+      );
+      expect(error.code).toBe("UNKNOWN_ERROR");
+    });
+
     it("never throws for a blank code and falls back to UNKNOWN_ERROR", () => {
       const error = new NotFoundError(
         { code: "   ", message: "m", requestId: "r" },

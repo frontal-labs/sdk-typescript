@@ -65,7 +65,10 @@ export class FrontalError extends BaseFrontalError<string> {
     // Constructing an error must never throw while another failure is being
     // handled, so out-of-range statuses and blank codes are normalized here.
     const status = toErrorStatus(statusCode);
-    const code = response.code.trim().length > 0 ? response.code : UNKNOWN_CODE;
+    const code =
+      typeof response.code === "string" && response.code.trim().length > 0
+        ? response.code
+        : UNKNOWN_CODE;
     const fix = fixFor(code, statusCode);
     super(response.message, {
       scope: SDK_SCOPE,

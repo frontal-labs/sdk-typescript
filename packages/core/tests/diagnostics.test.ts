@@ -86,6 +86,23 @@ describe("describeSdkError", () => {
     });
   });
 
+  it("redacts legacy fr_typed keys as well as frt_ keys", () => {
+    expect(redactSecrets("legacy fr_typedABC123 and frt_live_XYZ")).toBe(
+      "legacy [REDACTED] and [REDACTED]"
+    );
+  });
+
+  it("does not throw for values without a usable toString", () => {
+    const hostile = Object.create(null);
+    expect(describeSdkError(hostile)).toEqual({
+      name: "NonError",
+      code: "UNKNOWN_ERROR",
+      message: "[unprintable value]",
+      retryable: false,
+      fingerprint: "unscoped/UNKNOWN_ERROR",
+    });
+  });
+
   it("omits the unknown request id placeholder", () => {
     const error = parseFrontalError({ code: "X", message: "m" }, 500);
     expect(describeSdkError(error).requestId).toBeUndefined();
