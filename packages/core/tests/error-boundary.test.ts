@@ -222,3 +222,35 @@ describe("createErrors-built breaker and coded type errors", () => {
     expect(error.code).toBe("unsupported_runtime");
   });
 });
+
+describe("debug output and response links", () => {
+  it("never prints the response link, which can carry a token", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const http = clientReturning(
+        () =>
+          new Response(
+            JSON.stringify({
+              error: {
+                code: "NOT_FOUND",
+                message: "missing",
+                link: "https://docs.test/errors?token=LINKSECRET9",
+              },
+              requestId: "req_link",
+            }),
+            { status: 404 }
+          ),
+        { debug: true } as never
+      );
+      const error = (await http
+        .get("/x")
+        .catch((e: unknown) => e)) as FrontalError;
+      const printed = spy.mock.calls.map((c) => String(c[0])).join("\n");
+      expect(printed).toContain("NOT_FOUND");
+      expect(printed).not.toContain("LINKSECRET9");
+      expect(error.link).toContain("LINKSECRET9");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+});

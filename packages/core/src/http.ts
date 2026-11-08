@@ -1042,7 +1042,11 @@ export class HttpClient {
     if (this.config.debug) {
       // Terminal rendering for local debugging: `auto` honours NO_COLOR and TTY.
       // Redacted, because debug output is often pasted into bug reports.
-      console.error(redactSecrets(formatError(error, { format: "auto" })));
+      // The link is left out: a response link can carry a token or a customer id,
+      // and redactSecrets only removes Frontal API keys.
+      const { link: _link, ...withoutLink } = error;
+      const view = { ...withoutLink, message: error.message };
+      console.error(redactSecrets(formatError(view, { format: "auto" })));
     }
     throw error;
   }
