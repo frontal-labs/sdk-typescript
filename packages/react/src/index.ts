@@ -7,6 +7,7 @@
  */
 
 export type { UIError, UIMessage, UIMessagePart } from "@frontal-labs/ai";
+export { DEFAULT_PUBLIC_FALLBACK, getPublicMessage } from "./errors";
 export type {
   AgentRunStatus,
   UseAgentRunOptions,

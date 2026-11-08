@@ -46,10 +46,12 @@ export { Frontal } from "./sdk";
 // ── Core primitives ────────────────────────────────────────────────────
 
 export {
+  CircuitBreakerOpenError,
   type ClientConfigInput,
   type ClientConfigOutput,
   ConflictError,
   clientConfigSchema,
+  describeSdkError,
   ForbiddenError,
   FrontalClient,
   FrontalError,
@@ -88,6 +90,7 @@ export {
   registerTelemetry,
   requestIdOf,
   type SdkError,
+  type SdkErrorDiagnostics,
   type StreamPart,
   type TelemetryEvent,
   type TelemetryProvider,
