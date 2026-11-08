@@ -1,9 +1,10 @@
+import { formatError } from "@frontal-labs/error/format";
 import type { z } from "zod";
 import { declaredResponse } from "./boundary";
 import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { MAX_TIMER_MS, RETRY_AFTER_MAX_MS, SDK_VERSION } from "./constants";
-import { describeSdkError } from "./diagnostics";
+import { describeSdkError, redactSecrets } from "./diagnostics";
 import { NetworkError, parseFrontalError, TimeoutError } from "./errors";
 import { isObjectRecord } from "./guards";
 import { composeInterceptors, type Interceptor } from "./interceptors";
@@ -1033,7 +1034,9 @@ export class HttpClient {
     const diagnostics = describeSdkError(error);
     this.config.logger?.error?.(diagnostics);
     if (this.config.debug) {
-      console.error("[SDK]", diagnostics);
+      // Terminal rendering for local debugging: `auto` honours NO_COLOR and TTY.
+      // Redacted, because debug output is often pasted into bug reports.
+      console.error(redactSecrets(formatError(error, { format: "auto" })));
     }
     throw error;
   }

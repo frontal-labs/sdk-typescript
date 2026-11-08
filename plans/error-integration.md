@@ -1,7 +1,36 @@
 # Plan: integrate `@frontal-labs/error` into `sdk-typescript`
 
-Status: PR 1 and PR 2 implemented on `feat/error-library-integration` (based on `origin/main`). PR 3 and PR 4 not started.
+Status: complete, with the deviations listed under "Final status". PRs #61–#64 are merged.
 Library: `@frontal-labs/error@0.7.0` (npm, MIT, `engines.node >= 22`).
+
+## Final status
+
+| Phase | Status |
+| --- | --- |
+| 0 Audit | Done. Findings below. |
+| 1 Dependency and build | Done. Bundled, pinned, notice shipped, Dependabot group. Skill installed under `skills/frontal-error`. |
+| 2 Core error classes | Done. Base class, status clamp, writable `requestId`, stack starts at the call site. |
+| 3 Network and timeout | Done. Recognised by the library guard; core's guard unchanged. |
+| 4 Response parsing | Done. Library parser for the envelope; `x-frontal-id` fallback. A fallback keeps the message when `code` is missing. |
+| 5 Diagnostics and observability | Done. `describeSdkError`, `redactSecrets`, `logSdkFailure`, `FRONTAL_DEBUG` via `formatError`, error attributes, `service.name`. Serialization helpers are local, since 0.7.0 does not export them. |
+| 6 SDK-local errors | Partly done. `CIRCUIT_OPEN` is a code. Polling timeouts keep `TIMEOUT` with `metadata.operation = "poll"`. See deviations. |
+| 7 Testing helpers | Done. `mockError`, `expectFrontalError`; fixtures use the gateway envelope. |
+| 8 React and templates | Done for the one template with an HTTP handler. `getPublicMessage` added. The browser client reads the nested envelope. |
+| 9 Docs and release | Done. `docs/ERRORS.md`, READMEs, both `SKILL.md` files, changesets. |
+
+### Deviations (deliberate)
+
+- **`poll_timeout` code.** Not a new code. A new code would break existing `code === "TIMEOUT"` checks. The operation is in `metadata.operation`.
+- **`invalid_request` code.** Not applied to SDK argument errors. Those are programming errors and stay `TypeError`, so `instanceof TypeError` keeps working.
+- **`createErrors` for SDK-raised errors.** Not used. SDK errors are classes with fixed identities, and `createErrors` builds base-library errors rather than those classes. It remains the tool for application code.
+- **Templates `agent-approval`, `cron-export`, `pipeline-graph`.** Not changed. They are CLI scripts with no HTTP boundary, so there is no client-facing error to map.
+- **CORS `Access-Control-Expose-Headers`.** Not applicable. The repo sends no CORS headers. `docs/ERRORS.md` tells apps to expose `x-frontal-id`.
+- **Edge or worker runtime smoke test.** Not run. No edge runtime is installed here. Node 22 and Node 24 (CI) and Bun (run locally) were checked.
+
+### Verification
+
+- The bundle has no runtime import of `@frontal-labs/error`. A search found no code that assigns developer fields after construction.
+- `runtime:smoke` passes under Bun and Node.
 
 ## Phase 0 findings (against the published 0.7.0 tarball)
 
@@ -22,43 +51,15 @@ These corrections change parts of the original plan. Where they conflict, this s
 | "Fork of `vercel-labs/error`" | Neither the package `LICENSE.md` nor its README mentions it. | Not claimed in the notice. Confirm upstream before adding. |
 | `tsup` `noExternal` | Confirmed. The config had `external: ["zod"]`, which is kept. | Done. |
 
-## What was implemented
+## What was built
 
-### PR 1: dependency and build
+- **PR 1 (#61):** exact dependency pin, `noExternal` bundling, third-party notice, Dependabot group.
+- **PR 2 (#61):** `FrontalError` on the base class, `NetworkError` and `TimeoutError` on the base class, the nested-envelope parser, and compatibility snapshots.
+- **PR 3 (#62):** `describeSdkError`, `logSdkFailure`, error attributes, `CircuitBreakerOpenError` on the base class, `mockError`, `expectFrontalError`, two-copies test.
+- **PR 4 (#63):** `getPublicMessage`, SDK re-exports, `docs/ERRORS.md`, `SKILL.md` updates, the `frontal-error` skill.
+- **PR 5 (#64):** stream disclosure fix in `ai`, `serviceName` on every client, polling metadata, chatbot route error mapping, gateway envelope for mock routes.
+- **Follow-up:** the browser client reads the nested envelope, `FRONTAL_DEBUG` renders with `formatError` and redacts keys.
 
-- `packages/core/package.json`: `"@frontal-labs/error": "0.7.0"` (exact pin, D9).
-- `packages/core/tsup.config.ts`: `noExternal: ["@frontal-labs/error"]` (D1). The ESM and CJS outputs contain no runtime import of the library. `zod` stays external.
-- `packages/core/src/diagnostics.ts`: `describeSdkError()` and `redactSecrets()`. `describeSdkError()` returns a log-ready view with a `scope/code` fingerprint, no `cause` or `stack`, and `frt_` keys replaced with `[REDACTED]` in the message, request id and metadata.
-- `packages/core/THIRD_PARTY_NOTICES.md`: the library's MIT license, shipped in the package `files`.
-- `.github/dependabot.yml`: a `frontal-error` group with a `needs-review` label, excluded from the catch-all group.
-- Not done: `npx skills add frontal-labs/error`. It downloads third-party agent instructions, so it needs review before it lands.
+## Open questions
 
-### PR 2: error classes, network and timeout errors, parsing
-
-- `FrontalError` extends the library's base class, imported as `BaseFrontalError` (D2). Core keeps its own name, brand and `isFrontalError`.
-- Scope is `"frontal"` for every SDK error (D4). Codes are unchanged.
-- Statuses outside 400–599 are clamped to 500, and the original is kept in `metadata.rawStatus` (D5).
-- No `public` is set (D3).
-- `toJSON()` keeps the `SerializedFrontalError` shape (D7).
-- `NetworkError` and `TimeoutError` extend the base class, keep their codes, and no longer serialize `cause`.
-- `toString()` is pinned to the native `Name: message` form on all three roots, so `String(err)` is unchanged.
-- `normalizeErrorBody` uses the library's `parseErrorResponseData` for the nested envelope, with a fallback that keeps the message when there is no `code`.
-- `http.ts` reads `x-frontal-id` as a fallback after `x-request-id`.
-
-### Tests
-
-- `packages/core/tests/error-library.test.ts`: recognition for all 12 classes, disclosure through `errorResponse()`, status bounds, nested parsing, blank codes, malformed bodies, JSON shapes, `String()` output.
-- `packages/core/tests/errors.test.ts`: one assertion changed. The stack now starts at the call site, not inside `new FrontalError`. This is a deliberate behaviour change, listed in the changeset.
-
-## Not done yet
-
-- PR 2 remainder: a test that loads two copies of core. Not written.
-- PR 3: `logSdkFailure` in observability, `tracing.ts` attributes, `createErrors` for SDK-local errors (`circuit_open`, `poll_timeout`, `invalid_request`), testing helpers. `FRONTAL_DEBUG` logging is also not wired to `formatError`.
-- PR 4: `getPublicMessage` in `@frontal-labs/react`, the template changes, and the docs (`docs/ERRORS.md`, README sections, `SKILL.md`).
-- `npx skills add frontal-labs/error` (see PR 1 above).
-
-## Resolved questions
-
-1. Upstream issues were not opened. The missing diagnostics helpers are implemented locally in core (see `diagnostics.ts`).
-2. The `vercel-labs/error` attribution is not claimed in the notice, because the package does not state it.
-3. The work is on `feat/error-library-integration`, based on `origin/main`.
+None for the plan. Upstream attribution (`vercel-labs/error`) is still unverified and is not claimed in the notice.

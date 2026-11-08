@@ -249,3 +249,42 @@ describe("serializeError identifiers", () => {
     expect(JSON.stringify(serialized)).not.toContain("LEAK");
   });
 });
+
+describe("non-OK response envelopes", () => {
+  it("reads the nested errorResponse() envelope sent by an app route", async () => {
+    const res = new Response(
+      JSON.stringify({
+        error: {
+          scope: "app",
+          code: "invalid_request",
+          message: "Send a JSON body.",
+        },
+      }),
+      { status: 400, statusText: "Bad Request" }
+    );
+    expect(await frames(res)).toEqual([
+      {
+        type: "error",
+        error: {
+          code: "invalid_request",
+          message: "Send a JSON body.",
+          retryable: false,
+          statusCode: 400,
+        },
+      },
+      { type: "done" },
+    ]);
+  });
+
+  it("still reads flat bodies and ignores identifiers that are not tokens", async () => {
+    const res = new Response(
+      JSON.stringify({ code: "bad code with spaces", message: "m" }),
+      { status: 500 }
+    );
+    const [frame] = await frames(res);
+    expect(frame).toMatchObject({
+      type: "error",
+      error: { code: "HTTP_500", message: "m" },
+    });
+  });
+});

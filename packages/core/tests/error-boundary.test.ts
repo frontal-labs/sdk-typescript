@@ -70,10 +70,10 @@ describe("HTTP error boundary", () => {
     try {
       const http = clientReturning(() => notFound(), { debug: true } as never);
       await http.get("/x").catch(() => undefined);
-      expect(spy).toHaveBeenCalledWith(
-        "[SDK]",
-        expect.objectContaining({ fingerprint: "frontal/NOT_FOUND" })
-      );
+      expect(spy).toHaveBeenCalledTimes(1);
+      const [text] = spy.mock.calls[0] as [string];
+      expect(text).toContain("NOT_FOUND");
+      expect(text).toContain("missing");
     } finally {
       spy.mockRestore();
     }
@@ -142,5 +142,23 @@ describe("service.name and poll timeouts", () => {
     }).catch((e: unknown) => e)) as { code?: string; metadata?: unknown };
     expect(error.code).toBe("TIMEOUT");
     expect(error.metadata).toEqual({ operation: "poll" });
+  });
+});
+
+describe("debug output", () => {
+  it("never prints an API key from the error message", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const http = clientReturning(
+        () => notFound({}, "bad key frt_live_DEBUGKEY1"),
+        { debug: true } as never
+      );
+      await http.get("/x").catch(() => undefined);
+      const printed = spy.mock.calls.map((c) => String(c[0])).join("\n");
+      expect(printed).toContain("NOT_FOUND");
+      expect(printed).not.toContain("DEBUGKEY1");
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

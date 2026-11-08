@@ -75,6 +75,27 @@ function identifierOrUndefined(value: unknown): string | undefined {
 }
 
 /**
+ * Reads `code` and `message` from a non-OK response body. Accepts the gateway
+ * and `errorResponse()` envelope, `{ error: { code, message } }`, and falls
+ * back to flat fields. The message is the one the server chose to send.
+ */
+function readErrorFields(body: unknown): { code?: string; message?: string } {
+  if (typeof body !== "object" || body === null) return {};
+  const nested = (body as { error?: unknown }).error;
+  const source = (
+    typeof nested === "object" && nested !== null ? nested : body
+  ) as { code?: unknown; message?: unknown };
+  const message = source.message;
+  return {
+    code: identifierOrUndefined(source.code),
+    message:
+      typeof message === "string" && message.trim().length > 0
+        ? message
+        : undefined,
+  };
+}
+
+/**
  * Serializes an error for a UI stream. Only the fields an end user may see
  * leave the server: `code`, `statusCode`, `retryable`, and the server-approved
  * `public` message. Developer text (`message`, `fix`, `docs`, `requestId`) and
@@ -203,12 +224,12 @@ export async function* parseUIMessageStream(
     } catch {
       body = {};
     }
-    const b = (body ?? {}) as Partial<UIError>;
+    const fields = readErrorFields(body);
     yield {
       type: "error",
       error: {
-        code: b.code ?? `HTTP_${response.status}`,
-        message: b.message ?? response.statusText,
+        code: fields.code ?? `HTTP_${response.status}`,
+        message: fields.message ?? response.statusText,
         retryable: [408, 425, 429, 500, 502, 503, 504].includes(
           response.status
         ),
