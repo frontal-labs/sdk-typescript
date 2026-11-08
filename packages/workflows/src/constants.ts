@@ -6,7 +6,7 @@ export const DEFAULT_WORKFLOWS_BASE_URL = "https://api.frontal.dev/v1";
 /**
  * Package version.
  */
-export const VERSION = "1.0.1";
+export const VERSION = "1.0.2";
 
 /**
  * Default timeout.
