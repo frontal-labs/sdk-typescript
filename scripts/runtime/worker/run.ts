@@ -17,7 +17,12 @@ if (!built.success) {
   for (const log of built.logs) console.error(log);
   process.exit(1);
 }
-const script = await built.outputs[0]!.text();
+const output = built.outputs[0];
+if (!output) {
+  console.error("worker smoke: Bun.build produced no output");
+  process.exit(1);
+}
+const script = await output.text();
 
 const mf = new Miniflare({
   modules: true,
