@@ -1,5 +1,6 @@
 import { type ZodType, z } from "zod";
 import { declaredResponse } from "./boundary";
+import { invalidRequestError } from "./errors";
 import type { PaginationMeta } from "./schemas";
 import { responseMetaSchema } from "./schemas";
 import type { PageResult } from "./types";
@@ -212,7 +213,7 @@ export function createPageResult<T>(
 ): PageResult<T> {
   if (Array.isArray(dataOrRaw)) {
     if (!isPaginationInfo(paginationOrFetchNext)) {
-      throw new TypeError(
+      throw invalidRequestError(
         "createPageResult: an item array needs pagination info as its second argument"
       );
     }

@@ -1,0 +1,28 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:@t3-oss/env-core@0.13.11": "0.13.11_zod@4.6.7",
+    "npm:zod@4.6.7": "4.6.7"
+  },
+  "npm": {
+    "@t3-oss/env-core@0.13.11_zod@4.6.7": {
+      "integrity": "sha512-sM7GYY+KL7H/Hl0BE0inWfk3nRHZOLhmVn7sHGxaZt9FAR6KqREXAE+6TqKfiavfXmpRxO/OZ2QgKRd+oiBYRQ==",
+      "dependencies": [
+        "zod"
+      ],
+      "optionalPeers": [
+        "zod"
+      ]
+    },
+    "zod@4.6.7": {
+      "integrity": "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:@t3-oss/env-core@0.13.11",
+      "npm:tslib@2.9.1",
+      "npm:zod@4.6.7"
+    ]
+  }
+}

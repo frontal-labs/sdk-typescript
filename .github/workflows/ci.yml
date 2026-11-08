@@ -109,3 +109,29 @@ jobs:
 
       - name: Load ESM and CommonJS package entries
         run: bun run runtime:smoke
+
+  edge-runtimes:
+    name: Edge runtimes (Deno, workerd)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: 2.9.8
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build all packages
+        run: bun run build
+
+      - name: Deno smoke test (core bundle)
+        run: bun run runtime:deno
+
+      - name: workerd smoke test (core bundle, no compatibility flags)
+        run: bun run runtime:worker

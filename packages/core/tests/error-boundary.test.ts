@@ -2,7 +2,7 @@ import { isFrontalError as isLibraryFrontalError } from "@frontal-labs/error";
 import { describe, expect, it, vi } from "vitest";
 import { CircuitBreakerOpenError } from "../src/circuit-breaker";
 import type { FrontalError } from "../src/errors";
-import { isRetryableError } from "../src/errors";
+import { isRetryableError, TimeoutError } from "../src/errors";
 import { HttpClient } from "../src/http";
 
 const base = {
@@ -133,14 +133,14 @@ describe("service.name and poll timeouts", () => {
     });
   });
 
-  it("tags polling timeouts with operation=poll and keeps the TIMEOUT code", async () => {
+  it("gives polling timeouts the POLL_TIMEOUT code and operation=poll", async () => {
     const { pollUntil } = await import("../src/polling");
     const error = (await pollUntil(async () => "pending", {
       until: (r) => r === "done",
       timeout: 1,
       interval: 1,
     }).catch((e: unknown) => e)) as { code?: string; metadata?: unknown };
-    expect(error.code).toBe("TIMEOUT");
+    expect(error.code).toBe("POLL_TIMEOUT");
     expect(error.metadata).toEqual({ operation: "poll" });
   });
 });
@@ -160,5 +160,31 @@ describe("debug output", () => {
     } finally {
       spy.mockRestore();
     }
+  });
+});
+
+describe("invalid request and timeout codes", () => {
+  it("invalidRequestError is a TypeError with the invalid_request code", async () => {
+    const { invalidRequestError } = await import("../src/errors");
+    const error = invalidRequestError("bad argument");
+    expect(error).toBeInstanceOf(TypeError);
+    expect(error.code).toBe("invalid_request");
+    expect(error.message).toBe("bad argument");
+  });
+
+  it("keeps request timeouts on the TIMEOUT code", () => {
+    const error = new TimeoutError("slow");
+    expect(error.code).toBe("TIMEOUT");
+    expect(error.fix).toMatch(/timeout/);
+  });
+
+  it("accepts an explicit code and fix for polling-style timeouts", () => {
+    const error = new TimeoutError("poll", {
+      code: "POLL_TIMEOUT",
+      fix: "wait less",
+    });
+    expect(error.code).toBe("POLL_TIMEOUT");
+    expect(error.fix).toBe("wait less");
+    expect(error).toBeInstanceOf(TimeoutError);
   });
 });

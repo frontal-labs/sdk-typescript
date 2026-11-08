@@ -13,24 +13,23 @@ Library: `@frontal-labs/error@0.7.0` (npm, MIT, `engines.node >= 22`).
 | 3 Network and timeout | Done. Recognised by the library guard; core's guard unchanged. |
 | 4 Response parsing | Done. Library parser for the envelope; `x-frontal-id` fallback. A fallback keeps the message when `code` is missing. |
 | 5 Diagnostics and observability | Done. `describeSdkError`, `redactSecrets`, `logSdkFailure`, `FRONTAL_DEBUG` via `formatError`, error attributes, `service.name`. Serialization helpers are local, since 0.7.0 does not export them. |
-| 6 SDK-local errors | Partly done. `CIRCUIT_OPEN` is a code. Polling timeouts keep `TIMEOUT` with `metadata.operation = "poll"`. See deviations. |
+| 6 SDK-local errors | Done for polling and argument validation. `POLL_TIMEOUT` is created with `createErrors`; argument errors are `TypeError`s with code `invalid_request`. `CIRCUIT_OPEN` keeps its class, because `createErrors` cannot build `CircuitBreakerOpenError`. See deviations. |
 | 7 Testing helpers | Done. `mockError`, `expectFrontalError`; fixtures use the gateway envelope. |
 | 8 React and templates | Done for the one template with an HTTP handler. `getPublicMessage` added. The browser client reads the nested envelope. |
 | 9 Docs and release | Done. `docs/ERRORS.md`, READMEs, both `SKILL.md` files, changesets. |
 
 ### Deviations (deliberate)
 
-- **`poll_timeout` code.** Not a new code. A new code would break existing `code === "TIMEOUT"` checks. The operation is in `metadata.operation`.
-- **`invalid_request` code.** Not applied to SDK argument errors. Those are programming errors and stay `TypeError`, so `instanceof TypeError` keeps working.
-- **`createErrors` for SDK-raised errors.** Not used. SDK errors are classes with fixed identities, and `createErrors` builds base-library errors rather than those classes. It remains the tool for application code.
+- **`createErrors` for `circuit_open`.** Not used. `createErrors` builds base-library errors, which are not `CircuitBreakerOpenError` instances, so `instanceof` checks would break. The breaker keeps its class and its `CIRCUIT_OPEN` code. `createErrors` is used for `POLL_TIMEOUT`.
 - **Templates `agent-approval`, `cron-export`, `pipeline-graph`.** Not changed. They are CLI scripts with no HTTP boundary, so there is no client-facing error to map.
 - **CORS `Access-Control-Expose-Headers`.** Not applicable. The repo sends no CORS headers. `docs/ERRORS.md` tells apps to expose `x-frontal-id`.
-- **Edge or worker runtime smoke test.** Not run. No edge runtime is installed here. Node 22 and Node 24 (CI) and Bun (run locally) were checked.
+- **Workflows response-shape errors and the zstd runtime check.** Still plain `TypeError`s without a code, because they describe a bad response or a runtime, not a request.
 
 ### Verification
 
 - The bundle has no runtime import of `@frontal-labs/error`. A search found no code that assigns developer fields after construction.
 - `runtime:smoke` passes under Bun and Node.
+- Edge: `runtime:worker` runs core inside workerd (Miniflare) with no compatibility flags. The `runtime:deno` check runs core under Deno 2.9.8. Deno needs `--allow-env`, because core reads its environment at import, so it is granted in the script.
 
 ## Phase 0 findings (against the published 0.7.0 tarball)
 

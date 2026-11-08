@@ -1,6 +1,7 @@
 import type { HttpClient } from "@frontal-labs/core";
 import {
   FrontalError,
+  invalidRequestError,
   parseToolInput,
   type ToolCall,
   toolSetToRequest,
@@ -549,7 +550,7 @@ export class AISdk {
     options: GenerateTextOptions | StreamTextOptions
   ): ChatMessage[] {
     if (options.prompt === undefined && options.messages === undefined) {
-      throw new TypeError(
+      throw invalidRequestError(
         "generateText and streamText need a prompt or messages"
       );
     }

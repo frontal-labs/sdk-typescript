@@ -6,7 +6,7 @@
  * generated `.frontal/client.ts`. Keep the two in step: a parity test in the CLI
  * repository compares them.
  */
-import { ValidationError } from "@frontal-labs/core";
+import { invalidRequestError, ValidationError } from "@frontal-labs/core";
 import { z } from "zod";
 import type {
   FieldKind,
@@ -230,7 +230,7 @@ export function deriveOntologyRuntime(
       }
       if (spec.type !== "belongsTo") {
         if (spec.relationshipTypeId === undefined) {
-          throw new TypeError(
+          throw invalidRequestError(
             `Relation "${entity}.${relation}" is ${spec.type} and needs a relationshipTypeId in its schema.`
           );
         }

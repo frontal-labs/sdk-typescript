@@ -143,13 +143,16 @@ expectFrontalError(error, { code: "NOT_FOUND", statusCode: 404, retryable: false
   `event.error`.
 - `String(err)` keeps the native `Name: message` form.
 - Error stacks start at the call site.
-- Polling timeouts keep the `TIMEOUT` code and set `metadata.operation` to
-  `"poll"`, so existing `code === "TIMEOUT"` checks keep working.
+- Polling timeouts are `TimeoutError`s with code `POLL_TIMEOUT` and
+  `metadata.operation` set to `"poll"`. Request timeouts keep `TIMEOUT`. Code
+  that checked `code === "TIMEOUT"` after `pollUntil` must check `POLL_TIMEOUT`.
 - Every service client records its name as `service.name` on spans and on
   error `attributes`.
-- Argument and programming errors (for example a `TypeError` for a bad page
-  argument) stay as their native types. They are not API failures, and changing
-  them would break `instanceof TypeError` checks.
+- SDK argument validation (for example a bad page argument, or a prompt missing
+  from `generateText`) throws a `TypeError` with code `invalid_request`. Use
+  `invalidRequestError()` to create one. `instanceof TypeError` still works.
+- Response-shape and runtime configuration errors (for example zstd without
+  runtime support) keep their plain `TypeError` and carry no code.
 - Config errors are still `ZodError`. Typed config errors wait for the next major.
 - Statuses outside 400–599 become `ServiceError` with status 500, and the
   original value is kept in `metadata.rawStatus`.

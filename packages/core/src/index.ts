@@ -23,6 +23,7 @@ export {
 export type { SdkErrorDiagnostics } from "./diagnostics";
 export { describeSdkError, redactSecrets } from "./diagnostics";
 export type {
+  InvalidRequestError,
   RateLimitInfo,
   SdkError,
   SerializedFrontalError,
@@ -33,6 +34,7 @@ export {
   ConflictError,
   ForbiddenError,
   FrontalError,
+  invalidRequestError,
   isFrontalError,
   isRetryableError,
   NetworkError,
