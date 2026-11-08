@@ -5,7 +5,12 @@ import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { MAX_TIMER_MS, RETRY_AFTER_MAX_MS, SDK_VERSION } from "./constants";
 import { describeSdkError, redactSecrets } from "./diagnostics";
-import { NetworkError, parseFrontalError, TimeoutError } from "./errors";
+import {
+  NetworkError,
+  parseFrontalError,
+  TimeoutError,
+  typeErrorWithCode,
+} from "./errors";
 import { isObjectRecord } from "./guards";
 import { composeInterceptors, type Interceptor } from "./interceptors";
 import {
@@ -115,7 +120,8 @@ function requireZstd(): ZstdCodec {
     ? getBuiltin("node:zlib")
     : undefined;
   if (!isZstdCodec(zlib)) {
-    throw new TypeError(
+    throw typeErrorWithCode(
+      "unsupported_runtime",
       'compression: "zstd" needs a runtime with zstd support (Node.js 22.15+ or Bun). Set compression: false to send uncompressed bodies.'
     );
   }

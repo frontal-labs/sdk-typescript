@@ -13,17 +13,19 @@ Library: `@frontal-labs/error@0.7.0` (npm, MIT, `engines.node >= 22`).
 | 3 Network and timeout | Done. Recognised by the library guard; core's guard unchanged. |
 | 4 Response parsing | Done. Library parser for the envelope; `x-frontal-id` fallback. A fallback keeps the message when `code` is missing. |
 | 5 Diagnostics and observability | Done. `describeSdkError`, `redactSecrets`, `logSdkFailure`, `FRONTAL_DEBUG` via `formatError`, error attributes, `service.name`. Serialization helpers are local, since 0.7.0 does not export them. |
-| 6 SDK-local errors | Done for polling and argument validation. `POLL_TIMEOUT` is created with `createErrors`; argument errors are `TypeError`s with code `invalid_request`. `CIRCUIT_OPEN` keeps its class, because `createErrors` cannot build `CircuitBreakerOpenError`. See deviations. |
+| 6 SDK-local errors | Done. `POLL_TIMEOUT` and `CIRCUIT_OPEN` are created with `createErrors`. Argument, response-shape and runtime errors are `TypeError`s with codes. |
 | 7 Testing helpers | Done. `mockError`, `expectFrontalError`; fixtures use the gateway envelope. |
 | 8 React and templates | Done for the one template with an HTTP handler. `getPublicMessage` added. The browser client reads the nested envelope. |
 | 9 Docs and release | Done. `docs/ERRORS.md`, READMEs, both `SKILL.md` files, changesets. |
 
-### Deviations (deliberate)
+### Deviations
 
-- **`createErrors` for `circuit_open`.** Not used. `createErrors` builds base-library errors, which are not `CircuitBreakerOpenError` instances, so `instanceof` checks would break. The breaker keeps its class and its `CIRCUIT_OPEN` code. `createErrors` is used for `POLL_TIMEOUT`.
-- **Templates `agent-approval`, `cron-export`, `pipeline-graph`.** Not changed. They are CLI scripts with no HTTP boundary, so there is no client-facing error to map.
-- **CORS `Access-Control-Expose-Headers`.** Not applicable. The repo sends no CORS headers. `docs/ERRORS.md` tells apps to expose `x-frontal-id`.
-- **Workflows response-shape errors and the zstd runtime check.** Still plain `TypeError`s without a code, because they describe a bad response or a runtime, not a request.
+None remain. The earlier deviations were resolved:
+
+- `circuit_open` now goes through `createErrors`. `CircuitBreakerOpenError` accepts the factory's `(message, options)` call and still accepts the retry window, so `instanceof` holds.
+- The three CLI templates print `describeSdkError` output on failure and set a failing exit code.
+- Browser-facing chatbot errors expose `x-frontal-id` and `Access-Control-Expose-Headers`.
+- The workflows response-shape error and the zstd runtime error carry codes (`invalid_response`, `unsupported_runtime`).
 
 ### Verification
 

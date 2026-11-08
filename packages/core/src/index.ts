@@ -23,6 +23,7 @@ export {
 export type { SdkErrorDiagnostics } from "./diagnostics";
 export { describeSdkError, redactSecrets } from "./diagnostics";
 export type {
+  CodedTypeError,
   InvalidRequestError,
   RateLimitInfo,
   SdkError,
@@ -46,6 +47,7 @@ export {
   RateLimitError,
   ServiceError,
   TimeoutError,
+  typeErrorWithCode,
   UnauthorizedError,
   ValidationError,
 } from "./errors";

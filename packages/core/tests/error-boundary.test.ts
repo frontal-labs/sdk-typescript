@@ -188,3 +188,37 @@ describe("invalid request and timeout codes", () => {
     expect(error).toBeInstanceOf(TimeoutError);
   });
 });
+
+describe("createErrors-built breaker and coded type errors", () => {
+  it("builds CircuitBreakerOpenError through createErrors with the same class and code", async () => {
+    const { createErrors } = await import("@frontal-labs/error");
+    const { CircuitBreakerOpenError: Breaker } = await import(
+      "../src/circuit-breaker"
+    );
+    const factory = createErrors({ scope: "frontal", ErrorClass: Breaker });
+    const error = factory.create("Circuit breaker is open", {
+      code: "CIRCUIT_OPEN",
+      metadata: { retryAfterMs: 2500 },
+    });
+    expect(error).toBeInstanceOf(Breaker);
+    expect(error.code).toBe("CIRCUIT_OPEN");
+    expect(error.retryAfterMs).toBe(2500);
+    expect(error.retryable).toBe(true);
+  });
+
+  it("keeps the original retry-window constructor", async () => {
+    const { CircuitBreakerOpenError: Breaker } = await import(
+      "../src/circuit-breaker"
+    );
+    const error = new Breaker(5000);
+    expect(error.retryAfterMs).toBe(5000);
+    expect(error.message).toBe("Circuit breaker is open — retry after 5s");
+  });
+
+  it("typeErrorWithCode keeps instanceof TypeError and carries the code", async () => {
+    const { typeErrorWithCode } = await import("../src/errors");
+    const error = typeErrorWithCode("unsupported_runtime", "needs zstd");
+    expect(error).toBeInstanceOf(TypeError);
+    expect(error.code).toBe("unsupported_runtime");
+  });
+});

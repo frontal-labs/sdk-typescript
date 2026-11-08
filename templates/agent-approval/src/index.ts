@@ -1,4 +1,4 @@
-import { Frontal, toApprovalStep, tool } from "@frontal-labs/sdk";
+import { describeSdkError, Frontal, toApprovalStep, tool } from "@frontal-labs/sdk";
 import { z } from "zod";
 
 /**
@@ -63,5 +63,11 @@ export async function run(f: Frontal) {
 
 if (import.meta.main) {
   const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
-  console.log(await run(f));
+  try {
+    console.log(await run(f));
+  } catch (err) {
+    // Redacted record, not the raw error: it may carry request details.
+    console.error(describeSdkError(err));
+    process.exitCode = 1;
+  }
 }

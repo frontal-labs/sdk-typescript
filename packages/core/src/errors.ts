@@ -433,20 +433,27 @@ export type SerializedTransportError = {
   fix: string;
 };
 
-/** A `TypeError` that also carries the stable code `invalid_request`. */
-export type InvalidRequestError = TypeError & {
-  readonly code: "invalid_request";
+/** A `TypeError` that also carries a stable `code`. */
+export type CodedTypeError<TCode extends string> = TypeError & {
+  readonly code: TCode;
 };
 
+/** A `TypeError` with a stable code. `instanceof TypeError` keeps working. */
+export function typeErrorWithCode<TCode extends string>(
+  code: TCode,
+  message: string
+): CodedTypeError<TCode> {
+  return Object.assign(new TypeError(message), { code });
+}
+
+/** A `TypeError` with code `invalid_request`: SDK argument validation. */
+export type InvalidRequestError = CodedTypeError<"invalid_request">;
+
 /**
- * Argument validation the SDK raises before any request is sent. It stays a
- * `TypeError`, so `instanceof TypeError` checks keep working, and it carries
- * the code `invalid_request` to branch on.
+ * Argument validation the SDK raises before any request is sent.
  */
 export function invalidRequestError(message: string): InvalidRequestError {
-  return Object.assign(new TypeError(message), {
-    code: "invalid_request" as const,
-  });
+  return typeErrorWithCode("invalid_request", message);
 }
 
 /** Any error the SDK can surface from a request or stream. */

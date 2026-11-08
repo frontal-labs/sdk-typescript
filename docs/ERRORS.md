@@ -122,7 +122,8 @@ if (error) return <p>{getPublicMessage(error)}</p>;
 `fix`, `docs` and `requestId` are not sent, so the stream cannot leak them.
 
 If a browser calls your API from another origin, expose the request id header
-so the client can read it: `Access-Control-Expose-Headers: x-frontal-id`.
+so the client can read it: `Access-Control-Expose-Headers: x-frontal-id`. The
+chatbot template does this on its HTTP error responses.
 
 ## Testing
 
@@ -151,8 +152,11 @@ expectFrontalError(error, { code: "NOT_FOUND", statusCode: 404, retryable: false
 - SDK argument validation (for example a bad page argument, or a prompt missing
   from `generateText`) throws a `TypeError` with code `invalid_request`. Use
   `invalidRequestError()` to create one. `instanceof TypeError` still works.
-- Response-shape and runtime configuration errors (for example zstd without
-  runtime support) keep their plain `TypeError` and carry no code.
+- A workflow response without the expected field throws a `TypeError` with code
+  `invalid_response`. Zstd without runtime support throws one with code
+  `unsupported_runtime`. `typeErrorWithCode(code, message)` creates either form.
+- `CircuitBreakerOpenError` is built through `createErrors`, so the factory and the
+  class agree. The retry-window constructor still works.
 - Config errors are still `ZodError`. Typed config errors wait for the next major.
 - Statuses outside 400–599 become `ServiceError` with status 500, and the
   original value is kept in `metadata.rawStatus`.

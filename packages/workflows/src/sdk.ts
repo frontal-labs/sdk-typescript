@@ -5,6 +5,7 @@ import {
   type PaginationMeta,
   type PollOptions,
   pollUntil,
+  typeErrorWithCode,
 } from "@frontal-labs/core";
 import type { z } from "zod";
 import * as S from "./schemas";
@@ -25,7 +26,10 @@ function unwrap(raw: unknown, key: string): ApiRecord {
 function resourceId(resource: ApiRecord, wireKey: string): string {
   const id = resource.id ?? resource[wireKey];
   if (typeof id !== "string" || id.length === 0) {
-    throw new TypeError(`The API response did not contain ${wireKey}`);
+    throw typeErrorWithCode(
+      "invalid_response",
+      `The API response did not contain ${wireKey}`
+    );
   }
   return id;
 }
@@ -45,7 +49,10 @@ function normalizeExecution(raw: unknown): S.WorkflowExecution {
   const execution = unwrap(raw, "execution");
   const workflowId = execution.workflowId;
   if (typeof workflowId !== "string" || workflowId.length === 0) {
-    throw new TypeError("The API response did not contain workflowId");
+    throw typeErrorWithCode(
+      "invalid_response",
+      "The API response did not contain workflowId"
+    );
   }
   const startedAt = execution.startedAt ?? execution.createdAt;
   return S.WorkflowExecutionSchema.parse({
