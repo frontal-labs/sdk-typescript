@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.2.0
+
+### Minor Changes
+
+- 8b754dd: Errors now extend the shared `@frontal-labs/error` base class.
+  
+  - `FrontalError`, the status subclasses, `NetworkError` and `TimeoutError` are real `@frontal-labs/error` errors. The library's `isFrontalError` returns `true` for all of them. Core's own `isFrontalError` is unchanged: it returns `false` for `NetworkError` and `TimeoutError`.
+  - `FrontalError.requestId` is no longer `readonly`, because the base class sets it.
+  - Statuses outside 400–599 are clamped to `500`, and the original value is kept in `metadata.rawStatus`.
+  - A blank error code becomes `UNKNOWN_ERROR` instead of throwing.
+  - Error stacks start at the call site, not inside the constructor.
+  - `NetworkError` and `TimeoutError` no longer serialize their `cause`. Their `toJSON()` keeps `name`, `code`, `message`, `retryable` and `fix`.
+  - `FrontalError.toJSON()` keeps its existing shape. `String(error)` keeps the `Name: message` form.
+  - `@frontal-labs/error@0.7.0` is bundled into the ESM and CJS builds. It is pinned exactly and has no runtime import.
+  - New exports: `describeSdkError()` for log-ready diagnostics (no `cause` or `stack`, `frt_` keys redacted, `scope/code` fingerprint), `redactSecrets()`, and the `SdkErrorDiagnostics` and `SerializedTransportError` types.
+  - The request id is also read from the `x-frontal-id` header when `x-request-id` is absent.
+- b635776: Error diagnostics, boundary attributes, and test helpers.
+  
+  - `CircuitBreakerOpenError` extends the shared base class with code `CIRCUIT_OPEN`. It is retryable, so `isRetryableError()` is true. `instanceof` checks still hold.
+  - HTTP errors carry `attributes` with `http.status_code` and `frontal.request_id`.
+  - The configured `logger.error` receives redacted diagnostics for API errors. Under `debug`, the same record is printed with `console.error`.
+  - `logSdkFailure(error, logger?)` in `@frontal-labs/observability` logs a redacted record with a `scope/code` fingerprint.
+  - `mockError()` and `expectFrontalError()` in `@frontal-labs/testing` build gateway-shaped error responses and assert on code, status and retryability.
+- 65ab31f: Resolves the last error-plan items.
+  
+  - `CircuitBreakerOpenError` is built through `createErrors`. Its constructor takes either the retry window in milliseconds, as before, or a message with options. `instanceof` holds for both.
+  - `typeErrorWithCode(code, message)` creates a `TypeError` with a stable code. `invalidRequestError` uses it. Workflow response-shape errors carry `invalid_response`, and zstd without runtime support carries `unsupported_runtime`. `instanceof TypeError` still holds for all of them.
+- 9d7ab5e: Edge and Deno runtime checks, and stable codes for argument errors.
+  
+  - Polling timeouts keep code `TIMEOUT` and carry `metadata.operation === "poll"`, so existing `code === "TIMEOUT"` checks keep working. A distinct polling code is planned for the next major.
+  - `invalidRequestError(message)` creates the `TypeError` that SDK argument validation throws, with code `invalid_request`. `instanceof TypeError` still holds. `ai` (`generateText` and `streamText` with neither a prompt nor messages) and `ontology` (entity and relation definitions and arguments) now throw it.
+  - `TimeoutError` accepts an options object, so a code and a fix can be set when it is created.
+  - `@frontal-labs/core` is verified in workerd (Miniflare, no compatibility flags) and Deno 2.9.8. Both checks run in CI.
+- 84bb9b7: Stream errors no longer leak developer text, and spans and errors name their service.
+  
+  - `@frontal-labs/ai`: `serializeError()` sends only `name`, `code`, `statusCode`, `retryable` and a client-safe `message`. The server's `public` message is used when set, otherwise `"An error occurred."`. Developer text, `fix`, `docs` and `requestId` are no longer streamed, and plain errors use the same generic text. `UIError` drops `fix`, `docs` and `requestId`, so code that read them will fail to type-check.
+  - `@frontal-labs/core`: `HttpClient` accepts `serviceName`, which every service client sets. It is recorded as `service.name` on spans and on error `attributes`. Polling timeouts set `metadata.operation` to `"poll"` and keep the `TIMEOUT` code. The network-error and schema-error logger hooks receive redacted diagnostics instead of raw errors.
+  - `@frontal-labs/testing`: unmatched mock routes return the gateway's nested error envelope, built with `mockError()`.
+
+### Patch Changes
+
+- dbb006f: Fixes from the error-integration plan's remaining items.
+  
+  - `@frontal-labs/ai`: the client reads `code` and `message` from non-OK responses in the `{ error: { code, message } }` envelope that `errorResponse()` produces, as well as from flat bodies. Previously an app's structured error showed as `HTTP_<status>`.
+  - `@frontal-labs/core`: `FRONTAL_DEBUG` output is rendered with the shared library's `formatError` (`auto`, honouring `NO_COLOR` and TTY) and redacted with `redactSecrets`, so API keys never appear in debug output.
+
 ## 1.1.2
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/workflows",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Frontal Workflows SDK — workflow orchestration with approvals and steps",
   "keywords": [
     "javascript",
@@ -68,7 +68,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@frontal-labs/core": "^1.1.2",
+    "@frontal-labs/core": "^1.2.0",
     "tslib": "^2.9.1",
     "zod": "^4.3.6"
   },
