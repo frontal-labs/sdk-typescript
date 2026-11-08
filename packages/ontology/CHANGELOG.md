@@ -1,5 +1,27 @@
 # @frontal-labs/ontology
 
+## 1.2.1
+
+### Patch Changes
+
+- 65ab31f: Resolves the last error-plan items.
+  
+  - `CircuitBreakerOpenError` is built through `createErrors`. Its constructor takes either the retry window in milliseconds, as before, or a message with options. `instanceof` holds for both.
+  - `typeErrorWithCode(code, message)` creates a `TypeError` with a stable code. `invalidRequestError` uses it. Workflow response-shape errors carry `invalid_response`, and zstd without runtime support carries `unsupported_runtime`. `instanceof TypeError` still holds for all of them.
+- 9d7ab5e: Edge and Deno runtime checks, and stable codes for argument errors.
+  
+  - Polling timeouts keep code `TIMEOUT` and carry `metadata.operation === "poll"`, so existing `code === "TIMEOUT"` checks keep working. A distinct polling code is planned for the next major.
+  - `invalidRequestError(message)` creates the `TypeError` that SDK argument validation throws, with code `invalid_request`. `instanceof TypeError` still holds. `ai` (`generateText` and `streamText` with neither a prompt nor messages) and `ontology` (entity and relation definitions and arguments) now throw it.
+  - `TimeoutError` accepts an options object, so a code and a fix can be set when it is created.
+  - `@frontal-labs/core` is verified in workerd (Miniflare, no compatibility flags) and Deno 2.9.8. Both checks run in CI.
+- Updated dependencies [8b754dd]
+- Updated dependencies [b635776]
+- Updated dependencies [dbb006f]
+- Updated dependencies [65ab31f]
+- Updated dependencies [9d7ab5e]
+- Updated dependencies [84bb9b7]
+  - @frontal-labs/core@1.2.0
+
 ## 1.2.0
 
 ### Minor Changes

@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- b635776: Error diagnostics, boundary attributes, and test helpers.
+  
+  - `CircuitBreakerOpenError` extends the shared base class with code `CIRCUIT_OPEN`. It is retryable, so `isRetryableError()` is true. `instanceof` checks still hold.
+  - HTTP errors carry `attributes` with `http.status_code` and `frontal.request_id`.
+  - The configured `logger.error` receives redacted diagnostics for API errors. Under `debug`, the same record is printed with `console.error`.
+  - `logSdkFailure(error, logger?)` in `@frontal-labs/observability` logs a redacted record with a `scope/code` fingerprint.
+  - `mockError()` and `expectFrontalError()` in `@frontal-labs/testing` build gateway-shaped error responses and assert on code, status and retryability.
+
+### Patch Changes
+
+- Updated dependencies [8b754dd]
+- Updated dependencies [b635776]
+- Updated dependencies [dbb006f]
+- Updated dependencies [65ab31f]
+- Updated dependencies [9d7ab5e]
+- Updated dependencies [84bb9b7]
+  - @frontal-labs/core@1.2.0
+
 ## 0.1.5
 
 ### Patch Changes

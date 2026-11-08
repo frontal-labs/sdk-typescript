@@ -1,6 +1,6 @@
 {
   "name": "@frontal-labs/react",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "React hooks for the Frontal SDK: chat over ai.streamText, agent run streams, workflow approvals.",
   "keywords": [
     "react",
@@ -64,9 +64,9 @@
   },
   "dependencies": {
     "@frontal-labs/agents": "^2.0.1",
-    "@frontal-labs/ai": "^0.3.0",
-    "@frontal-labs/core": "^1.1.2",
-    "@frontal-labs/workflows": "^1.0.1",
+    "@frontal-labs/ai": "^0.4.0",
+    "@frontal-labs/core": "^1.2.0",
+    "@frontal-labs/workflows": "^1.0.2",
     "tslib": "^2.9.1",
     "zod": "^4.3.6"
   },

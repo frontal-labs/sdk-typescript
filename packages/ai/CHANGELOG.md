@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- 84bb9b7: Stream errors no longer leak developer text, and spans and errors name their service.
+  
+  - `@frontal-labs/ai`: `serializeError()` sends only `name`, `code`, `statusCode`, `retryable` and a client-safe `message`. The server's `public` message is used when set, otherwise `"An error occurred."`. Developer text, `fix`, `docs` and `requestId` are no longer streamed, and plain errors use the same generic text. `UIError` drops `fix`, `docs` and `requestId`, so code that read them will fail to type-check.
+  - `@frontal-labs/core`: `HttpClient` accepts `serviceName`, which every service client sets. It is recorded as `service.name` on spans and on error `attributes`. Polling timeouts set `metadata.operation` to `"poll"` and keep the `TIMEOUT` code. The network-error and schema-error logger hooks receive redacted diagnostics instead of raw errors.
+  - `@frontal-labs/testing`: unmatched mock routes return the gateway's nested error envelope, built with `mockError()`.
+
+### Patch Changes
+
+- dbb006f: Fixes from the error-integration plan's remaining items.
+  
+  - `@frontal-labs/ai`: the client reads `code` and `message` from non-OK responses in the `{ error: { code, message } }` envelope that `errorResponse()` produces, as well as from flat bodies. Previously an app's structured error showed as `HTTP_<status>`.
+  - `@frontal-labs/core`: `FRONTAL_DEBUG` output is rendered with the shared library's `formatError` (`auto`, honouring `NO_COLOR` and TTY) and redacted with `redactSecrets`, so API keys never appear in debug output.
+- 65ab31f: Resolves the last error-plan items.
+  
+  - `CircuitBreakerOpenError` is built through `createErrors`. Its constructor takes either the retry window in milliseconds, as before, or a message with options. `instanceof` holds for both.
+  - `typeErrorWithCode(code, message)` creates a `TypeError` with a stable code. `invalidRequestError` uses it. Workflow response-shape errors carry `invalid_response`, and zstd without runtime support carries `unsupported_runtime`. `instanceof TypeError` still holds for all of them.
+- 9d7ab5e: Edge and Deno runtime checks, and stable codes for argument errors.
+  
+  - Polling timeouts keep code `TIMEOUT` and carry `metadata.operation === "poll"`, so existing `code === "TIMEOUT"` checks keep working. A distinct polling code is planned for the next major.
+  - `invalidRequestError(message)` creates the `TypeError` that SDK argument validation throws, with code `invalid_request`. `instanceof TypeError` still holds. `ai` (`generateText` and `streamText` with neither a prompt nor messages) and `ontology` (entity and relation definitions and arguments) now throw it.
+  - `TimeoutError` accepts an options object, so a code and a fix can be set when it is created.
+  - `@frontal-labs/core` is verified in workerd (Miniflare, no compatibility flags) and Deno 2.9.8. Both checks run in CI.
+- Updated dependencies [8b754dd]
+- Updated dependencies [b635776]
+- Updated dependencies [dbb006f]
+- Updated dependencies [65ab31f]
+- Updated dependencies [9d7ab5e]
+- Updated dependencies [84bb9b7]
+  - @frontal-labs/core@1.2.0
+
 ## 0.3.0
 
 ### Minor Changes

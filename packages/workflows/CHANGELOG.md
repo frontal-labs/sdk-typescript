@@ -1,5 +1,21 @@
 # @frontal-labs/workflows
 
+## 1.0.2
+
+### Patch Changes
+
+- 65ab31f: Resolves the last error-plan items.
+  
+  - `CircuitBreakerOpenError` is built through `createErrors`. Its constructor takes either the retry window in milliseconds, as before, or a message with options. `instanceof` holds for both.
+  - `typeErrorWithCode(code, message)` creates a `TypeError` with a stable code. `invalidRequestError` uses it. Workflow response-shape errors carry `invalid_response`, and zstd without runtime support carries `unsupported_runtime`. `instanceof TypeError` still holds for all of them.
+- Updated dependencies [8b754dd]
+- Updated dependencies [b635776]
+- Updated dependencies [dbb006f]
+- Updated dependencies [65ab31f]
+- Updated dependencies [9d7ab5e]
+- Updated dependencies [84bb9b7]
+  - @frontal-labs/core@1.2.0
+
 ## 1.0.1
 
 ### Patch Changes
