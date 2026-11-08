@@ -16,5 +16,7 @@ export type {
   OtlpExporterConfig,
 } from "./exporters";
 export { createConsoleExporter, createOtlpExporter } from "./exporters";
+export type { SdkFailureLogger } from "./failures";
+export { logSdkFailure } from "./failures";
 export * from "./schemas";
 export { ObservabilitySdk } from "./sdk";

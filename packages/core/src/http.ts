@@ -3,6 +3,7 @@ import { declaredResponse } from "./boundary";
 import { CircuitBreaker } from "./circuit-breaker";
 import type { ClientConfigOutput } from "./config";
 import { MAX_TIMER_MS, RETRY_AFTER_MAX_MS, SDK_VERSION } from "./constants";
+import { describeSdkError } from "./diagnostics";
 import { NetworkError, parseFrontalError, TimeoutError } from "./errors";
 import { isObjectRecord } from "./guards";
 import { composeInterceptors, type Interceptor } from "./interceptors";
@@ -1016,7 +1017,17 @@ export class HttpClient {
     }
     const retryAfter = res.headers.get("Retry-After") ?? undefined;
     const rateLimit = this.parseRateLimit(res);
-    throw parseFrontalError(body, res.status, retryAfter, rateLimit);
+    const error = parseFrontalError(body, res.status, retryAfter, rateLimit);
+    error.attributes = {
+      "http.status_code": res.status,
+      "frontal.request_id": error.requestId,
+    };
+    const diagnostics = describeSdkError(error);
+    this.config.logger?.error?.(diagnostics);
+    if (this.config.debug) {
+      console.error("[SDK]", diagnostics);
+    }
+    throw error;
   }
 
   private buildUrl(path: string, params?: Record<string, unknown>): string {

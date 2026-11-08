@@ -1,3 +1,4 @@
+import { FrontalError as BaseFrontalError } from "@frontal-labs/error";
 /**
  * Circuit breaker states:
  * - `CLOSED`: Normal operation, requests pass through.
@@ -131,18 +132,26 @@ export class CircuitBreaker {
 
 /**
  * Thrown when a request is rejected because the circuit breaker is OPEN.
- * Contains the remaining time to wait before retrying.
+ * Contains the remaining time to wait before retrying. Retryable once the
+ * reset window has passed, so `isRetryableError()` is true.
  */
-export class CircuitBreakerOpenError extends Error {
+export class CircuitBreakerOpenError extends BaseFrontalError<string> {
   /** Milliseconds remaining until the circuit transitions to HALF_OPEN. */
   readonly retryAfterMs: number;
+  declare readonly code: "CIRCUIT_OPEN";
+  readonly retryable = true;
+  declare readonly fix: string;
 
   constructor(retryAfterMs: number) {
     super(
-      `Circuit breaker is open — retry after ${Math.ceil(retryAfterMs / 1000)}s`
+      `Circuit breaker is open — retry after ${Math.ceil(retryAfterMs / 1000)}s`,
+      {
+        scope: "frontal",
+        code: "CIRCUIT_OPEN",
+        fix: "Wait for the reset window to pass, or check the upstream failures that opened the circuit.",
+      }
     );
     this.name = "CircuitBreakerOpenError";
     this.retryAfterMs = retryAfterMs;
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 }

@@ -1,0 +1,110 @@
+import { isFrontalError as isLibraryFrontalError } from "@frontal-labs/error";
+import { describe, expect, it, vi } from "vitest";
+import { CircuitBreakerOpenError } from "../src/circuit-breaker";
+import type { FrontalError } from "../src/errors";
+import { isRetryableError } from "../src/errors";
+import { HttpClient } from "../src/http";
+
+const base = {
+  apiKey: "frt_test1234567890",
+  baseUrl: "https://api.test/v1",
+  timeout: 1000,
+  maxRetries: 0,
+  retryDelay: 0,
+  headers: {},
+  environment: "test",
+  debug: false,
+};
+
+function clientReturning(
+  response: () => Response,
+  overrides: Partial<typeof base> & { logger?: unknown } = {}
+) {
+  return new HttpClient({
+    ...base,
+    ...overrides,
+    fetch: async () => response(),
+  } as never);
+}
+
+const notFound = (headers: Record<string, string> = {}, message = "missing") =>
+  new Response(JSON.stringify({ error: { code: "NOT_FOUND", message } }), {
+    status: 404,
+    headers,
+  });
+
+describe("HTTP error boundary", () => {
+  it("attaches the status and request id as error attributes", async () => {
+    const http = clientReturning(() => notFound({ "x-request-id": "req_42" }));
+    const error = (await http
+      .get("/x")
+      .catch((e: unknown) => e)) as FrontalError;
+    expect(error.attributes).toEqual({
+      "http.status_code": 404,
+      "frontal.request_id": "req_42",
+    });
+  });
+
+  it("sends redacted diagnostics to the configured logger", async () => {
+    const logger = { error: vi.fn() };
+    const http = clientReturning(
+      () =>
+        notFound({ "x-request-id": "req_1" }, "key frt_live_SECRET123 unknown"),
+      { logger } as never
+    );
+    await http.get("/x").catch(() => undefined);
+
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    const [diagnostics] = logger.error.mock.calls[0] as [unknown];
+    expect(diagnostics).toMatchObject({
+      code: "NOT_FOUND",
+      statusCode: 404,
+      fingerprint: "frontal/NOT_FOUND",
+      retryable: false,
+    });
+    expect(JSON.stringify(diagnostics)).not.toContain("SECRET123");
+  });
+
+  it("prints the same diagnostics under debug", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const http = clientReturning(() => notFound(), { debug: true } as never);
+      await http.get("/x").catch(() => undefined);
+      expect(spy).toHaveBeenCalledWith(
+        "[SDK]",
+        expect.objectContaining({ fingerprint: "frontal/NOT_FOUND" })
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  });
+});
+
+describe("circuit breaker error", () => {
+  it("carries a code, is retryable, and keeps its retry window", () => {
+    const error = new CircuitBreakerOpenError(5000);
+    expect(error.code).toBe("CIRCUIT_OPEN");
+    expect(error.retryAfterMs).toBe(5000);
+    expect(isRetryableError(error)).toBe(true);
+    expect(isLibraryFrontalError(error)).toBe(true);
+    expect(error.name).toBe("CircuitBreakerOpenError");
+  });
+});
+
+describe("two copies of core", () => {
+  it("recognises errors from another module instance by brand", async () => {
+    const a = await import("../src/errors");
+    vi.resetModules();
+    const b = await import("../src/errors");
+    expect(a).not.toBe(b);
+    expect(a.NotFoundError).not.toBe(b.NotFoundError);
+
+    const fromA = new a.NotFoundError(
+      { code: "NOT_FOUND", message: "m", requestId: "r" },
+      undefined
+    );
+    expect(b.isFrontalError(fromA)).toBe(true);
+    expect(b.NotFoundError.isInstance(fromA)).toBe(true);
+    expect(fromA instanceof b.NotFoundError).toBe(false);
+  });
+});
