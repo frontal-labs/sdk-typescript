@@ -164,6 +164,7 @@
         "frontal": "./dist/index.js",
       },
       "dependencies": {
+        "@frontal-labs/error": "0.7.0",
         "@t3-oss/env-core": "^0.13.10",
         "tslib": "^2.9.1",
         "zod": "^4.3.6",
@@ -631,6 +632,8 @@
     "@frontal-labs/core": ["@frontal-labs/core@workspace:packages/core"],
 
     "@frontal-labs/data": ["@frontal-labs/data@workspace:packages/data"],
+
+    "@frontal-labs/error": ["@frontal-labs/error@0.7.0", "", {}, "sha512-46mjctRgI7Arlcw8DzTRKhG1taE7OqCJSsbnMnrXQhJJHil1KX4M7XhgzB5EXVKZHytrfsP/YsIVedkBuRASkg=="],
 
     "@frontal-labs/functions": ["@frontal-labs/functions@workspace:packages/functions"],
 

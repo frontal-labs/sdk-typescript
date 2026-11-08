@@ -14,9 +14,17 @@ updates:
     labels:
       - "dependencies"
     groups:
+      # Pre-1.0 and bundled into @frontal-labs/core: every bump needs a manual
+      # review of the error API (exports renamed in 0.3, 0.6 and 0.7). Dependabot
+      # groups take no labels, so keep these PRs out of automerge and review them.
+      frontal-error:
+        patterns:
+          - "@frontal-labs/error"
       dependencies:
         patterns:
           - "*"
+        exclude-patterns:
+          - "@frontal-labs/error"
     ignore:
       # TypeScript 7 ships only unstable/* compiler APIs; scripts/endpoint-contract.ts
       # (the CI contract gate) needs the stable AST API. Revisit once ported.

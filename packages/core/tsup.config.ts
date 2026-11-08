@@ -6,4 +6,6 @@ export default defineConfig({
 	dts: false,
 	clean: true,
 	external: ["zod"],
+	// Bundled because the upstream package is ESM-only; this package also ships CJS.
+	noExternal: ["@frontal-labs/error"],
 });

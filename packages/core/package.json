@@ -23,7 +23,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "sideEffects": false,
   "repository": {
@@ -50,6 +51,7 @@
     "docs:json": "typedoc --json docs/v2/spec.json --entryPoints src/index.ts --entryPoints src/packages/* --excludePrivate --excludeExternals --excludeProtected"
   },
   "dependencies": {
+    "@frontal-labs/error": "0.7.0",
     "@t3-oss/env-core": "^0.13.10",
     "tslib": "^2.9.1",
     "zod": "^4.3.6"

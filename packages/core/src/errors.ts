@@ -1,3 +1,5 @@
+import { FrontalError as BaseFrontalError } from "@frontal-labs/error";
+import { parseErrorResponseData } from "@frontal-labs/error/client";
 import type { z } from "zod";
 import { isObjectRecord } from "./guards";
 import { parseRetryAfterMs } from "./retry";
@@ -10,6 +12,12 @@ import {
 type ErrorResponseInput = z.infer<typeof errorResponseSchema>;
 
 const FRONTAL_ERROR_BRAND: unique symbol = Symbol.for("frontal.error");
+
+/** Error scope shared by every SDK-raised error. */
+const SDK_SCOPE = "frontal";
+
+/** Code used when the response carries no usable code. */
+const UNKNOWN_CODE = "UNKNOWN_ERROR";
 
 /**
  * Rate-limit metadata returned in API response headers.
@@ -26,26 +34,23 @@ export interface RateLimitInfo {
 /**
  * Base error class for all Frontal API errors.
  * Contains the error code, request ID, HTTP status code, optional docs URL,
- * and optional rate-limit information.
+ * and optional rate-limit information. Extends the shared
+ * `@frontal-labs/error` base class, so `errorResponse()` and the library's
+ * `isFrontalError` accept it.
  */
-export class FrontalError extends Error {
-  /** Brand so `isInstance` works across duplicated module instances. */
+export class FrontalError extends BaseFrontalError<string> {
+  /** Brand so core's `isFrontalError` works across duplicated module instances. */
   readonly [FRONTAL_ERROR_BRAND] = true;
-  readonly code: string;
-  readonly requestId: string;
-  readonly statusCode: number;
-  readonly docs?: string | undefined;
+  declare readonly code: string;
+  declare readonly statusCode: number;
+  /** Request id from the response, or `"unknown"` when absent. */
+  declare requestId: string;
   readonly rateLimit?: RateLimitInfo | undefined;
   /**
    * Whether retrying the same request may succeed (rate limits, transient
    * 5xx, network). UIs and agents can branch on this without a status table.
    */
   readonly retryable: boolean;
-  /**
-   * Human-readable next step, when the SDK knows one
-   * (e.g. "Set FRONTAL_API_KEY to a key starting with frt_").
-   */
-  readonly fix?: string | undefined;
 
   /**
    * @param response - The parsed error response from the API.
@@ -57,19 +62,35 @@ export class FrontalError extends Error {
     statusCode: number,
     rateLimit?: RateLimitInfo
   ) {
-    super(response.message);
+    // Constructing an error must never throw while another failure is being
+    // handled, so out-of-range statuses and blank codes are normalized here.
+    const status = toErrorStatus(statusCode);
+    const code =
+      typeof response.code === "string" && response.code.trim().length > 0
+        ? response.code
+        : UNKNOWN_CODE;
+    const fix = fixFor(code, statusCode);
+    super(response.message, {
+      scope: SDK_SCOPE,
+      code,
+      statusCode: status,
+      requestId: response.requestId,
+      ...(response.docs === undefined ? {} : { link: response.docs }),
+      ...(fix === undefined ? {} : { fix }),
+      ...(status === statusCode ? {} : { metadata: { rawStatus: statusCode } }),
+    });
     this.name = "FrontalError";
-    this.code = response.code;
-    this.requestId = response.requestId;
-    this.statusCode = statusCode;
-    this.docs = response.docs;
     this.rateLimit = rateLimit;
     this.retryable = RETRYABLE_STATUS.has(statusCode);
-    this.fix = fixFor(response.code, statusCode);
-    Object.setPrototypeOf(this, new.target.prototype);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this);
-    }
+  }
+
+  /** Back-compat alias for the base class's `link`. */
+  get docs(): string | undefined {
+    return this.link;
+  }
+
+  override toString(): string {
+    return nativeToString.call(this);
   }
 
   /**
@@ -80,8 +101,13 @@ export class FrontalError extends Error {
     return isFrontalError(error);
   }
 
-  /** JSON-safe view (useful for logging and for streaming errors as data). */
-  toJSON(): SerializedFrontalError {
+  /**
+   * JSON-safe view (useful for logging and for streaming errors as data).
+   * Keeps the SDK's wire shape; the base class's `toJSON()` also includes the
+   * stack and metadata, which must not reach the wire. Use `serializeFailure()`
+   * from `@frontal-labs/error` for diagnostics.
+   */
+  override toJSON(): SerializedFrontalError {
     return {
       name: this.name,
       code: this.code,
@@ -96,7 +122,8 @@ export class FrontalError extends Error {
 }
 
 /** Plain-object form of a {@link FrontalError}, as produced by `toJSON()`. */
-export interface SerializedFrontalError {
+// biome-ignore lint/style/useConsistentTypeDefinitions: a type alias is assignable to the base `Record<string, unknown>` return type; an interface is not
+export type SerializedFrontalError = {
   name: string;
   code: string;
   message: string;
@@ -105,9 +132,24 @@ export interface SerializedFrontalError {
   retryable: boolean;
   docs?: string | undefined;
   fix?: string | undefined;
+};
+
+/**
+ * Keeps `String(error)` as the native `Name: message` form. The base class
+ * renders a multi-line developer frame, which would change logs for consumers.
+ */
+function nativeToString(this: Error): string {
+  return Error.prototype.toString.call(this);
 }
 
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+/** Clamp to the 400–599 range the base class's `errorResponse()` accepts. */
+function toErrorStatus(status: number): number {
+  return Number.isInteger(status) && status >= 400 && status <= 599
+    ? status
+    : 500;
+}
 
 /** Suggested remediation by error code / status. Keep terse and actionable. */
 function fixFor(code: string, status: number): string | undefined {
@@ -291,49 +333,91 @@ export class ServiceError extends FrontalError {
  * Thrown when a network-level failure prevents the request from reaching the API.
  * The original error is available via the `cause` property.
  */
-export class NetworkError extends Error {
+export class NetworkError extends BaseFrontalError<string> {
   /** Stable code so `SdkError` is uniform: every error has a `code`. */
-  readonly code = "NETWORK_ERROR";
+  declare readonly code: "NETWORK_ERROR";
   /** Always true: the request never reached the API, so it is safe to retry. */
   readonly retryable = true;
   /** Undefined — no response means no server-issued request id. */
-  readonly requestId?: string;
-  readonly fix =
-    "Check network connectivity and FRONTAL_API_URL; the request never reached the API.";
-  constructor(override readonly cause: unknown) {
-    super("Network error — could not reach Frontal API");
+  declare readonly requestId?: string;
+  declare readonly fix: string;
+  constructor(cause: unknown) {
+    super("Network error — could not reach Frontal API", {
+      scope: SDK_SCOPE,
+      code: "NETWORK_ERROR",
+      fix: "Check network connectivity and FRONTAL_API_URL; the request never reached the API.",
+      cause,
+    });
     this.name = "NetworkError";
-    Object.setPrototypeOf(this, new.target.prototype);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, new.target);
-    }
   }
 
   static isInstance(error: unknown): error is NetworkError {
     return error instanceof Error && error.name === "NetworkError";
+  }
+
+  override toString(): string {
+    return nativeToString.call(this);
+  }
+
+  /** Same wire shape as before the base class; `cause` is never serialized. */
+  override toJSON(): SerializedTransportError {
+    return {
+      name: this.name,
+      code: this.code,
+      message: this.message,
+      retryable: this.retryable,
+      fix: this.fix,
+    };
   }
 }
 
 /**
  * Thrown when an operation exceeds a time limit.
  */
-export class TimeoutError extends Error {
-  readonly code = "TIMEOUT";
+export class TimeoutError extends BaseFrontalError<string> {
+  declare readonly code: "TIMEOUT";
   /** Timeouts are transient by nature. */
   readonly retryable = true;
-  readonly requestId?: string;
-  readonly fix =
-    "Increase `timeout` in the client config or reduce the work per request.";
+  declare readonly requestId?: string;
+  declare readonly fix: string;
   constructor(message = "Operation timed out") {
-    super(message);
+    super(message, {
+      scope: SDK_SCOPE,
+      code: "TIMEOUT",
+      fix: "Increase `timeout` in the client config or reduce the work per request.",
+    });
     this.name = "TimeoutError";
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 
   static isInstance(error: unknown): error is TimeoutError {
     return error instanceof Error && error.name === "TimeoutError";
   }
+
+  override toString(): string {
+    return nativeToString.call(this);
+  }
+
+  /** Same wire shape as before the base class. */
+  override toJSON(): SerializedTransportError {
+    return {
+      name: this.name,
+      code: this.code,
+      message: this.message,
+      retryable: this.retryable,
+      fix: this.fix,
+    };
+  }
 }
+
+/** Plain-object form of a {@link NetworkError} or {@link TimeoutError}. */
+// biome-ignore lint/style/useConsistentTypeDefinitions: a type alias is assignable to the base `Record<string, unknown>` return type; an interface is not
+export type SerializedTransportError = {
+  name: string;
+  code: string;
+  message: string;
+  retryable: boolean;
+  fix: string;
+};
 
 /** Any error the SDK can surface from a request or stream. */
 export type SdkError = FrontalError | NetworkError | TimeoutError;
@@ -350,28 +434,48 @@ export function isRetryableError(error: unknown): boolean {
 }
 
 /**
- * The gateway's nested envelope, `{"error":{message,type,param,code}}`, mapped to
- * the flat shape. Other bodies pass through unchanged.
+ * The gateway's nested envelope, `{"error":{code,message,...}}`, parsed by the
+ * shared library. When the library rejects the envelope (for example, no
+ * `code`), the message is still kept, with `UNKNOWN_ERROR` as the code.
  */
-function fromNestedEnvelope(body: unknown): unknown {
-  if (!isObjectRecord(body)) return body;
+function fromNestedEnvelope(body: unknown): ErrorResponseInput | undefined {
+  if (!isObjectRecord(body)) return undefined;
   const { error: detail, requestId: camelId, request_id: snakeId } = body;
-  if (!isObjectRecord(detail)) return body;
+  if (!isObjectRecord(detail)) return undefined;
+  const requestId =
+    typeof camelId === "string" && camelId.length > 0
+      ? camelId
+      : typeof snakeId === "string" && snakeId.length > 0
+        ? snakeId
+        : "unknown";
+
+  const parsed = parseErrorResponseData(body)?.error;
+  if (parsed !== undefined) {
+    return {
+      code: parsed.code ?? UNKNOWN_CODE,
+      message: parsed.message,
+      requestId,
+      docs: parsed.link,
+    };
+  }
+
   const { code: innerCode, message: innerMessage } = detail;
-  if (typeof innerMessage !== "string") return body;
-  const requestId = camelId ?? snakeId;
+  if (typeof innerMessage !== "string") return undefined;
   return {
     code:
       typeof innerCode === "string" && innerCode.length > 0
         ? innerCode
-        : "UNKNOWN_ERROR",
+        : UNKNOWN_CODE,
     message: innerMessage,
     requestId,
   };
 }
 
 function normalizeErrorBody(raw: unknown): ErrorResponseInput {
-  const body = fromNestedEnvelope(raw);
+  const nested = fromNestedEnvelope(raw);
+  if (nested !== undefined) return nested;
+
+  const body = raw;
   const parsed = errorResponseSchema.safeParse(body);
   if (parsed.success) return parsed.data;
 
@@ -384,7 +488,7 @@ function normalizeErrorBody(raw: unknown): ErrorResponseInput {
   } = fallback;
 
   const hasExplicitCode = typeof rawCode === "string" && rawCode.length > 0;
-  const code = hasExplicitCode ? rawCode : "UNKNOWN_ERROR";
+  const code = hasExplicitCode ? rawCode : UNKNOWN_CODE;
 
   // Ontology routes answer `{ detail }` (FastAPI style). Use it as the message
   // so 404/422 errors keep their reason; the code stays UNKNOWN_ERROR.
@@ -408,8 +512,8 @@ function normalizeErrorBody(raw: unknown): ErrorResponseInput {
   // are kept even when a neighbour is malformed.
   const fields = Array.isArray(rawFields)
     ? rawFields.flatMap((entry: unknown) => {
-        const parsed = errorFieldSchema.safeParse(entry);
-        return parsed.success ? [parsed.data] : [];
+        const parsedField = errorFieldSchema.safeParse(entry);
+        return parsedField.success ? [parsedField.data] : [];
       })
     : undefined;
 

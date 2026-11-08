@@ -74,7 +74,8 @@ describe("Error Classes", () => {
       const error = new FrontalError(errorResponse, 400);
 
       expect(error.stack).toContain("FrontalError");
-      expect(error.stack).toContain("at new FrontalError");
+      // The stack starts at the call site, not inside the base-class constructor.
+      expect(error.stack?.split("\n")[1]).toContain("errors.test.ts");
     });
   });
 

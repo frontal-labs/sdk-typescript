@@ -14,9 +14,10 @@ import {
 describe("CircuitBreaker", () => {
   it("opens after the failure threshold and rejects fast", async () => {
     let opened = 0;
+    // Long reset window so the rejection check cannot race a slow CI runner.
     const cb = new CircuitBreaker({
       failureThreshold: 2,
-      resetTimeoutMs: 50,
+      resetTimeoutMs: 60_000,
       onOpen: () => opened++,
     });
     const fail = () => Promise.reject(new Error("boom"));
