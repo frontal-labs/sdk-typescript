@@ -13,14 +13,16 @@ Library: `@frontal-labs/error@0.7.0` (npm, MIT, `engines.node >= 22`).
 | 3 Network and timeout | Done. Recognised by the library guard; core's guard unchanged. |
 | 4 Response parsing | Done. Library parser for the envelope; `x-frontal-id` fallback. A fallback keeps the message when `code` is missing. |
 | 5 Diagnostics and observability | Done. `describeSdkError`, `redactSecrets`, `logSdkFailure`, `FRONTAL_DEBUG` via `formatError`, error attributes, `service.name`. Serialization helpers are local, since 0.7.0 does not export them. |
-| 6 SDK-local errors | Done. `POLL_TIMEOUT` and `CIRCUIT_OPEN` are created with `createErrors`. Argument, response-shape and runtime errors are `TypeError`s with codes. |
+| 6 SDK-local errors | Done. Polling timeouts and `CIRCUIT_OPEN` are created with `createErrors`. Polling keeps `TIMEOUT` (see deviations). Argument, response-shape and runtime errors are `TypeError`s with codes. |
 | 7 Testing helpers | Done. `mockError`, `expectFrontalError`; fixtures use the gateway envelope. |
 | 8 React and templates | Done for the one template with an HTTP handler. `getPublicMessage` added. The browser client reads the nested envelope. |
 | 9 Docs and release | Done. `docs/ERRORS.md`, READMEs, both `SKILL.md` files, changesets. |
 
 ### Deviations
 
-None remain. The earlier deviations were resolved:
+- **`POLL_TIMEOUT` code.** Deferred to the next major. A new code now would break `code === "TIMEOUT"` checks after `pollUntil` in 1.x. Polling timeouts keep `TIMEOUT` and set `metadata.operation = "poll"`. `TimeoutError` already accepts a code option, so the switch is a one-line change.
+
+The other earlier deviations were resolved:
 
 - `circuit_open` now goes through `createErrors`. `CircuitBreakerOpenError` accepts the factory's `(message, options)` call and still accepts the retry window, so `instanceof` holds.
 - The three CLI templates print `describeSdkError` output on failure and set a failing exit code.

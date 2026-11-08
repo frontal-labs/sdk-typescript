@@ -144,9 +144,10 @@ expectFrontalError(error, { code: "NOT_FOUND", statusCode: 404, retryable: false
   `event.error`.
 - `String(err)` keeps the native `Name: message` form.
 - Error stacks start at the call site.
-- Polling timeouts are `TimeoutError`s with code `POLL_TIMEOUT` and
-  `metadata.operation` set to `"poll"`. Request timeouts keep `TIMEOUT`. Code
-  that checked `code === "TIMEOUT"` after `pollUntil` must check `POLL_TIMEOUT`.
+- Polling timeouts are `TimeoutError`s with code `TIMEOUT` and
+  `metadata.operation` set to `"poll"`, so `code === "TIMEOUT"` checks keep
+  working. Tell them apart with `metadata.operation`. A distinct `POLL_TIMEOUT`
+  code is planned for the next major.
 - Every service client records its name as `service.name` on spans and on
   error `attributes`.
 - SDK argument validation (for example a bad page argument, or a prompt missing

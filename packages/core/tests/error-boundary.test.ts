@@ -133,14 +133,14 @@ describe("service.name and poll timeouts", () => {
     });
   });
 
-  it("gives polling timeouts the POLL_TIMEOUT code and operation=poll", async () => {
+  it("keeps the TIMEOUT code for polling timeouts and tags operation=poll", async () => {
     const { pollUntil } = await import("../src/polling");
     const error = (await pollUntil(async () => "pending", {
       until: (r) => r === "done",
       timeout: 1,
       interval: 1,
     }).catch((e: unknown) => e)) as { code?: string; metadata?: unknown };
-    expect(error.code).toBe("POLL_TIMEOUT");
+    expect(error.code).toBe("TIMEOUT");
     expect(error.metadata).toEqual({ operation: "poll" });
   });
 });

@@ -123,12 +123,16 @@ export async function withTimeout<T>(
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Creates the polling timeout: a `TimeoutError` with code `POLL_TIMEOUT`. */
+/**
+ * Creates the polling timeout: a `TimeoutError` with code `TIMEOUT`, so existing
+ * `code === "TIMEOUT"` checks keep working. `metadata.operation` tells it apart
+ * from a request timeout. A distinct code is planned for the next major.
+ */
 const pollErrors = createErrors({ scope: "frontal", ErrorClass: TimeoutError });
 
 function pollTimeout(message: string): TimeoutError {
   return pollErrors.create(message, {
-    code: "POLL_TIMEOUT",
+    code: "TIMEOUT",
     fix: "Increase the polling `timeout`, or check the operation's status instead of waiting on it.",
     metadata: { operation: "poll" },
   });
