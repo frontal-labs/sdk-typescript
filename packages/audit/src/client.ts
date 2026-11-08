@@ -48,6 +48,7 @@ export function createAuditClient(
     return new AuditSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "audit",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_AUDIT_BASE_URL,

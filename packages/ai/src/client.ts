@@ -54,12 +54,14 @@ export function createAIClient(
   if (clientOrConfig instanceof FrontalClient) {
     return new AISdk(
       new HttpClient({
+        serviceName: "ai",
         ...clientOrConfig.config,
         baseUrl: DEFAULT_AI_BASE_URL,
       })
     );
   }
   const http = new HttpClient({
+    serviceName: "ai",
     apiKey: clientOrConfig.apiKey,
     baseUrl: clientOrConfig.baseUrl ?? DEFAULT_AI_BASE_URL,
     timeout: clientOrConfig.timeout ?? DEFAULT_TIMEOUT,

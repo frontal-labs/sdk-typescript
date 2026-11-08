@@ -52,6 +52,7 @@ export function createWorkflowsClient(
     return new WorkflowsSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "workflows",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

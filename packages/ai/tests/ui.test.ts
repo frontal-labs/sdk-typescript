@@ -79,9 +79,9 @@ describe("UI message stream", () => {
     expect(msg.parts[1]).toMatchObject({ state: "done", output: { ok: true } });
   });
 
-  it("serializes SDK errors with retryable/fix", async () => {
+  it("streams SDK errors with code, status and retryable, never developer text", async () => {
     const err = parseFrontalError(
-      { code: "RATE_LIMITED", message: "slow", requestId: "r1" },
+      { code: "RATE_LIMITED", message: "slow frt_live_KEY9", requestId: "r1" },
       429
     );
     const res = toUIMessageStreamResponse({
@@ -90,14 +90,18 @@ describe("UI message stream", () => {
     const got = await frames(res);
     expect(got[1]).toEqual({
       type: "error",
-      error: expect.objectContaining({
+      error: {
+        name: "RateLimitError",
         code: "RATE_LIMITED",
-        requestId: "r1",
+        message: "An error occurred.",
         statusCode: 429,
         retryable: true,
-        fix: expect.stringMatching(/retryAfter/),
-      }),
+      },
     });
+    const wire = JSON.stringify(got);
+    expect(wire).not.toContain("KEY9");
+    expect(wire).not.toContain("r1");
+    expect(wire).not.toContain("retryAfter");
   });
 
   it("turns a non-OK response into an error frame", async () => {
@@ -140,13 +144,14 @@ describe("UI message stream", () => {
 });
 
 describe("UI message stream edge cases", () => {
-  it("serializes plain errors with defaults", () => {
-    const e = serializeError(new Error("plain"));
+  it("serializes plain errors with a generic message", () => {
+    const e = serializeError(new Error("plain provider text"));
     expect(e).toMatchObject({
       code: "UNKNOWN_ERROR",
-      message: "plain",
+      message: "An error occurred.",
       retryable: false,
     });
+    expect(JSON.stringify(e)).not.toContain("provider text");
   });
 
   it("non-OK responses with non-JSON bodies and retryable statuses", async () => {

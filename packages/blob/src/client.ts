@@ -48,6 +48,7 @@ export function createBlobClient(
     return new BlobSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "blob",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_BLOB_BASE_URL,

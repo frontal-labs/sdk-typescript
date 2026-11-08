@@ -186,6 +186,8 @@ export class HttpClient {
       /** Defaults to `false`: request bodies are sent uncompressed. */
       compression?: ClientConfigOutput["compression"];
       interceptors?: Interceptor[];
+      /** Service package name, such as `"ai"`. Recorded as `service.name` on spans and errors. */
+      serviceName?: string;
     }
   ) {
     if (config.compression === "zstd") requireZstd();
@@ -781,6 +783,9 @@ export class HttpClient {
     const telemetry = getTelemetry();
     const span = createHttpSpan(method, path);
     span?.setAttribute("frontal.request_id", requestId);
+    if (this.config.serviceName) {
+      span?.setAttribute("service.name", this.config.serviceName);
+    }
     if (telemetry?.recordInputs && body !== undefined) {
       span?.setAttribute("frontal.request.body", safeJson(body));
     }
@@ -843,7 +848,7 @@ export class HttpClient {
           options.timeout ?? this.config.timeout
         );
       } catch (error) {
-        this.config.logger?.error?.(error);
+        this.config.logger?.error?.(describeSdkError(error));
         // A caller's abort is not a network failure: surface it unchanged.
         if (options.signal?.aborted) throw error;
         if (error instanceof TimeoutError) throw error;
@@ -939,7 +944,7 @@ export class HttpClient {
         if (schema) {
           const parsed = schema.safeParse(transformedPayload);
           if (!parsed.success) {
-            this.config.logger?.error?.(parsed.error);
+            this.config.logger?.error?.(describeSdkError(parsed.error));
             throw parsed.error;
           }
           return tagRequestId(parsed.data, tagId);
@@ -1021,6 +1026,9 @@ export class HttpClient {
     error.attributes = {
       "http.status_code": res.status,
       "frontal.request_id": error.requestId,
+      ...(this.config.serviceName
+        ? { "service.name": this.config.serviceName }
+        : {}),
     };
     const diagnostics = describeSdkError(error);
     this.config.logger?.error?.(diagnostics);

@@ -56,6 +56,7 @@ export function createAgentsClient(
     return new AgentsSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "agents",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

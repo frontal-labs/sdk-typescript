@@ -47,6 +47,7 @@ export function createLineageClient(
     return new LineageSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "lineage",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_LINEAGE_BASE_URL,

@@ -82,7 +82,8 @@ reads files itself.
 ## Error handling
 
 Every API failure is a typed `FrontalError` subclass carrying `code`,
-`requestId`, `statusCode` and an optional `docs` link:
+`requestId`, `statusCode` and an optional `docs` link. All SDK errors extend the
+shared `@frontal-labs/error` base class:
 
 ```ts
 import { Frontal, RateLimitError, ValidationError } from "@frontal-labs/sdk";
@@ -92,6 +93,24 @@ try {
 } catch (err) {
   if (err instanceof RateLimitError) console.log("retry in", err.retryAfter, "s");
   if (err instanceof ValidationError) console.log(err.fields);
+}
+```
+
+Branch on `code` and `statusCode`, never on `message`. `isRetryableError(err)`
+covers every SDK error, including `NetworkError`, `TimeoutError` and
+`CircuitBreakerOpenError`. For logs, use `describeSdkError(err)`: it drops
+`cause` and `stack`, and redacts `frt_` API keys. Its `fingerprint` (`scope/code`)
+groups errors for alerts. See [`docs/ERRORS.md`](../../docs/ERRORS.md) for the
+full model, including what is safe to show end users.
+
+```ts
+import { describeSdkError, isRetryableError } from "@frontal-labs/sdk";
+
+try {
+  await f.ai.generateText({ model: "claude-sonnet-4-6", prompt: "hi" });
+} catch (err) {
+  console.error(describeSdkError(err));
+  if (!isRetryableError(err)) throw err;
 }
 ```
 

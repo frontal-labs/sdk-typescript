@@ -9,6 +9,7 @@ import {
   HttpClient,
 } from "@frontal-labs/core";
 import { vi } from "vitest";
+import { mockError } from "./errors";
 import { type SimulateStreamOptions, simulateStream } from "./stream";
 
 // ============================================================================
@@ -194,17 +195,12 @@ export function createMockFetch(routes: MockRoute[] = []) {
       if (route) served.set(route, (served.get(route) ?? 0) + 1);
 
       if (!route) {
-        return new Response(
-          JSON.stringify({
-            code: "NOT_FOUND",
-            message: `No mock for ${method} ${parsedUrl.pathname}`,
-            requestId: "mock",
-          }),
-          {
-            status: 404,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return mockError({
+          status: 404,
+          code: "NOT_FOUND",
+          message: `No mock for ${method} ${parsedUrl.pathname}`,
+          requestId: "mock",
+        });
       }
 
       if (route.handler) {

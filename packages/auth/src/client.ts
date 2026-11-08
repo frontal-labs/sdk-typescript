@@ -48,6 +48,7 @@ export function createAuthClient(
     return new AuthSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "auth",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_AUTH_BASE_URL,

@@ -9,6 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@frontal-labs/error": "0.7.0",
     "@frontal-labs/react": "workspace:*",
     "@frontal-labs/sdk": "workspace:*",
     "next": "^15.3.0",

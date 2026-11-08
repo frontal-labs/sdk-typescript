@@ -117,10 +117,12 @@ import { getPublicMessage } from "@frontal-labs/react";
 if (error) return <p>{getPublicMessage(error)}</p>;
 ```
 
-Note that `useChat` stream errors are serialized by `@frontal-labs/ai` and
-currently include the developer `message`, `fix` and `requestId`. See the
-open question in `plans/error-integration.md` before relying on the stream's
-`message` in a UI.
+`useChat` stream errors are serialized by `@frontal-labs/ai` with only `name`,
+`code`, `statusCode`, `retryable` and a client-safe `message`. Developer text,
+`fix`, `docs` and `requestId` are not sent, so the stream cannot leak them.
+
+If a browser calls your API from another origin, expose the request id header
+so the client can read it: `Access-Control-Expose-Headers: x-frontal-id`.
 
 ## Testing
 
@@ -141,6 +143,13 @@ expectFrontalError(error, { code: "NOT_FOUND", statusCode: 404, retryable: false
   `event.error`.
 - `String(err)` keeps the native `Name: message` form.
 - Error stacks start at the call site.
+- Polling timeouts keep the `TIMEOUT` code and set `metadata.operation` to
+  `"poll"`, so existing `code === "TIMEOUT"` checks keep working.
+- Every service client records its name as `service.name` on spans and on
+  error `attributes`.
+- Argument and programming errors (for example a `TypeError` for a bad page
+  argument) stay as their native types. They are not API failures, and changing
+  them would break `instanceof TypeError` checks.
 - Config errors are still `ZodError`. Typed config errors wait for the next major.
 - Statuses outside 400–599 become `ServiceError` with status 500, and the
   original value is kept in `metadata.rawStatus`.

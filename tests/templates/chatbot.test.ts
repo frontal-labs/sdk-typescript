@@ -57,3 +57,31 @@ describe("templates/chatbot route", () => {
     expect(last?.messages[0]?.content).not.toContain("ignore all rules");
   });
 });
+
+describe("templates/chatbot route errors", () => {
+  it("returns a 400 with only the approved message for a malformed body", async () => {
+    const { POST } = await import("../../templates/chatbot/src/app/api/chat/route");
+    const res = await POST(
+      new Request("http://localhost/api/chat", { method: "POST", body: "not json" })
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatchObject({
+      scope: "app",
+      code: "invalid_request",
+      message: "Send a JSON body with a messages array.",
+    });
+    expect(JSON.stringify(body)).not.toContain("not valid chat payload");
+  });
+
+  it("rejects a body without a messages array", async () => {
+    const { POST } = await import("../../templates/chatbot/src/app/api/chat/route");
+    const res = await POST(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ prompt: "hi" }),
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+});

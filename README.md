@@ -49,7 +49,7 @@ Writing code with an AI assistant? Point it at [`SKILL.md`](./SKILL.md);
 ## Why Frontal SDK
 
 - **One import.** `f.ai`, `f.agents`, `f.workflows`, ... are lazy, typed getters on a single client.
-- **Typed end to end.** Zod-validated requests and responses; every API error is a `FrontalError` subclass with `code`, `requestId` and `statusCode`.
+- **Typed end to end.** Zod-validated requests and responses; every API error is a `FrontalError` subclass with `code`, `requestId` and `statusCode`, built on the shared `@frontal-labs/error` base class. Branch on `code`, never `message`; log with `describeSdkError()`, which redacts API keys. See [`docs/ERRORS.md`](./docs/ERRORS.md).
 - **Testable without a backend.** `@frontal-labs/testing` mocks at the `fetch` layer so retries, transforms and errors behave exactly as in production.
 - **Docs that can't rot.** Every code block in these READMEs is extracted and type-checked in CI; the quickstart above runs against mocks on every PR.
 - **ESM + CJS, Node 18+ compatibility, Bun, and Fetch/Web Crypto compatible

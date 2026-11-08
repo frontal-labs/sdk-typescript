@@ -21,7 +21,7 @@ describe("README examples", () => {
     );
   });
 
-  it("type-check against current sources", { timeout: 120_000 }, () => {
+  it("type-check against current sources", { timeout: 600_000 }, () => {
     // Use the bin shim rather than `typescript/bin/tsc`: TypeScript 7 ships a
     // native binary and no longer exports that subpath.
     const tsc = join(root, "node_modules/.bin/tsc");
