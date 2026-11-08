@@ -1,5 +1,3 @@
-import type { SdkError } from "./errors";
-
 /** Matches a Frontal API key anywhere in a string. */
 const API_KEY_PATTERN = /frt_[A-Za-z0-9_-]+/g;
 
@@ -37,27 +35,50 @@ function redactDeep(value: unknown): unknown {
   return value;
 }
 
+/** Optional SDK fields read from any thrown value. */
+interface SdkErrorFields {
+  code?: string;
+  scope?: string;
+  statusCode?: number;
+  requestId?: string;
+  metadata?: Record<string, unknown>;
+  retryable?: boolean;
+}
+
 /**
- * Builds the log-ready diagnostics for an SDK error. All three SDK roots share
- * the library's base fields, so no per-class branching is needed.
+ * Builds the log-ready diagnostics for any thrown value. SDK errors carry
+ * their `scope` and `code`; anything else falls back to `unscoped/<name>`, so
+ * this can be called directly on a `catch` binding without a cast.
  */
-export function describeSdkError(error: SdkError): SdkErrorDiagnostics {
-  const { name, code, scope, statusCode, requestId, metadata } = error;
+export function describeSdkError(error: unknown): SdkErrorDiagnostics {
+  if (!(error instanceof Error)) {
+    const message = redactSecrets(String(error));
+    return {
+      name: "NonError",
+      code: "UNKNOWN_ERROR",
+      message,
+      retryable: false,
+      fingerprint: "unscoped/UNKNOWN_ERROR",
+    };
+  }
+  const fields = error as Error & SdkErrorFields;
+  const code = fields.code ?? error.name;
+  const requestId = fields.requestId;
   return {
-    name,
-    code: code ?? name,
-    scope,
+    name: error.name,
+    code,
+    scope: fields.scope,
     message: redactSecrets(error.message),
-    statusCode,
+    statusCode: fields.statusCode,
     requestId:
       requestId === undefined || requestId === "unknown"
         ? undefined
         : redactSecrets(requestId),
-    retryable: error.retryable === true,
-    fingerprint: `${scope ?? "unscoped"}/${code ?? name}`,
+    retryable: fields.retryable === true,
+    fingerprint: `${fields.scope ?? "unscoped"}/${code}`,
     metadata:
-      metadata === undefined
+      fields.metadata === undefined
         ? undefined
-        : (redactDeep(metadata) as Record<string, unknown>),
+        : (redactDeep(fields.metadata) as Record<string, unknown>),
   };
 }

@@ -70,6 +70,22 @@ describe("describeSdkError", () => {
     expect(JSON.stringify(diagnostics)).not.toContain("ABC123");
   });
 
+  it("accepts any thrown value without a cast", () => {
+    expect(describeSdkError(new Error("plain boom"))).toMatchObject({
+      name: "Error",
+      code: "Error",
+      fingerprint: "unscoped/Error",
+      retryable: false,
+    });
+    expect(describeSdkError("bad frt_live_SECRET")).toEqual({
+      name: "NonError",
+      code: "UNKNOWN_ERROR",
+      message: "bad [REDACTED]",
+      retryable: false,
+      fingerprint: "unscoped/UNKNOWN_ERROR",
+    });
+  });
+
   it("omits the unknown request id placeholder", () => {
     const error = parseFrontalError({ code: "X", message: "m" }, 500);
     expect(describeSdkError(error).requestId).toBeUndefined();

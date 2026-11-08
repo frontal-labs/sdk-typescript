@@ -51,14 +51,33 @@ covers the request through response headers.
 
 ### Error Handling
 
+Branch on `code` and `statusCode`, never on `message`. Messages are for developers and may change.
+
 ```ts
-import { FrontalError } from "@frontal-labs/core";
+import { FrontalError, isFrontalError } from "@frontal-labs/core";
 
 try {
   await client.get("/something");
 } catch (e) {
   if (e instanceof FrontalError) {
     console.error(e.code, e.statusCode, e.requestId);
+  }
+}
+```
+
+`isFrontalError()` checks for core's `FrontalError` family only, so it is `false` for `NetworkError` and `TimeoutError`. Use `isRetryableError()` to decide whether to retry any SDK error.
+
+For logs, use `describeSdkError()`. It drops `cause` and `stack`, and redacts any `frt_` API key from the message, request id and metadata. Prefer it to logging the raw error object.
+
+```ts
+import { describeSdkError, FrontalError } from "@frontal-labs/core";
+
+try {
+  await client.get("/something");
+} catch (e) {
+  if (e instanceof FrontalError) {
+    const { fingerprint, statusCode, requestId } = describeSdkError(e);
+    console.error({ fingerprint, statusCode, requestId }); // e.g. "frontal/NOT_FOUND"
   }
 }
 ```

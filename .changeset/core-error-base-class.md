@@ -12,3 +12,5 @@ Errors now extend the shared `@frontal-labs/error` base class.
 - `NetworkError` and `TimeoutError` no longer serialize their `cause`. Their `toJSON()` keeps `name`, `code`, `message`, `retryable` and `fix`.
 - `FrontalError.toJSON()` keeps its existing shape. `String(error)` keeps the `Name: message` form.
 - `@frontal-labs/error@0.7.0` is bundled into the ESM and CJS builds. It is pinned exactly and has no runtime import.
+- New exports: `describeSdkError()` for log-ready diagnostics (no `cause` or `stack`, `frt_` keys redacted, `scope/code` fingerprint), `redactSecrets()`, and the `SdkErrorDiagnostics` and `SerializedTransportError` types.
+- The request id is also read from the `x-frontal-id` header when `x-request-id` is absent.

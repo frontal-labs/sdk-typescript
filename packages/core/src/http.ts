@@ -1004,7 +1004,7 @@ export class HttpClient {
     }
     // `x-frontal-id` is the header `@frontal-labs/error` reads by default.
     const requestId =
-      res.headers.get("x-request-id") ?? res.headers.get("x-frontal-id");
+      res.headers.get("x-request-id") || res.headers.get("x-frontal-id");
     if (
       requestId &&
       typeof body === "object" &&

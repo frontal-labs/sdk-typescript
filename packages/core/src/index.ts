@@ -22,7 +22,12 @@ export {
 } from "./constants";
 export type { SdkErrorDiagnostics } from "./diagnostics";
 export { describeSdkError, redactSecrets } from "./diagnostics";
-export type { RateLimitInfo, SdkError, SerializedFrontalError } from "./errors";
+export type {
+  RateLimitInfo,
+  SdkError,
+  SerializedFrontalError,
+  SerializedTransportError,
+} from "./errors";
 // Error handling
 export {
   ConflictError,

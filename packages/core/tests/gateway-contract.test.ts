@@ -69,6 +69,44 @@ describe("nested gateway error envelope", () => {
   });
 });
 
+describe("request id headers", () => {
+  const notFound = (headers: Record<string, string>) =>
+    clientReturning(
+      () =>
+        new Response(
+          JSON.stringify({ error: { code: "NOT_FOUND", message: "m" } }),
+          {
+            status: 404,
+            headers,
+          }
+        )
+    );
+
+  it("reads x-frontal-id when x-request-id is absent", async () => {
+    const error = (await notFound({ "x-frontal-id": "req_frontal" })
+      .get("/x")
+      .catch((e: unknown) => e)) as FrontalError;
+    expect(error.requestId).toBe("req_frontal");
+  });
+
+  it("prefers x-request-id when both headers are present", async () => {
+    const error = (await notFound({
+      "x-request-id": "req_primary",
+      "x-frontal-id": "req_frontal",
+    })
+      .get("/x")
+      .catch((e: unknown) => e)) as FrontalError;
+    expect(error.requestId).toBe("req_primary");
+  });
+
+  it("falls back to the placeholder when an empty header is sent", async () => {
+    const error = (await notFound({ "x-request-id": "" })
+      .get("/x")
+      .catch((e: unknown) => e)) as FrontalError;
+    expect(error.requestId).toBe("unknown");
+  });
+});
+
 describe("{ detail } error bodies", () => {
   it("uses detail as the message and keeps the status code", async () => {
     const http = clientReturning(
