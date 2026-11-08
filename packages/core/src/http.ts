@@ -1002,7 +1002,9 @@ export class HttpClient {
           ? { code: "UNKNOWN_ERROR", message: text.slice(0, 500) }
           : {};
     }
-    const requestId = res.headers.get("x-request-id");
+    // `x-frontal-id` is the header `@frontal-labs/error` reads by default.
+    const requestId =
+      res.headers.get("x-request-id") ?? res.headers.get("x-frontal-id");
     if (
       requestId &&
       typeof body === "object" &&

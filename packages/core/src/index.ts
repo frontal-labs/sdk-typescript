@@ -20,6 +20,8 @@ export {
   EXPONENTIAL_BASE,
   JITTER_MAX,
 } from "./constants";
+export type { SdkErrorDiagnostics } from "./diagnostics";
+export { describeSdkError, redactSecrets } from "./diagnostics";
 export type { RateLimitInfo, SdkError, SerializedFrontalError } from "./errors";
 // Error handling
 export {
