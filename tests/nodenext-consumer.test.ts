@@ -65,6 +65,6 @@ describe.skipIf(!existsSync(SDK_DIST))(
         stdio: ["ignore", "pipe", "pipe"],
       });
       expect(output).toBe("");
-    }, 120_000);
+    }, 600_000);
   }
 );

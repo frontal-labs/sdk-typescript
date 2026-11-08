@@ -48,6 +48,7 @@ export function createBillingClient(
     return new BillingSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "billing",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_BILLING_BASE_URL,

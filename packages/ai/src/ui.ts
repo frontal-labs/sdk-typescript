@@ -1,4 +1,4 @@
-import type { SdkError, SerializedFrontalError } from "@frontal-labs/core";
+import type { SdkError } from "@frontal-labs/core";
 import type { StreamTextResult } from "./schemas";
 import type { StreamUsage, TextStreamPart } from "./stream";
 
@@ -13,12 +13,20 @@ import type { StreamUsage, TextStreamPart } from "./stream";
 export const UI_MESSAGE_STREAM_HEADER = "x-frontal-ai-ui-message-stream";
 export const UI_MESSAGE_STREAM_VERSION = "v1";
 
-/** A serialized error inside a UI stream / message part. */
-export interface UIError extends Partial<SerializedFrontalError> {
+/**
+ * A serialized error inside a UI stream / message part. `message` is always
+ * client-safe text: the server's `public` message, or a generic one.
+ */
+export interface UIError {
+  name?: string | undefined;
   code: string;
   message: string;
+  statusCode?: number | undefined;
   retryable: boolean;
 }
+
+/** Client-facing text used when the server approved no public message. */
+const GENERIC_PUBLIC_MESSAGE = "An error occurred.";
 
 /** One frame on the wire. */
 export type UIStreamFrame =
@@ -53,17 +61,40 @@ export interface UIMessage {
   text: string;
 }
 
-export function serializeError(error: SdkError | Error): UIError {
-  const e = error as Partial<SdkError> & Error;
+/** Identifiers are short tokens such as `RATE_LIMITED`; anything else is untrusted text. */
+const IDENTIFIER = /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/;
+
+function identifierOr(value: unknown, fallback: string): string {
+  return typeof value === "string" && IDENTIFIER.test(value) ? value : fallback;
+}
+
+function identifierOrUndefined(value: unknown): string | undefined {
+  return typeof value === "string" && IDENTIFIER.test(value)
+    ? value
+    : undefined;
+}
+
+/**
+ * Serializes an error for a UI stream. Only the fields an end user may see
+ * leave the server: `code`, `statusCode`, `retryable`, and the server-approved
+ * `public` message. Developer text (`message`, `fix`, `docs`, `requestId`) and
+ * raw provider text never reach the stream, so they cannot reach end users.
+ */
+export function serializeError(error: unknown): UIError {
+  const e = (error ?? {}) as Partial<SdkError> & {
+    public?: { message?: unknown };
+  };
+  const code = identifierOr(e.code, "UNKNOWN_ERROR");
+  const publicMessage = e.public?.message;
   return {
-    name: e.name,
-    code: (e as { code?: string }).code ?? "UNKNOWN_ERROR",
-    message: e.message,
-    requestId: (e as { requestId?: string }).requestId,
-    statusCode: (e as { statusCode?: number }).statusCode,
-    retryable: (e as { retryable?: boolean }).retryable ?? false,
-    docs: (e as { docs?: string }).docs,
-    fix: (e as { fix?: string }).fix,
+    name: identifierOrUndefined(e.name),
+    code,
+    message:
+      typeof publicMessage === "string" && publicMessage.trim().length > 0
+        ? publicMessage
+        : GENERIC_PUBLIC_MESSAGE,
+    statusCode: typeof e.statusCode === "number" ? e.statusCode : undefined,
+    retryable: e.retryable === true,
   };
 }
 
@@ -181,7 +212,6 @@ export async function* parseUIMessageStream(
         retryable: [408, 425, 429, 500, 502, 503, 504].includes(
           response.status
         ),
-        requestId: b.requestId,
         statusCode: response.status,
       },
     };

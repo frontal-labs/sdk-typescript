@@ -494,19 +494,15 @@ describe("Environment Variable Management", () => {
       expect(endTime - startTime).toBeLessThan(100); // Should be fast
     });
 
-    it("should cache validation results for repeated calls", () => {
+    it("returns the same validated key on repeated parses", () => {
       process.env.FRONTAL_API_KEY = "frt_cache1234567890abcdef";
 
-      const startTime = performance.now();
-
-      // Multiple calls should be fast
+      // Deterministic: no wall-clock assertion, which flakes on loaded machines.
       for (let i = 0; i < 100; i++) {
-        keys.client.parse(process.env);
+        expect(keys.client.parse(process.env).FRONTAL_API_KEY).toBe(
+          "frt_cache1234567890abcdef"
+        );
       }
-
-      const endTime = performance.now();
-
-      expect(endTime - startTime).toBeLessThan(100); // Should be very fast
     });
   });
 

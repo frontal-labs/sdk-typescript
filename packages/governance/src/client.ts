@@ -62,6 +62,7 @@ export function createGovernanceClient(
     clientOrConfig;
 
   const http = new HttpClient({
+    serviceName: "governance",
     apiKey: httpConfig.apiKey,
     baseUrl:
       httpConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_GOVERNANCE_BASE_URL,

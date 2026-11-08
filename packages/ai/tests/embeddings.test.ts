@@ -9,8 +9,8 @@ import {
   type Embedding,
   type EmbeddingBatch,
   type EmbeddingCreateRequest,
-  type EmbeddingResponse,
   EmbeddingRequestError,
+  type EmbeddingResponse,
   EmbeddingResponseError,
   EmbeddingsResource,
 } from "../src/embeddings";

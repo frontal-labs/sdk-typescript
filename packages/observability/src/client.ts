@@ -47,6 +47,7 @@ export function createObservabilityClient(
     return new ObservabilitySdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "observability",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

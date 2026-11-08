@@ -48,6 +48,7 @@ export function createPipelinesClient(
     return new PipelinesSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "pipelines",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

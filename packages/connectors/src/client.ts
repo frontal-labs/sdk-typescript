@@ -39,6 +39,7 @@ export function createConnectorsClient(
     return new ConnectorsSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "connectors",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

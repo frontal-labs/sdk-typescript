@@ -47,6 +47,7 @@ export function createWebhooksClient(
     return new WebhooksSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "webhooks",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

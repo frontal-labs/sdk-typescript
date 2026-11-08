@@ -46,6 +46,7 @@ export function createFunctionsClient(
     return new FunctionsSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "functions",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

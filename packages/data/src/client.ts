@@ -47,6 +47,7 @@ export function createDataClient(
     return new DataSdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "data",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ?? env.FRONTAL_API_URL ?? DEFAULT_DATA_BASE_URL,

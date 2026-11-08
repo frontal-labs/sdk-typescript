@@ -108,3 +108,39 @@ describe("two copies of core", () => {
     expect(fromA instanceof b.NotFoundError).toBe(false);
   });
 });
+
+describe("service.name and poll timeouts", () => {
+  it("adds service.name to error attributes when the client names its service", async () => {
+    const http = new HttpClient({
+      ...base,
+      serviceName: "ai",
+      fetch: async () =>
+        new Response(
+          JSON.stringify({ error: { code: "NOT_FOUND", message: "m" } }),
+          {
+            status: 404,
+            headers: { "x-request-id": "req_svc" },
+          }
+        ),
+    } as never);
+    const error = (await http
+      .get("/x")
+      .catch((e: unknown) => e)) as FrontalError;
+    expect(error.attributes).toEqual({
+      "http.status_code": 404,
+      "frontal.request_id": "req_svc",
+      "service.name": "ai",
+    });
+  });
+
+  it("tags polling timeouts with operation=poll and keeps the TIMEOUT code", async () => {
+    const { pollUntil } = await import("../src/polling");
+    const error = (await pollUntil(async () => "pending", {
+      until: (r) => r === "done",
+      timeout: 1,
+      interval: 1,
+    }).catch((e: unknown) => e)) as { code?: string; metadata?: unknown };
+    expect(error.code).toBe("TIMEOUT");
+    expect(error.metadata).toEqual({ operation: "poll" });
+  });
+});

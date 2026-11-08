@@ -58,7 +58,7 @@ export async function pollUntil<T>(
 
   while (true) {
     if (signal?.aborted) {
-      throw new TimeoutError("Polling aborted");
+      throw pollTimeout("Polling aborted");
     }
 
     const result = await fn();
@@ -66,7 +66,7 @@ export async function pollUntil<T>(
 
     const elapsed = Date.now() - start;
     if (elapsed >= timeout) {
-      throw new TimeoutError(`Polling timed out after ${timeout}ms`);
+      throw pollTimeout(`Polling timed out after ${timeout}ms`);
     }
 
     const delay = calculateDelay(attempt, retryConfig);
@@ -121,3 +121,14 @@ export async function withTimeout<T>(
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * A `TimeoutError` raised by polling. The code stays `TIMEOUT` so existing
+ * `code === "TIMEOUT"` checks keep working; `metadata.operation` tells polling
+ * timeouts apart from request timeouts.
+ */
+function pollTimeout(message: string): TimeoutError {
+  const error = new TimeoutError(message);
+  error.metadata = { operation: "poll" };
+  return error;
+}

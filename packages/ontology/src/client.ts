@@ -49,6 +49,7 @@ export function createOntologyClient(
     return new OntologySdk(clientOrConfig.httpClient);
   }
   const http = new HttpClient({
+    serviceName: "ontology",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??

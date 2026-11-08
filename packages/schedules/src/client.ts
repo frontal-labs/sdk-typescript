@@ -48,6 +48,7 @@ export function createSchedulesClient(
   }
 
   const http = new HttpClient({
+    serviceName: "schedules",
     apiKey: clientOrConfig.apiKey,
     baseUrl:
       clientOrConfig.baseUrl ??
