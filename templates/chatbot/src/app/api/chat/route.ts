@@ -17,8 +17,18 @@ const SYSTEM_PROMPT = "You are a concise, helpful assistant.";
  * Maps any failure to a response that is safe for the browser. Upstream codes
  * and messages are never forwarded: only the status and an approved message.
  */
+/**
+ * Browser-facing responses expose the request id, so the client can quote it to
+ * support. Only the id goes out; no developer text does.
+ */
+function withRequestId(headers: Record<string, string>, requestId?: string): Record<string, string> {
+  const exposed = { ...headers, "Access-Control-Expose-Headers": "x-frontal-id" };
+  return requestId && requestId !== "unknown" ? { ...exposed, "x-frontal-id": requestId } : exposed;
+}
+
 function toClientError(err: unknown): Response {
   const status = isFrontalError(err) ? (err.statusCode ?? 500) : 500;
+  const requestId = isFrontalError(err) ? err.requestId : undefined;
   const wrapped = new FrontalError("Upstream Frontal call failed", {
     cause: err,
     scope: "app",
@@ -32,7 +42,10 @@ function toClientError(err: unknown): Response {
     },
   });
   const result = errorResponse(wrapped);
-  return new Response(result.body, result);
+  return new Response(result.body, {
+    status: result.status,
+    headers: withRequestId(result.headers, requestId),
+  });
 }
 
 function invalidRequest(): Response {
@@ -43,7 +56,10 @@ function invalidRequest(): Response {
     public: { message: "Send a JSON body with a messages array." },
   });
   const result = errorResponse(wrapped);
-  return new Response(result.body, result);
+  return new Response(result.body, {
+    status: result.status,
+    headers: withRequestId(result.headers),
+  });
 }
 
 export async function POST(req: Request): Promise<Response> {

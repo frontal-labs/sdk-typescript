@@ -122,7 +122,8 @@ if (error) return <p>{getPublicMessage(error)}</p>;
 `fix`, `docs` and `requestId` are not sent, so the stream cannot leak them.
 
 If a browser calls your API from another origin, expose the request id header
-so the client can read it: `Access-Control-Expose-Headers: x-frontal-id`.
+so the client can read it: `Access-Control-Expose-Headers: x-frontal-id`. The
+chatbot template does this on its HTTP error responses.
 
 ## Testing
 
@@ -143,13 +144,20 @@ expectFrontalError(error, { code: "NOT_FOUND", statusCode: 404, retryable: false
   `event.error`.
 - `String(err)` keeps the native `Name: message` form.
 - Error stacks start at the call site.
-- Polling timeouts keep the `TIMEOUT` code and set `metadata.operation` to
-  `"poll"`, so existing `code === "TIMEOUT"` checks keep working.
+- Polling timeouts are `TimeoutError`s with code `TIMEOUT` and
+  `metadata.operation` set to `"poll"`, so `code === "TIMEOUT"` checks keep
+  working. Tell them apart with `metadata.operation`. A distinct `POLL_TIMEOUT`
+  code is planned for the next major.
 - Every service client records its name as `service.name` on spans and on
   error `attributes`.
-- Argument and programming errors (for example a `TypeError` for a bad page
-  argument) stay as their native types. They are not API failures, and changing
-  them would break `instanceof TypeError` checks.
+- SDK argument validation (for example a bad page argument, or a prompt missing
+  from `generateText`) throws a `TypeError` with code `invalid_request`. Use
+  `invalidRequestError()` to create one. `instanceof TypeError` still works.
+- A workflow response without the expected field throws a `TypeError` with code
+  `invalid_response`. Zstd without runtime support throws one with code
+  `unsupported_runtime`. `typeErrorWithCode(code, message)` creates either form.
+- `CircuitBreakerOpenError` is built through `createErrors`, so the factory and the
+  class agree. The retry-window constructor still works.
 - Config errors are still `ZodError`. Typed config errors wait for the next major.
 - Statuses outside 400–599 become `ServiceError` with status 500, and the
   original value is kept in `metadata.rawStatus`.

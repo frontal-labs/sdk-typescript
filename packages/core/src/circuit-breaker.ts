@@ -1,4 +1,8 @@
-import { FrontalError as BaseFrontalError } from "@frontal-labs/error";
+import {
+  FrontalError as BaseFrontalError,
+  createErrors,
+  type FrontalErrorOptions,
+} from "@frontal-labs/error";
 /**
  * Circuit breaker states:
  * - `CLOSED`: Normal operation, requests pass through.
@@ -75,16 +79,23 @@ export class CircuitBreaker {
         this.state = "HALF_OPEN";
         this.config.onHalfOpen?.();
       } else {
-        throw new CircuitBreakerOpenError(
-          this.config.resetTimeoutMs - (Date.now() - this.lastFailureTime)
-        );
+        throw circuitErrors.create("Circuit breaker is open", {
+          code: "CIRCUIT_OPEN",
+          metadata: {
+            retryAfterMs:
+              this.config.resetTimeoutMs - (Date.now() - this.lastFailureTime),
+          },
+        });
       }
     }
 
     const isProbe = this.state === "HALF_OPEN";
     if (isProbe) {
       if (this.probeInFlight) {
-        throw new CircuitBreakerOpenError(this.config.resetTimeoutMs);
+        throw circuitErrors.create("Circuit breaker is open", {
+          code: "CIRCUIT_OPEN",
+          metadata: { retryAfterMs: this.config.resetTimeoutMs },
+        });
       }
       this.probeInFlight = true;
     }
@@ -132,26 +143,51 @@ export class CircuitBreaker {
 
 /**
  * Thrown when a request is rejected because the circuit breaker is OPEN.
- * Contains the remaining time to wait before retrying. Retryable once the
- * reset window has passed, so `isRetryableError()` is true.
+ * Retryable once the reset window has passed, so `isRetryableError()` is true.
+ *
+ * Accepts the retry window in milliseconds (the original signature), or a
+ * message with options. The second form is the one `createErrors` calls, so
+ * `circuitErrors.create()` returns real `CircuitBreakerOpenError` instances and
+ * `instanceof` keeps working.
  */
-export class CircuitBreakerOpenError extends BaseFrontalError<string> {
+export class CircuitBreakerOpenError extends BaseFrontalError<"CIRCUIT_OPEN"> {
   /** Milliseconds remaining until the circuit transitions to HALF_OPEN. */
   readonly retryAfterMs: number;
   declare readonly code: "CIRCUIT_OPEN";
   readonly retryable = true;
   declare readonly fix: string;
 
-  constructor(retryAfterMs: number) {
-    super(
-      `Circuit breaker is open — retry after ${Math.ceil(retryAfterMs / 1000)}s`,
-      {
-        scope: "frontal",
-        code: "CIRCUIT_OPEN",
-        fix: "Wait for the reset window to pass, or check the upstream failures that opened the circuit.",
-      }
-    );
+  constructor(
+    retryAfterOrMessage: number | string,
+    options: FrontalErrorOptions<"CIRCUIT_OPEN"> = {}
+  ) {
+    const fromWindow = typeof retryAfterOrMessage === "number";
+    const { retryAfterMs: suppliedMs } = options.metadata ?? {};
+    const retryAfterMs = fromWindow
+      ? retryAfterOrMessage
+      : typeof suppliedMs === "number"
+        ? suppliedMs
+        : 0;
+    const message = fromWindow
+      ? `Circuit breaker is open — retry after ${Math.ceil(retryAfterMs / 1000)}s`
+      : retryAfterOrMessage;
+    const { code = "CIRCUIT_OPEN", fix, metadata, ...rest } = options;
+    super(message, {
+      ...rest,
+      scope: "frontal",
+      code,
+      fix:
+        fix ??
+        "Wait for the reset window to pass, or check the upstream failures that opened the circuit.",
+      metadata: { ...metadata, retryAfterMs },
+    });
     this.name = "CircuitBreakerOpenError";
     this.retryAfterMs = retryAfterMs;
   }
 }
+
+/** Factory the breaker throws through: same class, same `CIRCUIT_OPEN` code. */
+const circuitErrors = createErrors({
+  scope: "frontal",
+  ErrorClass: CircuitBreakerOpenError,
+});

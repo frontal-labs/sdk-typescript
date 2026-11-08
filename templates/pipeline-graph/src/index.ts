@@ -1,4 +1,4 @@
-import { Frontal } from "@frontal-labs/sdk";
+import { describeSdkError, Frontal } from "@frontal-labs/sdk";
 
 /**
  * CRM → ontology → lineage:
@@ -34,5 +34,11 @@ export async function run(f: Frontal) {
 
 if (import.meta.main) {
   const f = new Frontal({ apiKey: process.env.FRONTAL_API_KEY! });
-  console.log(await run(f));
+  try {
+    console.log(await run(f));
+  } catch (err) {
+    // Redacted record, not the raw error: it may carry request details.
+    console.error(describeSdkError(err));
+    process.exitCode = 1;
+  }
 }

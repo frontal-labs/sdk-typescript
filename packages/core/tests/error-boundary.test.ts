@@ -2,7 +2,7 @@ import { isFrontalError as isLibraryFrontalError } from "@frontal-labs/error";
 import { describe, expect, it, vi } from "vitest";
 import { CircuitBreakerOpenError } from "../src/circuit-breaker";
 import type { FrontalError } from "../src/errors";
-import { isRetryableError } from "../src/errors";
+import { isRetryableError, TimeoutError } from "../src/errors";
 import { HttpClient } from "../src/http";
 
 const base = {
@@ -70,10 +70,10 @@ describe("HTTP error boundary", () => {
     try {
       const http = clientReturning(() => notFound(), { debug: true } as never);
       await http.get("/x").catch(() => undefined);
-      expect(spy).toHaveBeenCalledWith(
-        "[SDK]",
-        expect.objectContaining({ fingerprint: "frontal/NOT_FOUND" })
-      );
+      expect(spy).toHaveBeenCalledTimes(1);
+      const [text] = spy.mock.calls[0] as [string];
+      expect(text).toContain("NOT_FOUND");
+      expect(text).toContain("missing");
     } finally {
       spy.mockRestore();
     }
@@ -133,7 +133,7 @@ describe("service.name and poll timeouts", () => {
     });
   });
 
-  it("tags polling timeouts with operation=poll and keeps the TIMEOUT code", async () => {
+  it("keeps the TIMEOUT code for polling timeouts and tags operation=poll", async () => {
     const { pollUntil } = await import("../src/polling");
     const error = (await pollUntil(async () => "pending", {
       until: (r) => r === "done",
@@ -142,5 +142,115 @@ describe("service.name and poll timeouts", () => {
     }).catch((e: unknown) => e)) as { code?: string; metadata?: unknown };
     expect(error.code).toBe("TIMEOUT");
     expect(error.metadata).toEqual({ operation: "poll" });
+  });
+});
+
+describe("debug output", () => {
+  it("never prints an API key from the error message", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const http = clientReturning(
+        () => notFound({}, "bad key frt_live_DEBUGKEY1"),
+        { debug: true } as never
+      );
+      await http.get("/x").catch(() => undefined);
+      const printed = spy.mock.calls.map((c) => String(c[0])).join("\n");
+      expect(printed).toContain("NOT_FOUND");
+      expect(printed).not.toContain("DEBUGKEY1");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+});
+
+describe("invalid request and timeout codes", () => {
+  it("invalidRequestError is a TypeError with the invalid_request code", async () => {
+    const { invalidRequestError } = await import("../src/errors");
+    const error = invalidRequestError("bad argument");
+    expect(error).toBeInstanceOf(TypeError);
+    expect(error.code).toBe("invalid_request");
+    expect(error.message).toBe("bad argument");
+  });
+
+  it("keeps request timeouts on the TIMEOUT code", () => {
+    const error = new TimeoutError("slow");
+    expect(error.code).toBe("TIMEOUT");
+    expect(error.fix).toMatch(/timeout/);
+  });
+
+  it("accepts an explicit code and fix for polling-style timeouts", () => {
+    const error = new TimeoutError("poll", {
+      code: "POLL_TIMEOUT",
+      fix: "wait less",
+    });
+    expect(error.code).toBe("POLL_TIMEOUT");
+    expect(error.fix).toBe("wait less");
+    expect(error).toBeInstanceOf(TimeoutError);
+  });
+});
+
+describe("createErrors-built breaker and coded type errors", () => {
+  it("builds CircuitBreakerOpenError through createErrors with the same class and code", async () => {
+    const { createErrors } = await import("@frontal-labs/error");
+    const { CircuitBreakerOpenError: Breaker } = await import(
+      "../src/circuit-breaker"
+    );
+    const factory = createErrors({ scope: "frontal", ErrorClass: Breaker });
+    const error = factory.create("Circuit breaker is open", {
+      code: "CIRCUIT_OPEN",
+      metadata: { retryAfterMs: 2500 },
+    });
+    expect(error).toBeInstanceOf(Breaker);
+    expect(error.code).toBe("CIRCUIT_OPEN");
+    expect(error.retryAfterMs).toBe(2500);
+    expect(error.retryable).toBe(true);
+  });
+
+  it("keeps the original retry-window constructor", async () => {
+    const { CircuitBreakerOpenError: Breaker } = await import(
+      "../src/circuit-breaker"
+    );
+    const error = new Breaker(5000);
+    expect(error.retryAfterMs).toBe(5000);
+    expect(error.message).toBe("Circuit breaker is open — retry after 5s");
+  });
+
+  it("typeErrorWithCode keeps instanceof TypeError and carries the code", async () => {
+    const { typeErrorWithCode } = await import("../src/errors");
+    const error = typeErrorWithCode("unsupported_runtime", "needs zstd");
+    expect(error).toBeInstanceOf(TypeError);
+    expect(error.code).toBe("unsupported_runtime");
+  });
+});
+
+describe("debug output and response links", () => {
+  it("never prints the response link, which can carry a token", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const http = clientReturning(
+        () =>
+          new Response(
+            JSON.stringify({
+              error: {
+                code: "NOT_FOUND",
+                message: "missing",
+                link: "https://docs.test/errors?token=LINKSECRET9",
+              },
+              requestId: "req_link",
+            }),
+            { status: 404 }
+          ),
+        { debug: true } as never
+      );
+      const error = (await http
+        .get("/x")
+        .catch((e: unknown) => e)) as FrontalError;
+      const printed = spy.mock.calls.map((c) => String(c[0])).join("\n");
+      expect(printed).toContain("NOT_FOUND");
+      expect(printed).not.toContain("LINKSECRET9");
+      expect(error.link).toContain("LINKSECRET9");
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

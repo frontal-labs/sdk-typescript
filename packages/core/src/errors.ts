@@ -1,4 +1,7 @@
-import { FrontalError as BaseFrontalError } from "@frontal-labs/error";
+import {
+  FrontalError as BaseFrontalError,
+  type FrontalErrorOptions,
+} from "@frontal-labs/error";
 import { parseErrorResponseData } from "@frontal-labs/error/client";
 import type { z } from "zod";
 import { isObjectRecord } from "./guards";
@@ -374,18 +377,29 @@ export class NetworkError extends BaseFrontalError<string> {
 /**
  * Thrown when an operation exceeds a time limit.
  */
-export class TimeoutError extends BaseFrontalError<string> {
-  declare readonly code: "TIMEOUT";
+/** Codes a `TimeoutError` can carry: a request timeout or a polling timeout. */
+export type TimeoutCode = "TIMEOUT" | "POLL_TIMEOUT";
+
+const DEFAULT_TIMEOUT_FIX =
+  "Increase `timeout` in the client config or reduce the work per request.";
+
+export class TimeoutError extends BaseFrontalError<TimeoutCode> {
+  declare readonly code: TimeoutCode;
   /** Timeouts are transient by nature. */
   readonly retryable = true;
   declare readonly requestId?: string;
   declare readonly fix: string;
-  constructor(message = "Operation timed out") {
-    super(message, {
-      scope: SDK_SCOPE,
-      code: "TIMEOUT",
-      fix: "Increase `timeout` in the client config or reduce the work per request.",
-    });
+  /**
+   * @param message - Developer message.
+   * @param options - Code, fix and metadata. `code` defaults to `TIMEOUT`;
+   *   polling passes `POLL_TIMEOUT`. Built through `createErrors` in polling.
+   */
+  constructor(
+    message = "Operation timed out",
+    options: FrontalErrorOptions<TimeoutCode> = {}
+  ) {
+    const { code = "TIMEOUT", fix = DEFAULT_TIMEOUT_FIX, ...rest } = options;
+    super(message, { ...rest, scope: SDK_SCOPE, code, fix });
     this.name = "TimeoutError";
   }
 
@@ -418,6 +432,29 @@ export type SerializedTransportError = {
   retryable: boolean;
   fix: string;
 };
+
+/** A `TypeError` that also carries a stable `code`. */
+export type CodedTypeError<TCode extends string> = TypeError & {
+  readonly code: TCode;
+};
+
+/** A `TypeError` with a stable code. `instanceof TypeError` keeps working. */
+export function typeErrorWithCode<TCode extends string>(
+  code: TCode,
+  message: string
+): CodedTypeError<TCode> {
+  return Object.assign(new TypeError(message), { code });
+}
+
+/** A `TypeError` with code `invalid_request`: SDK argument validation. */
+export type InvalidRequestError = CodedTypeError<"invalid_request">;
+
+/**
+ * Argument validation the SDK raises before any request is sent.
+ */
+export function invalidRequestError(message: string): InvalidRequestError {
+  return typeErrorWithCode("invalid_request", message);
+}
 
 /** Any error the SDK can surface from a request or stream. */
 export type SdkError = FrontalError | NetworkError | TimeoutError;

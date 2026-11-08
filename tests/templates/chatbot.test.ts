@@ -65,6 +65,7 @@ describe("templates/chatbot route errors", () => {
       new Request("http://localhost/api/chat", { method: "POST", body: "not json" })
     );
     expect(res.status).toBe(400);
+    expect(res.headers.get("Access-Control-Expose-Headers")).toBe("x-frontal-id");
     const body = await res.json();
     expect(body.error).toMatchObject({
       scope: "app",

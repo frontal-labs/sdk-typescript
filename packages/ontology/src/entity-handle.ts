@@ -1,6 +1,7 @@
 import {
   ConflictError,
   type HttpClient,
+  invalidRequestError,
   isFrontalError,
   PreconditionFailedError,
   raw,
@@ -123,31 +124,31 @@ function buildMetas(
   const metas = new Map<string, EntityMeta>();
   for (const name of data.entities) {
     if (sdkMembers(name)) {
-      throw new TypeError(
+      throw invalidRequestError(
         `Ontology entity "${name}" collides with an SDK member on ontology. Rename the entity.`
       );
     }
     const fields = ownValue(data.fields, name);
     if (fields === undefined) {
-      throw new TypeError(
+      throw invalidRequestError(
         `Ontology entity "${name}" has no fields in runtime metadata.`
       );
     }
     if (ownValue(fields, "id") === undefined) {
-      throw new TypeError(
+      throw invalidRequestError(
         `Ontology entity "${name}" must list "id" in its fields.`
       );
     }
     const objectTypeId = ownValue(data.objectTypeIds, name);
     if (typeof objectTypeId !== "string" || objectTypeId.length === 0) {
-      throw new TypeError(
+      throw invalidRequestError(
         `Ontology entity "${name}" has no objectTypeIds entry in runtime metadata.`
       );
     }
     const writable = ownValue(data.writable, name) ?? [];
     for (const field of writable) {
       if (ownValue(fields, field) === undefined) {
-        throw new TypeError(
+        throw invalidRequestError(
           `Ontology entity "${name}" lists writable field "${field}" that is not in its fields.`
         );
       }
@@ -163,7 +164,7 @@ function buildMetas(
   for (const meta of metas.values()) {
     for (const [relation, spec] of Object.entries(meta.relations)) {
       if (!metas.has(spec.target)) {
-        throw new TypeError(
+        throw invalidRequestError(
           `Relation "${meta.name}.${relation}" targets "${spec.target}", which is not an entity in the runtime metadata.`
         );
       }
@@ -171,12 +172,12 @@ function buildMetas(
         spec.cardinality === "belongsTo" &&
         ownValue(meta.fields, spec.foreignKey) === undefined
       ) {
-        throw new TypeError(
+        throw invalidRequestError(
           `Relation "${meta.name}.${relation}" uses foreign key "${spec.foreignKey}", which is not a field of ${meta.name}.`
         );
       }
       if (ownValue(meta.fields, relation) !== undefined) {
-        throw new TypeError(
+        throw invalidRequestError(
           `Relation "${meta.name}.${relation}" has the same name as a field.`
         );
       }
@@ -246,7 +247,7 @@ function createOps(http: HttpClient, source: MetaSource): Ops {
     const metas = await source();
     const meta = metas.get(entity);
     if (meta === undefined) {
-      throw new TypeError(
+      throw invalidRequestError(
         `Entity "${entity}" is not in the live ontology; types may be out of date, run frontal sync`
       );
     }
@@ -443,7 +444,7 @@ function createOps(http: HttpClient, source: MetaSource): Ops {
         return resolveMany(record, meta, relation, spec);
       default: {
         const unreachable: never = spec;
-        throw new TypeError(
+        throw invalidRequestError(
           `Relation "${meta.name}.${relation}" has an unknown cardinality: ${JSON.stringify(unreachable)}`
         );
       }
@@ -684,7 +685,7 @@ export function withEntityHandles<O>(
         return undefined;
       }
       if (pinnedNames !== undefined && !pinnedNames.has(prop)) {
-        throw new TypeError(
+        throw invalidRequestError(
           `Unknown ontology entity "${prop}". Known entities: ${describeKnown}.`
         );
       }
