@@ -83,7 +83,8 @@ decisions, `f.ai.decisions.models()` returns the models the gateway serves.
 ## Error taxonomy
 
 All API failures throw a `FrontalError` subclass from `@frontal-labs/core`
-(re-exported by `@frontal-labs/sdk`):
+(re-exported by `@frontal-labs/sdk`). Every SDK error extends the shared
+`@frontal-labs/error` base class, so its `code` and `scope` are stable.
 
 | Class | Status | Extra fields |
 | --- | --- | --- |
@@ -94,15 +95,27 @@ All API failures throw a `FrontalError` subclass from `@frontal-labs/core`
 | `ConflictError` | 409 | — |
 | `RateLimitError` | 429 | `retryAfter` (seconds), `rateLimit` |
 | `ServiceError` | 5xx | — |
-| `NetworkError` | — | `cause` (not a `FrontalError`; request never reached the API) |
-| `TimeoutError` | — | — |
+| `NetworkError` | — | `cause` (request never reached the API), code `NETWORK_ERROR` |
+| `TimeoutError` | — | code `TIMEOUT` |
+| `CircuitBreakerOpenError` | — | `retryAfterMs`, code `CIRCUIT_OPEN` |
 
-Every `FrontalError` has `code`, `message`, `requestId`, `statusCode`,
-`retryable`, an optional `fix` hint and an optional `docs` URL. Streams
+Every error has `code`, `message`, `statusCode`, `retryable` and an optional
+`fix` hint. `FrontalError`s also have `requestId` and `docs`. Streams
 (`ai.streamText().fullStream`, `agents.use(id).watch()`) never throw
-mid-stream: they yield `{ type: "error", error }` parts, then `done`. Log
-`requestId`; it correlates with
-`f.observability.logs.query({ query: \`requestId:"..."\` })`.
+mid-stream: they yield `{ type: "error", error }` parts, then `done`.
+
+Rules for code that handles errors:
+
+- Branch on `code` and `statusCode`, never on `message`. Messages are for
+  developers and may change.
+- Use `isRetryableError(err)` to decide on retries. It covers every SDK error.
+- `isFrontalError` checks only `FrontalError`, so it is `false` for
+  `NetworkError` and `TimeoutError`. Use `instanceof` or `isRetryableError`.
+- For logs, use `describeSdkError(err)`. It drops `cause` and `stack` and
+  redacts `frt_` keys. Its `fingerprint` groups errors by `scope/code`.
+- To show a message to an end user, use `getPublicMessage(err)` from
+  `@frontal-labs/react`. `message` is developer text and must not be shown.
+  Only the server's `public` message is safe to show.
 
 ```ts
 import { Frontal, RateLimitError, ValidationError } from "@frontal-labs/sdk";
@@ -117,6 +130,17 @@ try {
   } else {
     throw err;
   }
+}
+```
+
+```ts
+import { describeSdkError, isRetryableError } from "@frontal-labs/sdk";
+
+try {
+  await f.ai.generateText({ model: "claude-sonnet-5", prompt: "hi" });
+} catch (err) {
+  console.error(describeSdkError(err)); // e.g. fingerprint "frontal/RATE_LIMITED"
+  if (!isRetryableError(err)) throw err;
 }
 ```
 

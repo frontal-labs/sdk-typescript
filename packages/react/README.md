@@ -106,6 +106,19 @@ Returns `{ messages, status, error, send, stop, retry, setMessages }`.
 `messages[i].parts` is a discriminated union of `text`, `tool-call`
 (`state: "pending" | "done" | "error"`) and `error`.
 
+### `getPublicMessage(error, fallback?)`
+
+Returns text that is safe to show to an end user: the server's `public` message
+when one is set, otherwise `fallback` (default `"Something went wrong."`). It never
+returns the developer `message`, which can contain API text or internal detail.
+
+```ts
+import { getPublicMessage, useChat } from "@frontal-labs/react";
+
+const { error } = useChat({ api: "/api/chat" });
+const banner = error ? getPublicMessage(error) : undefined;
+```
+
 ### `useAgentRun(agent, options)`
 
 Agents are event-driven, not chat: `trigger(event, payload)` starts a run and

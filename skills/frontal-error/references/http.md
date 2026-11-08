@@ -1,0 +1,173 @@
+# Response data and HTTP boundaries
+
+Use this reference for producing and consuming `ErrorResponseData`, building HTTP response fields, and reading a Web `Response`.
+
+## Data producer
+
+Client-safe data is `errorResponse(source).data`, available from `@frontal-labs/error/server`. The standalone builder was removed from the public surface; check the installed version and exports first. The entry works in browser, worker, edge, and Node runtimes.
+
+A `getGitHubIssue` tool can return this data when its application classifies a failed GitHub request as `unavailable` (for example, HTTP 503):
+
+```ts
+import { errorResponse, type ErrorResponseInput } from "@frontal-labs/error/server";
+
+const input: ErrorResponseInput = {
+  scope: "github",
+  code: "unavailable",
+  public: { message: "We could not retrieve the GitHub issue." },
+};
+const { data } = errorResponse(input);
+const toolResult = { success: false, ...data };
+```
+
+The result does not establish whether the issue exists or authorize a retry. The application owns retry policy. To preserve and report the original failure, pass the error returned by [`reportGitHubIssueFailure`](create-errors.md#allowlisted-logging) to the builder.
+
+The builder accepts `RecognizedFrontalError` or explicit `ErrorResponseInput`. `FrontalErrorLike` remains structural and does not prove recognition.
+
+Local `FrontalError` instances, subclasses, and factory results satisfy the recognized input. `isFrontalError()` narrows unknown values to that type.
+
+Recognized errors without `public` keep their identity and use `An error occurred.` Explicit input requires nested `public`; a top-level `message` never substitutes for it.
+
+Version 0.6.0 adds the recognized-error requirement to the producer types. Version 0.5.0 applies the same runtime recognition and disclosure checks, but its types allow plain `Error` inputs that the builder rejects at runtime.
+
+The builder throws `TypeError` for non-object input, invalid identity or public details, malformed tagged data, plain `Error` values, untagged objects with `name` or `stack`, or missing `public`.
+
+Explicit input excludes `name` and `stack`. When `exactOptionalPropertyTypes` is off, `name: undefined` and `stack: undefined` may typecheck, but runtime validation rejects them.
+
+If a value is annotated only as `FrontalErrorLike`, keep its concrete type or recognize it before producing response data.
+
+A custom constructor compiled against older declarations may need a dependency update before it can be passed to the current `createErrors()`. Recognizing an instance does not change its constructor type.
+
+Each call returns fresh mutable plain data containing only identity and approved text. It does not write to the source, report, perform I/O, negotiate a format, or call source methods. Getters and Proxy traps can run; their exceptions propagate.
+
+Data production does not select or range-check HTTP status. Tagged validation still requires numeric `statusCode` when set; `errorResponse()` separately requires an integer from 400 through 599. `ErrorResponseInput` extends `ErrorResponseInput` with optional `statusCode`.
+
+Approve scope and code as well as public text for the recipient. Shape and the forgeable tag do not authenticate the producer or authorize recovery actions. Logs need a separate [allowlist](create-errors.md#allowlisted-logging).
+
+Applications own tool and message schemas. Update them and their consumers before adding the envelope; project `data.error.message` into an existing field when needed.
+
+## HTTP producer
+
+Put every client-approved prose field under `public`. A `FrontalError` without `public` receives the fixed response message `An error occurred.`; developer prose never fills the response.
+
+The example assumes the application contract approves HTTP 503, the `deployments:deployment_unavailable` identity, and the public copy.
+
+```ts
+import { FrontalError } from "@frontal-labs/error";
+import { errorResponse, type ErrorResponse } from "@frontal-labs/error/server";
+
+export function deploymentErrorResponse(cause: unknown, request: Request): Response {
+  const error = new FrontalError("Deployment dep_123 failed against builder.internal", {
+    cause,
+    code: "deployment_unavailable",
+    scope: "deployments",
+    statusCode: 503,
+    reason: "The internal builder stopped before producing an artifact.",
+    public: {
+      message: "The deployment is temporarily unavailable.",
+      fix: "Try the deployment again shortly.",
+    },
+  });
+
+  const result: ErrorResponse = errorResponse(error, { request });
+  return new Response(result.body, result);
+}
+```
+
+`statusCode` must be an integer from 400 through 599. Omission defaults to 500. Invalid values throw before the response body is built or diagnostics run.
+
+Pass `request` to choose JSON or ANSI from headers. Both formats use the same client-approved fields. Selection follows this order:
+
+1. `X-Error-Format` wins when present. Only exact `ansi` selects ANSI; other values select JSON.
+2. Otherwise, check exact `text/plain+ansi` ranges in `Accept`. A valid `q > 0` selects ANSI; missing `q` counts as `1`. Match the media type and `q` name without case sensitivity. Duplicates use the highest valid `q`.
+3. Unsupported parameters, including a non-UTF-8 charset, cannot select ANSI. If exact ranges exist but none qualifies, use JSON without checking `User-Agent`.
+4. If no exact range exists, a case-sensitive `curl/` in `User-Agent` selects ANSI. Wildcards do not select ANSI.
+
+These headers choose a format. They do not authenticate the caller or authorize disclosure.
+
+JSON uses `Content-Type: application/json`. ANSI uses `Content-Type: text/plain+ansi; charset=utf-8`. Whenever `request` is supplied, both include `Vary: X-Error-Format, Accept, User-Agent`. Without `request`, `Vary` is omitted.
+
+Scope, code, and status are public disclosures even when the generic message is used. Protected-resource handlers own neutral mappings that do not reveal whether a resource exists.
+
+### Explicit public input
+
+`ErrorResponseInput` requires nested `public` details. Treat every field under `public` as approved for the response:
+
+```ts
+const result = errorResponse({
+  scope: "api",
+  code: "rate_limited",
+  statusCode: 429,
+  public: {
+    message: "Too many requests.",
+    hint: "Wait before retrying.",
+  },
+});
+```
+
+Explicit input and `FrontalError` both use `statusCode`. The returned result and native `Response` use the concrete property `status`. A top-level `message` never substitutes for `public.message`.
+
+Pass native, cross-realm, or Proxy-wrapped `Error` values through `cause` on a `FrontalError`. `errorResponse()` rejects untagged Error-shaped objects and inputs without nested `public` details.
+
+### Serialization diagnostics
+
+`onSerialize` runs synchronously after the complete response is built:
+
+```ts
+import { FrontalError } from "@frontal-labs/error";
+
+const result = errorResponse(error, {
+  onSerialize: (source, context) => {
+    if (source instanceof FrontalError) {
+      recordErrorResponse(source.attributes, context);
+    }
+  },
+  request,
+});
+```
+
+The callback receives the same recognized error or explicit `ErrorResponseInput` accepted by `errorResponse()`. It also receives `{ status, bodyFormat }`, where `bodyFormat` is `json` or `ansi`.
+
+Metadata and attributes on tagged cross-realm errors remain `unknown`. Validate them or use `instanceof FrontalError` for typed local diagnostics. The callback returns `undefined`, so TypeScript rejects async callbacks. Callback exceptions propagate instead of returning the response.
+
+## Response data contract
+
+`message` is required and nonblank. `scope` and `code` must be nonblank when present. Blank optional `reason`, `hint`, `fix`, and `link` fields are omitted; other text stays unchanged.
+
+`ErrorResponseData` excludes HTTP status, request ID, cause, stack, developer name, metadata, and attributes. For HTTP, use the observed response status. Check the source before forwarding data through another channel.
+
+The body is an `{ error: ... }` envelope, not RFC 9457 problem details. When an integration requires `application/problem+json`, translate in the application: `code` plus `link` map to `type`, `message` maps to `detail`, and the other fields become extension members.
+
+## Consumer
+
+Use `fromHttpResponse()` to validate and reconstruct a package error. Retain the local HTTP failure when the response is not a valid package response.
+
+```ts
+import { fromHttpResponse } from "@frontal-labs/error/client";
+
+const response = await fetch(url);
+
+if (!response.ok) {
+  const failedFetch = new Error(`${response.url} returned ${response.status}`);
+  const error = await fromHttpResponse(response, { cause: failedFetch });
+
+  reporter.captureException(error ?? failedFetch);
+  throw error ?? failedFetch;
+}
+```
+
+`fromHttpResponse()` accepts only 400 through 599 responses with an `application/json` content type and valid `ErrorResponseData`. It uses the observed status and reads `x-frontal-id` into `requestId` by default. An explicit `requestId` wins. Set `requestIdHeader` to another header name or to `false` to skip lookup. Cross-origin browser responses must expose a non-safelisted request ID header through `Access-Control-Expose-Headers`.
+
+The function returns `undefined` without consuming non-error or non-JSON responses. Once it attempts JSON parsing, the body is consumed even if parsing or validation fails. It does not report or create a fallback.
+
+Use `parseErrorResponseData()` for unknown decoded data. Use `fromErrorResponseData()` to make a `FrontalError` from data that passed parsing.
+
+Parsing requires a nonblank `message`, plus nonblank `scope` and `code` when present. A wrong type in any known field rejects the data. Blank optional fields are omitted; unknown fields are ignored.
+
+`fromErrorResponseData()` copies parsed fields into a new error. Supply local context and, for HTTP, the observed response status.
+
+Parsing validates shape only. It does not authenticate the producer, make the fields safe for a different recipient, or authorize an action. Verify the producer and review all fields before forwarding them; validate permissions, parameters, and side effects before following a fix or link. Apply the [Recovery authority rules](contract-design.md#recovery-authority).
+
+## Boundary checks
+
+For data producers, test the public import, approved fields, diagnostic exclusions, and serialization followed by parsing and reconstruction. For HTTP, test body, concrete status, and headers together. Cover nested public input, rejection of legacy flat input, the generic fallback, scope/code disclosure, malformed known fields, unknown fields, reconstruction with the observed response status, and JSON/ANSI parity. If diagnostics callbacks are wired, test ordering and synchronous failure propagation.
