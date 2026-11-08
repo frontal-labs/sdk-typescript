@@ -233,3 +233,19 @@ describe("UI message stream edge cases", () => {
     expect(applyUIFrame(msg, { type: "abort" })).toBe(msg);
   });
 });
+
+describe("serializeError identifiers", () => {
+  it("replaces free-text code and name with safe defaults", () => {
+    const serialized = serializeError(
+      Object.assign(new Error("x"), {
+        name: "token frt_live_LEAKNAME",
+        code: "failed for frt_live_LEAKCODE",
+      })
+    );
+    expect(serialized).toMatchObject({
+      code: "UNKNOWN_ERROR",
+      name: undefined,
+    });
+    expect(JSON.stringify(serialized)).not.toContain("LEAK");
+  });
+});

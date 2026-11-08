@@ -61,6 +61,19 @@ export interface UIMessage {
   text: string;
 }
 
+/** Identifiers are short tokens such as `RATE_LIMITED`; anything else is untrusted text. */
+const IDENTIFIER = /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/;
+
+function identifierOr(value: unknown, fallback: string): string {
+  return typeof value === "string" && IDENTIFIER.test(value) ? value : fallback;
+}
+
+function identifierOrUndefined(value: unknown): string | undefined {
+  return typeof value === "string" && IDENTIFIER.test(value)
+    ? value
+    : undefined;
+}
+
 /**
  * Serializes an error for a UI stream. Only the fields an end user may see
  * leave the server: `code`, `statusCode`, `retryable`, and the server-approved
@@ -71,11 +84,10 @@ export function serializeError(error: unknown): UIError {
   const e = (error ?? {}) as Partial<SdkError> & {
     public?: { message?: unknown };
   };
-  const code =
-    typeof e.code === "string" && e.code.length > 0 ? e.code : "UNKNOWN_ERROR";
+  const code = identifierOr(e.code, "UNKNOWN_ERROR");
   const publicMessage = e.public?.message;
   return {
-    name: typeof e.name === "string" ? e.name : undefined,
+    name: identifierOrUndefined(e.name),
     code,
     message:
       typeof publicMessage === "string" && publicMessage.trim().length > 0
