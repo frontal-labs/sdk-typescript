@@ -58,9 +58,9 @@
     "test:examples": "vitest run tests/examples"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.5",
+    "@biomejs/biome": "^2.6.6",
     "@changesets/cli": "3.0.3",
-    "@clack/prompts": "^1.8.1",
+    "@clack/prompts": "^1.9.0",
     "@commitlint/cli": "21.2.4",
     "@commitlint/config-conventional": "21.2.4",
     "@frontal-labs/error": "0.7.0",
@@ -71,7 +71,7 @@
     "@types/node": "^26.6.6",
     "@types/react": "^19.1.0",
     "@vitest/coverage-v8": "5.1.0",
-    "commander": "^15.0.0",
+    "commander": "^15.1.0",
     "lefthook": "^2.2.2",
     "lint-staged": "17.6.0",
     "miniflare": "4.20260730.0",
